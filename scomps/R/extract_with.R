@@ -1,4 +1,4 @@
-# Generated from litr_package_template.rmd: do not edit by hand
+# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' A portal function to extract with points, buffers, and polygons (to be written) 
 #' 

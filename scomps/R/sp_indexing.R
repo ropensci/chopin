@@ -1,4 +1,4 @@
-# Generated from litr_package_template.rmd: do not edit by hand
+# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' @title Create integer indices for grid
 #' @description Returns a tibble object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.

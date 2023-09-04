@@ -1,4 +1,4 @@
-# Generated from litr_package_template.rmd: do not edit by hand
+# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Clip with a polygon (to be written)
 #' 

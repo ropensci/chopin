@@ -1,4 +1,4 @@
-# Generated from litr_package_template.rmd: do not edit by hand
+# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' @title clip_as_extent_ras2: Clip input raster (version 2).
 #' @description Clip input raster by the expected maximum extent of computation. 

@@ -1,4 +1,4 @@
-# Generated from litr_package_template.rmd: do not edit by hand
+# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Check Coordinate Reference System
 #' @param x sf/stars/SpatVector/SpatRaster object.

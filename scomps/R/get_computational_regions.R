@@ -1,4 +1,4 @@
-# Generated from litr_package_template.rmd: do not edit by hand
+# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Get a set of computational regions
 #' 
@@ -24,7 +24,7 @@ get_computational_regions <- function(input, mode = "grid", nx = 10, ny = 10, gr
   package_detected = check_packbound(input)
   # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
   stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
-  stopifnot("Ensure nx, ny, grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
+  stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
   stopifnot("padding should be numeric. We convert padding to numeric...\n" = !is.numeric(padding))
   # valid unit compatible with units::set_units?
 
@@ -50,8 +50,8 @@ sp_index_grid <- function(points_in, ncutsx, ncutsy){
   package_detected = check_packbound(points_in)
 
   sp_index_grid.sf = function(points_in, ncutsx, ncutsy) {
-    grid1 <- st_make_grid(points_in, n = c(ncutsx, ncutsy)) |> 
-      as_tibble() |> 
+    grid1 <- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |> 
+      as.data.frame() |> 
       st_as_sf()
     grid1 <- grid1[points_in, ]
     return(grid1)

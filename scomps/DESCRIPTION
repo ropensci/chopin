@@ -1,6 +1,6 @@
 Package: scomps
 Title: Scalable R geospatial computation
-Version: 0.0.1
+Version: 0.0.1.09032023
 Authors@R: 
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
@@ -16,9 +16,9 @@ Imports:
     future,
     future.apply,
     sf,
-    stars,
     terra
 Suggests: 
-    exactextractr,
-    igraph
-LitrId: 7e60ee50214f1ed594120b153ca61f4b
+    future.batchtools,
+    igraph,
+    logr
+LitrId: c705bdc06dfbe7def0f37a60b551d267
