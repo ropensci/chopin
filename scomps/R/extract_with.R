@@ -21,7 +21,7 @@ extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...)
     if (!mode %in% c("polygon", "buffer")) {
       stop("Argument 'mode' should be one of 'polygon' or 'buffer'.\n")
     }
-    stopifnot(is(id, character))
+    stopifnot(is.character(id))
     stopifnot(id %in% names(vector))
 
     extracted = 
