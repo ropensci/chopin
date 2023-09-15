@@ -4,7 +4,7 @@
 #' 
 #' @export 
 extract_with_buffer.flat <- function(
-        points, surf, radius, id, qsegs, kernel = NULL, bandwidth = NULL
+        points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
     ) {
     # generate buffers
     bufs = terra::buffer(points, width = radius, quadsegs = qsegs)

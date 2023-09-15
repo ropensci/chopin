@@ -10,6 +10,7 @@ extract_with_buffer.flat(
   radius,
   id,
   qsegs,
+  func = mean,
   kernel = NULL,
   bandwidth = NULL
 )

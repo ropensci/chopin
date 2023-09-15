@@ -10,6 +10,7 @@ extract_with_buffer(
   radius,
   id,
   qsegs = 90,
+  func = mean,
   kernel = NULL,
   bandwidth = NULL
 )
@@ -24,6 +25,8 @@ extract_with_buffer(
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{qsegs}{integer(1). Number of vertices at a quarter of a circle. Default is 90.}
+
+\item{func}{a function taking a numeric vector argument.}
 
 \item{kernel}{character(1). Name of a kernel function (yet to be implemented)}
 

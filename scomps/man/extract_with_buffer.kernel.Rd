@@ -4,7 +4,16 @@
 \alias{extract_with_buffer.kernel}
 \title{Subfunction: extract with buffers (kernel weight; weighted mean)}
 \usage{
-extract_with_buffer.kernel(points, surf, radius, id, qsegs, kernel, bandwidth)
+extract_with_buffer.kernel(
+  points,
+  surf,
+  radius,
+  id,
+  qsegs,
+  func = mean,
+  kernel,
+  bandwidth
+)
 }
 \description{
 Subfunction: extract with buffers (kernel weight; weighted mean)

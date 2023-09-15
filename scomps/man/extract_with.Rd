@@ -2,28 +2,31 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{extract_with}
 \alias{extract_with}
-\title{A portal function to extract with points, buffers, and polygons (to be written)}
+\title{Extract raster values with point buffers or polygons}
 \usage{
-extract_with(points, surf, radius, ...)
+extract_with(raster, vector, id, func = mean, mode = "polygon", ...)
 }
 \arguments{
-\item{points}{Points}
+\item{raster}{SpatRaster object.}
 
-\item{surf}{Surface}
+\item{vector}{SpatVector object.}
 
-\item{radius}{Radius}
-}
-\value{
-A data.frame object.
+\item{id}{character(1). Unique identifier of each point.}
+
+\item{func}{function taking one numeric vector argument.}
+
+\item{mode}{one of "polygon" (generic polygons to extract raster values with) or "buffer" (point with buffer radius)}
+
+\item{...}{various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.}
 }
 \description{
-Extract with whatever sf or SpatVector objects are
+Extract raster values with point buffers or polygons
 }
 \examples{
 # data
 
 # run
-extract_with()
+clip_with()
 
 }
 \author{

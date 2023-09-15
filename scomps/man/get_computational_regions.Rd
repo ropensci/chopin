@@ -28,7 +28,7 @@ get_computational_regions(
 
 \item{padding}{numeric(1). A extrusion factor to make buffer to clip actual datasets. Depending on the length unit of the CRS of input.}
 
-\item{unit}{character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See \ref{units package vignette (web)}{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html} for the list of acceptable unit forms.}
+\item{unit}{character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See \link{units package vignette (web)}{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html} for the list of acceptable unit forms.}
 }
 \value{
 A set of polygons in the input class

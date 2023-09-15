@@ -4,7 +4,7 @@
 \alias{detect_class}
 \title{Detect input classes}
 \usage{
-detect_class(input, template, ...)
+detect_class(input, template = NULL, ...)
 }
 \arguments{
 \item{input}{A sf/stars/SpatVector/SpatRaster object.}

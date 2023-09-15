@@ -8,6 +8,7 @@
 #' @param radius numeric(1). Buffer radius. here we assume circular buffers only
 #' @param id character(1). Unique identifier of each point.
 #' @param qsegs integer(1). Number of vertices at a quarter of a circle. Default is 90.
+#' @param func a function taking a numeric vector argument.
 #' @param kernel character(1). Name of a kernel function (yet to be implemented)
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @return a data.frame object with mean value
@@ -15,7 +16,7 @@
 #' 
 #' @export
 extract_with_buffer <- function(
-    points, surf, radius, id, qsegs = 90, kernel = NULL, bandwidth = NULL
+    points, surf, radius, id, qsegs = 90, func = mean, kernel = NULL, bandwidth = NULL
     ) {
     # type check
     stopifnot("Check class of the input points.\n" = is(points, "SpatVector"))
@@ -28,6 +29,7 @@ extract_with_buffer <- function(
                                       surf = surf,
                                       radius = radius,
                                       id = id,
+                                      func = func,
                                       qsegs = qsegs)
         return(extracted)
     }
@@ -36,6 +38,7 @@ extract_with_buffer <- function(
                                            surf = surf,
                                            radius = radius,
                                            id = id,
+                                           func = func,
                                            qsegs = qsegs,
                                            kernel = kernel,
                                            bandwidth = bandwidth)

@@ -14,6 +14,6 @@
 #' detect_class()
 #' 
 #' @export 
-detect_class <- function(input, template, ...) {
+detect_class <- function(input, template = NULL, ...) {
 
 }
