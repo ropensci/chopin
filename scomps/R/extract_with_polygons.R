@@ -17,7 +17,7 @@ extract_with_polygons <- function(
     ) {
     # type check
     stopifnot("Check class of the input points.\n" = is(polys, "SpatVector"))
-    stopifnot(is(id, character))
+    stopifnot(is.character(id))
 
     extracted = terra::extract(surf, polys)
     extracted = extracted |>

@@ -21,7 +21,7 @@ extract_with_buffer.kernel <- function(
         surf_at_bufs_summary = 
             surf_at_bufs |> 
                 group_by(ID) |> 
-                summarize(mean_val = mean(get(name_surf_val), na.rm=T)) |> 
+                summarize(across(all_of(name_surf_val), ~mean, na.rm=T)) |> 
                 ungroup()
         return(surf_at_bufs_summary)
 }

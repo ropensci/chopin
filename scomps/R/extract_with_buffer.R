@@ -20,9 +20,9 @@ extract_with_buffer <- function(
     ) {
     # type check
     stopifnot("Check class of the input points.\n" = is(points, "SpatVector"))
-    stopifnot("Check class of the input radius.\n" = is(radius, integer))
-    stopifnot(is(id, character))
-    stopifnot(is(qsegs, integer))
+    stopifnot("Check class of the input radius.\n" = is.numeric(radius))
+    stopifnot(is.character(id))
+    stopifnot(is.integer(qsegs))
 
     if (!is.null(kernel)) {
         extracted = extract_with_buffer.flat(points = points,

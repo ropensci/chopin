@@ -13,10 +13,10 @@
 check_bbox <- function(
   data_query, reference, reference_crs = NULL
 ) {
-  if (is(reference, numeric) && is.null(reference_crs)) {
+  if (is.numeric(reference) && is.null(reference_crs)) {
     stop("CRS should be entered when the reference extent is a vector.\n")
   }
-  if (is(reference, numeric) && !is.null(reference_crs)) {
+  if (is.numeric(reference) && !is.null(reference_crs)) {
     reference = sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
   }
   query_crs = check_crs(data_query)
