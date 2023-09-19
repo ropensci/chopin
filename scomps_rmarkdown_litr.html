@@ -368,7 +368,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.0.2.09152023&quot;,
+    Version = &quot;0.0.2.09192023&quot;,
     Title = &quot;Scalable R geospatial computation&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = person(
@@ -953,6 +953,77 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     stopifnot(&quot;No CRS is defined in the input. Please consult the metadata or the data source.\n&quot; = !is.na(crs_wkt) || crs_wkt != &quot;&quot;)
     return(crs_wkt)
 }</code></pre>
+<pre class="r"><code>#&#39; Check if the boundary of the vector/raster object is inside the reference
+#&#39; @param input_object sf/stars/SpatVector/SpatRaster object.
+#&#39; @param reference sf/stars/SpatVector/SpatRaster object.
+#&#39; @return logical
+#&#39; @author Insang Song \email{geoissong@@gmail.com}
+#&#39; @export 
+<span id='check_within_reference'>check_within_reference</span> &lt;- function(input_object, reference) {
+    stopifnot(&quot;Input is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
+    stopifnot(&quot;Reference is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
+
+  bbox_input &lt;- input_object
+    sf::st_bbox() |&gt;
+    sf::st_as_sfc()
+  
+  bbox_reference = reference |&gt;
+    sf::st_bbox() |&gt;
+    sf::st_as_sfc()
+
+  iswithin = sf::st_covered_by(bbox_input, bbox_reference)
+  iswithin = length(iswithin[[1]])
+  iswithin = (iswithin == 1)
+  invisible(iswithin)
+}
+
+</code></pre>
+<pre class="r"><code>#&#39; Calculate SEDC covariates
+#&#39; @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
+#&#39; @param point_to SpatVector object. Locations where each SEDC is calculated.
+#&#39; @param sdec_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
+#&#39; @param threshold numeric(1). For computational efficiency, the nearest points in threshold will be selected
+#&#39; @param target_fields character(varying). Field names in characters.
+#&#39; @description NOTE: sf implementation is pending. Only available for terra.
+#&#39; @author Insang Song
+#&#39; @export
+<span id='calculate_sedc'>calculate_sedc</span> &lt;- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
+  # define sources, set SEDC exponential decay range
+  len_point_from = seq_len(nrow(point_from))
+  len_point_to = seq_len(nrow(point_to))
+
+  point_from$from_id = len_point_from
+  # select egrid_v only if closer than 3e5 meters from each aqs
+  point_from_buf = terra::buffer(point_from_buf, threshold = threshold, quadsegs = 90)
+  point_to = point_to[point_from_buf,]
+  point_to$to_id = len_point_to
+
+  # near features with distance argument: only returns integer indices
+  near_from_to = terra::nearby(point_from, point_to, distance = threshold)
+  # attaching actual distance
+  dist_near_to = terra::distance(point_from, point_to)
+  dist_near_to_df = as.vector(dist_near_to)
+  # adding integer indices
+  dist_near_to_tdf = expand.grid(from_id = len_point_from, to_id = len_point_to)
+  dist_near_to_df = cbind(dist_near_to_tdf, dist = dist_near_to_df)
+
+  # summary
+  near_from_to = near_from_to |&gt;
+    as_tibble() |&gt;
+    left_join(data.frame(point_from)) |&gt;
+    left_join(data.frame(point_to)) |&gt;
+    left_join(dist_near_to_df) |&gt;
+    # per the definition in https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
+    # exp(-3) is about 0.05
+    mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |&gt;
+    group_by(!!sym(id)) |&gt;
+    summarize(across(all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |&gt;
+    ungroup()
+
+  invisible(near_from_to)
+  
+}
+</code></pre>
 <pre class="r"><code>#&#39; Computing area weighted covariates using two polygon sf or SpatVector objects
 #&#39; @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #&#39; @param poly_weight A sf/SpatVector object from which weighted means will be calculated.
@@ -1169,10 +1240,12 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 <pre><code>## Warning: [extract_with.R:11] @return requires a value</code></pre>
 <pre><code>## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;aw_covariates.Rd&#39;
+## Writing &#39;calculate_sedc.Rd&#39;
 ## Writing &#39;check_bbox.Rd&#39;
 ## Writing &#39;check_crs.Rd&#39;
 ## Writing &#39;check_crs2.Rd&#39;
 ## Writing &#39;check_packbound.Rd&#39;
+## Writing &#39;check_within_reference.Rd&#39;
 ## Writing &#39;clip_as_extent.Rd&#39;
 ## Writing &#39;clip_as_extent_ras.Rd&#39;
 ## Writing &#39;clip_as_extent_ras2.Rd&#39;
@@ -1207,10 +1280,10 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09152023.tar.gz’
+## * building ‘scomps_0.0.2.09192023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.09152023.tar.gz&quot;</code></pre>
+<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.09192023.tar.gz&quot;</code></pre>
 <pre><code>## 
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
@@ -1227,12 +1300,12 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09152023.tar.gz’
+## * building ‘scomps_0.0.2.09192023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpI1tXyB/scomps_0.0.2.09152023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpsaaOtt/scomps_0.0.2.09192023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
