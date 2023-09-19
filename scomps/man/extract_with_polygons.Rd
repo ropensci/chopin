@@ -7,9 +7,9 @@
 extract_with_polygons(polys, surf, id, func = mean, na.rm = TRUE)
 }
 \arguments{
-\item{polys}{SpatVector object. Polygons.}
+\item{polys}{sf/SpatVector object. Polygons.}
 
-\item{surf}{SpatRaster object. A raster of whatnot a summary will be calculated}
+\item{surf}{stars/SpatRaster object. A raster of whatnot a summary will be calculated}
 
 \item{id}{character(1). Unique identifier of each point.}
 

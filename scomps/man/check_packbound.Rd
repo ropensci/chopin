@@ -10,7 +10,7 @@ check_packbound(input)
 \item{input}{Spat* in terra or sf object.}
 }
 \value{
-A character object; one of terra and sf
+A character object; one of 'terra' and 'sf'
 }
 \description{
 Detect whether the input object is sf or Spat* object.

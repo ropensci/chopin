@@ -79,20 +79,56 @@ litr::add_vignettes("../vignettes-sources/01_generate_computational_grid.Rmd")
 ```{r}
 #' @title Return the package the input object is based on
 #' @description Detect whether the input object is sf or Spat* object.
-#' @title check_packbound
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
-#' @return A character object; one of terra and sf
+#' @return A character object; one of 'terra' and 'sf'
 #' @export
 check_packbound <- function(input) {
-  cl_inobj = class(input)[1]
-  stopifnot("Input should be one of sf or Spat* object.\n" = is(input, "sf") || is(input, "stars") || is(input, "SpatVector") || is(input, "SpatRaster"))
-  if (is(cl_inobj, "SpatVector") || is(cl_inobj, "SpatRaster")) {
+  # cl_inobj = class(input)[1]
+  stopifnot("Input should be one of sf or Spat* object.\n" = any(is(input, "sf"), is(input, "stars"), is(input, "SpatVector"), is(input, "SpatRaster")))
+  if (is(input, "SpatVector") || is(input, "SpatRaster")) {
     return("terra")
   }
   return("sf")
 }
+
+check_datatype <- function(input) {
+  stopifnot("Input should be one of sf or Spat* object.\n" = any(is(input, "sf"), is(input, "stars"), is(input, "SpatVector"), is(input, "SpatRaster")))
+  if (any(is(input, "SpatVector"), is(input, "sf"))) {
+    return("vector")
+  }
+  if (any(is(input, "SpatRaster"), is(input, "stars"))) {
+    return("raster")
+  }
+}
 ```
+
+```{r}
+#' @title Switch spatial data class
+#' @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
+#' @author Insang Song
+#' @param input Spat* in terra or sf object.
+#' @return Data converted to the other package class (if sf, terra; if terra, sf)
+#' @export
+switch_packbound <- function(input) {
+  stopifnot("Input should be one of sf or Spat* object.\n" = any(is(input, "sf"), is(input, "stars"), is(input, "SpatVector"), is(input, "SpatRaster")))
+  cls_input = check_packbound(input)
+  type_input = check_datatype(input)
+
+  switched = 
+  switch(cls_input,
+    sf = switch(type_input,
+      vector = terra::vect(input),
+      raster = terra::rast(input)
+    ),
+    terra = switch(type_input,
+      vector = sf::st_as_sf(input),
+      raster = stars::st_as_stars(input)))
+
+  invisible(switched)
+}
+```
+
 
 ```{r}
 #' @title check_crs2: Coordinate system checker
@@ -376,9 +412,6 @@ get_computational_regions <- function(input, mode = "grid", nx = 10, ny = 10, gr
     # }
   }
 
-
-
-
 #' @title sp_index_grid: Generate grid polygons
 #' @description Returns a sf object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
 #' @author Insang Song
@@ -569,8 +602,8 @@ check_bbox <- function(
 #' @title Extract summarized values from raster with generic polygons
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
-#' @param polys SpatVector object. Polygons.
-#' @param surf SpatRaster object. A raster of whatnot a summary will be calculated
+#' @param polys sf/SpatVector object. Polygons.
+#' @param surf stars/SpatRaster object. A raster of whatnot a summary will be calculated
 #' @param id character(1). Unique identifier of each point.
 #' @param func a function taking one argument. For example, function(x) mean(x, na.rm = TRUE) or \(x) mode(x, na.rm = TRUE)
 #' @param na.rm logical(1). NA values are omitted when summary is calculated.
@@ -582,19 +615,42 @@ extract_with_polygons <- function(
     polys, surf, id, func = mean, na.rm = TRUE
     ) {
     # type check
-    stopifnot("Check class of the input points.\n" = is(polys, "SpatVector"))
+    stopifnot("Check class of the input points.\n" = any(is(polys, "sf"), is(polys, "SpatVector")))
+    stopifnot("Check class of the input raster.\n" = any(is(surf, "stars"), is(surf, "SpatRaster")))
     stopifnot(is.character(id))
 
-    extracted = terra::extract(surf, polys)
-    extracted = extracted |>
-      group_by(!!sym(id)) |>
-      summarize(across(-!!sym(id), ~func)) |>
-      ungroup()
-    return(extracted)
+    cls_polys = check_packbound(polys)
+    cls_surf = check_packbound(surf)
 
+    if (cls_polys != cls_surf) {
+      polys = switch_packbound(polys)
+    }
+
+    extract_with_polygons.sf = function(polys, surf, id, func) {
+        extracted = stars::st_extract(x = surf, at = polys, FUN = func)
+        # extracted = extracted |>
+        #   group_by(!!sym(id)) |>
+        #   summarize(across(-!!sym(id), ~func)) |>
+        #   ungroup()
+        return(extracted)
+    }
+
+    extract_with_polygons.terra = function(polys, surf, id, func) {
+        extracted = terra::extract(surf, polys)
+        extracted = extracted |>
+          group_by(!!sym(id)) |>
+          summarize(across(-!!sym(id), ~func)) |>
+          ungroup()
+        return(extracted)
+    }
+
+    extracted_poly = switch(
+        cls_surf,
+        sf = extract_with_polygons.sf(polys = polys, surf = surf, id = id, func = func),
+        terra = extract_with_polygons.terra(polys = polys, surf = surf, id = id, func = func)
+    )
+    return(extracted_poly)
 }
-
-
 
 ```
 
@@ -630,26 +686,6 @@ extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...)
     return(extracted)
 }
 
-```
-
-```{r}
-#' Detect input classes
-#' 
-#' @param input A sf/stars/SpatVector/SpatRaster object.
-#' @param template A sf/stars/SpatVector/SpatRaster object. Use this input to convert x into the template class.
-#' @return Class name or converted data object
-#' @description 
-#' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples 
-#' # data
-#' 
-#' # run
-#' detect_class()
-#' 
-#' @export 
-detect_class <- function(input, template = NULL, ...) {
-
-}
 ```
 
 ```{r}

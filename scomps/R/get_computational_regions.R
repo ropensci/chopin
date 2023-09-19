@@ -35,9 +35,6 @@ get_computational_regions <- function(input, mode = "grid", nx = 10, ny = 10, gr
     # }
   }
 
-
-
-
 #' @title sp_index_grid: Generate grid polygons
 #' @description Returns a sf object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
 #' @author Insang Song
