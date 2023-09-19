@@ -368,7 +368,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.0.2.09152023&quot;,
+    Version = &quot;0.0.2.09192023&quot;,
     Title = &quot;Scalable R geospatial computation&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = person(
@@ -416,18 +416,50 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 <h3>Create functions</h3>
 <pre class="r"><code>#&#39; @title Return the package the input object is based on
 #&#39; @description Detect whether the input object is sf or Spat* object.
-#&#39; @title check_packbound
 #&#39; @author Insang Song
 #&#39; @param input Spat* in terra or sf object.
-#&#39; @return A character object; one of terra and sf
+#&#39; @return A character object; one of &#39;terra&#39; and &#39;sf&#39;
 #&#39; @export
 <span id='check_packbound'>check_packbound</span> &lt;- function(input) {
-  cl_inobj = class(input)[1]
-  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = is(input, &quot;sf&quot;) || is(input, &quot;stars&quot;) || is(input, &quot;SpatVector&quot;) || is(input, &quot;SpatRaster&quot;))
-  if (is(cl_inobj, &quot;SpatVector&quot;) || is(cl_inobj, &quot;SpatRaster&quot;)) {
+  # cl_inobj = class(input)[1]
+  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(is(input, &quot;sf&quot;), is(input, &quot;stars&quot;), is(input, &quot;SpatVector&quot;), is(input, &quot;SpatRaster&quot;)))
+  if (is(input, &quot;SpatVector&quot;) || is(input, &quot;SpatRaster&quot;)) {
     return(&quot;terra&quot;)
   }
   return(&quot;sf&quot;)
+}
+
+<span id='check_datatype'>check_datatype</span> &lt;- function(input) {
+  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(is(input, &quot;sf&quot;), is(input, &quot;stars&quot;), is(input, &quot;SpatVector&quot;), is(input, &quot;SpatRaster&quot;)))
+  if (any(is(input, &quot;SpatVector&quot;), is(input, &quot;sf&quot;))) {
+    return(&quot;vector&quot;)
+  }
+  if (any(is(input, &quot;SpatRaster&quot;), is(input, &quot;stars&quot;))) {
+    return(&quot;raster&quot;)
+  }
+}</code></pre>
+<pre class="r"><code>#&#39; @title Switch spatial data class
+#&#39; @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
+#&#39; @author Insang Song
+#&#39; @param input Spat* in terra or sf object.
+#&#39; @return Data converted to the other package class (if sf, terra; if terra, sf)
+#&#39; @export
+<span id='switch_packbound'>switch_packbound</span> &lt;- function(input) {
+  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(is(input, &quot;sf&quot;), is(input, &quot;stars&quot;), is(input, &quot;SpatVector&quot;), is(input, &quot;SpatRaster&quot;)))
+  cls_input = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
+  type_input = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(input)
+
+  switched = 
+  switch(cls_input,
+    sf = switch(type_input,
+      vector = terra::vect(input),
+      raster = terra::rast(input)
+    ),
+    terra = switch(type_input,
+      vector = sf::st_as_sf(input),
+      raster = stars::st_as_stars(input)))
+
+  invisible(switched)
 }</code></pre>
 <pre class="r"><code>#&#39; @title check_crs2: Coordinate system checker
 #&#39; @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
@@ -672,9 +704,6 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     # }
   }
 
-
-
-
 #&#39; @title sp_index_grid: Generate grid polygons
 #&#39; @description Returns a sf object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
 #&#39; @author Insang Song
@@ -853,8 +882,8 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 <pre class="r"><code>#&#39; @title Extract summarized values from raster with generic polygons
 #&#39; 
 #&#39; @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
-#&#39; @param polys SpatVector object. Polygons.
-#&#39; @param surf SpatRaster object. A raster of whatnot a summary will be calculated
+#&#39; @param polys sf/SpatVector object. Polygons.
+#&#39; @param surf stars/SpatRaster object. A raster of whatnot a summary will be calculated
 #&#39; @param id character(1). Unique identifier of each point.
 #&#39; @param func a function taking one argument. For example, function(x) mean(x, na.rm = TRUE) or \(x) mode(x, na.rm = TRUE)
 #&#39; @param na.rm logical(1). NA values are omitted when summary is calculated.
@@ -866,19 +895,42 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     polys, surf, id, func = mean, na.rm = TRUE
     ) {
     # type check
-    stopifnot(&quot;Check class of the input points.\n&quot; = is(polys, &quot;SpatVector&quot;))
+    stopifnot(&quot;Check class of the input points.\n&quot; = any(is(polys, &quot;sf&quot;), is(polys, &quot;SpatVector&quot;)))
+    stopifnot(&quot;Check class of the input raster.\n&quot; = any(is(surf, &quot;stars&quot;), is(surf, &quot;SpatRaster&quot;)))
     stopifnot(is.character(id))
 
-    extracted = terra::extract(surf, polys)
-    extracted = extracted |&gt;
-      group_by(!!sym(id)) |&gt;
-      summarize(across(-!!sym(id), ~func)) |&gt;
-      ungroup()
-    return(extracted)
+    cls_polys = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(polys)
+    cls_surf = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(surf)
 
+    if (cls_polys != cls_surf) {
+      polys = <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(polys)
+    }
+
+    extract_with_polygons.sf = function(polys, surf, id, func) {
+        extracted = stars::st_extract(x = surf, at = polys, FUN = func)
+        # extracted = extracted |&gt;
+        #   group_by(!!sym(id)) |&gt;
+        #   summarize(across(-!!sym(id), ~func)) |&gt;
+        #   ungroup()
+        return(extracted)
+    }
+
+    extract_with_polygons.terra = function(polys, surf, id, func) {
+        extracted = terra::extract(surf, polys)
+        extracted = extracted |&gt;
+          group_by(!!sym(id)) |&gt;
+          summarize(across(-!!sym(id), ~func)) |&gt;
+          ungroup()
+        return(extracted)
+    }
+
+    extracted_poly = switch(
+        cls_surf,
+        sf = extract_with_polygons.sf(polys = polys, surf = surf, id = id, func = func),
+        terra = extract_with_polygons.terra(polys = polys, surf = surf, id = id, func = func)
+    )
+    return(extracted_poly)
 }
-
-
 </code></pre>
 <pre class="r"><code>#&#39; Extract raster values with point buffers or polygons
 #&#39; 
@@ -911,23 +963,6 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     return(extracted)
 }
 </code></pre>
-<pre class="r"><code>#&#39; Detect input classes
-#&#39; 
-#&#39; @param input A sf/stars/SpatVector/SpatRaster object.
-#&#39; @param template A sf/stars/SpatVector/SpatRaster object. Use this input to convert x into the template class.
-#&#39; @return Class name or converted data object
-#&#39; @description 
-#&#39; @author Insang Song \email{geoissong@@gmail.com}
-#&#39; @examples 
-#&#39; # data
-#&#39; 
-#&#39; # run
-#&#39; <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>()
-#&#39; 
-#&#39; @export 
-<span id='detect_class'>detect_class</span> &lt;- function(input, template = NULL, ...) {
-
-}</code></pre>
 <pre class="r"><code>#&#39; Check Coordinate Reference System
 #&#39; @param x sf/stars/SpatVector/SpatRaster object.
 #&#39; @return A st_crs or crs object.
@@ -953,6 +988,77 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     stopifnot(&quot;No CRS is defined in the input. Please consult the metadata or the data source.\n&quot; = !is.na(crs_wkt) || crs_wkt != &quot;&quot;)
     return(crs_wkt)
 }</code></pre>
+<pre class="r"><code>#&#39; Check if the boundary of the vector/raster object is inside the reference
+#&#39; @param input_object sf/stars/SpatVector/SpatRaster object.
+#&#39; @param reference sf/stars/SpatVector/SpatRaster object.
+#&#39; @return logical
+#&#39; @author Insang Song \email{geoissong@@gmail.com}
+#&#39; @export 
+<span id='check_within_reference'>check_within_reference</span> &lt;- function(input_object, reference) {
+    stopifnot(&quot;Input is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
+    stopifnot(&quot;Reference is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
+
+  bbox_input &lt;- input_object
+    sf::st_bbox() |&gt;
+    sf::st_as_sfc()
+  
+  bbox_reference = reference |&gt;
+    sf::st_bbox() |&gt;
+    sf::st_as_sfc()
+
+  iswithin = sf::st_covered_by(bbox_input, bbox_reference)
+  iswithin = length(iswithin[[1]])
+  iswithin = (iswithin == 1)
+  invisible(iswithin)
+}
+
+</code></pre>
+<pre class="r"><code>#&#39; Calculate SEDC covariates
+#&#39; @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
+#&#39; @param point_to SpatVector object. Locations where each SEDC is calculated.
+#&#39; @param sdec_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
+#&#39; @param threshold numeric(1). For computational efficiency, the nearest points in threshold will be selected
+#&#39; @param target_fields character(varying). Field names in characters.
+#&#39; @description NOTE: sf implementation is pending. Only available for terra.
+#&#39; @author Insang Song
+#&#39; @export
+<span id='calculate_sedc'>calculate_sedc</span> &lt;- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
+  # define sources, set SEDC exponential decay range
+  len_point_from = seq_len(nrow(point_from))
+  len_point_to = seq_len(nrow(point_to))
+
+  point_from$from_id = len_point_from
+  # select egrid_v only if closer than 3e5 meters from each aqs
+  point_from_buf = terra::buffer(point_from_buf, threshold = threshold, quadsegs = 90)
+  point_to = point_to[point_from_buf,]
+  point_to$to_id = len_point_to
+
+  # near features with distance argument: only returns integer indices
+  near_from_to = terra::nearby(point_from, point_to, distance = threshold)
+  # attaching actual distance
+  dist_near_to = terra::distance(point_from, point_to)
+  dist_near_to_df = as.vector(dist_near_to)
+  # adding integer indices
+  dist_near_to_tdf = expand.grid(from_id = len_point_from, to_id = len_point_to)
+  dist_near_to_df = cbind(dist_near_to_tdf, dist = dist_near_to_df)
+
+  # summary
+  near_from_to = near_from_to |&gt;
+    as_tibble() |&gt;
+    left_join(data.frame(point_from)) |&gt;
+    left_join(data.frame(point_to)) |&gt;
+    left_join(dist_near_to_df) |&gt;
+    # per the definition in https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
+    # exp(-3) is about 0.05
+    mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |&gt;
+    group_by(!!sym(id)) |&gt;
+    summarize(across(all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |&gt;
+    ungroup()
+
+  invisible(near_from_to)
+  
+}
+</code></pre>
 <pre class="r"><code>#&#39; Computing area weighted covariates using two polygon sf or SpatVector objects
 #&#39; @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #&#39; @param poly_weight A sf/SpatVector object from which weighted means will be calculated.
@@ -1165,18 +1271,18 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 <pre><code>## ℹ Updating scomps documentation
 ## ℹ Loading scomps</code></pre>
 <pre><code>## Warning: [check_crs.R:6] @description requires a value</code></pre>
-<pre><code>## Warning: [detect_class.R:8] @description requires a value</code></pre>
 <pre><code>## Warning: [extract_with.R:11] @return requires a value</code></pre>
 <pre><code>## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;aw_covariates.Rd&#39;
+## Writing &#39;calculate_sedc.Rd&#39;
 ## Writing &#39;check_bbox.Rd&#39;
 ## Writing &#39;check_crs.Rd&#39;
 ## Writing &#39;check_crs2.Rd&#39;
 ## Writing &#39;check_packbound.Rd&#39;
+## Writing &#39;check_within_reference.Rd&#39;
 ## Writing &#39;clip_as_extent.Rd&#39;
 ## Writing &#39;clip_as_extent_ras.Rd&#39;
 ## Writing &#39;clip_as_extent_ras2.Rd&#39;
-## Writing &#39;detect_class.Rd&#39;
 ## Writing &#39;distribute_process.Rd&#39;
 ## Writing &#39;estimate_demands.Rd&#39;
 ## Writing &#39;extract_with.Rd&#39;
@@ -1191,6 +1297,7 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## Writing &#39;rast_short.Rd&#39;
 ## Writing &#39;set_clip_extent.Rd&#39;
 ## Writing &#39;sp_indexing.Rd&#39;
+## Writing &#39;switch_packbound.Rd&#39;
 ## Writing &#39;validate_and_repair_vectors.Rd&#39;</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
@@ -1207,10 +1314,10 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09152023.tar.gz’
+## * building ‘scomps_0.0.2.09192023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.09152023.tar.gz&quot;</code></pre>
+<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.09192023.tar.gz&quot;</code></pre>
 <pre><code>## 
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
@@ -1227,12 +1334,12 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09152023.tar.gz’
+## * building ‘scomps_0.0.2.09192023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpI1tXyB/scomps_0.0.2.09152023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpP7s4LX/scomps_0.0.2.09192023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
