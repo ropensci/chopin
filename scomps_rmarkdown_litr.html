@@ -368,7 +368,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.0.2.09192023&quot;,
+    Version = &quot;0.0.2.10022023&quot;,
     Title = &quot;Scalable R geospatial computation&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = person(
@@ -386,10 +386,13 @@ usethis::use_package(&quot;sf&quot;) # Default is &quot;Imports&quot;
 # usethis::use_package(&quot;stars&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;terra&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;rlang&quot;) # Default is &quot;Imports&quot;
+usethis::use_package(&quot;testthat&quot;)
 usethis::use_package(&quot;logr&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;future&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;future.apply&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;igraph&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
+usethis::use_package(&quot;withr&quot;, &quot;Suggests&quot;)
+usethis::use_package(&quot;covr&quot;)
 usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
 # usethis::use_gpl3_license()
 
@@ -438,6 +441,41 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     return(&quot;raster&quot;)
   }
 }</code></pre>
+<pre class="r"><code>testthat::test_that(&quot;What package does the input object belong?&quot;,
+{
+    withr::local_package(&quot;stars&quot;)
+    withr::local_package(&quot;terra&quot;)
+    withr::local_options(list(sf_use_s2 = FALSE))
+    bcsd_path = system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
+    bcsd_stars = stars::read_stars(bcsd_path)
+
+    packbound_stars = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(bcsd_stars)
+    sprast_bcsd = terra::rast(bcsd_path)
+    packbound_terra = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(sprast_bcsd)
+
+    testthat::expect_equal(packbound_stars, &quot;sf&quot;)
+    testthat::expect_equal(packbound_terra, &quot;terra&quot;)
+})
+
+
+testthat::test_that(&quot;What package does the input object belong?&quot;,
+{
+    withr::local_package(&quot;stars&quot;)
+    withr::local_package(&quot;terra&quot;)
+    withr::local_options(list(sf_use_s2 = FALSE))
+    data(stars_sentinel2)
+    nc = system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
+    nc = sf::read_sf(nc)
+
+    datatype_stars = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(stars_sentinel2)
+    datatype_sf = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(nc)
+
+    testthat::expect_equal(datatype_stars, &quot;raster&quot;)
+    testthat::expect_equal(datatype_sf, &quot;vector&quot;)
+})</code></pre>
+<pre><code>## pr, tas, 
+## Test passed</code></pre>
+<pre><code>## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title Switch spatial data class
 #&#39; @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
 #&#39; @author Insang Song
@@ -1263,7 +1301,7 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 the package. It may also be a good idea to check the package from within
 this file.</p>
 <pre class="r"><code>litr::document() # &lt;-- use instead of devtools::document()
-
+devtools::test()
 devtools::build()
 devtools::install(build_vignettes = TRUE, dependencies = F)
 # devtools::check(document = FALSE)
@@ -1299,6 +1337,15 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## Writing &#39;sp_indexing.Rd&#39;
 ## Writing &#39;switch_packbound.Rd&#39;
 ## Writing &#39;validate_and_repair_vectors.Rd&#39;</code></pre>
+<pre><code>## ℹ Testing scomps</code></pre>
+<pre><code>## ✔ | F W S  OK | Context
+## 
+## ⠏ |         0 | tests                                                           pr, tas, 
+## 
+## ✔ |         4 | tests
+## 
+## ══ Results ═════════════════════════════════════════════════════════════════════
+## [ FAIL 0 | WARN 0 | SKIP 0 | PASS 4 ]</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -1314,11 +1361,17 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09192023.tar.gz’
+## * building ‘scomps_0.0.2.10022023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.09192023.tar.gz&quot;</code></pre>
+<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.10022023.tar.gz&quot;</code></pre>
+<pre><code>## curl (5.0.2 -&gt; 5.1.0) [CRAN]</code></pre>
+<pre><code>## Installing 1 packages: curl
+## Installing package into &#39;/Users/songi2/Library/R/arm64/4.3/library&#39;
+## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
+## The downloaded binary packages are in
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpLf04ac/downloaded_packages
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -1334,18 +1387,19 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09192023.tar.gz’
+## * building ‘scomps_0.0.2.10022023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpP7s4LX/scomps_0.0.2.09192023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpLf04ac/scomps_0.0.2.10022023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
 ## ** using staged installation
 ## ** R
 ## ** inst
+## ** tests
 ## ** byte-compile and prepare package for lazy loading
 ## ** help
 ## *** installing help indices
