@@ -1141,7 +1141,6 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @examples 
 #&#39; # package
 #&#39; library(sf)
-#&#39; library(tictoc)
 #&#39; 
 #&#39; # run
 #&#39; nc = st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
@@ -1151,9 +1150,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; st_crs(pp) = &quot;EPSG:5070&quot;
 #&#39; ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, &#39;km&#39;))
 #&#39; 
-#&#39; tic()
-#&#39; ppb_nc_aw = <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &#39;id&#39;)
-#&#39; toc()
+#&#39; system.time({ppb_nc_aw = <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &#39;id&#39;)})
 #&#39; summary(ppb_nc_aw)
 #&#39; #### Example of aw_covariates ends ####
 #&#39; @export
@@ -1423,7 +1420,7 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpfPUv07/scomps_0.0.2.10032023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpcN1CIt/scomps_0.0.2.10032023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...

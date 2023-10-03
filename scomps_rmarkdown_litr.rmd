@@ -878,7 +878,6 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 #' @examples 
 #' # package
 #' library(sf)
-#' library(tictoc)
 #' 
 #' # run
 #' nc = st_read(system.file("shape/nc.shp", package="sf"))
@@ -888,9 +887,7 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 #' st_crs(pp) = "EPSG:5070"
 #' ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
 #' 
-#' tic()
-#' ppb_nc_aw = aw_covariates(ppb, nc, 'id')
-#' toc()
+#' system.time({ppb_nc_aw = aw_covariates(ppb, nc, 'id')})
 #' summary(ppb_nc_aw)
 #' #### Example of aw_covariates ends ####
 #' @export

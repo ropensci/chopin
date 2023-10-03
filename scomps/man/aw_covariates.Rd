@@ -22,7 +22,6 @@ When poly_in and poly_weight are different classes, poly_weight will be converte
 \examples{
 # package
 library(sf)
-library(tictoc)
 
 # run
 nc = st_read(system.file("shape/nc.shp", package="sf"))
@@ -32,9 +31,7 @@ pp[["id"]] = seq(1,nrow(pp))
 st_crs(pp) = "EPSG:5070"
 ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
 
-tic()
-ppb_nc_aw = aw_covariates(ppb, nc, 'id')
-toc()
+system.time({ppb_nc_aw = aw_covariates(ppb, nc, 'id')})
 summary(ppb_nc_aw)
 #### Example of aw_covariates ends ####
 }
