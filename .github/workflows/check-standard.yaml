@@ -39,7 +39,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           working-directory: "./scomps"
-          packages: |
+          extra-packages: |
             any::tictoc
             any::units
             any::rcmdcheck
