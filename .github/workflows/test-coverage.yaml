@@ -31,6 +31,7 @@ jobs:
       - name: Test coverage
         run: |
           covr::codecov(
+            path = "./scomps",
             quiet = FALSE,
             clean = FALSE,
             install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")

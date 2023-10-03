@@ -40,7 +40,7 @@ jobs:
     - name: Install dependencies
       run: |
         R -e 'install.packages("remotes")'
-        R -e 'remotes::install_deps()'
+        R -e 'remotes::install_deps(pkgdir = "./scomps")'
 
     - name: Install dependencies for covr and testthat
       run: R -e 'install.packages(c("covr", "testthat"), dependencies = TRUE)'
@@ -48,7 +48,7 @@ jobs:
     - name: Run tests and calculate coverage
       run: |
         echo "Current working directory: $(pwd)"
-        R -e 'library(covr); covr::package_coverage(coverage_file = "coverage.xml")'
+        R -e 'library(covr); covr::package_coverage(path = "./scomps", coverage_file = "coverage.xml")'
 
 
     - name: Upload coverage to Codecov
