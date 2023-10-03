@@ -368,7 +368,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.0.2.10022023&quot;,
+    Version = &quot;0.0.2.10032023&quot;,
     Title = &quot;Scalable R geospatial computation&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = person(
@@ -463,11 +463,13 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
     withr::local_package(&quot;stars&quot;)
     withr::local_package(&quot;terra&quot;)
     withr::local_options(list(sf_use_s2 = FALSE))
-    data(stars_sentinel2)
+    bcsd_path = system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
+    bcsd_stars = stars::read_stars(bcsd_path)
+
     nc = system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
     nc = sf::read_sf(nc)
 
-    datatype_stars = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(stars_sentinel2)
+    datatype_stars = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(bcsd_stars)
     datatype_sf = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(nc)
 
     testthat::expect_equal(datatype_stars, &quot;raster&quot;)
@@ -475,7 +477,8 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
 })</code></pre>
 <pre><code>## pr, tas, 
 ## Test passed</code></pre>
-<pre><code>## Test passed</code></pre>
+<pre><code>## pr, tas, 
+## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title Switch spatial data class
 #&#39; @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
 #&#39; @author Insang Song
@@ -499,6 +502,36 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
 
   invisible(switched)
 }</code></pre>
+<pre class="r"><code>
+testthat::test_that(&quot;Format is well converted&quot;,
+{
+    withr::local_package(&quot;stars&quot;)
+    withr::local_package(&quot;terra&quot;)
+    withr::local_options(list(sf_use_s2 = FALSE))
+
+    # starts from sf/stars
+    bcsd_path = system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
+    bcsd_stars = stars::read_stars(bcsd_path)
+    nc = system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
+    nc = sf::read_sf(nc)
+
+    stars_bcsd_tr = <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(bcsd_stars)
+    sf_nc_tr = <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(nc)
+
+    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(stars_bcsd_tr), &quot;terra&quot;)
+    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(sf_nc_tr), &quot;terra&quot;)
+
+    stars_bcsd_trb = <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(stars_bcsd_tr)
+    sf_nc_trb = <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(sf_nc_tr)
+
+    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(stars_bcsd_trb), &quot;sf&quot;)
+    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(sf_nc_trb), &quot;sf&quot;)
+
+})
+
+</code></pre>
+<pre><code>## pr, tas, 
+## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title check_crs2: Coordinate system checker
 #&#39; @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
 #&#39; @param input Input object one of sf or terra::Spat* object
@@ -1308,44 +1341,47 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 </code></pre>
 <pre><code>## ℹ Updating scomps documentation
 ## ℹ Loading scomps</code></pre>
-<pre><code>## Warning: [check_crs.R:6] @description requires a value</code></pre>
-<pre><code>## Warning: [extract_with.R:11] @return requires a value</code></pre>
+<pre><code>## Warning: [check.R:92] @description requires a value</code></pre>
+<pre><code>## Warning: [processing.R:139] @return requires a value</code></pre>
 <pre><code>## Writing &#39;NAMESPACE&#39;
-## Writing &#39;aw_covariates.Rd&#39;
-## Writing &#39;calculate_sedc.Rd&#39;
+## Writing &#39;check_packbound.Rd&#39;
+## Writing &#39;check_crs2.Rd&#39;
 ## Writing &#39;check_bbox.Rd&#39;
 ## Writing &#39;check_crs.Rd&#39;
-## Writing &#39;check_crs2.Rd&#39;
-## Writing &#39;check_packbound.Rd&#39;
 ## Writing &#39;check_within_reference.Rd&#39;
-## Writing &#39;clip_as_extent.Rd&#39;
-## Writing &#39;clip_as_extent_ras.Rd&#39;
-## Writing &#39;clip_as_extent_ras2.Rd&#39;
-## Writing &#39;distribute_process.Rd&#39;
 ## Writing &#39;estimate_demands.Rd&#39;
-## Writing &#39;extract_with.Rd&#39;
-## Writing &#39;extract_with_buffer.Rd&#39;
-## Writing &#39;extract_with_buffer.flat.Rd&#39;
-## Writing &#39;extract_with_buffer.kernel.Rd&#39;
-## Writing &#39;extract_with_polygons.Rd&#39;
+## Writing &#39;sp_indexing.Rd&#39;
 ## Writing &#39;get_computational_regions.Rd&#39;
 ## Writing &#39;sp_index_grid.Rd&#39;
 ## Writing &#39;grid_merge.Rd&#39;
+## Writing &#39;distribute_process.Rd&#39;
 ## Writing &#39;initate_log.Rd&#39;
-## Writing &#39;rast_short.Rd&#39;
 ## Writing &#39;set_clip_extent.Rd&#39;
-## Writing &#39;sp_indexing.Rd&#39;
+## Writing &#39;rast_short.Rd&#39;
+## Writing &#39;clip_as_extent.Rd&#39;
+## Writing &#39;clip_as_extent_ras.Rd&#39;
+## Writing &#39;clip_as_extent_ras2.Rd&#39;
+## Writing &#39;extract_with_polygons.Rd&#39;
+## Writing &#39;extract_with.Rd&#39;
+## Writing &#39;calculate_sedc.Rd&#39;
+## Writing &#39;aw_covariates.Rd&#39;
+## Writing &#39;extract_with_buffer.flat.Rd&#39;
+## Writing &#39;extract_with_buffer.kernel.Rd&#39;
+## Writing &#39;extract_with_buffer.Rd&#39;
 ## Writing &#39;switch_packbound.Rd&#39;
 ## Writing &#39;validate_and_repair_vectors.Rd&#39;</code></pre>
 <pre><code>## ℹ Testing scomps</code></pre>
 <pre><code>## ✔ | F W S  OK | Context
 ## 
 ## ⠏ |         0 | tests                                                           pr, tas, 
+## pr, tas, 
+## pr, tas, 
 ## 
-## ✔ |         4 | tests
+## ⠼ |         5 | tests                                                           
+## ✔ |         8 | tests
 ## 
 ## ══ Results ═════════════════════════════════════════════════════════════════════
-## [ FAIL 0 | WARN 0 | SKIP 0 | PASS 4 ]</code></pre>
+## [ FAIL 0 | WARN 0 | SKIP 0 | PASS 8 ]</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -1361,18 +1397,12 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.10022023.tar.gz’
+## * building ‘scomps_0.0.2.10032023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.10022023.tar.gz&quot;</code></pre>
-<pre><code>## curl (5.0.2 -&gt; 5.1.0) [CRAN]</code></pre>
-<pre><code>## Installing 1 packages: curl
-## Installing package into &#39;/Users/songi2/Library/R/arm64/4.3/library&#39;
-## (as &#39;lib&#39; is unspecified)</code></pre>
-<pre><code>## 
-## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpLf04ac/downloaded_packages
-## ── R CMD build ─────────────────────────────────────────────────────────────────
+<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.10032023.tar.gz&quot;</code></pre>
+<pre><code>## Skipping 1 packages ahead of CRAN: data.table</code></pre>
+<pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
 ## * checking DESCRIPTION meta-information ... OK
@@ -1387,12 +1417,12 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.10022023.tar.gz’
+## * building ‘scomps_0.0.2.10032023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpLf04ac/scomps_0.0.2.10022023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp2UqRyZ/scomps_0.0.2.10032023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...

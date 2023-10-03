@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.2.10022023",
+    Version = "0.0.2.10032023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -79,7 +79,7 @@ litr::add_vignettes("../vignettes-sources/01_generate_computational_grid.Rmd")
 # Now to the package itself
 
 ### Create functions
-```{r}
+```{r, send_to = "R/check.R"}
 #' @title Return the package the input object is based on
 #' @description Detect whether the input object is sf or Spat* object.
 #' @author Insang Song
@@ -129,11 +129,13 @@ testthat::test_that("What package does the input object belong?",
     withr::local_package("stars")
     withr::local_package("terra")
     withr::local_options(list(sf_use_s2 = FALSE))
-    data(stars_sentinel2)
+    bcsd_path = system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+    bcsd_stars = stars::read_stars(bcsd_path)
+
     nc = system.file(package = "sf", "shape/nc.shp")
     nc = sf::read_sf(nc)
 
-    datatype_stars = check_datatype(stars_sentinel2)
+    datatype_stars = check_datatype(bcsd_stars)
     datatype_sf = check_datatype(nc)
 
     testthat::expect_equal(datatype_stars, "raster")
@@ -141,7 +143,7 @@ testthat::test_that("What package does the input object belong?",
 })
 ```
 
-```{r}
+```{r, send_to = "R/switch_format.R"}
 #' @title Switch spatial data class
 #' @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
 #' @author Insang Song
@@ -169,6 +171,37 @@ switch_packbound <- function(input) {
 
 
 ```{r}
+
+testthat::test_that("Format is well converted",
+{
+    withr::local_package("stars")
+    withr::local_package("terra")
+    withr::local_options(list(sf_use_s2 = FALSE))
+
+    # starts from sf/stars
+    bcsd_path = system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+    bcsd_stars = stars::read_stars(bcsd_path)
+    nc = system.file(package = "sf", "shape/nc.shp")
+    nc = sf::read_sf(nc)
+
+    stars_bcsd_tr = switch_packbound(bcsd_stars)
+    sf_nc_tr = switch_packbound(nc)
+
+    testthat::expect_equal(check_packbound(stars_bcsd_tr), "terra")
+    testthat::expect_equal(check_packbound(sf_nc_tr), "terra")
+
+    stars_bcsd_trb = switch_packbound(stars_bcsd_tr)
+    sf_nc_trb = switch_packbound(sf_nc_tr)
+
+    testthat::expect_equal(check_packbound(stars_bcsd_trb), "sf")
+    testthat::expect_equal(check_packbound(sf_nc_trb), "sf")
+
+})
+
+
+```
+
+```{r, send_to = "R/check.R"}
 #' @title check_crs2: Coordinate system checker
 #' @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
 #' @param input Input object one of sf or terra::Spat* object
@@ -198,7 +231,7 @@ check_crs2 <- function(input, crs_standard = "EPSG:4326") {
   }
 ```
 
-```{r}
+```{r, send_to = "R/validate.R"}
 #' Validate and repair input vector data
 #' @description It tries repairing input vector data. Vector validity violation usually appears in polygon data with self-crossing or hole orders. This function will pass the input_vector object to sf::st_make_valid() (if input_vector is sf) or terra::makeValid() (if input_vector is SpatVector). May take some time depending on the geometry complexity.
 #' @author Insang Song
@@ -218,7 +251,7 @@ validate_and_repair_vectors <- function(input_vector) {
 ```
 
 
-```{r}
+```{r, send_to = "R/logging.R"}
 #' Turn on logging
 #' @author Insang Song
 #' @param expr expression. Any function call to be logged.
@@ -239,7 +272,7 @@ initate_log <- function(expr, dolog = FALSE, logpath) {
 
 ```
 
-```{r}
+```{r, send_to = "R/preprocessing.R"}
 #' Setting the clipping extent
 #' @description Return clipping extent with buffer radius. It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
@@ -265,7 +298,7 @@ set_clip_extent <- function(pnts, buffer_r) {
 ```
 
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' Extent clipping
 #' @description Clip input vector by the expected maximum extent of computation. 
 #' @author Insang Song
@@ -304,7 +337,7 @@ clip_as_extent <- function(pnts, buffer_r, nqsegs=NULL, target_input){
 ```
 
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' @title clip_as_extent_ras: Clip input raster.
 #' @description Clip input raster by the expected maximum extent of computation. 
 #' @author Insang Song
@@ -326,7 +359,7 @@ clip_as_extent_ras <- function(pnts, buffer_r, nqsegs = 180, ras){
 ```
 
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' @title clip_as_extent_ras2: Clip input raster (version 2).
 #' @description Clip input raster by the expected maximum extent of computation. 
 #' @author Insang Song
@@ -348,7 +381,7 @@ clip_as_extent_ras2 <- function(points_in, buffer_r, nqsegs=180, ras){
 ```
 
 
-```{r}
+```{r, send_to = "R/indexing.R"}
 #' @title Create integer indices for grid
 #' @description Returns a tibble object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
 #' @author Insang Song
@@ -374,7 +407,7 @@ sp_indexing <- function(points_in, ncutsx, ncutsy){
 }
 ```
 
-```{r}
+```{r, send_to = "R/preprocessing.R"}
 #' Quick call for SpatRaster with a window
 #' 
 #' @param rasterpath character(1). Path to the raster file.
@@ -414,7 +447,7 @@ estimate_demands <- function(
 ```
 
 
-```{r}
+```{r, send_to = "R/interpret_computational_domain.R"}
 #' Get a set of computational regions
 #' 
 #' @param input sf or Spat* object.
@@ -585,7 +618,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features){
 
 
 
-```{r}
+```{r, send_to = "R/check.R"}
 #' Check if the data extent is inside the reference bounding box
 #' 
 #' @description One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data's extent and FALSE otherwise.
@@ -636,7 +669,7 @@ check_bbox <- function(
 
 ```
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' @title Extract summarized values from raster with generic polygons
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
@@ -692,7 +725,7 @@ extract_with_polygons <- function(
 
 ```
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' Extract raster values with point buffers or polygons
 #' 
 #' @param raster SpatRaster object. 
@@ -726,7 +759,7 @@ extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...)
 
 ```
 
-```{r}
+```{r, send_to = "R/check.R"}
 #' Check Coordinate Reference System
 #' @param x sf/stars/SpatVector/SpatRaster object.
 #' @return A st_crs or crs object.
@@ -755,7 +788,7 @@ check_crs <- function(x) {
 ```
 
 
-```{r}
+```{r, send_to = "R/check.R"}
 #' Check if the boundary of the vector/raster object is inside the reference
 #' @param input_object sf/stars/SpatVector/SpatRaster object.
 #' @param reference sf/stars/SpatVector/SpatRaster object.
@@ -784,7 +817,7 @@ check_within_reference <- function(input_object, reference) {
 ```
 
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' Calculate SEDC covariates
 #' @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
 #' @param point_to SpatVector object. Locations where each SEDC is calculated.
@@ -833,7 +866,7 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 
 ```
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' Computing area weighted covariates using two polygon sf or SpatVector objects
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from which weighted means will be calculated.
@@ -902,7 +935,7 @@ aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
 
 ```
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' Subfunction: extract with buffers (flat weight; simple mean)
 #' 
 #' @export 
@@ -926,7 +959,7 @@ extract_with_buffer.flat <- function(
 }
 ```
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' Subfunction: extract with buffers (kernel weight; weighted mean)
 #'
 #' @export 
@@ -955,7 +988,7 @@ extract_with_buffer.kernel <- function(
 ```
 
 
-```{r}
+```{r, send_to = "R/processing.R"}
 #' @title Extract summarized values from raster with points and a buffer radius (to be written)
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
@@ -1007,7 +1040,7 @@ extract_with_buffer <- function(
 ```
 
 
-```{r}
+```{r, send_to = "R/interpret_computational_domain.R"}
 #' @title Process a given function in the entire or partial computational grids (under construction)
 #' 
 #' @description Should 

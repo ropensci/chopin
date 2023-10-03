@@ -1,6 +1,6 @@
 Package: scomps
 Title: Scalable R geospatial computation
-Version: 0.0.2.10022023
+Version: 0.0.2.10032023
 Authors@R: 
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
@@ -30,4 +30,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 820777ef4091f4dab083c17458b45127
+LitrId: 7c9484dd9127c939a90d433ec83cd305

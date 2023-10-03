@@ -1,12 +1,12 @@
-name: R Package CI
+on:
+ push:
+   branches:
+     - main
+ pull_request:
+   branches:
+     - main
 
-#on:
-#  push:
-#    branches:
-#      - main
-#  pull_request:
-#    branches:
-#      - main
+name: R Package CI
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
         path: |
           ~/.cache/R
           ~/.local/share/R
-        key: dependencies-${{ runner.os }}-${{ hashFiles('**/DESCRIPTION') }}
+        key: dependencies-${{ runner.os }}-${{ hashFiles('**/scomps/DESCRIPTION') }}
         restore-keys: |
           dependencies-${{ runner.os }}-
 
