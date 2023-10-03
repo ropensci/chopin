@@ -17,10 +17,10 @@ Check Coordinate Reference System
 }
 \examples{
 # data
-install.packages('spData')
-library(spData)
-data(us_states)
-check_crs(us_states)
+library(sf)
+ncpath = system.file("shape/nc.shp", package = "sf")
+nc = read_sf(ncpath)
+check_crs(nc)
 
 }
 \author{

@@ -93,10 +93,10 @@ check_bbox <- function(
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples 
 #' # data
-#' install.packages('spData')
-#' library(spData)
-#' data(us_states)
-#' check_crs(us_states)
+#' library(sf)
+#' ncpath = system.file("shape/nc.shp", package = "sf")
+#' nc = read_sf(ncpath)
+#' check_crs(nc)
 #' 
 #' @export 
 check_crs <- function(x) {
