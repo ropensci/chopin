@@ -27,7 +27,7 @@ jobs:
         path: |
           ~/.cache/R
           ~/.local/share/R
-        key: dependencies-${{ runner.os }}-${{ hashFiles('**/scomps/DESCRIPTION') }}
+        key: dependencies-${{ runner.os }}-${{ hashFiles('**/**/DESCRIPTION') }}
         restore-keys: |
           dependencies-${{ runner.os }}-
 
