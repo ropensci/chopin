@@ -26,6 +26,7 @@ jobs:
         with:
           extra-packages: any::covr
           needs: coverage
+          working-directory: "./scomps"
 
       - name: Test coverage
         run: |
