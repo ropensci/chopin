@@ -14,9 +14,12 @@
 #' @author Insang Song 
 #' @examples 
 #' # data
-#' 
+#' library(sf)
+#' ncpath = system.file("shape/nc.shp", package = "sf")
+#' nc = read_sf(ncpath)
+#' nc = st_transform(nc, "EPSG:5070")
 #' # run
-#' get_computational_regions()
+#' # nc_comp_region = get_computational_regions(nc, nx = 12, ny = 8)
 #' 
 #' @export 
 get_computational_regions <- function(input, mode = "grid", nx = 10, ny = 10, grid_min_features = 30, padding = NULL, unit = NULL, ...) {

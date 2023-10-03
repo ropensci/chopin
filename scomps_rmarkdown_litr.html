@@ -755,9 +755,12 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @author Insang Song 
 #&#39; @examples 
 #&#39; # data
-#&#39; 
+#&#39; library(sf)
+#&#39; ncpath = system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
+#&#39; nc = read_sf(ncpath)
+#&#39; nc = st_transform(nc, &quot;EPSG:5070&quot;)
 #&#39; # run
-#&#39; <a href='scomps_rmarkdown_litr.html#get_computational_regions'>get_computational_regions</a>()
+#&#39; # nc_comp_region = <a href='scomps_rmarkdown_litr.html#get_computational_regions'>get_computational_regions</a>(nc, nx = 12, ny = 8)
 #&#39; 
 #&#39; @export 
 <span id='get_computational_regions'>get_computational_regions</span> &lt;- function(input, mode = &quot;grid&quot;, nx = 10, ny = 10, grid_min_features = 30, padding = NULL, unit = NULL, ...) {
@@ -1420,7 +1423,7 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpA41AYL/scomps_0.0.2.10032023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpqAS5kJ/scomps_0.0.2.10032023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
