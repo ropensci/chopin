@@ -385,6 +385,7 @@ usethis::use_package(&quot;dplyr&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;sf&quot;) # Default is &quot;Imports&quot;
 # usethis::use_package(&quot;stars&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;terra&quot;) # Default is &quot;Imports&quot;
+usethis::use_package(&quot;stars&quot;)
 usethis::use_package(&quot;rlang&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;testthat&quot;)
 usethis::use_package(&quot;logr&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
@@ -406,11 +407,11 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 </code></pre>
 <div id="vignettes-1" class="section level3">
 <h3>Vignettes 1</h3>
-<pre class="r"><code>litr::add_vignettes(&quot;../vignettes-sources/00_good_practice_parallelization.Rmd&quot;)</code></pre>
+<pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/00_good_practice_parallelization.Rmd&quot;)</code></pre>
 </div>
 <div id="vignettes-2" class="section level3">
 <h3>Vignettes 2</h3>
-<pre class="r"><code>litr::add_vignettes(&quot;../vignettes-sources/01_generate_computational_grid.Rmd&quot;)</code></pre>
+<pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/01_generate_computational_grid.Rmd&quot;)</code></pre>
 </div>
 </div>
 <div id="now-to-the-package-itself" class="section level1">
@@ -1422,7 +1423,7 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp2UqRyZ/scomps_0.0.2.10032023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpfPUv07/scomps_0.0.2.10032023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...

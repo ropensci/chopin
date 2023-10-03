@@ -18,6 +18,7 @@ Imports:
     future.apply,
     rlang,
     sf,
+    stars,
     terra,
     testthat
 Suggests: 
@@ -30,4 +31,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 7c9484dd9127c939a90d433ec83cd305
+LitrId: f6481d6de18f4e515f064d81bc8ae4ed

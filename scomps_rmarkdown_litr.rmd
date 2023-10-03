@@ -38,6 +38,7 @@ usethis::use_package("dplyr") # Default is "Imports"
 usethis::use_package("sf") # Default is "Imports"
 # usethis::use_package("stars") # Default is "Imports"
 usethis::use_package("terra") # Default is "Imports"
+usethis::use_package("stars")
 usethis::use_package("rlang") # Default is "Imports"
 usethis::use_package("testthat")
 usethis::use_package("logr", "Suggests") # Default is "Imports"
@@ -66,13 +67,13 @@ usethis::use_package("future.batchtools", "Suggests") # Default is "Imports"
 ### Vignettes 1
 
 ```{r}
-litr::add_vignettes("../vignettes-sources/00_good_practice_parallelization.Rmd")
+litr::add_vignettes("../tools/vignettes-sources/00_good_practice_parallelization.Rmd")
 ```
 
 ### Vignettes 2
 
 ```{r}
-litr::add_vignettes("../vignettes-sources/01_generate_computational_grid.Rmd")
+litr::add_vignettes("../tools/vignettes-sources/01_generate_computational_grid.Rmd")
 ```
 
 
