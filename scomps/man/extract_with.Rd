@@ -22,13 +22,6 @@ extract_with(raster, vector, id, func = mean, mode = "polygon", ...)
 \description{
 Extract raster values with point buffers or polygons
 }
-\examples{
-# data
-
-# run
-clip_with()
-
-}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }

@@ -138,13 +138,7 @@ extract_with_polygons <- function(
 #' @param ... various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.
 #' @return 
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples 
-#' # data
-#' 
-#' # run
-#' clip_with()
-#' 
-#' @export 
+#' @export
 extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...) {
     if (!mode %in% c("polygon", "buffer")) {
       stop("Argument 'mode' should be one of 'polygon' or 'buffer'.\n")

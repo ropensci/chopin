@@ -817,17 +817,18 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param grid_min_features integer(1). Threshold to merge adjacent grids.
 #&#39; @return A sf or SpatVector object of computation grids.
 #&#39; @examples
-#&#39; library(sf)
-#&#39; library(igraph)
-#&#39; ligrary(dplyr)
-#&#39; dg = st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
-#&#39; st_crs(dg) = 5070
-#&#39; dgs = st_as_sf(st_make_grid(dg, n = c(20, 15)))
-#&#39; dgs$CGRIDID = seq(1, nrow(dgs))
-#&#39; dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = &quot;Thomas&quot;)
-#&#39; st_crs(dg_sample) = st_crs(dg)
-#&#39; dg_merged = <a href='scomps_rmarkdown_litr.html#grid_merge'>grid_merge</a>(st_as_sf(sss), dgs, 100)
-#&#39; #### Example End ####
+#&#39; # library(sf)
+#&#39; # library(igraph)
+#&#39; # ligrary(dplyr)
+#&#39; # dg = st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
+#&#39; # st_crs(dg) = 5070
+#&#39; # dgs = st_as_sf(st_make_grid(dg, n = c(20, 15)))
+#&#39; # dgs$CGRIDID = seq(1, nrow(dgs))
+#&#39; #
+#&#39; # dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = &quot;Thomas&quot;)
+#&#39; # st_crs(dg_sample) = st_crs(dg)
+#&#39; # dg_merged = <a href='scomps_rmarkdown_litr.html#grid_merge'>grid_merge</a>(st_as_sf(sss), dgs, 100)
+#&#39; #### NOT RUN ####
 #&#39; @export
 <span id='grid_merge'>grid_merge</span> &lt;- function(points_in, grid_in, grid_min_features){
   package_detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(points_in)
@@ -1014,13 +1015,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param ... various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.
 #&#39; @return 
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
-#&#39; @examples 
-#&#39; # data
-#&#39; 
-#&#39; # run
-#&#39; clip_with()
-#&#39; 
-#&#39; @export 
+#&#39; @export
 <span id='extract_with'>extract_with</span> &lt;- function(raster, vector, id, func = mean, mode = &quot;polygon&quot;, ...) {
     if (!mode %in% c(&quot;polygon&quot;, &quot;buffer&quot;)) {
       stop(&quot;Argument &#39;mode&#39; should be one of &#39;polygon&#39; or &#39;buffer&#39;.\n&quot;)
@@ -1425,7 +1420,7 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpYa4GNv/scomps_0.0.2.10032023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpA41AYL/scomps_0.0.2.10032023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...

@@ -56,6 +56,6 @@ jobs:
           name: coverage-test-failures
           path: ${{ runner.temp }}/package
 
-      - name: Upload coverage to Codecov # Add this step
-        run: |
-          Rscript -e "covr::codecov(path = "scomps", token = Sys.getenv('CODECOV_TOKEN'))"
+      # - name: Upload coverage to Codecov # Add this step
+      #   run: |
+      #     Rscript -e "covr::codecov(path = "scomps", token = Sys.getenv('CODECOV_TOKEN'))"
