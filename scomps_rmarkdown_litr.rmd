@@ -49,12 +49,12 @@ usethis::use_package("withr", "Suggests")
 usethis::use_package("covr")
 usethis::use_package("future.batchtools", "Suggests") # Default is "Imports"
 # usethis::use_gpl3_license()
+usethis::use_mit_license(copyright_holder = "I. Song")
 
 
 # usethis::use_vignette("scomps_1_setting_distribution.rmd")
 ```
 <!--
-# usethis::use_mit_license(copyright_holder = "F. Last")
 -->
 
 ```{r}

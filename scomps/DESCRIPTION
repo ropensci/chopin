@@ -6,8 +6,7 @@ Authors@R:
            comment = c(ORCID = "0000-0001-8732-3256"))
 Description: A package for scalable geospatial computation for
     environmental health research
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
@@ -31,4 +30,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 61344b231498c72af24f2ecd7d672874
+LitrId: 1af1eaeb8441cd422e37a21fe2e2deb1
