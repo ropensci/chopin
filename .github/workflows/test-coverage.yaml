@@ -29,6 +29,8 @@ jobs:
             any::tictoc
             any::units
             any::spData
+            any::knitr
+            any::rmarkdown
           needs: coverage
           working-directory: "./scomps"
 

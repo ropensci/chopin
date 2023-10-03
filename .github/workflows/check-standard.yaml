@@ -43,6 +43,9 @@ jobs:
             any::tictoc
             any::units
             any::rcmdcheck
+            any::spData
+            any::knitr
+            any::rmarkdown
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
