@@ -11,23 +11,8 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Imports: 
-    covr,
-    dplyr,
-    future,
-    future.apply,
-    rlang,
-    sf,
-    stars,
-    terra,
-    testthat
-Suggests: 
-    future.batchtools,
-    igraph,
-    knitr,
-    logr,
-    rmarkdown,
-    withr
+Imports: covr, dplyr, future, future.apply, rlang, sf, stars, terra, testthat
+Suggests: future.batchtools, igraph, knitr, logr, rmarkdown, withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0

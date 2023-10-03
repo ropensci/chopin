@@ -24,6 +24,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          working-directory: "./scomps"
           packages: |
             any::covr
             any::tictoc
@@ -32,7 +33,6 @@ jobs:
             any::knitr
             any::rmarkdown
           needs: coverage
-          working-directory: "./scomps"
 
       - name: Test coverage
         run: |
