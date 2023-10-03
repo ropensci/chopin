@@ -27,7 +27,8 @@ library(sf)
 nc = st_read(system.file("shape/nc.shp", package="sf"))
 nc = st_transform(nc, 5070)
 pp = st_sample(nc, size = 300)
-pp[["id"]] = seq(1,nrow(pp))
+pp = st_as_sf(pp)
+pp[["id"]] = seq(1, nrow(pp))
 st_crs(pp) = "EPSG:5070"
 ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
 

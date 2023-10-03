@@ -883,7 +883,8 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 #' nc = st_read(system.file("shape/nc.shp", package="sf"))
 #' nc = st_transform(nc, 5070)
 #' pp = st_sample(nc, size = 300)
-#' pp[["id"]] = seq(1,nrow(pp))
+#' pp = st_as_sf(pp)
+#' pp[["id"]] = seq(1, nrow(pp))
 #' st_crs(pp) = "EPSG:5070"
 #' ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
 #' 
@@ -895,6 +896,10 @@ aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
     stopifnot("Inputs have invalid classes.\n" = 
       is(poly_in, "sf") || is(poly_weight, "sf") || is(poly_in, "SpatVector") || is(poly_weight, "SpatVector"))
     #check_crs()
+
+    ## distinguish numeric and nonnumeric columns
+    index_numeric = grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
+    
     aw_covariates.terra = function(poly_in, poly_weight, id_poly_in = id_poly_in) {
         
         poly_intersected = terra::intersect(poly_in, poly_weight)
@@ -911,12 +916,12 @@ aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
     class_poly_weight = check_packbound(poly_weight)
 
     if (class_poly_in != class_poly_weight) {
-      class_poly_weight = as(class_poly_weight, class(class_poly_in)[1])
+      class_poly_weight = switch_packbound(class_poly_weight)
     }
     
     switch(class_poly_in,
-        sf = sf::st_interpolate_aw(poly_weight, poly_in, extensive = FALSE),
-        terra = aw_covariates.terra(poly_in, poly_weight, id_poly_in = id_poly_in))
+        sf = sf::st_interpolate_aw(poly_weight[,index_numeric], poly_in, extensive = FALSE),
+        terra = aw_covariates.terra(poly_in, poly_weight[,index_numeric], id_poly_in = id_poly_in))
     
 }
 
