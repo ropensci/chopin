@@ -426,7 +426,7 @@ usethis::use_mit_license(copyright_holder = &quot;I. Song&quot;)
 #&#39; @param input Spat* in terra or sf object.
 #&#39; @return A character object; one of &#39;terra&#39; and &#39;sf&#39;
 #&#39; @export
-<span id='check_packbound'>check_packbound</span> &lt;- function(input) {
+check_packbound &lt;- function(input) {
   # cl_inobj = class(input)[1]
   stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
   if (methods::is(input, &quot;SpatVector&quot;) || methods::is(input, &quot;SpatRaster&quot;)) {
@@ -435,7 +435,7 @@ usethis::use_mit_license(copyright_holder = &quot;I. Song&quot;)
   return(&quot;sf&quot;)
 }
 
-<span id='check_datatype'>check_datatype</span> &lt;- function(input) {
+check_datatype &lt;- function(input) {
   stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
   if (any(methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;sf&quot;))) {
     return(&quot;vector&quot;)
@@ -452,9 +452,9 @@ usethis::use_mit_license(copyright_holder = &quot;I. Song&quot;)
     bcsd_path &lt;- system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
     bcsd_stars &lt;- stars::read_stars(bcsd_path)
 
-    packbound_stars &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(bcsd_stars)
+    packbound_stars &lt;- check_packbound(bcsd_stars)
     sprast_bcsd &lt;- terra::rast(bcsd_path)
-    packbound_terra &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(sprast_bcsd)
+    packbound_terra &lt;- check_packbound(sprast_bcsd)
 
     testthat::expect_equal(packbound_stars, &quot;sf&quot;)
     testthat::expect_equal(packbound_terra, &quot;terra&quot;)
@@ -472,8 +472,8 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
     nc &lt;- system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
     nc &lt;- sf::read_sf(nc)
 
-    datatype_stars &lt;- <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(bcsd_stars)
-    datatype_sf &lt;- <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(nc)
+    datatype_stars &lt;- check_datatype(bcsd_stars)
+    datatype_sf &lt;- check_datatype(nc)
 
     testthat::expect_equal(datatype_stars, &quot;raster&quot;)
     testthat::expect_equal(datatype_sf, &quot;vector&quot;)
@@ -488,10 +488,10 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
 #&#39; @param input Spat* in terra or sf object.
 #&#39; @return Data converted to the other package class (if sf, terra; if terra, sf)
 #&#39; @export
-<span id='switch_packbound'>switch_packbound</span> &lt;- function(input) {
+switch_packbound &lt;- function(input) {
   stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
-  cls_input &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
-  type_input &lt;- <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(input)
+  cls_input &lt;- check_packbound(input)
+  type_input &lt;- check_datatype(input)
 
   switched &lt;- 
   switch(cls_input,
@@ -518,17 +518,17 @@ testthat::test_that(&quot;Format is well converted&quot;,
     nc &lt;- system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
     nc &lt;- sf::read_sf(nc)
 
-    stars_bcsd_tr &lt;- <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(bcsd_stars)
-    sf_nc_tr &lt;- <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(nc)
+    stars_bcsd_tr &lt;- switch_packbound(bcsd_stars)
+    sf_nc_tr &lt;- switch_packbound(nc)
 
-    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(stars_bcsd_tr), &quot;terra&quot;)
-    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(sf_nc_tr), &quot;terra&quot;)
+    testthat::expect_equal(check_packbound(stars_bcsd_tr), &quot;terra&quot;)
+    testthat::expect_equal(check_packbound(sf_nc_tr), &quot;terra&quot;)
 
-    stars_bcsd_trb &lt;- <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(stars_bcsd_tr)
-    sf_nc_trb &lt;- <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(sf_nc_tr)
+    stars_bcsd_trb &lt;- switch_packbound(stars_bcsd_tr)
+    sf_nc_trb &lt;- switch_packbound(sf_nc_tr)
 
-    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(stars_bcsd_trb), &quot;sf&quot;)
-    testthat::expect_equal(<a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(sf_nc_trb), &quot;sf&quot;)
+    testthat::expect_equal(check_packbound(stars_bcsd_trb), &quot;sf&quot;)
+    testthat::expect_equal(check_packbound(sf_nc_trb), &quot;sf&quot;)
 
 })
 
@@ -541,8 +541,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param crs_standard character(1). A standard definition of coordinate reference system. Default is &quot;EPSG:4326&quot; Consult [epsg.io](https://epsg.io) for details of other CRS.
 #&#39; @return A (reprojected) sf or SpatVector object.
 #&#39; @export
-<span id='check_crs2'>check_crs2</span> &lt;- function(input, crs_standard = &quot;EPSG:4326&quot;) {
-  <span id='check_crs_sf'>check_crs_sf</span> &lt;- function(input) {
+check_crs2 &lt;- function(input, crs_standard = &quot;EPSG:4326&quot;) {
+  check_crs_sf &lt;- function(input) {
     if (is.na(sf::st_crs(input))) {
       cat(&#39;Please check the coordinate system or its EPSG code of your input object.&#39;)
       return(NULL)
@@ -554,17 +554,17 @@ testthat::test_that(&quot;Format is well converted&quot;,
     return(input_transformed)
   }
 
-  <span id='check_crs_terra'>check_crs_terra</span> &lt;- function(input) {
+  check_crs_terra &lt;- function(input) {
     if (terra::crs(input, describe = TRUE)$code == crs_standard) {
       return(input)
     }
     input_transformed &lt;- terra::project(input, terra::crs(crs_standard))
     return(input_transformed)
   }
-    detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
+    detected &lt;- check_packbound(input)
     switch(detected,
-          terra = <a href='scomps_rmarkdown_litr.html#check_crs_terra'>check_crs_terra</a>(input),
-          sf = <a href='scomps_rmarkdown_litr.html#check_crs_sf'>check_crs_sf</a>(input))
+          terra = check_crs_terra(input),
+          sf = check_crs_sf(input))
   }</code></pre>
 <pre class="r"><code>#&#39; Validate and repair input vector data
 #&#39; @description It tries repairing input vector data. Vector validity violation usually appears in polygon data with self-crossing or hole orders. This function will pass the input_vector object to sf::st_make_valid() (if input_vector is sf) or terra::makeValid() (if input_vector is SpatVector). May take some time depending on the geometry complexity.
@@ -572,8 +572,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param input_vector One of sf or vect class. Target points of computation.
 #&#39; @return A repaired sf or SpatVector object depending on the class of input_vector.
 #&#39; @export
-<span id='validate_and_repair_vectors'>validate_and_repair_vectors</span> &lt;- function(input_vector) {
-  detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input_vector)
+validate_and_repair_vectors &lt;- function(input_vector) {
+  detected &lt;- check_packbound(input_vector)
 
   validated &lt;- switch(detected,
     terra = terra::makeValid(input_vector),
@@ -589,7 +589,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param logpath character(1). Log file path with the full log file name.
 #&#39; @return Nothing. It will export a log file in the specified path as logpath.
 #&#39; @export
-<span id='initate_log'>initate_log</span> &lt;- function(expr, dolog = FALSE, logpath) {
+initate_log &lt;- function(expr, dolog = FALSE, logpath) {
   if (!dolog) {
     return(NULL)
   }
@@ -607,8 +607,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param buffer_r numeric(1). Buffer radius. It is assumed in metres 
 #&#39; @return A terra::ext or sfc_POLYGON object of the computation extent.
 #&#39; @export
-<span id='set_clip_extent'>set_clip_extent</span> &lt;- function(pnts, buffer_r) {
-  detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(pnts)
+set_clip_extent &lt;- function(pnts, buffer_r) {
+  detected &lt;- check_packbound(pnts)
   if (detected == &quot;terra&quot;) {
     ext_input &lt;- terra::ext(pnts)
     # Note that `+` operation on terra::ext output accounts for the operand as it is.
@@ -631,12 +631,12 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param target_input sf or SpatVector object to be clipped
 #&#39; @return A clipped sf or SpatVector object.
 #&#39; @export
-<span id='clip_as_extent'>clip_as_extent</span> &lt;- function(pnts, buffer_r, nqsegs=NULL, target_input) {
+clip_as_extent &lt;- function(pnts, buffer_r, nqsegs=NULL, target_input) {
   if (any(sapply(list(pnts, buffer_r, target_input), is.null))) {
     stop(&quot;One or more required arguments are NULL. Please check.\n&quot;)
   }
-  detected_pnts &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(pnts)
-  detected_target &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(target_input)
+  detected_pnts &lt;- check_packbound(pnts)
+  detected_target &lt;- check_packbound(target_input)
 
   if (detected_pnts != detected_target) {
     warning(&quot;Inputs are not the same class.\n&quot;)
@@ -645,7 +645,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
         terra = sf::st_as_sf(target_input))
   }
   
-  ext_input &lt;- <a href='scomps_rmarkdown_litr.html#set_clip_extent'>set_clip_extent</a>(pnts, buffer_r)
+  ext_input &lt;- set_clip_extent(pnts, buffer_r)
   cat(&quot;Clip target features with the input feature extent...\n&quot;)
   if (detected_pnts == &quot;sf&quot;) {
     cae &lt;- ext_input |&gt;
@@ -665,11 +665,11 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param nqsegs integer(1). the number of points per a quarter circle
 #&#39; @param ras SpatRaster object to be clipped
 #&#39; @export
-<span id='clip_as_extent_ras'>clip_as_extent_ras</span> &lt;- function(pnts, buffer_r, nqsegs = 180, ras) {
+clip_as_extent_ras &lt;- function(pnts, buffer_r, nqsegs = 180, ras) {
   if (any(sapply(list(pnts, buffer_r, ras), is.null))) {
     stop(&quot;Any of required arguments are NULL. Please check.\n&quot;)
   }
-  ext_input &lt;- <a href='scomps_rmarkdown_litr.html#set_clip_extent'>set_clip_extent</a>(pnts, buffer_r) |&gt;
+  ext_input &lt;- set_clip_extent(pnts, buffer_r) |&gt;
     terra::ext()
 
   cae &lt;- terra::crop(ras, ext_input, snap = &#39;out&#39;)
@@ -683,11 +683,11 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param nqsegs integer(1). the number of points per a quarter circle
 #&#39; @param ras SpatRaster object to be clipped
 #&#39; @export
-<span id='clip_as_extent_ras2'>clip_as_extent_ras2</span> &lt;- function(points_in, buffer_r, nqsegs=180, ras) {
+clip_as_extent_ras2 &lt;- function(points_in, buffer_r, nqsegs=180, ras) {
   if (any(sapply(list(points_in, buffer_r, ras), is.null))) {
     stop(&quot;Any of required arguments are NULL. Please check.\n&quot;)
   }
-  ext_input &lt;- <a href='scomps_rmarkdown_litr.html#set_clip_extent'>set_clip_extent</a>(points_in, buffer_r) |&gt;
+  ext_input &lt;- set_clip_extent(points_in, buffer_r) |&gt;
     terra::ext()
 
   cae &lt;- terra::crop(ras, ext_input, snap = &#39;out&#39;)
@@ -700,7 +700,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param ncutsx integer(1). The number of splits along x-axis.
 #&#39; @param ncutsy integer(1). The number of splits along y-axis.
 #&#39; @export
-<span id='sp_indexing'>sp_indexing</span> &lt;- function(points_in, ncutsx, ncutsy) {
+sp_indexing &lt;- function(points_in, ncutsx, ncutsy) {
   # pts &lt;- data.table(pnts)
   points_in &lt;- points_in |&gt;
     dplyr::mutate(or_id = seq(1, dim(points_in)[1]))
@@ -723,7 +723,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @return SpatRaster object.
 #&#39; @author Insang Song 
 #&#39; @export 
-<span id='rast_short'>rast_short</span> &lt;- function(rasterpath, win) {
+rast_short &lt;- function(rasterpath, win) {
   terra::rast(rasterpath, win = win)
 }
 </code></pre>
@@ -735,7 +735,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param padding numeric(1). Extrusion factor 
 #&#39; @author Insang Song
 #&#39; @export 
-<span id='estimate_demands'>estimate_demands</span> &lt;- function(
+estimate_demands &lt;- function(
   inputs,
   nx, ny,
   padding
@@ -769,10 +769,10 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; nc &lt;- read_sf(ncpath)
 #&#39; nc &lt;- st_transform(nc, &quot;EPSG:5070&quot;)
 #&#39; # run
-#&#39; # nc_comp_region &lt;- <a href='scomps_rmarkdown_litr.html#get_computational_regions'>get_computational_regions</a>(nc, nx = 12, ny = 8)
+#&#39; # nc_comp_region &lt;- get_computational_regions(nc, nx = 12, ny = 8)
 #&#39; 
 #&#39; @export 
-<span id='get_computational_regions'>get_computational_regions</span> &lt;- function(
+get_computational_regions &lt;- function(
   input, 
   mode = &quot;grid&quot;, 
   nx = 10, 
@@ -782,7 +782,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
   unit = NULL, 
   ...) {
   # type check
-  package_detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
+  package_detected &lt;- check_packbound(input)
   # stopifnot(&quot;Invalid input.\n&quot; = !any(grepl(&quot;^(sf|Spat)&quot;, class(input))))
   stopifnot(&quot;Argument mode should be one of &#39;grid&#39;, &#39;grid_advanced&#39;, or &#39;density&#39;.\n&quot; = !mode %in% c(&quot;grid&quot;, &quot;grid_advanced&quot;, &quot;density&quot;))
   stopifnot(&quot;Ensure that nx, ny, and grid_min_features are all integer.\n&quot; = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
@@ -804,24 +804,24 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param ncutsy integer(1). The number of splits along y-axis.
 #&#39; @return A sf or SpatVector object of computation grids with unique grid id (CGRIDID).
 #&#39; @export
-<span id='sp_index_grid'>sp_index_grid</span> &lt;- function(points_in, ncutsx, ncutsy){
-  package_detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(points_in)
+sp_index_grid &lt;- function(points_in, ncutsx, ncutsy){
+  package_detected &lt;- check_packbound(points_in)
 
-  <span id='sp_index_grid_sf'>sp_index_grid_sf</span> &lt;- function(points_in, ncutsx, ncutsy) {
+  sp_index_grid_sf &lt;- function(points_in, ncutsx, ncutsy) {
     grid1 &lt;- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |&gt; 
       as.data.frame() |&gt; 
       sf::st_as_sf()
     grid1 &lt;- grid1[points_in, ]
     return(grid1)
   }
-  <span id='sp_index_grid_terra'>sp_index_grid_terra</span> &lt;- function(points_in, ncutsx, ncutsy) {
+  sp_index_grid_terra &lt;- function(points_in, ncutsx, ncutsy) {
     grid1 &lt;- terra::rast(points_in, nrows = ncutsy, ncols = ncutsx)
     grid1 &lt;- terra::as.polygons(grid1)
     return(grid1)
   }
   grid_out &lt;- switch(package_detected,
-        sf = <a href='scomps_rmarkdown_litr.html#sp_index_grid_sf'>sp_index_grid_sf</a>(points_in, ncutsx, ncutsy),
-        terra = <a href='scomps_rmarkdown_litr.html#sp_index_grid_terra'>sp_index_grid_terra</a>(points_in, ncutsx, ncutsy))
+        sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
+        terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
     
   grid_out$CGRIDID &lt;- seq(1, nrow(x = grid_out)) 
   return(grid_out)
@@ -847,11 +847,11 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; #
 #&#39; # dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = &quot;Thomas&quot;)
 #&#39; # sf::st_crs(dg_sample) = sf::st_crs(dg)
-#&#39; # dg_merged = <a href='scomps_rmarkdown_litr.html#grid_merge'>grid_merge</a>(sf::st_as_sf(sss), dgs, 100)
+#&#39; # dg_merged = grid_merge(sf::st_as_sf(sss), dgs, 100)
 #&#39; #### NOT RUN ####
 #&#39; @export
-<span id='grid_merge'>grid_merge</span> &lt;- function(points_in, grid_in, grid_min_features) {
-  package_detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(points_in)
+grid_merge &lt;- function(points_in, grid_in, grid_min_features) {
+  package_detected &lt;- check_packbound(points_in)
   if (package_detected == &quot;terra&quot;) {
     points_in &lt;- sf::st_as_sf(points_in)
     grid_in &lt;- sf::st_as_sf(grid_in)
@@ -935,7 +935,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param crs character(1). Coordinate reference system definition.
 #&#39; @author Insang Song
 #&#39; @export
-<span id='extent_to_polygon'>extent_to_polygon</span> &lt;- function(extent, output_class = &quot;terra&quot;, crs = &quot;EPSG:4326&quot;) {
+extent_to_polygon &lt;- function(extent, output_class = &quot;terra&quot;, crs = &quot;EPSG:4326&quot;) {
   if (!output_class %in% c(&quot;sf&quot;, &quot;terra&quot;)) {
     stop(&quot;output_class should be one of &#39;sf&#39; or &#39;terra&#39;.\n&quot;)
   }
@@ -976,7 +976,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='check_bbox'>check_bbox</span> &lt;- function(
+check_bbox &lt;- function(
   data_query, reference, reference_crs = NULL
 ) {
   if (is.numeric(reference) &amp;&amp; is.null(reference_crs)) {
@@ -985,8 +985,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
   if (is.numeric(reference) &amp;&amp; !is.null(reference_crs)) {
     reference &lt;- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
   }
-  query_crs &lt;- <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(data_query)
-  ref_crs &lt;- <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(reference)
+  query_crs &lt;- check_crs(data_query)
+  ref_crs &lt;- check_crs(reference)
   if (is.na(query_crs) || is.null(query_crs)) {
     stop(&quot;The dataset you queried has no CRS. Please make sure your dataset has the correct CRS.\n&quot;)
   }
@@ -1011,7 +1011,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='extract_with_polygons'>extract_with_polygons</span> &lt;- function(
+extract_with_polygons &lt;- function(
     polys, surf, id, func = mean, na.rm = TRUE
     ) {
     # type check
@@ -1019,14 +1019,14 @@ testthat::test_that(&quot;Format is well converted&quot;,
     stopifnot(&quot;Check class of the input raster.\n&quot; = any(methods::is(surf, &quot;stars&quot;), methods::is(surf, &quot;SpatRaster&quot;)))
     stopifnot(is.character(id))
 
-    cls_polys &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(polys)
-    cls_surf &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(surf)
+    cls_polys &lt;- check_packbound(polys)
+    cls_surf &lt;- check_packbound(surf)
 
     if (cls_polys != cls_surf) {
-      polys &lt;- <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(polys)
+      polys &lt;- switch_packbound(polys)
     }
 
-    <span id='extract_with_polygons_sf'>extract_with_polygons_sf</span> &lt;- function(polys, surf, id, func) {
+    extract_with_polygons_sf &lt;- function(polys, surf, id, func) {
         extracted &lt;- stars::st_extract(x = surf, at = polys, FUN = func)
         # extracted = extracted |&gt;
         #   group_by(!!sym(id)) |&gt;
@@ -1035,7 +1035,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
         return(extracted)
     }
 
-    <span id='extract_with_polygons_terra'>extract_with_polygons_terra</span> &lt;- function(polys, surf, id, func) {
+    extract_with_polygons_terra &lt;- function(polys, surf, id, func) {
         extracted &lt;- terra::extract(surf, polys)
         extracted &lt;- extracted |&gt;
           dplyr::group_by(!!rlang::sym(id)) |&gt;
@@ -1046,8 +1046,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
 
     extracted_poly &lt;- switch(
         cls_surf,
-        sf = <a href='scomps_rmarkdown_litr.html#extract_with_polygons_sf'>extract_with_polygons_sf</a>(polys = polys, surf = surf, id = id, func = func),
-        terra = <a href='scomps_rmarkdown_litr.html#extract_with_polygons_terra'>extract_with_polygons_terra</a>(polys = polys, surf = surf, id = id, func = func)
+        sf = extract_with_polygons_sf(polys = polys, surf = surf, id = id, func = func),
+        terra = extract_with_polygons_terra(polys = polys, surf = surf, id = id, func = func)
     )
     return(extracted_poly)
 }
@@ -1063,7 +1063,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @return 
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; @export
-<span id='extract_with'>extract_with</span> &lt;- function(raster, vector, id, func = mean, mode = &quot;polygon&quot;, ...) {
+extract_with &lt;- function(raster, vector, id, func = mean, mode = &quot;polygon&quot;, ...) {
     if (!mode %in% c(&quot;polygon&quot;, &quot;buffer&quot;)) {
       stop(&quot;Argument &#39;mode&#39; should be one of &#39;polygon&#39; or &#39;buffer&#39;.\n&quot;)
     }
@@ -1072,8 +1072,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
 
     extracted &lt;- 
       switch(mode,
-        polygon = <a href='scomps_rmarkdown_litr.html#extract_with_polygons'>extract_with_polygons</a>(vector, raster, id, func),
-        buffer = <a href='scomps_rmarkdown_litr.html#extract_with_buffer'>extract_with_buffer</a>(vector, raster, id = id, func = func, ...))
+        polygon = extract_with_polygons(vector, raster, id, func),
+        buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
     return(extracted)
 }
 </code></pre>
@@ -1087,10 +1087,10 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; library(sf)
 #&#39; ncpath = system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
 #&#39; nc = read_sf(ncpath)
-#&#39; <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(nc)
+#&#39; check_crs(nc)
 #&#39; 
 #&#39; @export 
-<span id='check_crs'>check_crs</span> &lt;- function(x) {
+check_crs &lt;- function(x) {
     stopifnot(&quot;Input is invalid.\n&quot; = (methods::is(x, &quot;sf&quot;) || methods::is(x, &quot;stars&quot;) || methods::is(x, &quot;SpatVector&quot;) || methods::is(x, &quot;SpatRaster&quot;)))
     
     if (methods::is(x, &quot;sf&quot;) || methods::is(x, &quot;stars&quot;)) {
@@ -1110,7 +1110,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @return logical
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; @export 
-<span id='check_within_reference'>check_within_reference</span> &lt;- function(input_object, reference) {
+check_within_reference &lt;- function(input_object, reference) {
     stopifnot(&quot;Input is invalid.\n&quot; = (methods::is(input_object, &quot;sf&quot;) || methods::is(input_object, &quot;stars&quot;) || methods::is(input_object, &quot;SpatVector&quot;) || methods::is(input_object, &quot;SpatRaster&quot;)))
     stopifnot(&quot;Reference is invalid.\n&quot; = (methods::is(input_object, &quot;sf&quot;) || methods::is(input_object, &quot;stars&quot;) || methods::is(input_object, &quot;SpatVector&quot;) || methods::is(input_object, &quot;SpatRaster&quot;)))
 
@@ -1139,7 +1139,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @description NOTE: sf implementation is pending. Only available for terra.
 #&#39; @author Insang Song
 #&#39; @export
-<span id='calculate_sedc'>calculate_sedc</span> &lt;- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
+calculate_sedc &lt;- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
   # define sources, set SEDC exponential decay range
   len_point_from &lt;- seq_len(nrow(point_from))
   len_point_to &lt;- seq_len(nrow(point_to))
@@ -1196,14 +1196,14 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; sf::st_crs(pp) &lt;- &quot;EPSG:5070&quot;
 #&#39; ppb &lt;- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, &#39;km&#39;))
 #&#39; 
-#&#39; system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &#39;id&#39;)})
+#&#39; system.time({ppb_nc_aw &lt;- aw_covariates(ppb, nc, &#39;id&#39;)})
 #&#39; summary(ppb_nc_aw)
 #&#39; #### Example of aw_covariates ends ####
 #&#39; @export
-<span id='aw_covariates'>aw_covariates</span> &lt;- function(poly_in, poly_weight, id_poly_in = &quot;ID&quot;) {
+aw_covariates &lt;- function(poly_in, poly_weight, id_poly_in = &quot;ID&quot;) {
     stopifnot(&quot;Inputs have invalid classes.\n&quot; = 
       methods::is(poly_in, &quot;sf&quot;) || methods::is(poly_weight, &quot;sf&quot;) || methods::is(poly_in, &quot;SpatVector&quot;) || methods::is(poly_weight, &quot;SpatVector&quot;))
-    #<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>()
+    #check_crs()
 
     ## distinguish numeric and nonnumeric columns
     index_numeric &lt;- grep(&quot;(integer|numeric)&quot;, unlist(sapply(poly_weight, class)))
@@ -1220,11 +1220,11 @@ testthat::test_that(&quot;Format is well converted&quot;,
         return(poly_intersected)
     }
 
-    class_poly_in &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(poly_in)
-    class_poly_weight &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(poly_weight)
+    class_poly_in &lt;- check_packbound(poly_in)
+    class_poly_weight &lt;- check_packbound(poly_weight)
 
     if (class_poly_in != class_poly_weight) {
-      class_poly_weight &lt;- <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(class_poly_weight)
+      class_poly_weight &lt;- switch_packbound(class_poly_weight)
     }
     
     switch(class_poly_in,
@@ -1259,7 +1259,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='extract_with_buffer'>extract_with_buffer</span> &lt;- function(
+extract_with_buffer &lt;- function(
     points, surf, radius, id, qsegs = 90, func = mean, kernel = NULL, bandwidth = NULL
     ) {
     # type check
@@ -1269,7 +1269,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
     stopifnot(is.integer(qsegs))
 
     if (!is.null(kernel)) {
-        extracted &lt;- <a href='scomps_rmarkdown_litr.html#extract_with_buffer.flat'>extract_with_buffer.flat</a>(points = points,
+        extracted &lt;- extract_with_buffer.flat(points = points,
                                       surf = surf,
                                       radius = radius,
                                       id = id,
@@ -1278,7 +1278,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
         return(extracted)
     }
 
-    extracted &lt;- <a href='scomps_rmarkdown_litr.html#extract_with_buffer.kernel'>extract_with_buffer.kernel</a>(points = points,
+    extracted &lt;- extract_with_buffer.kernel(points = points,
                                            surf = surf,
                                            radius = radius,
                                            id = id,
@@ -1291,7 +1291,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 }
 
 # Subfunction: extract with buffers (flat weight; simple mean)
-<span id='extract_with_buffer.flat'>extract_with_buffer.flat</span> &lt;- function(
+extract_with_buffer.flat &lt;- function(
         points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
     ) {
     # generate buffers
@@ -1312,7 +1312,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 
 
 # Subfunction: extract with buffers (kernel weight; weighted mean)
-<span id='extract_with_buffer.kernel'>extract_with_buffer.kernel</span> &lt;- function(
+extract_with_buffer.kernel &lt;- function(
         points, surf, radius, id, qsegs, func = mean, kernel, bandwidth
     ) {
         # generate buffers
@@ -1346,7 +1346,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='distribute_process'>distribute_process</span> &lt;- function(grids, grid_id = NULL, fun, ...) {
+distribute_process &lt;- function(grids, grid_id = NULL, fun, ...) {
    
     # subset using grids and grid_id
     if (!is.null(grid_id)) {
@@ -1380,7 +1380,7 @@ this file.</p>
 <pre class="r"><code># litr::document() # &lt;-- use instead of devtools::document()
 devtools::document(&quot;.&quot;)
 devtools::test()
-devtools::build()
+devtools::build(path = &quot;./tools/tarballs&quot;)
 devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 # devtools::check(document = FALSE)
 </code></pre>
@@ -1438,7 +1438,9 @@ devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 ## * building ‘scomps_0.0.3.10042023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.3.10042023.tar.gz&quot;</code></pre>
+<pre><code>## Warning in file.create(to[okay]): cannot create file &#39;./tools/tarballs&#39;, reason
+## &#39;No such file or directory&#39;</code></pre>
+<pre><code>## [1] &quot;./tools/tarballs&quot;</code></pre>
 <pre><code>## Skipping 1 packages ahead of CRAN: data.table</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
@@ -1454,7 +1456,7 @@ devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpXO9KMG/scomps_0.0.3.10042023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp3s8ffM/scomps_0.0.3.10042023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
@@ -1471,6 +1473,9 @@ devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 ## ** testing if installed package can be loaded from final location
 ## ** testing if installed package keeps a record of temporary installation path
 ## * DONE (scomps)</code></pre>
+<pre class="r"><code>cat(getwd())
+</code></pre>
+<pre><code>## /Users/songi2/Documents/GitHub/Scalable_GIS/scomps</code></pre>
 </div>
 </div>
 

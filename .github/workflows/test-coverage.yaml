@@ -24,7 +24,6 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          working-directory: "./scomps"
           extra-packages: |
             any::tictoc
             any::units
@@ -35,7 +34,6 @@ jobs:
       - name: Test coverage
         run: |
           covr::codecov(
-            path = "./scomps",
             quiet = FALSE,
             clean = FALSE,
             install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")
@@ -58,4 +56,4 @@ jobs:
 
       - name: Upload coverage to Codecov # Add this step
         run: |
-          Rscript -e "covr::codecov(path = './scomps', token = Sys.getenv('CODECOV_TOKEN'))"
+          Rscript -e "covr::codecov(token = Sys.getenv('CODECOV_TOKEN'))"

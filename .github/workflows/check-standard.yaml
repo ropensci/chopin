@@ -38,7 +38,6 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          working-directory: "./scomps"
           extra-packages: |
             any::tictoc
             any::units
@@ -49,5 +48,4 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
-          working-directory: "./scomps"
           upload-snapshots: true

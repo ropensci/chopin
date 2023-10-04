@@ -1141,8 +1141,21 @@ We finish by running commands that will document, build, and install the package
 # litr::document() # <-- use instead of devtools::document()
 devtools::document(".")
 devtools::test()
-devtools::build()
+devtools::build(path = "./tools/tarballs")
 devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 # devtools::check(document = FALSE)
+
+```
+
+```{r}
+cat(getwd())
+
+```
+
+```{r, echo = F}
+gitpath = gsub("/scomps", "", getwd())
+system(paste0("mv ", getwd(), "/* ", gitpath))
+Sys.sleep(1)
+# system(paste0("rm -r ", getwd()))
 
 ```
