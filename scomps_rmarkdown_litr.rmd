@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-09-03"
+date: "2023-10-04"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.2.10032023",
+    Version = "0.0.3.10042023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -41,6 +41,8 @@ usethis::use_package("terra") # Default is "Imports"
 usethis::use_package("stars")
 usethis::use_package("rlang") # Default is "Imports"
 usethis::use_package("testthat")
+usethis::use_package("units")
+usethis::use_package("methods")
 usethis::use_package("logr", "Suggests") # Default is "Imports"
 usethis::use_package("future") # Default is "Imports"
 usethis::use_package("future.apply") # Default is "Imports"
@@ -67,13 +69,13 @@ usethis::use_mit_license(copyright_holder = "I. Song")
 ### Vignettes 1
 
 ```{r}
-litr::add_vignettes("../tools/vignettes-sources/00_good_practice_parallelization.Rmd")
+litr::add_vignettes("../tools/vignettes-sources/v00_good_practice_parallelization.Rmd")
 ```
 
 ### Vignettes 2
 
 ```{r}
-litr::add_vignettes("../tools/vignettes-sources/01_generate_computational_grid.Rmd")
+litr::add_vignettes("../tools/vignettes-sources/v01_generate_computational_grid.Rmd")
 ```
 
 
@@ -89,19 +91,19 @@ litr::add_vignettes("../tools/vignettes-sources/01_generate_computational_grid.R
 #' @export
 check_packbound <- function(input) {
   # cl_inobj = class(input)[1]
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(is(input, "sf"), is(input, "stars"), is(input, "SpatVector"), is(input, "SpatRaster")))
-  if (is(input, "SpatVector") || is(input, "SpatRaster")) {
+  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
+  if (methods::is(input, "SpatVector") || methods::is(input, "SpatRaster")) {
     return("terra")
   }
   return("sf")
 }
 
 check_datatype <- function(input) {
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(is(input, "sf"), is(input, "stars"), is(input, "SpatVector"), is(input, "SpatRaster")))
-  if (any(is(input, "SpatVector"), is(input, "sf"))) {
+  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
+  if (any(methods::is(input, "SpatVector"), methods::is(input, "sf"))) {
     return("vector")
   }
-  if (any(is(input, "SpatRaster"), is(input, "stars"))) {
+  if (any(methods::is(input, "SpatRaster"), methods::is(input, "stars"))) {
     return("raster")
   }
 }
@@ -152,7 +154,7 @@ testthat::test_that("What package does the input object belong?",
 #' @return Data converted to the other package class (if sf, terra; if terra, sf)
 #' @export
 switch_packbound <- function(input) {
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(is(input, "sf"), is(input, "stars"), is(input, "SpatVector"), is(input, "SpatRaster")))
+  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
   cls_input = check_packbound(input)
   type_input = check_datatype(input)
 
@@ -206,11 +208,12 @@ testthat::test_that("Format is well converted",
 #' @title check_crs2: Coordinate system checker
 #' @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
 #' @param input Input object one of sf or terra::Spat* object
+#' @param crs_standard character(1). A standard definition of coordinate reference system. Default is "EPSG:4326" Consult [epsg.io](https://epsg.io) for details of other CRS.
 #' @return A (reprojected) sf or SpatVector object.
 #' @export
 check_crs2 <- function(input, crs_standard = "EPSG:4326") {
   check_crs.sf <- function(input){
-    if (is.na(st_crs(input))){cat('Please check the coordinate system or its EPSG code of your input object.'); return(NULL)}
+    if (is.na(sf::st_crs(input))){cat('Please check the coordinate system or its EPSG code of your input object.'); return(NULL)}
     if (sf::st_crs(input)$epsg == crs_standard ) {
       return(input)
     } 
@@ -393,7 +396,7 @@ clip_as_extent_ras2 <- function(points_in, buffer_r, nqsegs=180, ras){
 sp_indexing <- function(points_in, ncutsx, ncutsy){
   # pts <- data.table(pnts)
   points_in <- points_in |>
-    mutate(or_id = seq(1, dim(points_in)[1]))
+    dplyr::mutate(or_id = seq(1, dim(points_in)[1]))
   
   range_x  <- range(points_in$x)
   limits_x <- (range_x[1] + seq(0, ncutsx) * (range_x[2] - range_x[1]) / ncutsx)
@@ -401,7 +404,7 @@ sp_indexing <- function(points_in, ncutsx, ncutsy){
   limits_y <- (range_y[1] + seq(0, ncutsy) * (range_y[2] - range_y[1]) / ncutsy)
   
   points_in_cut <- points_in |>
-    mutate(xcut =  as.integer(cut(x, ncutsx, labels = seq(1, ncutsx))),
+    dplyr::mutate(xcut =  as.integer(cut(x, ncutsx, labels = seq(1, ncutsx))),
            ycut = as.integer(cut(y, ncutsy, labels = seq(1, ncutsy))))
   
   return(points_in_cut)
@@ -413,7 +416,8 @@ sp_indexing <- function(points_in, ncutsx, ncutsy){
 #' 
 #' @param rasterpath character(1). Path to the raster file.
 #' @param win Named integer vector (4) or terra::ext() results.
-#' @param author Insang Song 
+#' @return SpatRaster object.
+#' @author Insang Song 
 #' @export 
 rast_short <- function(rasterpath, win) {
   terra::rast(rasterpath, win = win)
@@ -430,6 +434,7 @@ rast_short <- function(rasterpath, win) {
 #' @param nx integer(1). 
 #' @param ny integer(1). 
 #' @param padding numeric(1). Extrusion factor 
+#' @author Insang Song
 #' @export 
 estimate_demands <- function(
   inputs,
@@ -457,7 +462,8 @@ estimate_demands <- function(
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
 #' @param padding numeric(1). A extrusion factor to make buffer to clip actual datasets. Depending on the length unit of the CRS of input.
-#' @param unit character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See \link{units package vignette (web)}{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html} for the list of acceptable unit forms.
+#' @param unit character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html) for the list of acceptable unit forms.
+#' @param ... arguments passed to the internal function
 #' @return A set of polygons in the input class
 #' @description TODO. Using input points, the bounding box is split to the predefined numbers of columns and rows. Each grid will be buffered by the radius.   
 #' @author Insang Song 
@@ -501,7 +507,7 @@ sp_index_grid <- function(points_in, ncutsx, ncutsy){
   sp_index_grid.sf = function(points_in, ncutsx, ncutsy) {
     grid1 <- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |> 
       as.data.frame() |> 
-      st_as_sf()
+      sf::st_as_sf()
     grid1 <- grid1[points_in, ]
     return(grid1)
   }
@@ -531,14 +537,14 @@ sp_index_grid <- function(points_in, ncutsx, ncutsy){
 #' # library(sf)
 #' # library(igraph)
 #' # ligrary(dplyr)
-#' # dg = st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
-#' # st_crs(dg) = 5070
-#' # dgs = st_as_sf(st_make_grid(dg, n = c(20, 15)))
+#' # dg = sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
+#' # sf::st_crs(dg) = 5070
+#' # dgs = sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
 #' # dgs$CGRIDID = seq(1, nrow(dgs))
 #' #
 #' # dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = "Thomas")
-#' # st_crs(dg_sample) = st_crs(dg)
-#' # dg_merged = grid_merge(st_as_sf(sss), dgs, 100)
+#' # sf::st_crs(dg_sample) = sf::st_crs(dg)
+#' # dg_merged = grid_merge(sf::st_as_sf(sss), dgs, 100)
 #' #### NOT RUN ####
 #' @export
 grid_merge <- function(points_in, grid_in, grid_min_features){
@@ -562,7 +568,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features){
   identified = unique(identified)
   identified = identified[sapply(identified, length) > 1]
 
-  identified_graph = lapply(identified, \(x) t(combn(x, 2))) |>
+  identified_graph = lapply(identified, \(x) t(utils::combn(x, 2))) |>
     Reduce(f = rbind, x = _) |>
     unique() |>
     apply(X = _, 2, as.character) |>
@@ -586,8 +592,8 @@ grid_merge <- function(points_in, grid_in, grid_min_features){
   #   grid_out[["CGRIDID"]][target_idx] = paste("M_", paste(target_idx, collapse = "_"), sep = "")
   # }
   grid_out = grid_out |>
-    dplyr::group_by(CGRIDID) |>
-    dplyr::summarize(n_merged = n()) |>
+    dplyr::group_by(!!rlang::sym("CGRIDID")) |>
+    dplyr::summarize(n_merged = dplyr::n()) |>
     dplyr::ungroup() 
 
   ## polsby-popper test for shape compactness
@@ -621,7 +627,46 @@ grid_merge <- function(points_in, grid_in, grid_min_features){
 
 ```
 
+```{r, send_to = "R/check.R"}
+#' Generate a rectangular polygon from extent
+#' 
+#' @param extent input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.
+#' @param output_class character(1). Class of the output polygon. One of "sf" or "terra"
+#' @param crs character(1). Coordinate reference system definition.
+#' @author Insang Song
+#' @export
+extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326") {
+  if (!output_class %in% c("sf", "terra")) {
+    stop("output_class should be one of 'sf' or 'terra'.\n")
+  }
+  if (methods::is(extent, "numeric")) {
+    if (is.null(attr(extent, "names"))) {
+      stop("Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n")
+    }
+    extent = switch(
+      output_class,
+      sf = sf::st_bbox(extent),
+      terra = terra::ext(extent)
+    )
+  }
 
+  extent_polygon = switch(
+    output_class,
+    sf = sf::st_as_sfc(extent),
+    terra = terra::vect(extent)
+  )
+
+  extent_polygon = switch(
+    output_class,
+    sf = sf::st_set_crs(extent_polygon, sf::st_crs(crs)),
+    terra = terra::set.crs(extent_polygon, terra::crs(crs))
+  )
+
+  return(extent_polygon)
+  
+}
+
+```
 
 ```{r, send_to = "R/check.R"}
 #' Check if the data extent is inside the reference bounding box
@@ -648,10 +693,11 @@ check_bbox <- function(
   if (is.na(query_crs) || is.null(query_crs)) {
     stop("The dataset you queried has no CRS. Please make sure your dataset has the correct CRS.\n")
   }
+  query_matched = sf::st_transform(data_query, sf::st_crs(ref_crs))
 
-  # ...
 
-  check_result
+
+  check_result = sf::st_within()
   return(check_result)
 }
 
@@ -659,7 +705,9 @@ check_bbox <- function(
 ```
 
 
-```{r}
+```{r, include=FALSE}
+#
+#
 #' Check if the data extent is inside the reference bounding box
 #' 
 #' @description One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data's extent and FALSE otherwise.
@@ -691,8 +739,8 @@ extract_with_polygons <- function(
     polys, surf, id, func = mean, na.rm = TRUE
     ) {
     # type check
-    stopifnot("Check class of the input points.\n" = any(is(polys, "sf"), is(polys, "SpatVector")))
-    stopifnot("Check class of the input raster.\n" = any(is(surf, "stars"), is(surf, "SpatRaster")))
+    stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
+    stopifnot("Check class of the input raster.\n" = any(methods::is(surf, "stars"), methods::is(surf, "SpatRaster")))
     stopifnot(is.character(id))
 
     cls_polys = check_packbound(polys)
@@ -714,9 +762,9 @@ extract_with_polygons <- function(
     extract_with_polygons.terra = function(polys, surf, id, func) {
         extracted = terra::extract(surf, polys)
         extracted = extracted |>
-          group_by(!!sym(id)) |>
-          summarize(across(-!!sym(id), ~func)) |>
-          ungroup()
+          dplyr::group_by(!!rlang::sym(id)) |>
+          dplyr::summarize(dplyr::across(-!!rlang::sym(id), ~func)) |>
+          dplyr::ungroup()
         return(extracted)
     }
 
@@ -773,9 +821,9 @@ extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...)
 #' 
 #' @export 
 check_crs <- function(x) {
-    stopifnot("Input is invalid.\n" = (is(x, "sf") || is(x, "stars") || is(x, "SpatVector") || is(x, "SpatRaster")))
+    stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
     
-    if (is(x, "sf") || is(x, "stars")) {
+    if (methods::is(x, "sf") || methods::is(x, "stars")) {
         crs_wkt = sf::st_crs(x)
     } else {
         crs_wkt = terra::crs(x)
@@ -795,8 +843,8 @@ check_crs <- function(x) {
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export 
 check_within_reference <- function(input_object, reference) {
-    stopifnot("Input is invalid.\n" = (is(x, "sf") || is(x, "stars") || is(x, "SpatVector") || is(x, "SpatRaster")))
-    stopifnot("Reference is invalid.\n" = (is(x, "sf") || is(x, "stars") || is(x, "SpatVector") || is(x, "SpatRaster")))
+    stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
+    stopifnot("Reference is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
 
   bbox_input <- input_object
     sf::st_bbox() |>
@@ -820,7 +868,8 @@ check_within_reference <- function(input_object, reference) {
 #' Calculate SEDC covariates
 #' @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
 #' @param point_to SpatVector object. Locations where each SEDC is calculated.
-#' @param sdec_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
+#' @param id character(1). Name of the unique id field in point_to.
+#' @param sedc_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
 #' @param threshold numeric(1). For computational efficiency, the nearest points in threshold will be selected
 #' @param target_fields character(varying). Field names in characters.
 #' @description NOTE: sf implementation is pending. Only available for terra.
@@ -848,16 +897,16 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 
   # summary
   near_from_to = near_from_to |>
-    as_tibble() |>
-    left_join(data.frame(point_from)) |>
-    left_join(data.frame(point_to)) |>
-    left_join(dist_near_to_df) |>
+    dplyr::as_tibble() |>
+    dplyr::left_join(data.frame(point_from)) |>
+    dplyr::left_join(data.frame(point_to)) |>
+    dplyr::left_join(dist_near_to_df) |>
     # per the definition in https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
     # exp(-3) is about 0.05
-    mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |>
-    group_by(!!sym(id)) |>
-    summarize(across(all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |>
-    ungroup()
+    dplyr::mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |>
+    dplyr::group_by(!!rlang::sym(id)) |>
+    dplyr::summarize(dplyr::across(dplyr::all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |>
+    dplyr::ungroup()
 
   invisible(near_from_to)
   
@@ -878,13 +927,13 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 #' library(sf)
 #' 
 #' # run
-#' nc = st_read(system.file("shape/nc.shp", package="sf"))
-#' nc = st_transform(nc, 5070)
-#' pp = st_sample(nc, size = 300)
-#' pp = st_as_sf(pp)
+#' nc = sf::st_read(system.file("shape/nc.shp", package="sf"))
+#' nc = sf::st_transform(nc, 5070)
+#' pp = sf::st_sample(nc, size = 300)
+#' pp = sf::st_as_sf(pp)
 #' pp[["id"]] = seq(1, nrow(pp))
-#' st_crs(pp) = "EPSG:5070"
-#' ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+#' sf::st_crs(pp) = "EPSG:5070"
+#' ppb = sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
 #' 
 #' system.time({ppb_nc_aw = aw_covariates(ppb, nc, 'id')})
 #' summary(ppb_nc_aw)
@@ -892,7 +941,7 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 #' @export
 aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
     stopifnot("Inputs have invalid classes.\n" = 
-      is(poly_in, "sf") || is(poly_weight, "sf") || is(poly_in, "SpatVector") || is(poly_weight, "SpatVector"))
+      methods::is(poly_in, "sf") || methods::is(poly_weight, "sf") || methods::is(poly_in, "SpatVector") || methods::is(poly_weight, "SpatVector"))
     #check_crs()
 
     ## distinguish numeric and nonnumeric columns
@@ -904,8 +953,8 @@ aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
         poly_intersected[["area_segment_"]] = terra::expanse(poly_intersected)
         poly_intersected = data.frame(poly_intersected) |>
             dplyr::group_by(!!rlang::sym(id_poly_in)) |>
-            dplyr::summarize(across(is.numeric,
-                        ~weighted.mean(., w = area_segment_))) |>
+            dplyr::summarize(dplyr::across(is.numeric,
+                        ~stats::weighted.mean(., w = area_segment_))) |>
             dplyr::ungroup()
         return(poly_intersected)
     }
@@ -936,58 +985,6 @@ aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
 
 ```
 
-```{r, send_to = "R/processing.R"}
-#' Subfunction: extract with buffers (flat weight; simple mean)
-#' 
-#' @export 
-extract_with_buffer.flat <- function(
-        points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
-    ) {
-    # generate buffers
-    bufs = terra::buffer(points, width = radius, quadsegs = qsegs)
-    # crop raster
-    bufs_extent = terra::ext(bufs)
-    surf_cropped = terra::crop(surf, bufs_extent)
-    name_surf_val = names(surf)
-    # extract raster values
-    surf_at_bufs = terra::extract(surf_cropped, bufs)
-    surf_at_bufs_summary = 
-        surf_at_bufs |> 
-            group_by(ID) |> 
-            summarize(across(all_of(name_surf_val), ~mean, na.rm=T)) |> 
-            ungroup()
-    return(surf_at_bufs_summary)
-}
-```
-
-```{r, send_to = "R/processing.R"}
-#' Subfunction: extract with buffers (kernel weight; weighted mean)
-#'
-#' @export 
-extract_with_buffer.kernel <- function(
-        points, surf, radius, id, qsegs, func = mean, kernel, bandwidth
-    ) {
-        # generate buffers
-        bufs = terra::buffer(points, width = radius, quadsegs = qsegs)
-        # crop raster
-        bufs_extent = terra::ext(bufs)
-        surf_cropped = terra::crop(surf, bufs_extent)
-        name_surf_val = names(surf)
-
-        # TODO: kernel implementation
-
-
-        # extract raster values
-        surf_at_bufs = terra::extract(surf_cropped, bufs)
-        surf_at_bufs_summary = 
-            surf_at_bufs |> 
-                group_by(ID) |> 
-                summarize(across(all_of(name_surf_val), ~mean, na.rm=T)) |> 
-                ungroup()
-        return(surf_at_bufs_summary)
-}
-```
-
 
 ```{r, send_to = "R/processing.R"}
 #' @title Extract summarized values from raster with points and a buffer radius (to be written)
@@ -1009,7 +1006,7 @@ extract_with_buffer <- function(
     points, surf, radius, id, qsegs = 90, func = mean, kernel = NULL, bandwidth = NULL
     ) {
     # type check
-    stopifnot("Check class of the input points.\n" = is(points, "SpatVector"))
+    stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
     stopifnot("Check class of the input radius.\n" = is.numeric(radius))
     stopifnot(is.character(id))
     stopifnot(is.integer(qsegs))
@@ -1036,7 +1033,50 @@ extract_with_buffer <- function(
 
 }
 
+# Subfunction: extract with buffers (flat weight; simple mean)
+extract_with_buffer.flat <- function(
+        points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
+    ) {
+    # generate buffers
+    bufs = terra::buffer(points, width = radius, quadsegs = qsegs)
+    # crop raster
+    bufs_extent = terra::ext(bufs)
+    surf_cropped = terra::crop(surf, bufs_extent)
+    name_surf_val = names(surf)
+    # extract raster values
+    surf_at_bufs = terra::extract(surf_cropped, bufs)
+    surf_at_bufs_summary = 
+        surf_at_bufs |> 
+            dplyr::group_by(ID) |> 
+            dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm=T)) |> 
+            dplyr::ungroup()
+    return(surf_at_bufs_summary)
+}
 
+
+# Subfunction: extract with buffers (kernel weight; weighted mean)
+extract_with_buffer.kernel <- function(
+        points, surf, radius, id, qsegs, func = mean, kernel, bandwidth
+    ) {
+        # generate buffers
+        bufs = terra::buffer(points, width = radius, quadsegs = qsegs)
+        # crop raster
+        bufs_extent = terra::ext(bufs)
+        surf_cropped = terra::crop(surf, bufs_extent)
+        name_surf_val = names(surf)
+
+        # TODO: kernel implementation
+
+
+        # extract raster values
+        surf_at_bufs = terra::extract(surf_cropped, bufs)
+        surf_at_bufs_summary = 
+            surf_at_bufs |> 
+                dplyr::group_by(ID) |> 
+                dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm=T)) |> 
+                dplyr::ungroup()
+        return(surf_at_bufs_summary)
+}
 
 ```
 
@@ -1046,7 +1086,7 @@ extract_with_buffer <- function(
 #' 
 #' @description Should 
 #' @param grids sf/SpatVector object. Computational grids.
-#' @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. "id_from:id_to" format or c(unique(grid_id)[id_from], unique(grid_id)[id_to])
+#' @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param fun function supported in scomps. 
 #' @param ... Arguments passed to fun.
 #' @return a data.frame object with mean value
@@ -1054,8 +1094,7 @@ extract_with_buffer <- function(
 #' 
 #' @export
 distribute_process <- function(grids, grid_id = NULL, fun, ...) {
-    require(future.apply)
-    
+   
     # subset using grids and grid_id
     if (!is.null(grid_id)) {
         if (is.character(grid_id)) {
@@ -1073,7 +1112,7 @@ distribute_process <- function(grids, grid_id = NULL, fun, ...) {
     results_distributed = future.apply::future_lapply(
         \(x, ...) {
             fun(...)
-        }, grids_target_list, points_cutslist, SIMPLIFY = FALSE,
+        }, grids_target_list, 
         future.seed = TRUE)
     results_distributed = do.call(rbind, results_distributed)
     return(results_distributed)
@@ -1086,10 +1125,11 @@ distribute_process <- function(grids, grid_id = NULL, fun, ...) {
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.
 
 ```{r}
-litr::document() # <-- use instead of devtools::document()
+# litr::document() # <-- use instead of devtools::document()
+devtools::document(".")
 devtools::test()
 devtools::build()
-devtools::install(build_vignettes = TRUE, dependencies = F)
+devtools::install(dependencies = F, build_vignettes = TRUE)
 # devtools::check(document = FALSE)
 
 ```
