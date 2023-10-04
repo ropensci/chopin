@@ -8,11 +8,11 @@
 #' @return A terra::ext or sfc_POLYGON object of the computation extent.
 #' @export
 set_clip_extent <- function(pnts, buffer_r) {
-  detected = check_packbound(pnts)
+  detected <- check_packbound(pnts)
   if (detected == "terra") {
-    ext_input = terra::ext(pnts)
+    ext_input <- terra::ext(pnts)
     # Note that `+` operation on terra::ext output accounts for the operand as it is.
-    ext_input = ext_input + (1.1 * buffer_r + 30)
+    ext_input <- ext_input + (1.1 * buffer_r + 30)
   }
   if (detected == "sf") {
     ext_input <- pnts |> sf::st_bbox()

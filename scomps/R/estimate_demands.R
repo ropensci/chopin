@@ -2,7 +2,7 @@
 
 #' Estimate computational demands from inputs (to be written)
 #' 
-#' @param inputs a list of sf/Spat* objects or file paths
+#' @param inputs character vector of file paths
 #' @param nx integer(1). 
 #' @param ny integer(1). 
 #' @param padding numeric(1). Extrusion factor 

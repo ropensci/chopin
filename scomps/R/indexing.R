@@ -7,7 +7,7 @@
 #' @param ncutsx integer(1). The number of splits along x-axis.
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @export
-sp_indexing <- function(points_in, ncutsx, ncutsy){
+sp_indexing <- function(points_in, ncutsx, ncutsy) {
   # pts <- data.table(pnts)
   points_in <- points_in |>
     dplyr::mutate(or_id = seq(1, dim(points_in)[1]))

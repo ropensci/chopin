@@ -32,4 +32,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 27d90205fd42be403e707a6a559e8eae
+LitrId: b724f15aefeda747a5a888516d5c7129

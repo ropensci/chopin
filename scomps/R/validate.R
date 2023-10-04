@@ -7,9 +7,9 @@
 #' @return A repaired sf or SpatVector object depending on the class of input_vector.
 #' @export
 validate_and_repair_vectors <- function(input_vector) {
-  detected = check_packbound(input_vector)
+  detected <- check_packbound(input_vector)
 
-  validated = switch(detected,
+  validated <- switch(detected,
     terra = terra::makeValid(input_vector),
     sf = sf::st_make_valid(input_vector))
 

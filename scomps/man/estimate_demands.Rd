@@ -7,7 +7,7 @@
 estimate_demands(inputs, nx, ny, padding)
 }
 \arguments{
-\item{inputs}{a list of sf/Spat* objects or file paths}
+\item{inputs}{character vector of file paths}
 
 \item{nx}{integer(1).}
 

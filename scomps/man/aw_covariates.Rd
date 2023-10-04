@@ -24,15 +24,15 @@ When poly_in and poly_weight are different classes, poly_weight will be converte
 library(sf)
 
 # run
-nc = sf::st_read(system.file("shape/nc.shp", package="sf"))
-nc = sf::st_transform(nc, 5070)
-pp = sf::st_sample(nc, size = 300)
-pp = sf::st_as_sf(pp)
-pp[["id"]] = seq(1, nrow(pp))
-sf::st_crs(pp) = "EPSG:5070"
-ppb = sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+nc <- sf::st_transform(nc, 5070)
+pp <- sf::st_sample(nc, size = 300)
+pp <- sf::st_as_sf(pp)
+pp[["id"]] <- seq(1, nrow(pp))
+sf::st_crs(pp) <- "EPSG:5070"
+ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
 
-system.time({ppb_nc_aw = aw_covariates(ppb, nc, 'id')})
+system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
 summary(ppb_nc_aw)
 #### Example of aw_covariates ends ####
 }

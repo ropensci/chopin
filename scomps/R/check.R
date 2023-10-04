@@ -32,8 +32,11 @@ check_datatype <- function(input) {
 #' @return A (reprojected) sf or SpatVector object.
 #' @export
 check_crs2 <- function(input, crs_standard = "EPSG:4326") {
-  check_crs.sf <- function(input){
-    if (is.na(sf::st_crs(input))){cat('Please check the coordinate system or its EPSG code of your input object.'); return(NULL)}
+  check_crs_sf <- function(input) {
+    if (is.na(sf::st_crs(input))) {
+      cat('Please check the coordinate system or its EPSG code of your input object.')
+      return(NULL)
+    }
     if (sf::st_crs(input)$epsg == crs_standard ) {
       return(input)
     } 
@@ -41,17 +44,17 @@ check_crs2 <- function(input, crs_standard = "EPSG:4326") {
     return(input_transformed)
   }
 
-  check_crs.terra <- function(input) {
+  check_crs_terra <- function(input) {
     if (terra::crs(input, describe = TRUE)$code == crs_standard) {
       return(input)
     }
-    input_transformed = terra::project(input, terra::crs(crs_standard))
+    input_transformed <- terra::project(input, terra::crs(crs_standard))
     return(input_transformed)
   }
-    detected = check_packbound(input)
+    detected <- check_packbound(input)
     switch(detected,
-          terra = check_crs.terra(input),
-          sf = check_crs.sf(input))
+          terra = check_crs_terra(input),
+          sf = check_crs_sf(input))
   }
 
 #' Generate a rectangular polygon from extent
@@ -69,20 +72,20 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
     if (is.null(attr(extent, "names"))) {
       stop("Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n")
     }
-    extent = switch(
+    extent <- switch(
       output_class,
       sf = sf::st_bbox(extent),
       terra = terra::ext(extent)
     )
   }
 
-  extent_polygon = switch(
+  extent_polygon <- switch(
     output_class,
     sf = sf::st_as_sfc(extent),
     terra = terra::vect(extent)
   )
 
-  extent_polygon = switch(
+  extent_polygon <- switch(
     output_class,
     sf = sf::st_set_crs(extent_polygon, sf::st_crs(crs)),
     terra = terra::set.crs(extent_polygon, terra::crs(crs))
@@ -110,18 +113,18 @@ check_bbox <- function(
     stop("CRS should be entered when the reference extent is a vector.\n")
   }
   if (is.numeric(reference) && !is.null(reference_crs)) {
-    reference = sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
+    reference <- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
   }
-  query_crs = check_crs(data_query)
-  ref_crs = check_crs(reference)
+  query_crs <- check_crs(data_query)
+  ref_crs <- check_crs(reference)
   if (is.na(query_crs) || is.null(query_crs)) {
     stop("The dataset you queried has no CRS. Please make sure your dataset has the correct CRS.\n")
   }
-  query_matched = sf::st_transform(data_query, sf::st_crs(ref_crs))
+  query_matched <- sf::st_transform(data_query, sf::st_crs(ref_crs))
 
 
 
-  check_result = sf::st_within()
+  check_result <- sf::st_within()
   return(check_result)
 }
 
@@ -144,12 +147,14 @@ check_crs <- function(x) {
     stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
     
     if (methods::is(x, "sf") || methods::is(x, "stars")) {
-        crs_wkt = sf::st_crs(x)
+        crs_wkt <- sf::st_crs(x)
     } else {
-        crs_wkt = terra::crs(x)
+        crs_wkt <- terra::crs(x)
     }
 
-    stopifnot("No CRS is defined in the input. Please consult the metadata or the data source.\n" = !is.na(crs_wkt) || crs_wkt != "")
+    stopifnot(
+      "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
+      !is.na(crs_wkt) || crs_wkt != "")
     return(crs_wkt)
 }
 
@@ -160,20 +165,20 @@ check_crs <- function(x) {
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export 
 check_within_reference <- function(input_object, reference) {
-    stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
-    stopifnot("Reference is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
+    stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+    stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
 
   bbox_input <- input_object
     sf::st_bbox() |>
     sf::st_as_sfc()
   
-  bbox_reference = reference |>
+  bbox_reference <- reference |>
     sf::st_bbox() |>
     sf::st_as_sfc()
 
-  iswithin = sf::st_covered_by(bbox_input, bbox_reference)
-  iswithin = length(iswithin[[1]])
-  iswithin = (iswithin == 1)
+  iswithin <- sf::st_covered_by(bbox_input, bbox_reference)
+  iswithin <- length(iswithin[[1]])
+  iswithin <- (iswithin == 1)
   invisible(iswithin)
 }
 

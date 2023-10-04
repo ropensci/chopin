@@ -8,10 +8,10 @@
 #' @export
 switch_packbound <- function(input) {
   stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
-  cls_input = check_packbound(input)
-  type_input = check_datatype(input)
+  cls_input <- check_packbound(input)
+  type_input <- check_datatype(input)
 
-  switched = 
+  switched <- 
   switch(cls_input,
     sf = switch(type_input,
       vector = terra::vect(input),
