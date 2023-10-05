@@ -4,7 +4,7 @@
 #' @description Return clipping extent with buffer radius. It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
 #' @param pnts One of sf or vect class. Target points of computation.
-#' @param buffer_r numeric(1). Buffer radius. It is assumed in metres 
+#' @param buffer_r numeric(1). Buffer radius. It is assumed in metres
 #' @return A terra::ext or sfc_POLYGON object of the computation extent.
 #' @export
 set_clip_extent <- function(pnts, buffer_r) {
@@ -24,13 +24,12 @@ set_clip_extent <- function(pnts, buffer_r) {
 }
 
 #' Quick call for SpatRaster with a window
-#' 
+#'
 #' @param rasterpath character(1). Path to the raster file.
 #' @param win Named integer vector (4) or terra::ext() results.
 #' @return SpatRaster object.
-#' @author Insang Song 
-#' @export 
+#' @author Insang Song
+#' @export
 rast_short <- function(rasterpath, win) {
   terra::rast(rasterpath, win = win)
 }
-

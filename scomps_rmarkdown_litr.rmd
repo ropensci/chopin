@@ -663,7 +663,7 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
 
   extent_polygon <- switch(
     output_class,
-    sf = sf::st_as_sfc(extent),
+    sf = sf::st_as_sf(sf::st_as_sfc(extent)),
     terra = terra::vect(extent)
   )
 
@@ -678,6 +678,27 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
 }
 
 ```
+
+```{r}
+testthat::test_that("input extent is converted to a polygon", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
+  mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
+  mainland_box_t <- extent_to_polygon(mainland_vec, output_class = "terra")
+  mainland_vec_un <- unname(mainland_vec)
+  
+  testthat::expect_s3_class(mainland_box, "sf")
+  # terra Spat* objects are s4 class...
+  testthat::expect_s4_class(mainland_box_t, "SpatVector")
+  testthat::expect_error(extent_to_polygon(mainland_vec_un, output_class = "sf"))
+})
+
+```
+
+
 
 ```{r, send_to = "R/check.R"}
 #' Check if the data extent is inside the reference bounding box
@@ -833,6 +854,9 @@ extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...)
 #' @export 
 check_crs <- function(x) {
     stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
+    stopifnot(
+      "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
+      !is.na(sf::st_crs(x)) || !is.na(terra::crs(x)))
     
     if (methods::is(x, "sf") || methods::is(x, "stars")) {
         crs_wkt <- sf::st_crs(x)
@@ -840,13 +864,30 @@ check_crs <- function(x) {
         crs_wkt <- terra::crs(x)
     }
 
-    stopifnot(
-      "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
-      !is.na(crs_wkt) || crs_wkt != "")
     return(crs_wkt)
 }
 ```
 
+
+```{r}
+testthat::test_that("check_crs is working as expected", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  nc <- sf::read_sf(ncpath)
+  nct <- terra::vect(nc)
+  crs_checked1 <- check_crs(nc)
+  dummy <- character(0)
+  crs_checked2 <- check_crs(nct)
+
+  testthat::expect_equal(crs_checked1, sf::st_crs(nc))
+  testthat::expect_equal(crs_checked2, terra::crs(nct))
+  testthat::expect_error(check_crs(dummy))
+
+})
+
+```
 
 ```{r, send_to = "R/check.R"}
 #' Check if the boundary of the vector/raster object is inside the reference
@@ -859,7 +900,7 @@ check_within_reference <- function(input_object, reference) {
     stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
     stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
 
-  bbox_input <- input_object
+  bbox_input <- input_object |>
     sf::st_bbox() |>
     sf::st_as_sfc()
   
@@ -876,6 +917,22 @@ check_within_reference <- function(input_object, reference) {
 
 ```
 
+```{r}
+testthat::test_that("nc data is within the mainland US", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  nc <- sf::read_sf(ncpath)
+  nc <- sf::st_transform(nc, "EPSG:4326")
+  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
+  mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
+  within_res <- check_within_reference(nc, mainland_box)
+  testthat::expect_equal(within_res, TRUE)
+
+})
+
+```
 
 ```{r, send_to = "R/processing.R"}
 #' Calculate SEDC covariates
@@ -1154,8 +1211,12 @@ cat(getwd())
 
 ```{r, echo = F}
 gitpath = gsub("/scomps", "", getwd())
-system(paste0("mv ", getwd(), "/* ", gitpath))
+
+system("unalias cp")
+system(paste0("cp -r ", getwd(), "/* ", gitpath))
+
 Sys.sleep(1)
-# system(paste0("rm -r ", getwd()))
+
+system(paste0("rm -r ", getwd()))
 
 ```

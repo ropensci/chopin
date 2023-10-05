@@ -16,5 +16,3 @@ initate_log <- function(expr, dolog = FALSE, logpath) {
   logr::log_close()
   return(NULL)
 }
-
-

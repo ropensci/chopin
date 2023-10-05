@@ -952,7 +952,7 @@ extent_to_polygon &lt;- function(extent, output_class = &quot;terra&quot;, crs =
 
   extent_polygon &lt;- switch(
     output_class,
-    sf = sf::st_as_sfc(extent),
+    sf = sf::st_as_sf(sf::st_as_sfc(extent)),
     terra = terra::vect(extent)
   )
 
@@ -966,6 +966,23 @@ extent_to_polygon &lt;- function(extent, output_class = &quot;terra&quot;, crs =
   
 }
 </code></pre>
+<pre class="r"><code>testthat::test_that(&quot;input extent is converted to a polygon&quot;, {
+  withr::local_package(&quot;sf&quot;)
+  withr::local_package(&quot;terra&quot;)
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  mainland_vec &lt;- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
+  mainland_box &lt;- extent_to_polygon(mainland_vec, output_class = &quot;sf&quot;)
+  mainland_box_t &lt;- extent_to_polygon(mainland_vec, output_class = &quot;terra&quot;)
+  mainland_vec_un &lt;- unname(mainland_vec)
+  
+  testthat::expect_s3_class(mainland_box, &quot;sf&quot;)
+  # terra Spat* objects are s4 class...
+  testthat::expect_s4_class(mainland_box_t, &quot;SpatVector&quot;)
+  testthat::expect_error(extent_to_polygon(mainland_vec_un, output_class = &quot;sf&quot;))
+})
+</code></pre>
+<pre><code>## Test passed</code></pre>
 <pre class="r"><code>#&#39; Check if the data extent is inside the reference bounding box
 #&#39; 
 #&#39; @description One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data&#39;s extent and FALSE otherwise.
@@ -1092,6 +1109,9 @@ extract_with &lt;- function(raster, vector, id, func = mean, mode = &quot;polygo
 #&#39; @export 
 check_crs &lt;- function(x) {
     stopifnot(&quot;Input is invalid.\n&quot; = (methods::is(x, &quot;sf&quot;) || methods::is(x, &quot;stars&quot;) || methods::is(x, &quot;SpatVector&quot;) || methods::is(x, &quot;SpatRaster&quot;)))
+    stopifnot(
+      &quot;No CRS is defined in the input. Please consult the metadata or the data source.\n&quot; =
+      !is.na(sf::st_crs(x)) || !is.na(terra::crs(x)))
     
     if (methods::is(x, &quot;sf&quot;) || methods::is(x, &quot;stars&quot;)) {
         crs_wkt &lt;- sf::st_crs(x)
@@ -1099,11 +1119,26 @@ check_crs &lt;- function(x) {
         crs_wkt &lt;- terra::crs(x)
     }
 
-    stopifnot(
-      &quot;No CRS is defined in the input. Please consult the metadata or the data source.\n&quot; =
-      !is.na(crs_wkt) || crs_wkt != &quot;&quot;)
     return(crs_wkt)
 }</code></pre>
+<pre class="r"><code>testthat::test_that(&quot;check_crs is working as expected&quot;, {
+  withr::local_package(&quot;sf&quot;)
+  withr::local_package(&quot;terra&quot;)
+  withr::local_options(list(sf_use_s2 = FALSE))
+  ncpath &lt;- system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
+  nc &lt;- sf::read_sf(ncpath)
+  nct &lt;- terra::vect(nc)
+  crs_checked1 &lt;- check_crs(nc)
+  dummy &lt;- character(0)
+  crs_checked2 &lt;- check_crs(nct)
+
+  testthat::expect_equal(crs_checked1, sf::st_crs(nc))
+  testthat::expect_equal(crs_checked2, terra::crs(nct))
+  testthat::expect_error(check_crs(dummy))
+
+})
+</code></pre>
+<pre><code>## Test passed</code></pre>
 <pre class="r"><code>#&#39; Check if the boundary of the vector/raster object is inside the reference
 #&#39; @param input_object sf/stars/SpatVector/SpatRaster object.
 #&#39; @param reference sf/stars/SpatVector/SpatRaster object.
@@ -1114,7 +1149,7 @@ check_within_reference &lt;- function(input_object, reference) {
     stopifnot(&quot;Input is invalid.\n&quot; = (methods::is(input_object, &quot;sf&quot;) || methods::is(input_object, &quot;stars&quot;) || methods::is(input_object, &quot;SpatVector&quot;) || methods::is(input_object, &quot;SpatRaster&quot;)))
     stopifnot(&quot;Reference is invalid.\n&quot; = (methods::is(input_object, &quot;sf&quot;) || methods::is(input_object, &quot;stars&quot;) || methods::is(input_object, &quot;SpatVector&quot;) || methods::is(input_object, &quot;SpatRaster&quot;)))
 
-  bbox_input &lt;- input_object
+  bbox_input &lt;- input_object |&gt;
     sf::st_bbox() |&gt;
     sf::st_as_sfc()
   
@@ -1129,6 +1164,23 @@ check_within_reference &lt;- function(input_object, reference) {
 }
 
 </code></pre>
+<pre class="r"><code>testthat::test_that(&quot;nc data is within the mainland US&quot;, {
+  withr::local_package(&quot;sf&quot;)
+  withr::local_package(&quot;terra&quot;)
+  withr::local_options(list(sf_use_s2 = FALSE))
+  ncpath &lt;- system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
+  nc &lt;- sf::read_sf(ncpath)
+  nc &lt;- sf::st_transform(nc, &quot;EPSG:4326&quot;)
+  mainland_vec &lt;- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
+  mainland_box &lt;- extent_to_polygon(mainland_vec, output_class = &quot;sf&quot;)
+  within_res &lt;- check_within_reference(nc, mainland_box)
+  testthat::expect_equal(within_res, TRUE)
+
+})
+</code></pre>
+<pre><code>## although coordinates are longitude/latitude, st_covered_by assumes that they
+## are planar</code></pre>
+<pre><code>## Test passed</code></pre>
 <pre class="r"><code>#&#39; Calculate SEDC covariates
 #&#39; @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
 #&#39; @param point_to SpatVector object. Locations where each SEDC is calculated.
@@ -1421,11 +1473,14 @@ devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 ## pr, tas, 
 ## pr, tas, 
 ## 
-## ⠼ |         5 | tests                                                           
-## ✔ |         8 | tests
+## ⠼ |         5 | tests</code></pre>
+<pre><code>## although coordinates are longitude/latitude, st_covered_by assumes that they
+## are planar</code></pre>
+<pre><code>## 
+## ✔ |        15 | tests
 ## 
 ## ══ Results ═════════════════════════════════════════════════════════════════════
-## [ FAIL 0 | WARN 0 | SKIP 0 | PASS 8 ]</code></pre>
+## [ FAIL 0 | WARN 0 | SKIP 0 | PASS 15 ]</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -1456,7 +1511,7 @@ devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp3s8ffM/scomps_0.0.3.10042023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp3vX8Mh/scomps_0.0.3.10042023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
