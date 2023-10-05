@@ -11,7 +11,7 @@
 
 <meta name="author" content="Insang Song" />
 
-<meta name="date" content="2023-09-03" />
+<meta name="date" content="2023-10-04" />
 
 <title>Creating the scomps R package</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Creating the <code>scomps</code> R
 package</h1>
 <h4 class="author">Insang Song</h4>
-<h4 class="date">2023-09-03</h4>
+<h4 class="date">2023-10-04</h4>
 
 </div>
 
@@ -368,7 +368,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.0.2.09192023&quot;,
+    Version = &quot;0.0.3.10042023&quot;,
     Title = &quot;Scalable R geospatial computation&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = person(
@@ -385,29 +385,35 @@ usethis::use_package(&quot;dplyr&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;sf&quot;) # Default is &quot;Imports&quot;
 # usethis::use_package(&quot;stars&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;terra&quot;) # Default is &quot;Imports&quot;
+usethis::use_package(&quot;stars&quot;)
 usethis::use_package(&quot;rlang&quot;) # Default is &quot;Imports&quot;
+usethis::use_package(&quot;testthat&quot;)
+usethis::use_package(&quot;units&quot;)
+usethis::use_package(&quot;methods&quot;)
 usethis::use_package(&quot;logr&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;future&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;future.apply&quot;) # Default is &quot;Imports&quot;
 usethis::use_package(&quot;igraph&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
+usethis::use_package(&quot;withr&quot;, &quot;Suggests&quot;)
+usethis::use_package(&quot;covr&quot;)
 usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Default is &quot;Imports&quot;
 # usethis::use_gpl3_license()
+usethis::use_mit_license(copyright_holder = &quot;I. Song&quot;)
 
 
 # usethis::use_vignette(&quot;scomps_1_setting_distribution.rmd&quot;)</code></pre>
 <!--
-# usethis::use_mit_license(copyright_holder = "F. Last")
 -->
 <pre class="r"><code># parallelly::availableCores()
 # plan(future.batchtools::batchtools_slurm)
 </code></pre>
 <div id="vignettes-1" class="section level3">
 <h3>Vignettes 1</h3>
-<pre class="r"><code>litr::add_vignettes(&quot;../vignettes-sources/00_good_practice_parallelization.Rmd&quot;)</code></pre>
+<pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/v00_good_practice_parallelization.Rmd&quot;)</code></pre>
 </div>
 <div id="vignettes-2" class="section level3">
 <h3>Vignettes 2</h3>
-<pre class="r"><code>litr::add_vignettes(&quot;../vignettes-sources/01_generate_computational_grid.Rmd&quot;)</code></pre>
+<pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/v01_generate_computational_grid.Rmd&quot;)</code></pre>
 </div>
 </div>
 <div id="now-to-the-package-itself" class="section level1">
@@ -420,36 +426,74 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param input Spat* in terra or sf object.
 #&#39; @return A character object; one of &#39;terra&#39; and &#39;sf&#39;
 #&#39; @export
-<span id='check_packbound'>check_packbound</span> &lt;- function(input) {
+check_packbound &lt;- function(input) {
   # cl_inobj = class(input)[1]
-  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(is(input, &quot;sf&quot;), is(input, &quot;stars&quot;), is(input, &quot;SpatVector&quot;), is(input, &quot;SpatRaster&quot;)))
-  if (is(input, &quot;SpatVector&quot;) || is(input, &quot;SpatRaster&quot;)) {
+  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
+  if (methods::is(input, &quot;SpatVector&quot;) || methods::is(input, &quot;SpatRaster&quot;)) {
     return(&quot;terra&quot;)
   }
   return(&quot;sf&quot;)
 }
 
-<span id='check_datatype'>check_datatype</span> &lt;- function(input) {
-  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(is(input, &quot;sf&quot;), is(input, &quot;stars&quot;), is(input, &quot;SpatVector&quot;), is(input, &quot;SpatRaster&quot;)))
-  if (any(is(input, &quot;SpatVector&quot;), is(input, &quot;sf&quot;))) {
+check_datatype &lt;- function(input) {
+  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
+  if (any(methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;sf&quot;))) {
     return(&quot;vector&quot;)
   }
-  if (any(is(input, &quot;SpatRaster&quot;), is(input, &quot;stars&quot;))) {
+  if (any(methods::is(input, &quot;SpatRaster&quot;), methods::is(input, &quot;stars&quot;))) {
     return(&quot;raster&quot;)
   }
 }</code></pre>
+<pre class="r"><code>testthat::test_that(&quot;What package does the input object belong?&quot;,
+{
+    withr::local_package(&quot;stars&quot;)
+    withr::local_package(&quot;terra&quot;)
+    withr::local_options(list(sf_use_s2 = FALSE))
+    bcsd_path &lt;- system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
+    bcsd_stars &lt;- stars::read_stars(bcsd_path)
+
+    packbound_stars &lt;- check_packbound(bcsd_stars)
+    sprast_bcsd &lt;- terra::rast(bcsd_path)
+    packbound_terra &lt;- check_packbound(sprast_bcsd)
+
+    testthat::expect_equal(packbound_stars, &quot;sf&quot;)
+    testthat::expect_equal(packbound_terra, &quot;terra&quot;)
+})
+
+
+testthat::test_that(&quot;What package does the input object belong?&quot;,
+{
+    withr::local_package(&quot;stars&quot;)
+    withr::local_package(&quot;terra&quot;)
+    withr::local_options(list(sf_use_s2 = FALSE))
+    bcsd_path &lt;- system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
+    bcsd_stars &lt;- stars::read_stars(bcsd_path)
+
+    nc &lt;- system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
+    nc &lt;- sf::read_sf(nc)
+
+    datatype_stars &lt;- check_datatype(bcsd_stars)
+    datatype_sf &lt;- check_datatype(nc)
+
+    testthat::expect_equal(datatype_stars, &quot;raster&quot;)
+    testthat::expect_equal(datatype_sf, &quot;vector&quot;)
+})</code></pre>
+<pre><code>## pr, tas, 
+## Test passed</code></pre>
+<pre><code>## pr, tas, 
+## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title Switch spatial data class
 #&#39; @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
 #&#39; @author Insang Song
 #&#39; @param input Spat* in terra or sf object.
 #&#39; @return Data converted to the other package class (if sf, terra; if terra, sf)
 #&#39; @export
-<span id='switch_packbound'>switch_packbound</span> &lt;- function(input) {
-  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(is(input, &quot;sf&quot;), is(input, &quot;stars&quot;), is(input, &quot;SpatVector&quot;), is(input, &quot;SpatRaster&quot;)))
-  cls_input = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
-  type_input = <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(input)
+switch_packbound &lt;- function(input) {
+  stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
+  cls_input &lt;- check_packbound(input)
+  type_input &lt;- check_datatype(input)
 
-  switched = 
+  switched &lt;- 
   switch(cls_input,
     sf = switch(type_input,
       vector = terra::vect(input),
@@ -461,14 +505,48 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 
   invisible(switched)
 }</code></pre>
+<pre class="r"><code>
+testthat::test_that(&quot;Format is well converted&quot;,
+{
+    withr::local_package(&quot;stars&quot;)
+    withr::local_package(&quot;terra&quot;)
+    withr::local_options(list(sf_use_s2 = FALSE))
+
+    # starts from sf/stars
+    bcsd_path &lt;- system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
+    bcsd_stars &lt;- stars::read_stars(bcsd_path)
+    nc &lt;- system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
+    nc &lt;- sf::read_sf(nc)
+
+    stars_bcsd_tr &lt;- switch_packbound(bcsd_stars)
+    sf_nc_tr &lt;- switch_packbound(nc)
+
+    testthat::expect_equal(check_packbound(stars_bcsd_tr), &quot;terra&quot;)
+    testthat::expect_equal(check_packbound(sf_nc_tr), &quot;terra&quot;)
+
+    stars_bcsd_trb &lt;- switch_packbound(stars_bcsd_tr)
+    sf_nc_trb &lt;- switch_packbound(sf_nc_tr)
+
+    testthat::expect_equal(check_packbound(stars_bcsd_trb), &quot;sf&quot;)
+    testthat::expect_equal(check_packbound(sf_nc_trb), &quot;sf&quot;)
+
+})
+
+</code></pre>
+<pre><code>## pr, tas, 
+## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title check_crs2: Coordinate system checker
 #&#39; @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
 #&#39; @param input Input object one of sf or terra::Spat* object
+#&#39; @param crs_standard character(1). A standard definition of coordinate reference system. Default is &quot;EPSG:4326&quot; Consult [epsg.io](https://epsg.io) for details of other CRS.
 #&#39; @return A (reprojected) sf or SpatVector object.
 #&#39; @export
-<span id='check_crs2'>check_crs2</span> &lt;- function(input, crs_standard = &quot;EPSG:4326&quot;) {
-  <span id='check_crs.sf'>check_crs.sf</span> &lt;- function(input){
-    if (is.na(st_crs(input))){cat(&#39;Please check the coordinate system or its EPSG code of your input object.&#39;); return(NULL)}
+check_crs2 &lt;- function(input, crs_standard = &quot;EPSG:4326&quot;) {
+  check_crs_sf &lt;- function(input) {
+    if (is.na(sf::st_crs(input))) {
+      cat(&#39;Please check the coordinate system or its EPSG code of your input object.&#39;)
+      return(NULL)
+    }
     if (sf::st_crs(input)$epsg == crs_standard ) {
       return(input)
     } 
@@ -476,17 +554,17 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     return(input_transformed)
   }
 
-  <span id='check_crs.terra'>check_crs.terra</span> &lt;- function(input) {
+  check_crs_terra &lt;- function(input) {
     if (terra::crs(input, describe = TRUE)$code == crs_standard) {
       return(input)
     }
-    input_transformed = terra::project(input, terra::crs(crs_standard))
+    input_transformed &lt;- terra::project(input, terra::crs(crs_standard))
     return(input_transformed)
   }
-    detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
+    detected &lt;- check_packbound(input)
     switch(detected,
-          terra = <a href='scomps_rmarkdown_litr.html#check_crs.terra'>check_crs.terra</a>(input),
-          sf = <a href='scomps_rmarkdown_litr.html#check_crs.sf'>check_crs.sf</a>(input))
+          terra = check_crs_terra(input),
+          sf = check_crs_sf(input))
   }</code></pre>
 <pre class="r"><code>#&#39; Validate and repair input vector data
 #&#39; @description It tries repairing input vector data. Vector validity violation usually appears in polygon data with self-crossing or hole orders. This function will pass the input_vector object to sf::st_make_valid() (if input_vector is sf) or terra::makeValid() (if input_vector is SpatVector). May take some time depending on the geometry complexity.
@@ -494,10 +572,10 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param input_vector One of sf or vect class. Target points of computation.
 #&#39; @return A repaired sf or SpatVector object depending on the class of input_vector.
 #&#39; @export
-<span id='validate_and_repair_vectors'>validate_and_repair_vectors</span> &lt;- function(input_vector) {
-  detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input_vector)
+validate_and_repair_vectors &lt;- function(input_vector) {
+  detected &lt;- check_packbound(input_vector)
 
-  validated = switch(detected,
+  validated &lt;- switch(detected,
     terra = terra::makeValid(input_vector),
     sf = sf::st_make_valid(input_vector))
 
@@ -511,7 +589,7 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param logpath character(1). Log file path with the full log file name.
 #&#39; @return Nothing. It will export a log file in the specified path as logpath.
 #&#39; @export
-<span id='initate_log'>initate_log</span> &lt;- function(expr, dolog = FALSE, logpath) {
+initate_log &lt;- function(expr, dolog = FALSE, logpath) {
   if (!dolog) {
     return(NULL)
   }
@@ -529,12 +607,12 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param buffer_r numeric(1). Buffer radius. It is assumed in metres 
 #&#39; @return A terra::ext or sfc_POLYGON object of the computation extent.
 #&#39; @export
-<span id='set_clip_extent'>set_clip_extent</span> &lt;- function(pnts, buffer_r) {
-  detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(pnts)
+set_clip_extent &lt;- function(pnts, buffer_r) {
+  detected &lt;- check_packbound(pnts)
   if (detected == &quot;terra&quot;) {
-    ext_input = terra::ext(pnts)
+    ext_input &lt;- terra::ext(pnts)
     # Note that `+` operation on terra::ext output accounts for the operand as it is.
-    ext_input = ext_input + (1.1 * buffer_r + 30)
+    ext_input &lt;- ext_input + (1.1 * buffer_r + 30)
   }
   if (detected == &quot;sf&quot;) {
     ext_input &lt;- pnts |&gt; sf::st_bbox()
@@ -553,28 +631,28 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param target_input sf or SpatVector object to be clipped
 #&#39; @return A clipped sf or SpatVector object.
 #&#39; @export
-<span id='clip_as_extent'>clip_as_extent</span> &lt;- function(pnts, buffer_r, nqsegs=NULL, target_input){
+clip_as_extent &lt;- function(pnts, buffer_r, nqsegs=NULL, target_input) {
   if (any(sapply(list(pnts, buffer_r, target_input), is.null))) {
     stop(&quot;One or more required arguments are NULL. Please check.\n&quot;)
   }
-  detected_pnts = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(pnts)
-  detected_target = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(target_input)
+  detected_pnts &lt;- check_packbound(pnts)
+  detected_target &lt;- check_packbound(target_input)
 
   if (detected_pnts != detected_target) {
     warning(&quot;Inputs are not the same class.\n&quot;)
-    target_input = switch(detected_target,
+    target_input &lt;- switch(detected_target,
         sf = terra::vect(target_input),
         terra = sf::st_as_sf(target_input))
   }
   
-  ext_input = <a href='scomps_rmarkdown_litr.html#set_clip_extent'>set_clip_extent</a>(pnts, buffer_r)
+  ext_input &lt;- set_clip_extent(pnts, buffer_r)
   cat(&quot;Clip target features with the input feature extent...\n&quot;)
   if (detected_pnts == &quot;sf&quot;) {
-    cae = ext_input |&gt;
+    cae &lt;- ext_input |&gt;
       sf::st_intersection(x = target_input)
   }
   if (detected_pnts == &quot;terra&quot;) {
-    cae = terra::intersect(target_input, ext_input)
+    cae &lt;- terra::intersect(target_input, ext_input)
   }
    
   return(cae)
@@ -587,11 +665,11 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param nqsegs integer(1). the number of points per a quarter circle
 #&#39; @param ras SpatRaster object to be clipped
 #&#39; @export
-<span id='clip_as_extent_ras'>clip_as_extent_ras</span> &lt;- function(pnts, buffer_r, nqsegs = 180, ras){
+clip_as_extent_ras &lt;- function(pnts, buffer_r, nqsegs = 180, ras) {
   if (any(sapply(list(pnts, buffer_r, ras), is.null))) {
     stop(&quot;Any of required arguments are NULL. Please check.\n&quot;)
   }
-  ext_input = <a href='scomps_rmarkdown_litr.html#set_clip_extent'>set_clip_extent</a>(pnts, buffer_r) |&gt;
+  ext_input &lt;- set_clip_extent(pnts, buffer_r) |&gt;
     terra::ext()
 
   cae &lt;- terra::crop(ras, ext_input, snap = &#39;out&#39;)
@@ -605,11 +683,11 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param nqsegs integer(1). the number of points per a quarter circle
 #&#39; @param ras SpatRaster object to be clipped
 #&#39; @export
-<span id='clip_as_extent_ras2'>clip_as_extent_ras2</span> &lt;- function(points_in, buffer_r, nqsegs=180, ras){
+clip_as_extent_ras2 &lt;- function(points_in, buffer_r, nqsegs=180, ras) {
   if (any(sapply(list(points_in, buffer_r, ras), is.null))) {
     stop(&quot;Any of required arguments are NULL. Please check.\n&quot;)
   }
-  ext_input = <a href='scomps_rmarkdown_litr.html#set_clip_extent'>set_clip_extent</a>(points_in, buffer_r) |&gt;
+  ext_input &lt;- set_clip_extent(points_in, buffer_r) |&gt;
     terra::ext()
 
   cae &lt;- terra::crop(ras, ext_input, snap = &#39;out&#39;)
@@ -622,10 +700,10 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param ncutsx integer(1). The number of splits along x-axis.
 #&#39; @param ncutsy integer(1). The number of splits along y-axis.
 #&#39; @export
-<span id='sp_indexing'>sp_indexing</span> &lt;- function(points_in, ncutsx, ncutsy){
+sp_indexing &lt;- function(points_in, ncutsx, ncutsy) {
   # pts &lt;- data.table(pnts)
   points_in &lt;- points_in |&gt;
-    mutate(or_id = seq(1, dim(points_in)[1]))
+    dplyr::mutate(or_id = seq(1, dim(points_in)[1]))
   
   range_x  &lt;- range(points_in$x)
   limits_x &lt;- (range_x[1] + seq(0, ncutsx) * (range_x[2] - range_x[1]) / ncutsx)
@@ -633,7 +711,7 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
   limits_y &lt;- (range_y[1] + seq(0, ncutsy) * (range_y[2] - range_y[1]) / ncutsy)
   
   points_in_cut &lt;- points_in |&gt;
-    mutate(xcut =  as.integer(cut(x, ncutsx, labels = seq(1, ncutsx))),
+    dplyr::mutate(xcut =  as.integer(cut(x, ncutsx, labels = seq(1, ncutsx))),
            ycut = as.integer(cut(y, ncutsy, labels = seq(1, ncutsy))))
   
   return(points_in_cut)
@@ -642,20 +720,22 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; 
 #&#39; @param rasterpath character(1). Path to the raster file.
 #&#39; @param win Named integer vector (4) or terra::ext() results.
-#&#39; @param author Insang Song 
+#&#39; @return SpatRaster object.
+#&#39; @author Insang Song 
 #&#39; @export 
-<span id='rast_short'>rast_short</span> &lt;- function(rasterpath, win) {
+rast_short &lt;- function(rasterpath, win) {
   terra::rast(rasterpath, win = win)
 }
 </code></pre>
 <pre class="r"><code>#&#39; Estimate computational demands from inputs (to be written)
 #&#39; 
-#&#39; @param inputs a list of sf/Spat* objects or file paths
+#&#39; @param inputs character vector of file paths
 #&#39; @param nx integer(1). 
 #&#39; @param ny integer(1). 
 #&#39; @param padding numeric(1). Extrusion factor 
+#&#39; @author Insang Song
 #&#39; @export 
-<span id='estimate_demands'>estimate_demands</span> &lt;- function(
+estimate_demands &lt;- function(
   inputs,
   nx, ny,
   padding
@@ -677,20 +757,32 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param ny integer(1). The number of grids along y-axis.
 #&#39; @param grid_min_features integer(1). A threshold to merging adjacent grids
 #&#39; @param padding numeric(1). A extrusion factor to make buffer to clip actual datasets. Depending on the length unit of the CRS of input.
-#&#39; @param unit character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See \link{units package vignette (web)}{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html} for the list of acceptable unit forms.
+#&#39; @param unit character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html) for the list of acceptable unit forms.
+#&#39; @param ... arguments passed to the internal function
 #&#39; @return A set of polygons in the input class
 #&#39; @description TODO. Using input points, the bounding box is split to the predefined numbers of columns and rows. Each grid will be buffered by the radius.   
 #&#39; @author Insang Song 
 #&#39; @examples 
 #&#39; # data
-#&#39; 
+#&#39; library(sf)
+#&#39; ncpath &lt;- system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
+#&#39; nc &lt;- read_sf(ncpath)
+#&#39; nc &lt;- st_transform(nc, &quot;EPSG:5070&quot;)
 #&#39; # run
-#&#39; <a href='scomps_rmarkdown_litr.html#get_computational_regions'>get_computational_regions</a>()
+#&#39; # nc_comp_region &lt;- get_computational_regions(nc, nx = 12, ny = 8)
 #&#39; 
 #&#39; @export 
-<span id='get_computational_regions'>get_computational_regions</span> &lt;- function(input, mode = &quot;grid&quot;, nx = 10, ny = 10, grid_min_features = 30, padding = NULL, unit = NULL, ...) {
+get_computational_regions &lt;- function(
+  input, 
+  mode = &quot;grid&quot;, 
+  nx = 10, 
+  ny = 10, 
+  grid_min_features = 30, 
+  padding = NULL, 
+  unit = NULL, 
+  ...) {
   # type check
-  package_detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
+  package_detected &lt;- check_packbound(input)
   # stopifnot(&quot;Invalid input.\n&quot; = !any(grepl(&quot;^(sf|Spat)&quot;, class(input))))
   stopifnot(&quot;Argument mode should be one of &#39;grid&#39;, &#39;grid_advanced&#39;, or &#39;density&#39;.\n&quot; = !mode %in% c(&quot;grid&quot;, &quot;grid_advanced&quot;, &quot;density&quot;))
   stopifnot(&quot;Ensure that nx, ny, and grid_min_features are all integer.\n&quot; = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
@@ -712,26 +804,26 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param ncutsy integer(1). The number of splits along y-axis.
 #&#39; @return A sf or SpatVector object of computation grids with unique grid id (CGRIDID).
 #&#39; @export
-<span id='sp_index_grid'>sp_index_grid</span> &lt;- function(points_in, ncutsx, ncutsy){
-  package_detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(points_in)
+sp_index_grid &lt;- function(points_in, ncutsx, ncutsy){
+  package_detected &lt;- check_packbound(points_in)
 
-  sp_index_grid.sf = function(points_in, ncutsx, ncutsy) {
+  sp_index_grid_sf &lt;- function(points_in, ncutsx, ncutsy) {
     grid1 &lt;- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |&gt; 
       as.data.frame() |&gt; 
-      st_as_sf()
+      sf::st_as_sf()
     grid1 &lt;- grid1[points_in, ]
     return(grid1)
   }
-  sp_index_grid.terra = function(points_in, ncutsx, ncutsy) {
+  sp_index_grid_terra &lt;- function(points_in, ncutsx, ncutsy) {
     grid1 &lt;- terra::rast(points_in, nrows = ncutsy, ncols = ncutsx)
     grid1 &lt;- terra::as.polygons(grid1)
     return(grid1)
   }
-  grid_out = switch(package_detected,
-        sf = sp_index_grid.sf(points_in, ncutsx, ncutsy),
-        terra = sp_index_grid.terra(points_in, ncutsx, ncutsy))
+  grid_out &lt;- switch(package_detected,
+        sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
+        terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
     
-  grid_out$CGRIDID = seq(1, nrow(x = grid_out)) 
+  grid_out$CGRIDID &lt;- seq(1, nrow(x = grid_out)) 
   return(grid_out)
 
 }
@@ -745,40 +837,41 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param grid_min_features integer(1). Threshold to merge adjacent grids.
 #&#39; @return A sf or SpatVector object of computation grids.
 #&#39; @examples
-#&#39; library(sf)
-#&#39; library(igraph)
-#&#39; ligrary(dplyr)
-#&#39; dg = st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
-#&#39; st_crs(dg) = 5070
-#&#39; dgs = st_as_sf(st_make_grid(dg, n = c(20, 15)))
-#&#39; dgs$CGRIDID = seq(1, nrow(dgs))
-#&#39; dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = &quot;Thomas&quot;)
-#&#39; st_crs(dg_sample) = st_crs(dg)
-#&#39; dg_merged = <a href='scomps_rmarkdown_litr.html#grid_merge'>grid_merge</a>(st_as_sf(sss), dgs, 100)
-#&#39; #### Example End ####
+#&#39; # library(sf)
+#&#39; # library(igraph)
+#&#39; # ligrary(dplyr)
+#&#39; # dg = sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
+#&#39; # sf::st_crs(dg) = 5070
+#&#39; # dgs = sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
+#&#39; # dgs$CGRIDID = seq(1, nrow(dgs))
+#&#39; #
+#&#39; # dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = &quot;Thomas&quot;)
+#&#39; # sf::st_crs(dg_sample) = sf::st_crs(dg)
+#&#39; # dg_merged = grid_merge(sf::st_as_sf(sss), dgs, 100)
+#&#39; #### NOT RUN ####
 #&#39; @export
-<span id='grid_merge'>grid_merge</span> &lt;- function(points_in, grid_in, grid_min_features){
-  package_detected = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(points_in)
+grid_merge &lt;- function(points_in, grid_in, grid_min_features) {
+  package_detected &lt;- check_packbound(points_in)
   if (package_detected == &quot;terra&quot;) {
-    points_in = sf::st_as_sf(points_in)
-    grid_in = sf::st_as_sf(grid_in)
+    points_in &lt;- sf::st_as_sf(points_in)
+    grid_in &lt;- sf::st_as_sf(grid_in)
   }
 
-  n_points_in_grid = lengths(sf::st_intersects(grid_in, points_in))
-  grid_self = sf::st_relate(grid_in, grid_in, pattern = &quot;2********&quot;)
-  grid_rook = sf::st_relate(grid_in, grid_in, pattern = &quot;F***1****&quot;)
-  grid_rooks = mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
-  grid_lt_threshold = (n_points_in_grid &lt; grid_min_features)
+  n_points_in_grid &lt;- lengths(sf::st_intersects(grid_in, points_in))
+  grid_self &lt;- sf::st_relate(grid_in, grid_in, pattern = &quot;2********&quot;)
+  grid_rook &lt;- sf::st_relate(grid_in, grid_in, pattern = &quot;F***1****&quot;)
+  grid_rooks &lt;- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
+  grid_lt_threshold &lt;- (n_points_in_grid &lt; grid_min_features)
   stopifnot(&quot;Threshold is too low. Please try higher threshold.\n&quot; = sum(grid_lt_threshold) != 0)
-  grid_lt_threshold = seq(1, nrow(grid_in))[grid_lt_threshold]
+  grid_lt_threshold &lt;- seq(1, nrow(grid_in))[grid_lt_threshold]
 
   # This part does not work as expected. Should investigate edge list and actual row index of the grid object; 
-  identified = lapply(grid_rooks, \(x) sort(x[which(x %in% grid_lt_threshold)]))
-  identified = identified[grid_lt_threshold]
-  identified = unique(identified)
-  identified = identified[sapply(identified, length) &gt; 1]
+  identified &lt;- lapply(grid_rooks, \(x) sort(x[which(x %in% grid_lt_threshold)]))
+  identified &lt;- identified[grid_lt_threshold]
+  identified &lt;- unique(identified)
+  identified &lt;- identified[sapply(identified, length) &gt; 1]
 
-  identified_graph = lapply(identified, \(x) t(combn(x, 2))) |&gt;
+  identified_graph &lt;- lapply(identified, \(x) t(utils::combn(x, 2))) |&gt;
     Reduce(f = rbind, x = _) |&gt;
     unique() |&gt;
     apply(X = _, 2, as.character) |&gt;
@@ -787,30 +880,30 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
     igraph::components()
   # return(identified_graph)
 
-  identified_graph_member = identified_graph$membership
+  identified_graph_member &lt;- identified_graph$membership
 
-  merge_idx = as.integer(names(identified_graph_member))
-  merge_member = split(merge_idx, identified_graph_member)
-  merge_member_label = unlist(lapply(merge_member, \(x) paste(x, collapse = &quot;_&quot;)))
-  merge_member_label = merge_member_label[identified_graph_member]
+  merge_idx &lt;- as.integer(names(identified_graph_member))
+  merge_member &lt;- split(merge_idx, identified_graph_member)
+  merge_member_label &lt;- unlist(lapply(merge_member, \(x) paste(x, collapse = &quot;_&quot;)))
+  merge_member_label &lt;- merge_member_label[identified_graph_member]
 
   # sf object manipulation
-  grid_out = grid_in
-  grid_out[[&quot;CGRIDID&quot;]][merge_idx] = merge_member_label
+  grid_out &lt;- grid_in
+  grid_out[[&quot;CGRIDID&quot;]][merge_idx] &lt;- merge_member_label
   # for (k in seq_along(merge_member_label)) {
   #   target_idx = merge_member_label[[k]]
   #   grid_out[[&quot;CGRIDID&quot;]][target_idx] = paste(&quot;M_&quot;, paste(target_idx, collapse = &quot;_&quot;), sep = &quot;&quot;)
   # }
-  grid_out = grid_out |&gt;
-    dplyr::group_by(CGRIDID) |&gt;
-    dplyr::summarize(n_merged = n()) |&gt;
+  grid_out &lt;- grid_out |&gt;
+    dplyr::group_by(!!rlang::sym(&quot;CGRIDID&quot;)) |&gt;
+    dplyr::summarize(n_merged = dplyr::n()) |&gt;
     dplyr::ungroup() 
 
   ## polsby-popper test for shape compactness
-  grid_merged = grid_out[which(grid_out$n_merged &gt; 1),]
-  grid_merged_area = as.numeric(sf::st_area(grid_merged))
-  grid_merged_perimeter = as.numeric(sf::st_length(sf::st_cast(grid_merged, &quot;LINESTRING&quot;)))
-  grid_merged_pptest = (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
+  grid_merged &lt;- grid_out[which(grid_out$n_merged &gt; 1),]
+  grid_merged_area &lt;- as.numeric(sf::st_area(grid_merged))
+  grid_merged_perimeter &lt;- as.numeric(sf::st_length(sf::st_cast(grid_merged, &quot;LINESTRING&quot;)))
+  grid_merged_pptest &lt;- (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
 
   # pptest value is bounded [0,1]; 0.3 threshold is groundless at this moment, possibly will make it defined by users.
   if (max(unique(identified_graph_member)) &gt; floor(0.1 * nrow(grid_in)) || any(grid_merged_pptest &lt; 0.3)) {
@@ -835,37 +928,43 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 
 
 </code></pre>
-<pre class="r"><code>#&#39; Check if the data extent is inside the reference bounding box
+<pre class="r"><code>#&#39; Generate a rectangular polygon from extent
 #&#39; 
-#&#39; @description One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data&#39;s extent and FALSE otherwise.
-#&#39; @param data_query sf*/stars/SpatVector/SpatRaster object.
-#&#39; @param reference sf*/stars/SpatVector/SpatRaster object or a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#&#39; @param reference_crs Well-known-text-formatted or EPSG code of the reference&#39;s coordinate system. Only required when a named numeric vector is passed to reference. 
-#&#39; @return TRUE (the queried data extent is completely within the reference bounding box) or FALSE 
-#&#39; @author Insang Song \email{geoissong@@gmail.com}
-#&#39; 
+#&#39; @param extent input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.
+#&#39; @param output_class character(1). Class of the output polygon. One of &quot;sf&quot; or &quot;terra&quot;
+#&#39; @param crs character(1). Coordinate reference system definition.
+#&#39; @author Insang Song
 #&#39; @export
-<span id='check_bbox'>check_bbox</span> &lt;- function(
-  data_query, reference, reference_crs = NULL
-) {
-  if (is.numeric(reference) &amp;&amp; is.null(reference_crs)) {
-    stop(&quot;CRS should be entered when the reference extent is a vector.\n&quot;)
+extent_to_polygon &lt;- function(extent, output_class = &quot;terra&quot;, crs = &quot;EPSG:4326&quot;) {
+  if (!output_class %in% c(&quot;sf&quot;, &quot;terra&quot;)) {
+    stop(&quot;output_class should be one of &#39;sf&#39; or &#39;terra&#39;.\n&quot;)
   }
-  if (is.numeric(reference) &amp;&amp; !is.null(reference_crs)) {
-    reference = sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
-  }
-  query_crs = <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(data_query)
-  ref_crs = <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(reference)
-  if (is.na(query_crs) || is.null(query_crs)) {
-    stop(&quot;The dataset you queried has no CRS. Please make sure your dataset has the correct CRS.\n&quot;)
+  if (methods::is(extent, &quot;numeric&quot;)) {
+    if (is.null(attr(extent, &quot;names&quot;))) {
+      stop(&quot;Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
+    }
+    extent &lt;- switch(
+      output_class,
+      sf = sf::st_bbox(extent),
+      terra = terra::ext(extent)
+    )
   }
 
-  # ...
+  extent_polygon &lt;- switch(
+    output_class,
+    sf = sf::st_as_sfc(extent),
+    terra = terra::vect(extent)
+  )
 
-  check_result
-  return(check_result)
+  extent_polygon &lt;- switch(
+    output_class,
+    sf = sf::st_set_crs(extent_polygon, sf::st_crs(crs)),
+    terra = terra::set.crs(extent_polygon, terra::crs(crs))
+  )
+
+  return(extent_polygon)
+  
 }
-
 </code></pre>
 <pre class="r"><code>#&#39; Check if the data extent is inside the reference bounding box
 #&#39; 
@@ -877,6 +976,27 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
+check_bbox &lt;- function(
+  data_query, reference, reference_crs = NULL
+) {
+  if (is.numeric(reference) &amp;&amp; is.null(reference_crs)) {
+    stop(&quot;CRS should be entered when the reference extent is a vector.\n&quot;)
+  }
+  if (is.numeric(reference) &amp;&amp; !is.null(reference_crs)) {
+    reference &lt;- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
+  }
+  query_crs &lt;- check_crs(data_query)
+  ref_crs &lt;- check_crs(reference)
+  if (is.na(query_crs) || is.null(query_crs)) {
+    stop(&quot;The dataset you queried has no CRS. Please make sure your dataset has the correct CRS.\n&quot;)
+  }
+  query_matched &lt;- sf::st_transform(data_query, sf::st_crs(ref_crs))
+
+
+
+  check_result &lt;- sf::st_within()
+  return(check_result)
+}
 
 </code></pre>
 <pre class="r"><code>#&#39; @title Extract summarized values from raster with generic polygons
@@ -891,23 +1011,23 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='extract_with_polygons'>extract_with_polygons</span> &lt;- function(
+extract_with_polygons &lt;- function(
     polys, surf, id, func = mean, na.rm = TRUE
     ) {
     # type check
-    stopifnot(&quot;Check class of the input points.\n&quot; = any(is(polys, &quot;sf&quot;), is(polys, &quot;SpatVector&quot;)))
-    stopifnot(&quot;Check class of the input raster.\n&quot; = any(is(surf, &quot;stars&quot;), is(surf, &quot;SpatRaster&quot;)))
+    stopifnot(&quot;Check class of the input points.\n&quot; = any(methods::is(polys, &quot;sf&quot;), methods::is(polys, &quot;SpatVector&quot;)))
+    stopifnot(&quot;Check class of the input raster.\n&quot; = any(methods::is(surf, &quot;stars&quot;), methods::is(surf, &quot;SpatRaster&quot;)))
     stopifnot(is.character(id))
 
-    cls_polys = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(polys)
-    cls_surf = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(surf)
+    cls_polys &lt;- check_packbound(polys)
+    cls_surf &lt;- check_packbound(surf)
 
     if (cls_polys != cls_surf) {
-      polys = <a href='scomps_rmarkdown_litr.html#switch_packbound'>switch_packbound</a>(polys)
+      polys &lt;- switch_packbound(polys)
     }
 
-    extract_with_polygons.sf = function(polys, surf, id, func) {
-        extracted = stars::st_extract(x = surf, at = polys, FUN = func)
+    extract_with_polygons_sf &lt;- function(polys, surf, id, func) {
+        extracted &lt;- stars::st_extract(x = surf, at = polys, FUN = func)
         # extracted = extracted |&gt;
         #   group_by(!!sym(id)) |&gt;
         #   summarize(across(-!!sym(id), ~func)) |&gt;
@@ -915,19 +1035,19 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
         return(extracted)
     }
 
-    extract_with_polygons.terra = function(polys, surf, id, func) {
-        extracted = terra::extract(surf, polys)
-        extracted = extracted |&gt;
-          group_by(!!sym(id)) |&gt;
-          summarize(across(-!!sym(id), ~func)) |&gt;
-          ungroup()
+    extract_with_polygons_terra &lt;- function(polys, surf, id, func) {
+        extracted &lt;- terra::extract(surf, polys)
+        extracted &lt;- extracted |&gt;
+          dplyr::group_by(!!rlang::sym(id)) |&gt;
+          dplyr::summarize(dplyr::across(-!!rlang::sym(id), ~func)) |&gt;
+          dplyr::ungroup()
         return(extracted)
     }
 
-    extracted_poly = switch(
+    extracted_poly &lt;- switch(
         cls_surf,
-        sf = extract_with_polygons.sf(polys = polys, surf = surf, id = id, func = func),
-        terra = extract_with_polygons.terra(polys = polys, surf = surf, id = id, func = func)
+        sf = extract_with_polygons_sf(polys = polys, surf = surf, id = id, func = func),
+        terra = extract_with_polygons_terra(polys = polys, surf = surf, id = id, func = func)
     )
     return(extracted_poly)
 }
@@ -942,24 +1062,18 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @param ... various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.
 #&#39; @return 
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
-#&#39; @examples 
-#&#39; # data
-#&#39; 
-#&#39; # run
-#&#39; clip_with()
-#&#39; 
-#&#39; @export 
-<span id='extract_with'>extract_with</span> &lt;- function(raster, vector, id, func = mean, mode = &quot;polygon&quot;, ...) {
+#&#39; @export
+extract_with &lt;- function(raster, vector, id, func = mean, mode = &quot;polygon&quot;, ...) {
     if (!mode %in% c(&quot;polygon&quot;, &quot;buffer&quot;)) {
       stop(&quot;Argument &#39;mode&#39; should be one of &#39;polygon&#39; or &#39;buffer&#39;.\n&quot;)
     }
     stopifnot(is.character(id))
     stopifnot(id %in% names(vector))
 
-    extracted = 
+    extracted &lt;- 
       switch(mode,
-        polygon = <a href='scomps_rmarkdown_litr.html#extract_with_polygons'>extract_with_polygons</a>(vector, raster, id, func),
-        buffer = <a href='scomps_rmarkdown_litr.html#extract_with_buffer'>extract_with_buffer</a>(vector, raster, id = id, func = func, ...))
+        polygon = extract_with_polygons(vector, raster, id, func),
+        buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
     return(extracted)
 }
 </code></pre>
@@ -970,22 +1084,24 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; @examples 
 #&#39; # data
-#&#39; install.packages(&#39;spData&#39;)
-#&#39; library(spData)
-#&#39; data(us_states)
-#&#39; <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(us_states)
+#&#39; library(sf)
+#&#39; ncpath = system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
+#&#39; nc = read_sf(ncpath)
+#&#39; check_crs(nc)
 #&#39; 
 #&#39; @export 
-<span id='check_crs'>check_crs</span> &lt;- function(x) {
-    stopifnot(&quot;Input is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
+check_crs &lt;- function(x) {
+    stopifnot(&quot;Input is invalid.\n&quot; = (methods::is(x, &quot;sf&quot;) || methods::is(x, &quot;stars&quot;) || methods::is(x, &quot;SpatVector&quot;) || methods::is(x, &quot;SpatRaster&quot;)))
     
-    if (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;)) {
-        crs_wkt = sf::st_crs(x)
+    if (methods::is(x, &quot;sf&quot;) || methods::is(x, &quot;stars&quot;)) {
+        crs_wkt &lt;- sf::st_crs(x)
     } else {
-        crs_wkt = terra::crs(x)
+        crs_wkt &lt;- terra::crs(x)
     }
 
-    stopifnot(&quot;No CRS is defined in the input. Please consult the metadata or the data source.\n&quot; = !is.na(crs_wkt) || crs_wkt != &quot;&quot;)
+    stopifnot(
+      &quot;No CRS is defined in the input. Please consult the metadata or the data source.\n&quot; =
+      !is.na(crs_wkt) || crs_wkt != &quot;&quot;)
     return(crs_wkt)
 }</code></pre>
 <pre class="r"><code>#&#39; Check if the boundary of the vector/raster object is inside the reference
@@ -994,21 +1110,21 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @return logical
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; @export 
-<span id='check_within_reference'>check_within_reference</span> &lt;- function(input_object, reference) {
-    stopifnot(&quot;Input is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
-    stopifnot(&quot;Reference is invalid.\n&quot; = (is(x, &quot;sf&quot;) || is(x, &quot;stars&quot;) || is(x, &quot;SpatVector&quot;) || is(x, &quot;SpatRaster&quot;)))
+check_within_reference &lt;- function(input_object, reference) {
+    stopifnot(&quot;Input is invalid.\n&quot; = (methods::is(input_object, &quot;sf&quot;) || methods::is(input_object, &quot;stars&quot;) || methods::is(input_object, &quot;SpatVector&quot;) || methods::is(input_object, &quot;SpatRaster&quot;)))
+    stopifnot(&quot;Reference is invalid.\n&quot; = (methods::is(input_object, &quot;sf&quot;) || methods::is(input_object, &quot;stars&quot;) || methods::is(input_object, &quot;SpatVector&quot;) || methods::is(input_object, &quot;SpatRaster&quot;)))
 
   bbox_input &lt;- input_object
     sf::st_bbox() |&gt;
     sf::st_as_sfc()
   
-  bbox_reference = reference |&gt;
+  bbox_reference &lt;- reference |&gt;
     sf::st_bbox() |&gt;
     sf::st_as_sfc()
 
-  iswithin = sf::st_covered_by(bbox_input, bbox_reference)
-  iswithin = length(iswithin[[1]])
-  iswithin = (iswithin == 1)
+  iswithin &lt;- sf::st_covered_by(bbox_input, bbox_reference)
+  iswithin &lt;- length(iswithin[[1]])
+  iswithin &lt;- (iswithin == 1)
   invisible(iswithin)
 }
 
@@ -1016,44 +1132,45 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 <pre class="r"><code>#&#39; Calculate SEDC covariates
 #&#39; @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
 #&#39; @param point_to SpatVector object. Locations where each SEDC is calculated.
-#&#39; @param sdec_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
+#&#39; @param id character(1). Name of the unique id field in point_to.
+#&#39; @param sedc_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
 #&#39; @param threshold numeric(1). For computational efficiency, the nearest points in threshold will be selected
 #&#39; @param target_fields character(varying). Field names in characters.
 #&#39; @description NOTE: sf implementation is pending. Only available for terra.
 #&#39; @author Insang Song
 #&#39; @export
-<span id='calculate_sedc'>calculate_sedc</span> &lt;- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
+calculate_sedc &lt;- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
   # define sources, set SEDC exponential decay range
-  len_point_from = seq_len(nrow(point_from))
-  len_point_to = seq_len(nrow(point_to))
+  len_point_from &lt;- seq_len(nrow(point_from))
+  len_point_to &lt;- seq_len(nrow(point_to))
 
-  point_from$from_id = len_point_from
+  point_from$from_id &lt;- len_point_from
   # select egrid_v only if closer than 3e5 meters from each aqs
-  point_from_buf = terra::buffer(point_from_buf, threshold = threshold, quadsegs = 90)
-  point_to = point_to[point_from_buf,]
-  point_to$to_id = len_point_to
+  point_from_buf &lt;- terra::buffer(point_from_buf, threshold = threshold, quadsegs = 90)
+  point_to &lt;- point_to[point_from_buf,]
+  point_to$to_id &lt;- len_point_to
 
   # near features with distance argument: only returns integer indices
-  near_from_to = terra::nearby(point_from, point_to, distance = threshold)
+  near_from_to &lt;- terra::nearby(point_from, point_to, distance = threshold)
   # attaching actual distance
-  dist_near_to = terra::distance(point_from, point_to)
-  dist_near_to_df = as.vector(dist_near_to)
+  dist_near_to &lt;- terra::distance(point_from, point_to)
+  dist_near_to_df &lt;- as.vector(dist_near_to)
   # adding integer indices
-  dist_near_to_tdf = expand.grid(from_id = len_point_from, to_id = len_point_to)
-  dist_near_to_df = cbind(dist_near_to_tdf, dist = dist_near_to_df)
+  dist_near_to_tdf &lt;- expand.grid(from_id = len_point_from, to_id = len_point_to)
+  dist_near_to_df &lt;- cbind(dist_near_to_tdf, dist = dist_near_to_df)
 
   # summary
-  near_from_to = near_from_to |&gt;
-    as_tibble() |&gt;
-    left_join(data.frame(point_from)) |&gt;
-    left_join(data.frame(point_to)) |&gt;
-    left_join(dist_near_to_df) |&gt;
+  near_from_to &lt;- near_from_to |&gt;
+    dplyr::as_tibble() |&gt;
+    dplyr::left_join(data.frame(point_from)) |&gt;
+    dplyr::left_join(data.frame(point_to)) |&gt;
+    dplyr::left_join(dist_near_to_df) |&gt;
     # per the definition in https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
     # exp(-3) is about 0.05
-    mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |&gt;
-    group_by(!!sym(id)) |&gt;
-    summarize(across(all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |&gt;
-    ungroup()
+    dplyr::mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |&gt;
+    dplyr::group_by(!!rlang::sym(id)) |&gt;
+    dplyr::summarize(dplyr::across(dplyr::all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |&gt;
+    dplyr::ungroup()
 
   invisible(near_from_to)
   
@@ -1069,48 +1186,50 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @examples 
 #&#39; # package
 #&#39; library(sf)
-#&#39; library(tictoc)
 #&#39; 
 #&#39; # run
-#&#39; nc = st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
-#&#39; nc = st_transform(nc, 5070)
-#&#39; pp = st_sample(nc, size = 300)
-#&#39; pp[[&quot;id&quot;]] = seq(1,nrow(pp))
-#&#39; st_crs(pp) = &quot;EPSG:5070&quot;
-#&#39; ppb = st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, &#39;km&#39;))
+#&#39; nc &lt;- sf::st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
+#&#39; nc &lt;- sf::st_transform(nc, 5070)
+#&#39; pp &lt;- sf::st_sample(nc, size = 300)
+#&#39; pp &lt;- sf::st_as_sf(pp)
+#&#39; pp[[&quot;id&quot;]] &lt;- seq(1, nrow(pp))
+#&#39; sf::st_crs(pp) &lt;- &quot;EPSG:5070&quot;
+#&#39; ppb &lt;- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, &#39;km&#39;))
 #&#39; 
-#&#39; tic()
-#&#39; ppb_nc_aw = <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &#39;id&#39;)
-#&#39; toc()
+#&#39; system.time({ppb_nc_aw &lt;- aw_covariates(ppb, nc, &#39;id&#39;)})
 #&#39; summary(ppb_nc_aw)
 #&#39; #### Example of aw_covariates ends ####
 #&#39; @export
-<span id='aw_covariates'>aw_covariates</span> &lt;- function(poly_in, poly_weight, id_poly_in = &quot;ID&quot;) {
+aw_covariates &lt;- function(poly_in, poly_weight, id_poly_in = &quot;ID&quot;) {
     stopifnot(&quot;Inputs have invalid classes.\n&quot; = 
-      is(poly_in, &quot;sf&quot;) || is(poly_weight, &quot;sf&quot;) || is(poly_in, &quot;SpatVector&quot;) || is(poly_weight, &quot;SpatVector&quot;))
-    #<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>()
+      methods::is(poly_in, &quot;sf&quot;) || methods::is(poly_weight, &quot;sf&quot;) || methods::is(poly_in, &quot;SpatVector&quot;) || methods::is(poly_weight, &quot;SpatVector&quot;))
+    #check_crs()
+
+    ## distinguish numeric and nonnumeric columns
+    index_numeric &lt;- grep(&quot;(integer|numeric)&quot;, unlist(sapply(poly_weight, class)))
+    
     aw_covariates.terra = function(poly_in, poly_weight, id_poly_in = id_poly_in) {
         
-        poly_intersected = terra::intersect(poly_in, poly_weight)
-        poly_intersected[[&quot;area_segment_&quot;]] = terra::expanse(poly_intersected)
-        poly_intersected = data.frame(poly_intersected) |&gt;
+        poly_intersected &lt;- terra::intersect(poly_in, poly_weight)
+        poly_intersected[[&quot;area_segment_&quot;]] &lt;- terra::expanse(poly_intersected)
+        poly_intersected &lt;- data.frame(poly_intersected) |&gt;
             dplyr::group_by(!!rlang::sym(id_poly_in)) |&gt;
-            dplyr::summarize(across(is.numeric,
-                        ~weighted.mean(., w = area_segment_))) |&gt;
+            dplyr::summarize(dplyr::across(is.numeric,
+                        ~stats::weighted.mean(., w = area_segment_))) |&gt;
             dplyr::ungroup()
         return(poly_intersected)
     }
 
-    class_poly_in = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(poly_in)
-    class_poly_weight = <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(poly_weight)
+    class_poly_in &lt;- check_packbound(poly_in)
+    class_poly_weight &lt;- check_packbound(poly_weight)
 
     if (class_poly_in != class_poly_weight) {
-      class_poly_weight = as(class_poly_weight, class(class_poly_in)[1])
+      class_poly_weight &lt;- switch_packbound(class_poly_weight)
     }
     
     switch(class_poly_in,
-        sf = sf::st_interpolate_aw(poly_weight, poly_in, extensive = FALSE),
-        terra = aw_covariates.terra(poly_in, poly_weight, id_poly_in = id_poly_in))
+        sf = sf::st_interpolate_aw(poly_weight[,index_numeric], poly_in, extensive = FALSE),
+        terra = aw_covariates.terra(poly_in, poly_weight[,index_numeric], id_poly_in = id_poly_in))
     
 }
 
@@ -1125,52 +1244,6 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 
 #ncbufagg = terra::aggregate(ncbuf, by = &#39;id&#39;, fun = weighted.mean, w = ncbuf_a$segarea)
 </code></pre>
-<pre class="r"><code>#&#39; Subfunction: extract with buffers (flat weight; simple mean)
-#&#39; 
-#&#39; @export 
-<span id='extract_with_buffer.flat'>extract_with_buffer.flat</span> &lt;- function(
-        points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
-    ) {
-    # generate buffers
-    bufs = terra::buffer(points, width = radius, quadsegs = qsegs)
-    # crop raster
-    bufs_extent = terra::ext(bufs)
-    surf_cropped = terra::crop(surf, bufs_extent)
-    name_surf_val = names(surf)
-    # extract raster values
-    surf_at_bufs = terra::extract(surf_cropped, bufs)
-    surf_at_bufs_summary = 
-        surf_at_bufs |&gt; 
-            group_by(ID) |&gt; 
-            summarize(across(all_of(name_surf_val), ~mean, na.rm=T)) |&gt; 
-            ungroup()
-    return(surf_at_bufs_summary)
-}</code></pre>
-<pre class="r"><code>#&#39; Subfunction: extract with buffers (kernel weight; weighted mean)
-#&#39;
-#&#39; @export 
-<span id='extract_with_buffer.kernel'>extract_with_buffer.kernel</span> &lt;- function(
-        points, surf, radius, id, qsegs, func = mean, kernel, bandwidth
-    ) {
-        # generate buffers
-        bufs = terra::buffer(points, width = radius, quadsegs = qsegs)
-        # crop raster
-        bufs_extent = terra::ext(bufs)
-        surf_cropped = terra::crop(surf, bufs_extent)
-        name_surf_val = names(surf)
-
-        # TODO: kernel implementation
-
-
-        # extract raster values
-        surf_at_bufs = terra::extract(surf_cropped, bufs)
-        surf_at_bufs_summary = 
-            surf_at_bufs |&gt; 
-                group_by(ID) |&gt; 
-                summarize(across(all_of(name_surf_val), ~mean, na.rm=T)) |&gt; 
-                ungroup()
-        return(surf_at_bufs_summary)
-}</code></pre>
 <pre class="r"><code>#&#39; @title Extract summarized values from raster with points and a buffer radius (to be written)
 #&#39; 
 #&#39; @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
@@ -1186,17 +1259,17 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='extract_with_buffer'>extract_with_buffer</span> &lt;- function(
+extract_with_buffer &lt;- function(
     points, surf, radius, id, qsegs = 90, func = mean, kernel = NULL, bandwidth = NULL
     ) {
     # type check
-    stopifnot(&quot;Check class of the input points.\n&quot; = is(points, &quot;SpatVector&quot;))
+    stopifnot(&quot;Check class of the input points.\n&quot; = methods::is(points, &quot;SpatVector&quot;))
     stopifnot(&quot;Check class of the input radius.\n&quot; = is.numeric(radius))
     stopifnot(is.character(id))
     stopifnot(is.integer(qsegs))
 
     if (!is.null(kernel)) {
-        extracted = <a href='scomps_rmarkdown_litr.html#extract_with_buffer.flat'>extract_with_buffer.flat</a>(points = points,
+        extracted &lt;- extract_with_buffer.flat(points = points,
                                       surf = surf,
                                       radius = radius,
                                       id = id,
@@ -1205,7 +1278,7 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
         return(extracted)
     }
 
-    extracted = <a href='scomps_rmarkdown_litr.html#extract_with_buffer.kernel'>extract_with_buffer.kernel</a>(points = points,
+    extracted &lt;- extract_with_buffer.kernel(points = points,
                                            surf = surf,
                                            radius = radius,
                                            id = id,
@@ -1217,42 +1290,84 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 
 }
 
+# Subfunction: extract with buffers (flat weight; simple mean)
+extract_with_buffer.flat &lt;- function(
+        points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
+    ) {
+    # generate buffers
+    bufs &lt;- terra::buffer(points, width = radius, quadsegs = qsegs)
+    # crop raster
+    bufs_extent &lt;- terra::ext(bufs)
+    surf_cropped &lt;- terra::crop(surf, bufs_extent)
+    name_surf_val &lt;- names(surf)
+    # extract raster values
+    surf_at_bufs &lt;- terra::extract(surf_cropped, bufs)
+    surf_at_bufs_summary &lt;- 
+        surf_at_bufs |&gt; 
+            dplyr::group_by(ID) |&gt; 
+            dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm = TRUE)) |&gt; 
+            dplyr::ungroup()
+    return(surf_at_bufs_summary)
+}
 
+
+# Subfunction: extract with buffers (kernel weight; weighted mean)
+extract_with_buffer.kernel &lt;- function(
+        points, surf, radius, id, qsegs, func = mean, kernel, bandwidth
+    ) {
+        # generate buffers
+        bufs &lt;- terra::buffer(points, width = radius, quadsegs = qsegs)
+        # crop raster
+        bufs_extent &lt;- terra::ext(bufs)
+        surf_cropped &lt;- terra::crop(surf, bufs_extent)
+        name_surf_val &lt;- names(surf)
+
+        # TODO: kernel implementation
+
+
+        # extract raster values
+        surf_at_bufs &lt;- terra::extract(surf_cropped, bufs)
+        surf_at_bufs_summary &lt;- 
+            surf_at_bufs |&gt; 
+                dplyr::group_by(ID) |&gt; 
+                dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm=T)) |&gt; 
+                dplyr::ungroup()
+        return(surf_at_bufs_summary)
+}
 </code></pre>
 <pre class="r"><code>#&#39; @title Process a given function in the entire or partial computational grids (under construction)
 #&#39; 
 #&#39; @description Should 
 #&#39; @param grids sf/SpatVector object. Computational grids.
-#&#39; @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. &quot;id_from:id_to&quot; format or c(unique(grid_id)[id_from], unique(grid_id)[id_to])
+#&#39; @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{&quot;id_from:id_to&quot;} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #&#39; @param fun function supported in scomps. 
 #&#39; @param ... Arguments passed to fun.
 #&#39; @return a data.frame object with mean value
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; 
 #&#39; @export
-<span id='distribute_process'>distribute_process</span> &lt;- function(grids, grid_id = NULL, fun, ...) {
-    require(future.apply)
-    
+distribute_process &lt;- function(grids, grid_id = NULL, fun, ...) {
+   
     # subset using grids and grid_id
     if (!is.null(grid_id)) {
         if (is.character(grid_id)) {
-            grid_id_parsed = strsplit(grid_id, &quot;:&quot;, fixed = TRUE)[[1]]
-            grid_ids = c(which(unique(grids[[&quot;CGRIDID&quot;]]) == grid_id_parsed[1]),
+            grid_id_parsed &lt;- strsplit(grid_id, &quot;:&quot;, fixed = TRUE)[[1]]
+            grid_ids &lt;- c(which(unique(grids[[&quot;CGRIDID&quot;]]) == grid_id_parsed[1]),
                          which(unique(grids[[&quot;CGRIDID&quot;]]) == grid_id_parsed[2]))
         }
         if (is.numeric(grid_id)) {
-            grid_ids = unique(grids[[&quot;CGRIDID&quot;]])[grid_id]
+            grid_ids &lt;- unique(grids[[&quot;CGRIDID&quot;]])[grid_id]
         }
     }
-    grids_target = grids[grid_ids,]
-    grids_target_list = split(grids_target, grids_target[[&quot;CGRIDID&quot;]])
+    grids_target &lt;- grids[grid_ids,]
+    grids_target_list &lt;- split(grids_target, grids_target[[&quot;CGRIDID&quot;]])
 
-    results_distributed = future.apply::future_lapply(
+    results_distributed &lt;- future.apply::future_lapply(
         \(x, ...) {
             fun(...)
-        }, grids_target_list, points_cutslist, SIMPLIFY = FALSE,
+        }, grids_target_list, 
         future.seed = TRUE)
-    results_distributed = do.call(rbind, results_distributed)
+    results_distributed &lt;- do.call(rbind, results_distributed)
     return(results_distributed)
 }
 </code></pre>
@@ -1262,90 +1377,93 @@ usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;) # Defa
 <p>We finish by running commands that will document, build, and install
 the package. It may also be a good idea to check the package from within
 this file.</p>
-<pre class="r"><code>litr::document() # &lt;-- use instead of devtools::document()
-
-devtools::build()
-devtools::install(build_vignettes = TRUE, dependencies = F)
+<pre class="r"><code># litr::document() # &lt;-- use instead of devtools::document()
+devtools::document(&quot;.&quot;)
+devtools::test()
+devtools::build(path = &quot;./tools/tarballs&quot;)
+devtools::install(dependencies = FALSE, build_vignettes = TRUE)
 # devtools::check(document = FALSE)
 </code></pre>
 <pre><code>## ℹ Updating scomps documentation
 ## ℹ Loading scomps</code></pre>
-<pre><code>## Warning: [check_crs.R:6] @description requires a value</code></pre>
-<pre><code>## Warning: [extract_with.R:11] @return requires a value</code></pre>
+<pre><code>## Warning: [check.R:136] @description requires a value</code></pre>
+<pre><code>## Warning: [processing.R:139] @return requires a value</code></pre>
 <pre><code>## Writing &#39;NAMESPACE&#39;
-## Writing &#39;aw_covariates.Rd&#39;
-## Writing &#39;calculate_sedc.Rd&#39;
+## Writing &#39;check_packbound.Rd&#39;
+## Writing &#39;check_crs2.Rd&#39;
+## Writing &#39;extent_to_polygon.Rd&#39;
 ## Writing &#39;check_bbox.Rd&#39;
 ## Writing &#39;check_crs.Rd&#39;
-## Writing &#39;check_crs2.Rd&#39;
-## Writing &#39;check_packbound.Rd&#39;
 ## Writing &#39;check_within_reference.Rd&#39;
-## Writing &#39;clip_as_extent.Rd&#39;
-## Writing &#39;clip_as_extent_ras.Rd&#39;
-## Writing &#39;clip_as_extent_ras2.Rd&#39;
-## Writing &#39;distribute_process.Rd&#39;
 ## Writing &#39;estimate_demands.Rd&#39;
-## Writing &#39;extract_with.Rd&#39;
-## Writing &#39;extract_with_buffer.Rd&#39;
-## Writing &#39;extract_with_buffer.flat.Rd&#39;
-## Writing &#39;extract_with_buffer.kernel.Rd&#39;
-## Writing &#39;extract_with_polygons.Rd&#39;
+## Writing &#39;sp_indexing.Rd&#39;
 ## Writing &#39;get_computational_regions.Rd&#39;
 ## Writing &#39;sp_index_grid.Rd&#39;
 ## Writing &#39;grid_merge.Rd&#39;
+## Writing &#39;distribute_process.Rd&#39;
 ## Writing &#39;initate_log.Rd&#39;
-## Writing &#39;rast_short.Rd&#39;
 ## Writing &#39;set_clip_extent.Rd&#39;
-## Writing &#39;sp_indexing.Rd&#39;
+## Writing &#39;rast_short.Rd&#39;
+## Writing &#39;clip_as_extent.Rd&#39;
+## Writing &#39;clip_as_extent_ras.Rd&#39;
+## Writing &#39;clip_as_extent_ras2.Rd&#39;
+## Writing &#39;extract_with_polygons.Rd&#39;
+## Writing &#39;extract_with.Rd&#39;
+## Writing &#39;calculate_sedc.Rd&#39;
+## Writing &#39;aw_covariates.Rd&#39;
+## Writing &#39;extract_with_buffer.Rd&#39;
 ## Writing &#39;switch_packbound.Rd&#39;
 ## Writing &#39;validate_and_repair_vectors.Rd&#39;</code></pre>
+<pre><code>## ℹ Testing scomps</code></pre>
+<pre><code>## ✔ | F W S  OK | Context
+## 
+## ⠏ |         0 | tests                                                           pr, tas, 
+## pr, tas, 
+## pr, tas, 
+## 
+## ⠼ |         5 | tests                                                           
+## ✔ |         8 | tests
+## 
+## ══ Results ═════════════════════════════════════════════════════════════════════
+## [ FAIL 0 | WARN 0 | SKIP 0 | PASS 8 ]</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
 ## * checking DESCRIPTION meta-information ... OK
 ## * installing the package to build vignettes
 ## * creating vignettes ... OK
-## * excluding invalid files
-## Subdirectory &#39;inst/doc&#39; contains invalid file names:
-##   ‘00_good_practice_parallelization.Rmd’
-##   ‘01_generate_computational_grid.Rmd’
-##   ‘00_good_practice_parallelization.html’
-##   ‘01_generate_computational_grid.html’
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09192023.tar.gz’
+## * building ‘scomps_0.0.3.10042023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.0.2.09192023.tar.gz&quot;</code></pre>
-<pre><code>## 
-## ── R CMD build ─────────────────────────────────────────────────────────────────
+<pre><code>## Warning in file.create(to[okay]): cannot create file &#39;./tools/tarballs&#39;, reason
+## &#39;No such file or directory&#39;</code></pre>
+<pre><code>## [1] &quot;./tools/tarballs&quot;</code></pre>
+<pre><code>## Skipping 1 packages ahead of CRAN: data.table</code></pre>
+<pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
 ## * checking DESCRIPTION meta-information ... OK
 ## * installing the package to build vignettes
 ## * creating vignettes ... OK
-## * excluding invalid files
-## Subdirectory &#39;inst/doc&#39; contains invalid file names:
-##   ‘00_good_practice_parallelization.Rmd’
-##   ‘01_generate_computational_grid.Rmd’
-##   ‘00_good_practice_parallelization.html’
-##   ‘01_generate_computational_grid.html’
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
 ## Removed empty directory ‘scomps/build’
-## * building ‘scomps_0.0.2.09192023.tar.gz’
+## * building ‘scomps_0.0.3.10042023.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpP7s4LX/scomps_0.0.2.09192023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp3s8ffM/scomps_0.0.3.10042023.tar.gz \
 ##   --install-tests 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
 ## ** using staged installation
 ## ** R
 ## ** inst
+## ** tests
 ## ** byte-compile and prepare package for lazy loading
 ## ** help
 ## *** installing help indices
@@ -1355,6 +1473,9 @@ devtools::install(build_vignettes = TRUE, dependencies = F)
 ## ** testing if installed package can be loaded from final location
 ## ** testing if installed package keeps a record of temporary installation path
 ## * DONE (scomps)</code></pre>
+<pre class="r"><code>cat(getwd())
+</code></pre>
+<pre><code>## /Users/songi2/Documents/GitHub/Scalable_GIS/scomps</code></pre>
 </div>
 </div>
 

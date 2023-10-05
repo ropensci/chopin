@@ -1,0 +1,18 @@
+BootStrap: docker
+From: rocker/geospatial:latest
+
+%post
+   apt-get -y update
+
+%environment
+   export LC_ALL=C
+   export DDN_MOUNT=/ddn/gs1/group/
+
+%files
+  <source.RData> <target.RData>
+
+%runscript
+
+
+%labels
+  Insang Song
