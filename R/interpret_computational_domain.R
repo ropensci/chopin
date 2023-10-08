@@ -1,9 +1,9 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Get a set of computational regions
-#'
+#' 
 #' @param input sf or Spat* object.
-#' @param mode character(1). Mode of region construction. One of "grid" (simple grid regardless of the number of features in each grid), "density" (clustering-based varying grids), "grid_advanced" (merging adjacent grids with smaller number of features than grid_min_features).
+#' @param mode character(1). Mode of region construction. One of "grid" (simple grid regardless of the number of features in each grid), "density" (clustering-based varying grids), "grid_advanced" (merging adjacent grids with smaller number of features than grid_min_features). 
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
@@ -11,9 +11,9 @@
 #' @param unit character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html) for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
 #' @return A set of polygons in the input class
-#' @description TODO. Using input points, the bounding box is split to the predefined numbers of columns and rows. Each grid will be buffered by the radius.
-#' @author Insang Song
-#' @examples
+#' @description TODO. Using input points, the bounding box is split to the predefined numbers of columns and rows. Each grid will be buffered by the radius.   
+#' @author Insang Song 
+#' @examples 
 #' # data
 #' library(sf)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -21,31 +21,32 @@
 #' nc <- st_transform(nc, "EPSG:5070")
 #' # run
 #' # nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
-#'
+#' 
 #' @export
 get_computational_regions <- function(
-    input,
-    mode = "grid",
-    nx = 10,
-    ny = 10,
-    grid_min_features = 30,
-    padding = NULL,
-    unit = NULL,
-    ...) {
+  input,
+  mode = c("grid", "grid_advanced", "density"),
+  nx = 10,
+  ny = 10,
+  grid_min_features = 30,
+  padding = NULL,
+  unit = NULL,
+  ...) {
   # type check
   package_detected <- check_packbound(input)
   # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
-  stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
+  match.arg(mode)
+  # stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
   stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
   stopifnot("padding should be numeric. We convert padding to numeric...\n" = !is.numeric(padding))
   # valid unit compatible with units::set_units?
 
-  # if (detected_pnts == "sf") {
-  # }
-  # if (detected_pnts == "terra") {
-  #   grid1$ID = seq(1, nrow(grid1))
-  # }
-}
+    # if (detected_pnts == "sf") {
+    # }
+    # if (detected_pnts == "terra") {
+    #   grid1$ID = seq(1, nrow(grid1))
+    # }
+  }
 
 #' @title sp_index_grid: Generate grid polygons
 #' @description Returns a sf object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
@@ -55,7 +56,10 @@ get_computational_regions <- function(
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @return A sf or SpatVector object of computation grids with unique grid id (CGRIDID).
 #' @export
-sp_index_grid <- function(points_in, ncutsx, ncutsy) {
+sp_index_grid <- function(
+  points_in,
+  ncutsx,
+  ncutsy) {
   package_detected <- check_packbound(points_in)
 
   sp_index_grid_sf <- function(points_in, ncutsx, ncutsy) {
@@ -72,11 +76,11 @@ sp_index_grid <- function(points_in, ncutsx, ncutsy) {
   }
   grid_out <- switch(package_detected,
     sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
-    terra = sp_index_grid_terra(points_in, ncutsx, ncutsy)
-  )
+    terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
 
   grid_out$CGRIDID <- seq(1, nrow(x = grid_out))
   return(grid_out)
+
 }
 
 
@@ -116,7 +120,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   stopifnot("Threshold is too low. Please try higher threshold.\n" = sum(grid_lt_threshold) != 0)
   grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-  # This part does not work as expected. Should investigate edge list and actual row index of the grid object;
+  # This part does not work as expected. Should investigate edge list and actual row index of the grid object; 
   identified <- lapply(grid_rooks, \(x) sort(x[which(x %in% grid_lt_threshold)]))
   identified <- identified[grid_lt_threshold]
   identified <- unique(identified)
@@ -148,13 +152,13 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   grid_out <- grid_out |>
     dplyr::group_by(!!rlang::sym("CGRIDID")) |>
     dplyr::summarize(n_merged = dplyr::n()) |>
-    dplyr::ungroup()
+    dplyr::ungroup() 
 
   ## polsby-popper test for shape compactness
-  grid_merged <- grid_out[which(grid_out$n_merged > 1), ]
+  grid_merged <- grid_out[which(grid_out$n_merged > 1),]
   grid_merged_area <- as.numeric(sf::st_area(grid_merged))
   grid_merged_perimeter <- as.numeric(sf::st_length(sf::st_cast(grid_merged, "LINESTRING")))
-  grid_merged_pptest <- (4 * pi * grid_merged_area) / (grid_merged_perimeter^2)
+  grid_merged_pptest <- (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
 
   # pptest value is bounded [0,1]; 0.3 threshold is groundless at this moment, possibly will make it defined by users.
   if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) || any(grid_merged_pptest < 0.3)) {
@@ -181,39 +185,41 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
 
 #' @title Process a given function in the entire or partial computational grids (under construction)
-#'
-#' @description Should
+#' 
+#' @description Should 
 #' @param grids sf/SpatVector object. Computational grids.
 #' @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
-#' @param fun function supported in scomps.
+#' @param fun function supported in scomps. 
 #' @param ... Arguments passed to fun.
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
-#'
+#' 
 #' @export
-distribute_process <- function(grids, grid_id = NULL, fun, ...) {
+distribute_process <- function(
+  grids, 
+  grid_id = NULL,
+  fun,
+  ...) {
   # subset using grids and grid_id
   if (!is.null(grid_id)) {
     if (is.character(grid_id)) {
       grid_id_parsed <- strsplit(grid_id, ":", fixed = TRUE)[[1]]
-      grid_ids <- c(
-        which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
-        which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2])
-      )
+      grid_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
+                      which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
     }
     if (is.numeric(grid_id)) {
       grid_ids <- unique(grids[["CGRIDID"]])[grid_id]
     }
   }
-  grids_target <- grids[grid_ids, ]
+  grids_target <- grids[grid_ids,]
   grids_target_list <- split(grids_target, grids_target[["CGRIDID"]])
 
   results_distributed <- future.apply::future_lapply(
     \(x, ...) {
       fun(...)
     }, grids_target_list,
-    future.seed = TRUE
-  )
+    future.seed = TRUE)
   results_distributed <- do.call(rbind, results_distributed)
   return(results_distributed)
 }
+

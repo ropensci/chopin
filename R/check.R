@@ -31,15 +31,17 @@ check_datatype <- function(input) {
 #' @param crs_standard character(1). A standard definition of coordinate reference system. Default is "EPSG:4326" Consult [epsg.io](https://epsg.io) for details of other CRS.
 #' @return A (reprojected) sf or SpatVector object.
 #' @export
-check_crs2 <- function(input, crs_standard = "EPSG:4326") {
+check_crs2 <- function(
+  input,
+  crs_standard = "EPSG:4326") {
   check_crs_sf <- function(input) {
     if (is.na(sf::st_crs(input))) {
-      cat("Please check the coordinate system or its EPSG code of your input object.")
+      cat('Please check the coordinate system or its EPSG code of your input object.')
       return(NULL)
     }
     if (sf::st_crs(input)$epsg == crs_standard) {
       return(input)
-    }
+    } 
     input_transformed <- sf::st_transform(input, sf::st_crs(crs_standard))
     return(input_transformed)
   }
@@ -51,15 +53,15 @@ check_crs2 <- function(input, crs_standard = "EPSG:4326") {
     input_transformed <- terra::project(input, terra::crs(crs_standard))
     return(input_transformed)
   }
+
   detected <- check_packbound(input)
   switch(detected,
     terra = check_crs_terra(input),
-    sf = check_crs_sf(input)
-  )
+    sf = check_crs_sf(input))
 }
 
 #' Generate a rectangular polygon from extent
-#'
+#' 
 #' @param extent input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.
 #' @param output_class character(1). Class of the output polygon. One of "sf" or "terra"
 #' @param crs character(1). Coordinate reference system definition.
@@ -73,38 +75,45 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
     if (is.null(attr(extent, "names"))) {
       stop("Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n")
     }
-    extent <- switch(output_class,
+    extent <- switch(
+      output_class,
       sf = sf::st_bbox(extent),
       terra = terra::ext(extent)
     )
   }
 
-  extent_polygon <- switch(output_class,
+  extent_polygon <- switch(
+    output_class,
     sf = sf::st_as_sf(sf::st_as_sfc(extent)),
     terra = terra::vect(extent)
   )
 
-  extent_polygon <- switch(output_class,
+  extent_polygon <- switch(
+    output_class,
     sf = sf::st_set_crs(extent_polygon, sf::st_crs(crs)),
     terra = terra::set.crs(extent_polygon, terra::crs(crs))
   )
 
   return(extent_polygon)
+
 }
 
 
 #' Check if the data extent is inside the reference bounding box
-#'
+#' 
 #' @description One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data's extent and FALSE otherwise.
 #' @param data_query sf*/stars/SpatVector/SpatRaster object.
 #' @param reference sf*/stars/SpatVector/SpatRaster object or a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#' @param reference_crs Well-known-text-formatted or EPSG code of the reference's coordinate system. Only required when a named numeric vector is passed to reference.
-#' @return TRUE (the queried data extent is completely within the reference bounding box) or FALSE
+#' @param reference_crs Well-known-text-formatted or EPSG code of the reference's coordinate system. Only required when a named numeric vector is passed to reference. 
+#' @return TRUE (the queried data extent is completely within the reference bounding box) or FALSE 
 #' @author Insang Song \email{geoissong@@gmail.com}
-#'
+#' 
 #' @export
 check_bbox <- function(
-    data_query, reference, reference_crs = NULL) {
+  data_query,
+  reference,
+  reference_crs = NULL
+) {
   if (is.numeric(reference) && is.null(reference_crs)) {
     stop("CRS should be entered when the reference extent is a vector.\n")
   }
@@ -129,22 +138,21 @@ check_bbox <- function(
 #' Check Coordinate Reference System
 #' @param x sf/stars/SpatVector/SpatRaster object.
 #' @return A st_crs or crs object.
-#' @description
+#' @description 
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples
+#' @examples 
 #' # data
 #' library(sf)
-#' ncpath <- system.file("shape/nc.shp", package = "sf")
-#' nc <- read_sf(ncpath)
+#' ncpath = system.file("shape/nc.shp", package = "sf")
+#' nc = read_sf(ncpath)
 #' check_crs(nc)
-#'
-#' @export
+#' 
+#' @export 
 check_crs <- function(x) {
-  stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
-  stopifnot(
-    "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
-      !is.na(sf::st_crs(x)) || !is.na(terra::crs(x))
-  )
+    stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
+    stopifnot(
+      "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
+      !is.na(sf::st_crs(x)) || !is.na(terra::crs(x)))
 
   if (methods::is(x, "sf") || methods::is(x, "stars")) {
     crs_wkt <- sf::st_crs(x)
@@ -160,10 +168,10 @@ check_crs <- function(x) {
 #' @param reference sf/stars/SpatVector/SpatRaster object.
 #' @return logical
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @export
+#' @export 
 check_within_reference <- function(input_object, reference) {
-  stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
-  stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+    stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+    stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
 
   bbox_input <- input_object |>
     sf::st_bbox() |>
@@ -178,3 +186,5 @@ check_within_reference <- function(input_object, reference) {
   iswithin <- (iswithin == 1)
   invisible(iswithin)
 }
+
+

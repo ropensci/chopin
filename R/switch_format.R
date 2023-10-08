@@ -12,16 +12,14 @@ switch_packbound <- function(input) {
   type_input <- check_datatype(input)
 
   switched <-
-    switch(cls_input,
-      sf = switch(type_input,
-        vector = terra::vect(input),
-        raster = terra::rast(input)
-      ),
-      terra = switch(type_input,
-        vector = sf::st_as_sf(input),
-        raster = stars::st_as_stars(input)
-      )
-    )
+  switch(cls_input,
+    sf = switch(type_input,
+      vector = terra::vect(input),
+      raster = terra::rast(input)
+    ),
+    terra = switch(type_input,
+      vector = sf::st_as_sf(input),
+      raster = stars::st_as_stars(input)))
 
   invisible(switched)
 }

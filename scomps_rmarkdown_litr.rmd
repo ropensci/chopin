@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.3.10042023",
+    Version = "0.0.3.10072023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -34,6 +34,7 @@ usethis::create_package(
   )
 )
 usethis::use_build_ignore("rds$", escape = FALSE)
+usethis::use_build_ignore("/tools", escape = FALSE)
 usethis::use_package("dplyr") # Default is "Imports"
 usethis::use_package("sf") # Default is "Imports"
 # usethis::use_package("stars") # Default is "Imports"
@@ -112,37 +113,37 @@ check_datatype <- function(input) {
 ```{r}
 testthat::test_that("What package does the input object belong?",
 {
-    withr::local_package("stars")
-    withr::local_package("terra")
-    withr::local_options(list(sf_use_s2 = FALSE))
-    bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-    bcsd_stars <- stars::read_stars(bcsd_path)
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+  bcsd_stars <- stars::read_stars(bcsd_path)
 
-    packbound_stars <- check_packbound(bcsd_stars)
-    sprast_bcsd <- terra::rast(bcsd_path)
-    packbound_terra <- check_packbound(sprast_bcsd)
+  packbound_stars <- check_packbound(bcsd_stars)
+  sprast_bcsd <- terra::rast(bcsd_path)
+  packbound_terra <- check_packbound(sprast_bcsd)
 
-    testthat::expect_equal(packbound_stars, "sf")
-    testthat::expect_equal(packbound_terra, "terra")
+  testthat::expect_equal(packbound_stars, "sf")
+  testthat::expect_equal(packbound_terra, "terra")
 })
 
 
 testthat::test_that("What package does the input object belong?",
 {
-    withr::local_package("stars")
-    withr::local_package("terra")
-    withr::local_options(list(sf_use_s2 = FALSE))
-    bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-    bcsd_stars <- stars::read_stars(bcsd_path)
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+  bcsd_stars <- stars::read_stars(bcsd_path)
 
-    nc <- system.file(package = "sf", "shape/nc.shp")
-    nc <- sf::read_sf(nc)
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
 
-    datatype_stars <- check_datatype(bcsd_stars)
-    datatype_sf <- check_datatype(nc)
+  datatype_stars <- check_datatype(bcsd_stars)
+  datatype_sf <- check_datatype(nc)
 
-    testthat::expect_equal(datatype_stars, "raster")
-    testthat::expect_equal(datatype_sf, "vector")
+  testthat::expect_equal(datatype_stars, "raster")
+  testthat::expect_equal(datatype_sf, "vector")
 })
 ```
 
@@ -158,7 +159,7 @@ switch_packbound <- function(input) {
   cls_input <- check_packbound(input)
   type_input <- check_datatype(input)
 
-  switched <- 
+  switched <-
   switch(cls_input,
     sf = switch(type_input,
       vector = terra::vect(input),
@@ -177,27 +178,27 @@ switch_packbound <- function(input) {
 
 testthat::test_that("Format is well converted",
 {
-    withr::local_package("stars")
-    withr::local_package("terra")
-    withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
 
-    # starts from sf/stars
-    bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-    bcsd_stars <- stars::read_stars(bcsd_path)
-    nc <- system.file(package = "sf", "shape/nc.shp")
-    nc <- sf::read_sf(nc)
+  # starts from sf/stars
+  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+  bcsd_stars <- stars::read_stars(bcsd_path)
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
 
-    stars_bcsd_tr <- switch_packbound(bcsd_stars)
-    sf_nc_tr <- switch_packbound(nc)
+  stars_bcsd_tr <- switch_packbound(bcsd_stars)
+  sf_nc_tr <- switch_packbound(nc)
 
-    testthat::expect_equal(check_packbound(stars_bcsd_tr), "terra")
-    testthat::expect_equal(check_packbound(sf_nc_tr), "terra")
+  testthat::expect_equal(check_packbound(stars_bcsd_tr), "terra")
+  testthat::expect_equal(check_packbound(sf_nc_tr), "terra")
 
-    stars_bcsd_trb <- switch_packbound(stars_bcsd_tr)
-    sf_nc_trb <- switch_packbound(sf_nc_tr)
+  stars_bcsd_trb <- switch_packbound(stars_bcsd_tr)
+  sf_nc_trb <- switch_packbound(sf_nc_tr)
 
-    testthat::expect_equal(check_packbound(stars_bcsd_trb), "sf")
-    testthat::expect_equal(check_packbound(sf_nc_trb), "sf")
+  testthat::expect_equal(check_packbound(stars_bcsd_trb), "sf")
+  testthat::expect_equal(check_packbound(sf_nc_trb), "sf")
 
 })
 
@@ -211,13 +212,15 @@ testthat::test_that("Format is well converted",
 #' @param crs_standard character(1). A standard definition of coordinate reference system. Default is "EPSG:4326" Consult [epsg.io](https://epsg.io) for details of other CRS.
 #' @return A (reprojected) sf or SpatVector object.
 #' @export
-check_crs2 <- function(input, crs_standard = "EPSG:4326") {
+check_crs2 <- function(
+  input,
+  crs_standard = "EPSG:4326") {
   check_crs_sf <- function(input) {
     if (is.na(sf::st_crs(input))) {
       cat('Please check the coordinate system or its EPSG code of your input object.')
       return(NULL)
     }
-    if (sf::st_crs(input)$epsg == crs_standard ) {
+    if (sf::st_crs(input)$epsg == crs_standard) {
       return(input)
     } 
     input_transformed <- sf::st_transform(input, sf::st_crs(crs_standard))
@@ -231,11 +234,12 @@ check_crs2 <- function(input, crs_standard = "EPSG:4326") {
     input_transformed <- terra::project(input, terra::crs(crs_standard))
     return(input_transformed)
   }
-    detected <- check_packbound(input)
-    switch(detected,
-          terra = check_crs_terra(input),
-          sf = check_crs_sf(input))
-  }
+
+  detected <- check_packbound(input)
+  switch(detected,
+    terra = check_crs_terra(input),
+    sf = check_crs_sf(input))
+}
 ```
 
 ```{r, send_to = "R/validate.R"}
@@ -266,7 +270,10 @@ validate_and_repair_vectors <- function(input_vector) {
 #' @param logpath character(1). Log file path with the full log file name.
 #' @return Nothing. It will export a log file in the specified path as logpath.
 #' @export
-initate_log <- function(expr, dolog = FALSE, logpath) {
+initate_log <- function(
+  expr,
+  dolog = FALSE,
+  logpath) {
   if (!dolog) {
     return(NULL)
   }
@@ -287,21 +294,57 @@ initate_log <- function(expr, dolog = FALSE, logpath) {
 #' @param buffer_r numeric(1). Buffer radius. It is assumed in metres 
 #' @return A terra::ext or sfc_POLYGON object of the computation extent.
 #' @export
-set_clip_extent <- function(pnts, buffer_r) {
+set_clip_extent <- function(
+  pnts,
+  buffer_r) {
   detected <- check_packbound(pnts)
   if (detected == "terra") {
     ext_input <- terra::ext(pnts)
     # Note that `+` operation on terra::ext output accounts for the operand as it is.
-    ext_input <- ext_input + (1.1 * buffer_r + 30)
+    ext_input <- ext_input + (1.1 * buffer_r)
   }
   if (detected == "sf") {
     ext_input <- pnts |> sf::st_bbox()
     # Note that `+` operation on st_bbox output simply adds the number; we add a vector here.
-    ext_input <- ext_input + ((1.1 * c(-1, -1, 1, 1) * buffer_r) + 30)
+    ext_input <- ext_input + ((1.1 * c(-1, -1, 1, 1) * buffer_r))
     ext_input <- sf::st_as_sfc(ext_input)
   }
   return(ext_input)
 }
+```
+
+
+```{r}
+testthat::test_that("Clip extent is set properly", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  suppressWarnings(nc <- sf::read_sf(ncpath) |>
+    sf::st_transform("EPSG:5070") |>
+    sf::st_centroid())
+
+  radius <- 1e4L
+
+  (nc_ext_sf <- set_clip_extent(nc, radius))
+
+  nct <- terra::vect(nc)
+  (nc_ext_terra <- set_clip_extent(nct, radius))
+
+  (proper_xmin <- sf::st_bbox(nc)[1] - (1.1 * radius))
+
+  testthat::expect_s3_class(nc_ext_sf, "sfc")
+  testthat::expect_s4_class(nc_ext_terra, "SpatExtent")
+
+  nc_ext_sf_1 <- sf::st_bbox(nc_ext_sf)[1]
+  nc_ext_terra_1 <- nc_ext_terra[1]
+
+  testthat::expect_equal(nc_ext_sf_1, proper_xmin)
+  testthat::expect_equal(nc_ext_terra_1, proper_xmin)
+
+})
+
 ```
 
 
@@ -315,7 +358,11 @@ set_clip_extent <- function(pnts, buffer_r) {
 #' @param target_input sf or SpatVector object to be clipped
 #' @return A clipped sf or SpatVector object.
 #' @export
-clip_as_extent <- function(pnts, buffer_r, nqsegs=NULL, target_input) {
+clip_as_extent <- function(
+  pnts,
+  buffer_r,
+  nqsegs = NULL,
+  target_input) {
   if (any(sapply(list(pnts, buffer_r, target_input), is.null))) {
     stop("One or more required arguments are NULL. Please check.\n")
   }
@@ -325,10 +372,10 @@ clip_as_extent <- function(pnts, buffer_r, nqsegs=NULL, target_input) {
   if (detected_pnts != detected_target) {
     warning("Inputs are not the same class.\n")
     target_input <- switch(detected_target,
-        sf = terra::vect(target_input),
-        terra = sf::st_as_sf(target_input))
+      sf = terra::vect(target_input),
+      terra = sf::st_as_sf(target_input))
   }
-  
+
   ext_input <- set_clip_extent(pnts, buffer_r)
   cat("Clip target features with the input feature extent...\n")
   if (detected_pnts == "sf") {
@@ -338,7 +385,7 @@ clip_as_extent <- function(pnts, buffer_r, nqsegs=NULL, target_input) {
   if (detected_pnts == "terra") {
     cae <- terra::intersect(target_input, ext_input)
   }
-   
+
   return(cae)
 }
 ```
@@ -353,14 +400,18 @@ clip_as_extent <- function(pnts, buffer_r, nqsegs=NULL, target_input) {
 #' @param nqsegs integer(1). the number of points per a quarter circle
 #' @param ras SpatRaster object to be clipped
 #' @export
-clip_as_extent_ras <- function(pnts, buffer_r, nqsegs = 180, ras) {
+clip_as_extent_ras <- function(
+  pnts,
+  buffer_r,
+  nqsegs = 180,
+  ras) {
   if (any(sapply(list(pnts, buffer_r, ras), is.null))) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
   ext_input <- set_clip_extent(pnts, buffer_r) |>
     terra::ext()
 
-  cae <- terra::crop(ras, ext_input, snap = 'out')
+  cae <- terra::crop(ras, ext_input, snap = "out")
   return(cae)
 }
 ```
@@ -375,14 +426,18 @@ clip_as_extent_ras <- function(pnts, buffer_r, nqsegs = 180, ras) {
 #' @param nqsegs integer(1). the number of points per a quarter circle
 #' @param ras SpatRaster object to be clipped
 #' @export
-clip_as_extent_ras2 <- function(points_in, buffer_r, nqsegs=180, ras) {
+clip_as_extent_ras2 <- function(
+  points_in,
+  buffer_r,
+  nqsegs = 180,
+  ras) {
   if (any(sapply(list(points_in, buffer_r, ras), is.null))) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
   ext_input <- set_clip_extent(points_in, buffer_r) |>
     terra::ext()
 
-  cae <- terra::crop(ras, ext_input, snap = 'out')
+  cae <- terra::crop(ras, ext_input, snap = "out")
   return(cae)
 }
 ```
@@ -396,20 +451,23 @@ clip_as_extent_ras2 <- function(points_in, buffer_r, nqsegs=180, ras) {
 #' @param ncutsx integer(1). The number of splits along x-axis.
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @export
-sp_indexing <- function(points_in, ncutsx, ncutsy) {
+sp_indexing <- function(
+  points_in,
+  ncutsx,
+  ncutsy) {
   # pts <- data.table(pnts)
   points_in <- points_in |>
     dplyr::mutate(or_id = seq(1, dim(points_in)[1]))
-  
+
   range_x  <- range(points_in$x)
   limits_x <- (range_x[1] + seq(0, ncutsx) * (range_x[2] - range_x[1]) / ncutsx)
   range_y  <- range(points_in$y)
   limits_y <- (range_y[1] + seq(0, ncutsy) * (range_y[2] - range_y[1]) / ncutsy)
-  
+
   points_in_cut <- points_in |>
     dplyr::mutate(xcut =  as.integer(cut(x, ncutsx, labels = seq(1, ncutsx))),
            ycut = as.integer(cut(y, ncutsy, labels = seq(1, ncutsy))))
-  
+
   return(points_in_cut)
 }
 ```
@@ -420,14 +478,45 @@ sp_indexing <- function(points_in, ncutsx, ncutsy) {
 #' @param rasterpath character(1). Path to the raster file.
 #' @param win Named integer vector (4) or terra::ext() results.
 #' @return SpatRaster object.
-#' @author Insang Song 
+#' @author Insang Song
 #' @export 
 rast_short <- function(rasterpath, win) {
-  terra::rast(rasterpath, win = win)
+  if (!(all(is.numeric(win), !is.null(attr(win, "names")), length(win) == 4) ||
+        is(win, "SpatExtent"))) {
+    stop("Argument win should be one of named numeric vector or SpatExtent object.\n")
+  }
+  if (is.numeric(win) && !all(grepl("(xmax|xmin|ymax|ymin)", names(win)))) {
+    stop("Numeric win without names is detected. Set valid names for all win elements.\n")
+  }
+  invisible(terra::rast(rasterpath, win = win))
 }
 
 ```
 
+
+```{r}
+testthat::test_that("Raster is read properly with a window.", {
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+
+  ext_numeric <- c(-84, -82, 34, 36) # unnamed
+  testthat::expect_error(rast_short(bcsd_path, ext_numeric[1:3]))
+  testthat::expect_error(rast_short(bcsd_path, ext_numeric))
+
+  names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
+  rastshort_num <- rast_short(bcsd_path, ext_numeric)
+  testthat::expect_s4_class(rastshort_num, "SpatRaster")
+
+  ext_terra <- terra::ext(ext_numeric)
+  rastshort_terra <- rast_short(bcsd_path, ext_terra)
+  testthat::expect_s4_class(rastshort_terra, "SpatRaster")
+
+})
+
+
+```
 
 
 ```{r}
@@ -479,20 +568,21 @@ estimate_demands <- function(
 #' # run
 #' # nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
 #' 
-#' @export 
+#' @export
 get_computational_regions <- function(
-  input, 
-  mode = "grid", 
-  nx = 10, 
-  ny = 10, 
-  grid_min_features = 30, 
-  padding = NULL, 
-  unit = NULL, 
+  input,
+  mode = c("grid", "grid_advanced", "density"),
+  nx = 10,
+  ny = 10,
+  grid_min_features = 30,
+  padding = NULL,
+  unit = NULL,
   ...) {
   # type check
   package_detected <- check_packbound(input)
   # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
-  stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
+  match.arg(mode)
+  # stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
   stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
   stopifnot("padding should be numeric. We convert padding to numeric...\n" = !is.numeric(padding))
   # valid unit compatible with units::set_units?
@@ -512,12 +602,15 @@ get_computational_regions <- function(
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @return A sf or SpatVector object of computation grids with unique grid id (CGRIDID).
 #' @export
-sp_index_grid <- function(points_in, ncutsx, ncutsy){
+sp_index_grid <- function(
+  points_in,
+  ncutsx,
+  ncutsy) {
   package_detected <- check_packbound(points_in)
 
   sp_index_grid_sf <- function(points_in, ncutsx, ncutsy) {
-    grid1 <- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |> 
-      as.data.frame() |> 
+    grid1 <- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |>
+      as.data.frame() |>
       sf::st_as_sf()
     grid1 <- grid1[points_in, ]
     return(grid1)
@@ -528,10 +621,10 @@ sp_index_grid <- function(points_in, ncutsx, ncutsy){
     return(grid1)
   }
   grid_out <- switch(package_detected,
-        sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
-        terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
-    
-  grid_out$CGRIDID <- seq(1, nrow(x = grid_out)) 
+    sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
+    terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
+
+  grid_out$CGRIDID <- seq(1, nrow(x = grid_out))
   return(grid_out)
 
 }
@@ -674,7 +767,7 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
   )
 
   return(extent_polygon)
-  
+
 }
 
 ```
@@ -693,7 +786,9 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_s3_class(mainland_box, "sf")
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
-  testthat::expect_error(extent_to_polygon(mainland_vec_un, output_class = "sf"))
+  testthat::expect_error(
+    extent_to_polygon(mainland_vec_un, output_class = "sf")
+  )
 })
 
 ```
@@ -712,7 +807,9 @@ testthat::test_that("input extent is converted to a polygon", {
 #' 
 #' @export
 check_bbox <- function(
-  data_query, reference, reference_crs = NULL
+  data_query,
+  reference,
+  reference_crs = NULL
 ) {
   if (is.numeric(reference) && is.null(reference_crs)) {
     stop("CRS should be entered when the reference extent is a vector.\n")
@@ -768,44 +865,56 @@ check_bbox <- function(
 #' 
 #' @export
 extract_with_polygons <- function(
-    polys, surf, id, func = mean, na.rm = TRUE
+    polys,
+    surf,
+    id,
+    func = mean,
+    na.rm = TRUE
     ) {
-    # type check
-    stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
-    stopifnot("Check class of the input raster.\n" = any(methods::is(surf, "stars"), methods::is(surf, "SpatRaster")))
-    stopifnot(is.character(id))
+  # type check
+  stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
+  stopifnot("Check class of the input raster.\n" = any(methods::is(surf, "stars"), methods::is(surf, "SpatRaster")))
+  stopifnot(is.character(id))
 
-    cls_polys <- check_packbound(polys)
-    cls_surf <- check_packbound(surf)
+  cls_polys <- check_packbound(polys)
+  cls_surf <- check_packbound(surf)
 
-    if (cls_polys != cls_surf) {
-      polys <- switch_packbound(polys)
-    }
+  if (cls_polys != cls_surf) {
+    polys <- switch_packbound(polys)
+  }
 
-    extract_with_polygons_sf <- function(polys, surf, id, func) {
-        extracted <- stars::st_extract(x = surf, at = polys, FUN = func)
-        # extracted = extracted |>
-        #   group_by(!!sym(id)) |>
-        #   summarize(across(-!!sym(id), ~func)) |>
-        #   ungroup()
-        return(extracted)
-    }
+  extract_with_polygons_sf <- function(polys, surf, id, func) {
+    extracted <- stars::st_extract(x = surf, at = polys, FUN = func)
+    # extracted = extracted |>
+    #   group_by(!!sym(id)) |>
+    #   summarize(across(-!!sym(id), ~func)) |>
+    #   ungroup()
+    return(extracted)
+  }
 
-    extract_with_polygons_terra <- function(polys, surf, id, func) {
-        extracted <- terra::extract(surf, polys)
-        extracted <- extracted |>
-          dplyr::group_by(!!rlang::sym(id)) |>
-          dplyr::summarize(dplyr::across(-!!rlang::sym(id), ~func)) |>
-          dplyr::ungroup()
-        return(extracted)
-    }
+  extract_with_polygons_terra <- function(polys, surf, id, func) {
+    extracted <- terra::extract(surf, polys)
+    extracted <- extracted |>
+      dplyr::group_by(!!rlang::sym(id)) |>
+      dplyr::summarize(dplyr::across(-!!rlang::sym(id), ~func)) |>
+      dplyr::ungroup()
+    return(extracted)
+  }
 
-    extracted_poly <- switch(
-        cls_surf,
-        sf = extract_with_polygons_sf(polys = polys, surf = surf, id = id, func = func),
-        terra = extract_with_polygons_terra(polys = polys, surf = surf, id = id, func = func)
-    )
-    return(extracted_poly)
+  extracted_poly <- switch(
+    cls_surf,
+    sf = extract_with_polygons_sf(
+      polys = polys,
+      surf = surf,
+      id = id,
+      func = func),
+    terra = extract_with_polygons_terra(
+      polys = polys,
+      surf = surf,
+      id = id,
+      func = func)
+  )
+  return(extracted_poly)
 }
 
 ```
@@ -822,18 +931,26 @@ extract_with_polygons <- function(
 #' @return 
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export
-extract_with <- function(raster, vector, id, func = mean, mode = "polygon", ...) {
-    if (!mode %in% c("polygon", "buffer")) {
-      stop("Argument 'mode' should be one of 'polygon' or 'buffer'.\n")
-    }
-    stopifnot(is.character(id))
-    stopifnot(id %in% names(vector))
+extract_with <- function(
+  raster, 
+  vector, 
+  id, 
+  func = mean, 
+  mode = c("polygon", "buffer"), 
+  ...) {
 
-    extracted <- 
-      switch(mode,
-        polygon = extract_with_polygons(vector, raster, id, func),
-        buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
-    return(extracted)
+  match.arg(mode)
+  # if (!mode %in% c("polygon", "buffer")) {
+  #   stop("Argument 'mode' should be one of 'polygon' or 'buffer'.\n")
+  # }
+  stopifnot(is.character(id))
+  stopifnot(id %in% names(vector))
+
+  extracted <- 
+    switch(mode,
+      polygon = extract_with_polygons(vector, raster, id, func),
+      buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
+  return(extracted)
 }
 
 ```
@@ -857,14 +974,14 @@ check_crs <- function(x) {
     stopifnot(
       "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
       !is.na(sf::st_crs(x)) || !is.na(terra::crs(x)))
-    
-    if (methods::is(x, "sf") || methods::is(x, "stars")) {
-        crs_wkt <- sf::st_crs(x)
-    } else {
-        crs_wkt <- terra::crs(x)
-    }
 
-    return(crs_wkt)
+  if (methods::is(x, "sf") || methods::is(x, "stars")) {
+    crs_wkt <- sf::st_crs(x)
+  } else {
+    crs_wkt <- terra::crs(x)
+  }
+
+  return(crs_wkt)
 }
 ```
 
@@ -903,7 +1020,7 @@ check_within_reference <- function(input_object, reference) {
   bbox_input <- input_object |>
     sf::st_bbox() |>
     sf::st_as_sfc()
-  
+
   bbox_reference <- reference |>
     sf::st_bbox() |>
     sf::st_as_sfc()
@@ -929,7 +1046,6 @@ testthat::test_that("nc data is within the mainland US", {
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   within_res <- check_within_reference(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
-
 })
 
 ```
@@ -945,15 +1061,24 @@ testthat::test_that("nc data is within the mainland US", {
 #' @description NOTE: sf implementation is pending. Only available for terra.
 #' @author Insang Song
 #' @export
-calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, target_fields) {
+calculate_sedc <- function(
+  point_from,
+  point_to,
+  id,
+  sedc_bandwidth,
+  threshold,
+  target_fields) {
   # define sources, set SEDC exponential decay range
   len_point_from <- seq_len(nrow(point_from))
   len_point_to <- seq_len(nrow(point_to))
 
   point_from$from_id <- len_point_from
   # select egrid_v only if closer than 3e5 meters from each aqs
-  point_from_buf <- terra::buffer(point_from_buf, threshold = threshold, quadsegs = 90)
-  point_to <- point_to[point_from_buf,]
+  point_from_buf <- terra::buffer(
+    point_from_buf,
+    threshold = threshold,
+    quadsegs = 90)
+  point_to <- point_to[point_from_buf, ]
   point_to$to_id <- len_point_to
 
   # near features with distance argument: only returns integer indices
@@ -962,7 +1087,9 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
   dist_near_to <- terra::distance(point_from, point_to)
   dist_near_to_df <- as.vector(dist_near_to)
   # adding integer indices
-  dist_near_to_tdf <- expand.grid(from_id = len_point_from, to_id = len_point_to)
+  dist_near_to_tdf <- expand.grid(
+    from_id = len_point_from,
+    to_id = len_point_to)
   dist_near_to_df <- cbind(dist_near_to_tdf, dist = dist_near_to_df)
 
   # summary
@@ -975,11 +1102,13 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
     # exp(-3) is about 0.05
     dplyr::mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |>
     dplyr::group_by(!!rlang::sym(id)) |>
-    dplyr::summarize(dplyr::across(dplyr::all_of(target_fields), list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))) |>
+    dplyr::summarize(
+      dplyr::across(dplyr::all_of(target_fields),
+      list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))
+    ) |>
     dplyr::ungroup()
 
   invisible(near_from_to)
-  
 }
 
 ```
@@ -1009,36 +1138,42 @@ calculate_sedc <- function(point_from, point_to, id, sedc_bandwidth, threshold, 
 #' summary(ppb_nc_aw)
 #' #### Example of aw_covariates ends ####
 #' @export
-aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
-    stopifnot("Inputs have invalid classes.\n" = 
-      methods::is(poly_in, "sf") || methods::is(poly_weight, "sf") || methods::is(poly_in, "SpatVector") || methods::is(poly_weight, "SpatVector"))
-    #check_crs()
+aw_covariates <- function(
+  poly_in, 
+  poly_weight, 
+  id_poly_in = "ID") {
+  stopifnot("Inputs have invalid classes.\n" = 
+    methods::is(poly_in, "sf") || methods::is(poly_weight, "sf") || methods::is(poly_in, "SpatVector") || methods::is(poly_weight, "SpatVector"))
+  #check_crs()
+  ## distinguish numeric and nonnumeric columns
+  index_numeric <- grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
 
-    ## distinguish numeric and nonnumeric columns
-    index_numeric <- grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
-    
-    aw_covariates.terra = function(poly_in, poly_weight, id_poly_in = id_poly_in) {
-        
-        poly_intersected <- terra::intersect(poly_in, poly_weight)
-        poly_intersected[["area_segment_"]] <- terra::expanse(poly_intersected)
-        poly_intersected <- data.frame(poly_intersected) |>
-            dplyr::group_by(!!rlang::sym(id_poly_in)) |>
-            dplyr::summarize(dplyr::across(is.numeric,
-                        ~stats::weighted.mean(., w = area_segment_))) |>
-            dplyr::ungroup()
-        return(poly_intersected)
-    }
+  aw_covariates_terra <- function(
+    poly_in, 
+    poly_weight, 
+    id_poly_in = id_poly_in) {
+      poly_intersected <- terra::intersect(poly_in, poly_weight)
+      poly_intersected[["area_segment_"]] <- terra::expanse(poly_intersected)
+      poly_intersected <- data.frame(poly_intersected) |>
+        dplyr::group_by(!!rlang::sym(id_poly_in)) |>
+        dplyr::summarize(dplyr::across(is.numeric,
+          ~stats::weighted.mean(., w = area_segment_))) |>
+        dplyr::ungroup()
+      return(poly_intersected)
+  }
 
-    class_poly_in <- check_packbound(poly_in)
-    class_poly_weight <- check_packbound(poly_weight)
+  class_poly_in <- check_packbound(poly_in)
+  class_poly_weight <- check_packbound(poly_weight)
 
-    if (class_poly_in != class_poly_weight) {
-      class_poly_weight <- switch_packbound(class_poly_weight)
-    }
-    
-    switch(class_poly_in,
-        sf = sf::st_interpolate_aw(poly_weight[,index_numeric], poly_in, extensive = FALSE),
-        terra = aw_covariates.terra(poly_in, poly_weight[,index_numeric], id_poly_in = id_poly_in))
+  if (class_poly_in != class_poly_weight) {
+    class_poly_weight <- switch_packbound(class_poly_weight)
+  }
+
+  switch(class_poly_in,
+    sf = sf::st_interpolate_aw(poly_weight[, index_numeric],
+      poly_in, extensive = FALSE),
+    terra = aw_covariates_terra(poly_in, poly_weight[, index_numeric],
+      id_poly_in = id_poly_in))
     
 }
 
@@ -1073,79 +1208,102 @@ aw_covariates <- function(poly_in, poly_weight, id_poly_in = "ID") {
 #' 
 #' @export
 extract_with_buffer <- function(
-    points, surf, radius, id, qsegs = 90, func = mean, kernel = NULL, bandwidth = NULL
+    points,
+    surf,
+    radius,
+    id,
+    qsegs = 90,
+    func = mean,
+    kernel = NULL,
+    bandwidth = NULL
     ) {
-    # type check
-    stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
-    stopifnot("Check class of the input radius.\n" = is.numeric(radius))
-    stopifnot(is.character(id))
-    stopifnot(is.integer(qsegs))
+  # type check
+  stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
+  stopifnot("Check class of the input radius.\n" = is.numeric(radius))
+  stopifnot(is.character(id))
+  stopifnot(is.integer(qsegs))
 
-    if (!is.null(kernel)) {
-        extracted <- extract_with_buffer.flat(points = points,
-                                      surf = surf,
-                                      radius = radius,
-                                      id = id,
-                                      func = func,
-                                      qsegs = qsegs)
-        return(extracted)
-    }
-
-    extracted <- extract_with_buffer.kernel(points = points,
-                                           surf = surf,
-                                           radius = radius,
-                                           id = id,
-                                           func = func,
-                                           qsegs = qsegs,
-                                           kernel = kernel,
-                                           bandwidth = bandwidth)
+  if (!is.null(kernel)) {
+    extracted <- extract_with_buffer_flat(points = points,
+                                  surf = surf,
+                                  radius = radius,
+                                  id = id,
+                                  func = func,
+                                  qsegs = qsegs)
     return(extracted)
+  }
+
+  extracted <- extract_with_buffer_kernel(points = points,
+                                  surf = surf,
+                                  radius = radius,
+                                  id = id,
+                                  func = func,
+                                  qsegs = qsegs,
+                                  kernel = kernel,
+                                  bandwidth = bandwidth)
+  return(extracted)
 
 }
 
 # Subfunction: extract with buffers (flat weight; simple mean)
-extract_with_buffer.flat <- function(
-        points, surf, radius, id, qsegs, func = mean, kernel = NULL, bandwidth = NULL
-    ) {
-    # generate buffers
-    bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-    # crop raster
-    bufs_extent <- terra::ext(bufs)
-    surf_cropped <- terra::crop(surf, bufs_extent)
-    name_surf_val <- names(surf)
-    # extract raster values
-    surf_at_bufs <- terra::extract(surf_cropped, bufs)
-    surf_at_bufs_summary <- 
-        surf_at_bufs |> 
-            dplyr::group_by(ID) |> 
-            dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm = TRUE)) |> 
-            dplyr::ungroup()
-    return(surf_at_bufs_summary)
+extract_with_buffer_flat <- function(
+  points,
+  surf,
+  radius,
+  id,
+  qsegs,
+  func = mean,
+  kernel = NULL,
+  bandwidth = NULL
+  ) {
+  # generate buffers
+  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  # crop raster
+  bufs_extent <- terra::ext(bufs)
+  surf_cropped <- terra::crop(surf, bufs_extent)
+  name_surf_val <- names(surf)
+  # extract raster values
+  surf_at_bufs <- terra::extract(surf_cropped, bufs)
+  surf_at_bufs_summary <-
+    surf_at_bufs |>
+      dplyr::group_by(ID) |>
+      dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm = TRUE)) |> 
+      dplyr::ungroup()
+  return(surf_at_bufs_summary)
 }
 
 
 # Subfunction: extract with buffers (kernel weight; weighted mean)
-extract_with_buffer.kernel <- function(
-        points, surf, radius, id, qsegs, func = mean, kernel, bandwidth
-    ) {
-        # generate buffers
-        bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-        # crop raster
-        bufs_extent <- terra::ext(bufs)
-        surf_cropped <- terra::crop(surf, bufs_extent)
-        name_surf_val <- names(surf)
+extract_with_buffer_kernel <- function(
+  points,
+  surf,
+  radius,
+  id,
+  qsegs,
+  func = mean,
+  kernel,
+  bandwidth
+) {
+  # generate buffers
+  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  # crop raster
+  bufs_extent <- terra::ext(bufs)
+  surf_cropped <- terra::crop(surf, bufs_extent)
+  name_surf_val <- names(surf)
 
-        # TODO: kernel implementation
+  # TODO: kernel implementation
 
 
-        # extract raster values
-        surf_at_bufs <- terra::extract(surf_cropped, bufs)
-        surf_at_bufs_summary <- 
-            surf_at_bufs |> 
-                dplyr::group_by(ID) |> 
-                dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm=T)) |> 
-                dplyr::ungroup()
-        return(surf_at_bufs_summary)
+  # extract raster values
+  surf_at_bufs <- terra::extract(surf_cropped, bufs)
+  surf_at_bufs_summary <-
+    surf_at_bufs |>
+      dplyr::group_by(ID) |>
+      dplyr::summarize(
+        dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm=T)
+      ) |> 
+      dplyr::ungroup()
+  return(surf_at_bufs_summary)
 }
 
 ```
@@ -1163,29 +1321,32 @@ extract_with_buffer.kernel <- function(
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' 
 #' @export
-distribute_process <- function(grids, grid_id = NULL, fun, ...) {
-   
-    # subset using grids and grid_id
-    if (!is.null(grid_id)) {
-        if (is.character(grid_id)) {
-            grid_id_parsed <- strsplit(grid_id, ":", fixed = TRUE)[[1]]
-            grid_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
-                         which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
-        }
-        if (is.numeric(grid_id)) {
-            grid_ids <- unique(grids[["CGRIDID"]])[grid_id]
-        }
+distribute_process <- function(
+  grids, 
+  grid_id = NULL,
+  fun,
+  ...) {
+  # subset using grids and grid_id
+  if (!is.null(grid_id)) {
+    if (is.character(grid_id)) {
+      grid_id_parsed <- strsplit(grid_id, ":", fixed = TRUE)[[1]]
+      grid_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
+                      which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
     }
-    grids_target <- grids[grid_ids,]
-    grids_target_list <- split(grids_target, grids_target[["CGRIDID"]])
+    if (is.numeric(grid_id)) {
+      grid_ids <- unique(grids[["CGRIDID"]])[grid_id]
+    }
+  }
+  grids_target <- grids[grid_ids,]
+  grids_target_list <- split(grids_target, grids_target[["CGRIDID"]])
 
-    results_distributed <- future.apply::future_lapply(
-        \(x, ...) {
-            fun(...)
-        }, grids_target_list, 
-        future.seed = TRUE)
-    results_distributed <- do.call(rbind, results_distributed)
-    return(results_distributed)
+  results_distributed <- future.apply::future_lapply(
+    \(x, ...) {
+      fun(...)
+    }, grids_target_list,
+    future.seed = TRUE)
+  results_distributed <- do.call(rbind, results_distributed)
+  return(results_distributed)
 }
 
 ```
