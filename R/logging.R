@@ -7,7 +7,10 @@
 #' @param logpath character(1). Log file path with the full log file name.
 #' @return Nothing. It will export a log file in the specified path as logpath.
 #' @export
-initate_log <- function(expr, dolog = FALSE, logpath) {
+initate_log <- function(
+  expr,
+  dolog = FALSE,
+  logpath) {
   if (!dolog) {
     return(NULL)
   }
@@ -16,3 +19,5 @@ initate_log <- function(expr, dolog = FALSE, logpath) {
   logr::log_close()
   return(NULL)
 }
+
+

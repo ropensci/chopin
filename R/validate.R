@@ -11,8 +11,8 @@ validate_and_repair_vectors <- function(input_vector) {
 
   validated <- switch(detected,
     terra = terra::makeValid(input_vector),
-    sf = sf::st_make_valid(input_vector)
-  )
+    sf = sf::st_make_valid(input_vector))
 
   return(validated)
 }
+

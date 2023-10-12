@@ -6,7 +6,7 @@
 \usage{
 get_computational_regions(
   input,
-  mode = "grid",
+  mode = c("grid", "grid_advanced", "density"),
   nx = 10,
   ny = 10,
   grid_min_features = 30,

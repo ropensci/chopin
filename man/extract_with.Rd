@@ -4,7 +4,14 @@
 \alias{extract_with}
 \title{Extract raster values with point buffers or polygons}
 \usage{
-extract_with(raster, vector, id, func = mean, mode = "polygon", ...)
+extract_with(
+  raster,
+  vector,
+  id,
+  func = mean,
+  mode = c("polygon", "buffer"),
+  ...
+)
 }
 \arguments{
 \item{raster}{SpatRaster object.}
