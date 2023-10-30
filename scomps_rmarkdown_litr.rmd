@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.3.10072023",
+    Version = "0.0.4.11012023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -64,6 +64,46 @@ usethis::use_mit_license(copyright_holder = "I. Song")
 # parallelly::availableCores()
 # plan(future.batchtools::batchtools_slurm)
 
+```
+
+
+### Test data generation
+```{r generate-test-data, eval=FALSE, include=FALSE}
+OPENTOPO_CREDENTIAL <- ""
+
+pkgs <- c("sf", "terra", "dplyr", "spatstat.random", "elevatr")
+invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
+elevatr::set_opentopo_key(OPENTOPO_CREDENTIAL)
+sf::sf_use_s2(FALSE)
+set.seed(300)
+ncpath <- system.file("shape/nc.shp", package = "sf")
+ncpoly <- sf::read_sf(ncpath) %>%
+  sf::st_transform("EPSG:5070")
+
+ncrandpoint <- sf::st_sample(type = "Thomas", x = ncpoly, size = 300, mu = 0.00005, scale = 16000, kappa = 0.00005) %>%
+  mutate(pid = seq_len(nrow(.))) %>%
+  select(-label)
+sf::st_crs(ncrandpoint) <- "EPSG:5070"
+saveRDS(ncrandpoint, "./tests/testdata/nc_random_point.rds")
+
+ncrast <- elevatr::get_elev_raster(ncpoly, z = 10, src = "srtm15plus", prj = terra::crs("EPSG:5070"))
+ncrastt <- terra::rast(ncrast)
+writeRaster(ncrast, "./tests/testdata/nc_srtm15_otm.tif")
+
+library(nhdplusTools)
+huc08s <- get_huc(AOI = sf::st_union(ncpoly), buffer = 10000L, type = "huc08")
+library(readxl)
+
+ecors <- list.files(path = "/Users/songi2/Documents/Ecoregions/",
+  pattern = "*.xlsx", full.names = TRUE) %>%
+  .[-length(.)] %>%
+  lapply(\(x) readxl::read_excel(x, sheet = 4)) %>%
+  do.call(bind_rows, .)
+
+huc08sadd <- left_join(huc08s, ecors, by = c("huc8" = "Hydrologic Unit Code 8-Digit (HUC8)")) %>%
+  select(-1:-12, -globalid)
+huc08sadd
+saveRDS(huc08sadd, "./tests/testdata/huc08_nc.rds", compress = "xz")
 ```
 
 
@@ -110,7 +150,7 @@ check_datatype <- function(input) {
 }
 ```
 
-```{r}
+```{r test-packbound}
 testthat::test_that("What package does the input object belong?",
 {
   withr::local_package("stars")
@@ -174,7 +214,7 @@ switch_packbound <- function(input) {
 ```
 
 
-```{r}
+```{r test-format}
 
 testthat::test_that("Format is well converted",
 {
@@ -314,7 +354,7 @@ set_clip_extent <- function(
 ```
 
 
-```{r}
+```{r test-clip}
 testthat::test_that("Clip extent is set properly", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -494,7 +534,7 @@ rast_short <- function(rasterpath, win) {
 ```
 
 
-```{r}
+```{r test-rasterbound}
 testthat::test_that("Raster is read properly with a window.", {
   withr::local_package("stars")
   withr::local_package("terra")
@@ -572,26 +612,25 @@ estimate_demands <- function(
 get_computational_regions <- function(
   input,
   mode = c("grid", "grid_advanced", "density"),
-  nx = 10,
-  ny = 10,
-  grid_min_features = 30,
+  nx = 10L,
+  ny = 10L,
+  grid_min_features = 30L,
   padding = NULL,
   unit = NULL,
   ...) {
-  # type check
-  package_detected <- check_packbound(input)
   # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
-  match.arg(mode)
-  # stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
-  stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
-  stopifnot("padding should be numeric. We convert padding to numeric...\n" = !is.numeric(padding))
+  
+  stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = mode %in% c("grid", "grid_advanced", "density"))
+  stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(ny), is.integer(grid_min_features)))
+  stopifnot("padding should be numeric. We convert padding to numeric...\n" = is.numeric(padding))
   # valid unit compatible with units::set_units?
+  switch(mode,
+    grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
+    grid_advanced = grid_merge(points_in = input, sp_index_grid(input, nx, ny),
+      grid_min_features = grid_min_features),
+    density = simpleError("density method is under development.\n")
+  )
 
-    # if (detected_pnts == "sf") {
-    # }
-    # if (detected_pnts == "terra") {
-    #   grid1$ID = seq(1, nrow(grid1))
-    # }
   }
 
 #' @title sp_index_grid: Generate grid polygons
@@ -772,7 +811,7 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
 
 ```
 
-```{r}
+```{r test-extentpoly}
 testthat::test_that("input extent is converted to a polygon", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -986,7 +1025,7 @@ check_crs <- function(x) {
 ```
 
 
-```{r}
+```{r test-check_crs}
 testthat::test_that("check_crs is working as expected", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -1203,6 +1242,7 @@ aw_covariates <- function(
 #' @param func a function taking a numeric vector argument.
 #' @param kernel character(1). Name of a kernel function (yet to be implemented)
 #' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param grid_ref SpatVector object. A unit grid polygon that is used to get a subset inside the polygon
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' 
@@ -1212,35 +1252,40 @@ extract_with_buffer <- function(
     surf,
     radius,
     id,
-    qsegs = 90,
+    qsegs = 90L,
     func = mean,
     kernel = NULL,
-    bandwidth = NULL
+    bandwidth = NULL,
+    grid_ref = NULL
     ) {
   # type check
   stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
   stopifnot("Check class of the input radius.\n" = is.numeric(radius))
   stopifnot(is.character(id))
-  stopifnot(is.integer(qsegs))
+  stopifnot(is.numeric(qsegs))
+
+  if (!is.null(grid_ref)) {
+    points <- points[grid_ref, ]
+  }
 
   if (!is.null(kernel)) {
-    extracted <- extract_with_buffer_flat(points = points,
-                                  surf = surf,
-                                  radius = radius,
-                                  id = id,
-                                  func = func,
-                                  qsegs = qsegs)
+    extracted <- extract_with_buffer_kernel(points = points,
+                                    surf = surf,
+                                    radius = radius,
+                                    id = id,
+                                    func = func,
+                                    qsegs = qsegs,
+                                    kernel = kernel,
+                                    bandwidth = bandwidth)
     return(extracted)
   }
 
-  extracted <- extract_with_buffer_kernel(points = points,
-                                  surf = surf,
-                                  radius = radius,
-                                  id = id,
-                                  func = func,
-                                  qsegs = qsegs,
-                                  kernel = kernel,
-                                  bandwidth = bandwidth)
+  extracted <- extract_with_buffer_flat(points = points,
+                                surf = surf,
+                                radius = radius,
+                                id = id,
+                                func = func,
+                                qsegs = qsegs)
   return(extracted)
 
 }
@@ -1267,7 +1312,7 @@ extract_with_buffer_flat <- function(
   surf_at_bufs_summary <-
     surf_at_bufs |>
       dplyr::group_by(ID) |>
-      dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm = TRUE)) |> 
+      dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean(., na.rm = TRUE))) |> 
       dplyr::ungroup()
   return(surf_at_bufs_summary)
 }
@@ -1312,42 +1357,98 @@ extract_with_buffer_kernel <- function(
 ```{r, send_to = "R/interpret_computational_domain.R"}
 #' @title Process a given function in the entire or partial computational grids (under construction)
 #' 
-#' @description Should 
-#' @param grids sf/SpatVector object. Computational grids.
-#' @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
-#' @param fun function supported in scomps. 
-#' @param ... Arguments passed to fun.
-#' @return a data.frame object with mean value
+#' @description Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}
+#' @param grids sf/SpatVector object. Computational grids. It takes a strict assumption that the grid input is an output of \code{get_computational_regions}
+#' @param grid_target_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
+#' @param fun function supported in scomps.
+#' @param ... Arguments passed to the argument \code{fun}.
+#' @return a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' 
+#' @examples 
+#' library(future)
+#' plan(multicore, workers = 4)
+#' 
+#' distribute_process()
 #' @export
 distribute_process <- function(
   grids, 
-  grid_id = NULL,
+  grid_target_id = NULL,
   fun,
   ...) {
-  # subset using grids and grid_id
-  if (!is.null(grid_id)) {
-    if (is.character(grid_id)) {
-      grid_id_parsed <- strsplit(grid_id, ":", fixed = TRUE)[[1]]
-      grid_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
-                      which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
-    }
-    if (is.numeric(grid_id)) {
-      grid_ids <- unique(grids[["CGRIDID"]])[grid_id]
-    }
+  if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
+    stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
   }
-  grids_target <- grids[grid_ids,]
-  grids_target_list <- split(grids_target, grids_target[["CGRIDID"]])
+  if (is.numeric(grid_target_id) && length(grid_target_id) != 2) {
+    stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
+  }
+  # subset using grids and grid_id
+  if (is.null(grid_target_id)) {
+    grid_target_ids <- unlist(grids[["CGRIDID"]])
+  }
+  if (is.character(grid_target_id)) {
+    grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
+    grid_target_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
+                    which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
+  }
+  if (is.numeric(grid_target_id)) {
+    grid_target_ids <- unique(grids[["CGRIDID"]])[grid_target_id]
+  }
+  
+  grids_target <- grids[grid_target_ids %in% unlist(grids[["CGRIDID"]]),]
+  grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
   results_distributed <- future.apply::future_lapply(
-    \(x, ...) {
-      fun(...)
-    }, grids_target_list,
-    future.seed = TRUE)
-  results_distributed <- do.call(rbind, results_distributed)
+    grids_target_list,
+    \(x) {
+      sf::sf_use_s2(FALSE)
+      
+      run_result <- tryCatch({
+        fun(..., grid_ref = x)
+        #fun(...)
+        #print(xx)
+        cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
+          paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
+      },
+      error = function(e) return(terra::vect()))
+      return(run_result)
+    },
+    future.seed = TRUE,
+    future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
+  print(results_distributed)
+  #results_distributed <- do.call(rbind, results_distributed)
   return(results_distributed)
 }
+
+```
+
+
+
+```{r, eval=FALSE}
+testthat::test_that("Processes are properly spawned and compute", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) |>
+    terra::project("EPSG:5070")
+  ncpnts <- readRDS("../testdata/nc_random_point.rds")
+  ncpnts <- terra::vect(ncpnts)
+  ncelev <- terra::rast("../testdata/nc_srtm15_otm.tif")
+
+
+  nccompreg <- scomps::get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
+  
+  
+  res <- scomps::distribute_process(grids = nccompreg, grid_target_id = NULL,#grid_id = "CGRIDID",
+    fun = scomps::extract_with_buffer, points = terra::vect(ncpnts), qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
+
+  testthat::expect_equal(!any(is.null(res)), TRUE)
+})
+
 
 ```
 
@@ -1355,25 +1456,25 @@ distribute_process <- function(
 
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.
 
-```{r}
+```{r run-devtools}
 # litr::document() # <-- use instead of devtools::document()
 devtools::document(".")
 devtools::test()
 devtools::build(path = "./tools/tarballs")
-devtools::install(dependencies = FALSE, build_vignettes = TRUE)
+devtools::install(dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
 # devtools::check(document = FALSE)
 
 ```
 
 ```{r}
-cat(getwd())
+print(getwd())
 
 ```
 
-```{r, echo = F}
+```{r post-hoc-cleaning, echo = F}
 gitpath = gsub("/scomps", "", getwd())
 
-system("unalias cp")
+# system("unalias cp")
 system(paste0("cp -r ", getwd(), "/* ", gitpath))
 
 Sys.sleep(1)

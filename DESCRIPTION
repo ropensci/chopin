@@ -1,6 +1,6 @@
 Package: scomps
 Title: Scalable R geospatial computation
-Version: 0.0.3.10072023
+Version: 0.0.4.11012023
 Authors@R: 
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))

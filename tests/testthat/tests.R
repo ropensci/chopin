@@ -167,3 +167,29 @@ testthat::test_that("nc data is within the mainland US", {
 })
 
 
+testthat::test_that("Processes are properly spawned and compute", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) |>
+    terra::project("EPSG:5070")
+  ncpnts <- readRDS("../testdata/nc_random_point.rds")
+  ncpnts <- terra::vect(ncpnts)
+  ncelev <- terra::rast("../testdata/nc_srtm15_otm.tif")
+
+
+  nccompreg <- scomps::get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
+  
+  
+  res <- scomps::distribute_process(grids = nccompreg, grid_target_id = NULL,#grid_id = "CGRIDID",
+    fun = scomps::extract_with_buffer, points = terra::vect(ncpnts), qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
+
+  testthat::expect_equal(!any(is.null(res)), TRUE)
+})
+
+
+

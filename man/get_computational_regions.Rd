@@ -7,9 +7,9 @@
 get_computational_regions(
   input,
   mode = c("grid", "grid_advanced", "density"),
-  nx = 10,
-  ny = 10,
-  grid_min_features = 30,
+  nx = 10L,
+  ny = 10L,
+  grid_min_features = 30L,
   padding = NULL,
   unit = NULL,
   ...

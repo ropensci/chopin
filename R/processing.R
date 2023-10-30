@@ -333,6 +333,7 @@ aw_covariates <- function(
 #' @param func a function taking a numeric vector argument.
 #' @param kernel character(1). Name of a kernel function (yet to be implemented)
 #' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param grid_ref SpatVector object. A unit grid polygon that is used to get a subset inside the polygon
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' 
@@ -342,35 +343,40 @@ extract_with_buffer <- function(
     surf,
     radius,
     id,
-    qsegs = 90,
+    qsegs = 90L,
     func = mean,
     kernel = NULL,
-    bandwidth = NULL
+    bandwidth = NULL,
+    grid_ref = NULL
     ) {
   # type check
   stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
   stopifnot("Check class of the input radius.\n" = is.numeric(radius))
   stopifnot(is.character(id))
-  stopifnot(is.integer(qsegs))
+  stopifnot(is.numeric(qsegs))
+
+  if (!is.null(grid_ref)) {
+    points <- points[grid_ref, ]
+  }
 
   if (!is.null(kernel)) {
-    extracted <- extract_with_buffer_flat(points = points,
-                                  surf = surf,
-                                  radius = radius,
-                                  id = id,
-                                  func = func,
-                                  qsegs = qsegs)
+    extracted <- extract_with_buffer_kernel(points = points,
+                                    surf = surf,
+                                    radius = radius,
+                                    id = id,
+                                    func = func,
+                                    qsegs = qsegs,
+                                    kernel = kernel,
+                                    bandwidth = bandwidth)
     return(extracted)
   }
 
-  extracted <- extract_with_buffer_kernel(points = points,
-                                  surf = surf,
-                                  radius = radius,
-                                  id = id,
-                                  func = func,
-                                  qsegs = qsegs,
-                                  kernel = kernel,
-                                  bandwidth = bandwidth)
+  extracted <- extract_with_buffer_flat(points = points,
+                                surf = surf,
+                                radius = radius,
+                                id = id,
+                                func = func,
+                                qsegs = qsegs)
   return(extracted)
 
 }
@@ -397,7 +403,7 @@ extract_with_buffer_flat <- function(
   surf_at_bufs_summary <-
     surf_at_bufs |>
       dplyr::group_by(ID) |>
-      dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm = TRUE)) |> 
+      dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean(., na.rm = TRUE))) |> 
       dplyr::ungroup()
   return(surf_at_bufs_summary)
 }

@@ -26,26 +26,25 @@
 get_computational_regions <- function(
   input,
   mode = c("grid", "grid_advanced", "density"),
-  nx = 10,
-  ny = 10,
-  grid_min_features = 30,
+  nx = 10L,
+  ny = 10L,
+  grid_min_features = 30L,
   padding = NULL,
   unit = NULL,
   ...) {
-  # type check
-  package_detected <- check_packbound(input)
   # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
-  match.arg(mode)
-  # stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = !mode %in% c("grid", "grid_advanced", "density"))
-  stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(y), is.integer(grid_min_features)))
-  stopifnot("padding should be numeric. We convert padding to numeric...\n" = !is.numeric(padding))
+  
+  stopifnot("Argument mode should be one of 'grid', 'grid_advanced', or 'density'.\n" = mode %in% c("grid", "grid_advanced", "density"))
+  stopifnot("Ensure that nx, ny, and grid_min_features are all integer.\n" = all(is.integer(nx), is.integer(ny), is.integer(grid_min_features)))
+  stopifnot("padding should be numeric. We convert padding to numeric...\n" = is.numeric(padding))
   # valid unit compatible with units::set_units?
+  switch(mode,
+    grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
+    grid_advanced = grid_merge(points_in = input, sp_index_grid(input, nx, ny),
+      grid_min_features = grid_min_features),
+    density = simpleError("density method is under development.\n")
+  )
 
-    # if (detected_pnts == "sf") {
-    # }
-    # if (detected_pnts == "terra") {
-    #   grid1$ID = seq(1, nrow(grid1))
-    # }
   }
 
 #' @title sp_index_grid: Generate grid polygons
@@ -186,40 +185,66 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
 #' @title Process a given function in the entire or partial computational grids (under construction)
 #' 
-#' @description Should 
-#' @param grids sf/SpatVector object. Computational grids.
-#' @param grid_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
-#' @param fun function supported in scomps. 
-#' @param ... Arguments passed to fun.
-#' @return a data.frame object with mean value
+#' @description Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}
+#' @param grids sf/SpatVector object. Computational grids. It takes a strict assumption that the grid input is an output of \code{get_computational_regions}
+#' @param grid_target_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
+#' @param fun function supported in scomps.
+#' @param ... Arguments passed to the argument \code{fun}.
+#' @return a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' 
+#' @examples 
+#' library(future)
+#' plan(multicore, workers = 4)
+#' 
+#' distribute_process()
 #' @export
 distribute_process <- function(
   grids, 
-  grid_id = NULL,
+  grid_target_id = NULL,
   fun,
   ...) {
-  # subset using grids and grid_id
-  if (!is.null(grid_id)) {
-    if (is.character(grid_id)) {
-      grid_id_parsed <- strsplit(grid_id, ":", fixed = TRUE)[[1]]
-      grid_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
-                      which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
-    }
-    if (is.numeric(grid_id)) {
-      grid_ids <- unique(grids[["CGRIDID"]])[grid_id]
-    }
+  if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
+    stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
   }
-  grids_target <- grids[grid_ids,]
-  grids_target_list <- split(grids_target, grids_target[["CGRIDID"]])
+  if (is.numeric(grid_target_id) && length(grid_target_id) != 2) {
+    stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
+  }
+  # subset using grids and grid_id
+  if (is.null(grid_target_id)) {
+    grid_target_ids <- unlist(grids[["CGRIDID"]])
+  }
+  if (is.character(grid_target_id)) {
+    grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
+    grid_target_ids <- c(which(unique(grids[["CGRIDID"]]) == grid_id_parsed[1]),
+                    which(unique(grids[["CGRIDID"]]) == grid_id_parsed[2]))
+  }
+  if (is.numeric(grid_target_id)) {
+    grid_target_ids <- unique(grids[["CGRIDID"]])[grid_target_id]
+  }
+  
+  grids_target <- grids[grid_target_ids %in% unlist(grids[["CGRIDID"]]),]
+  grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
   results_distributed <- future.apply::future_lapply(
-    \(x, ...) {
-      fun(...)
-    }, grids_target_list,
-    future.seed = TRUE)
-  results_distributed <- do.call(rbind, results_distributed)
+    grids_target_list,
+    \(x) {
+      sf::sf_use_s2(FALSE)
+      
+      run_result <- tryCatch({
+        fun(..., grid_ref = x)
+        #fun(...)
+        #print(xx)
+        cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
+          paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
+      },
+      error = function(e) return(terra::vect()))
+      return(run_result)
+    },
+    future.seed = TRUE,
+    future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
+  print(results_distributed)
+  #results_distributed <- do.call(rbind, results_distributed)
   return(results_distributed)
 }
 

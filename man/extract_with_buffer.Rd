@@ -9,10 +9,11 @@ extract_with_buffer(
   surf,
   radius,
   id,
-  qsegs = 90,
+  qsegs = 90L,
   func = mean,
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  grid_ref = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ extract_with_buffer(
 \item{kernel}{character(1). Name of a kernel function (yet to be implemented)}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
+
+\item{grid_ref}{SpatVector object. A unit grid polygon that is used to get a subset inside the polygon}
 }
 \value{
 a data.frame object with mean value
