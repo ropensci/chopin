@@ -89,7 +89,7 @@ saveRDS(ncrandpoint, "./tests/testdata/nc_random_point.rds")
 
 ncrast <- elevatr::get_elev_raster(ncpoly, z = 10, src = "srtm15plus", prj = terra::crs("EPSG:5070"))
 ncrastt <- terra::rast(ncrast)
-writeRaster(ncrast, "./tests/testdata/nc_srtm15_otm.tif")
+terra::writeRaster(ncrastt, "./tests/testdata/nc_srtm15_otm.tif", gdal=c("COMPRESS=LZW"), overwrite = TRUE)
 
 library(nhdplusTools)
 huc08s <- get_huc(AOI = sf::st_union(ncpoly), buffer = 10000L, type = "huc08")
