@@ -167,3 +167,67 @@ testthat::test_that("nc data is within the mainland US", {
 })
 
 
+
+testthat::test_that("aw_covariates works as expected.", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("units")
+  withr::local_package("dplyr")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+  nc <- sf::st_transform(nc, 5070)
+  pp <- sf::st_sample(nc, size = 300)
+  pp <- sf::st_as_sf(pp)
+  pp[["id"]] <- seq(1, nrow(pp))
+  sf::st_crs(pp) <- "EPSG:5070"
+  ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+
+  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
+  expect_s3_class(ppb_nc_aw, "sf")
+
+  # terra
+  ppb_t <- terra::vect(ppb)
+  nc_t <- terra::vect(nc)
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, 'id')})
+  expect_s3_class(ppb_nc_aw, "data.frame")
+
+  # auto convert formats
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, 'id')})
+  expect_s3_class(ppb_nc_aw, "data.frame")
+
+})
+
+
+
+
+testthat::test_that("Processes are properly spawned and compute", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("dplyr")
+  withr::local_package("progressr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  progressr::handlers(global = TRUE)
+
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) |>
+    terra::project("EPSG:5070")
+  ncpnts <- readRDS("../testdata/nc_random_point.rds")
+  ncpnts <- terra::vect(ncpnts)
+  ncelev <- terra::rast("../testdata/nc_srtm15_otm.tif")
+  terra::crs(ncelev) <- "EPSG:5070"
+
+  nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
+  # future::plan(multicore, workers = 4)
+  res <- suppressWarnings(distribute_process(grids = nccompreg, grid_target_id = NULL,
+    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
+  )
+  testthat::expect_s4_class(nccompreg, "SpatVector")
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+})
+
+
+
