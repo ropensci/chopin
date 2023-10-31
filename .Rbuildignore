@@ -2,3 +2,4 @@ rds$
 /tools/*
 /.github
 scomps*.html$
+^LICENSE\.md$

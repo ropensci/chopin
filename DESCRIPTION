@@ -24,6 +24,7 @@ Imports:
     testthat,
     units
 Suggests: 
+    exactextractr,
     future.batchtools,
     igraph,
     knitr,

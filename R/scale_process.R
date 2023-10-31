@@ -14,10 +14,10 @@
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
-#' # distribute_process()
+#' # distribute_process_grid()
 #' @import future
 #' @export
-distribute_process <- function(
+distribute_process_grid <- function(
   grids, 
   grid_target_id = NULL,
   fun,
@@ -45,8 +45,6 @@ distribute_process <- function(
   grids_target <- grids[grid_target_ids %in% unlist(grids[["CGRIDID"]]),]
   grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
-  # pgrs <- progressr::progressor(along = nrow(grids_target))
-
   results_distributed <- future.apply::future_lapply(
     grids_target_list,
     \(x) {
@@ -70,7 +68,7 @@ distribute_process <- function(
 
   # post-processing
   detected_id <- grep("^id", names(par_fun), value = TRUE)
-  detected_point <- grep("^points", names(par_fun), value = TRUE)
+  detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
   names(results_distributed)[1] <- par_fun[[detected_id]]
   results_distributed[[par_fun[[detected_id]]]] <-
     unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
@@ -93,7 +91,7 @@ distribute_process <- function(
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
-#' # distribute_process()
+#' # distribute_process_hierarchy()
 #' @import future
 #' @import progressr
 #' @export
@@ -133,11 +131,70 @@ distribute_process_hierarchy <- function(
   
   # post-processing
   detected_id <- grep("^id", names(par_fun), value = TRUE)
-  detected_point <- grep("^points", names(par_fun), value = TRUE)
+  detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
   names(results_distributed)[1] <- par_fun[[detected_id]]
   results_distributed[[par_fun[[detected_id]]]] <-
     unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
 
   return(results_distributed)
 }
+
+
+
+
+#' @title Process a given function over multiple large rasters
+#' 
+#' @description Large raster files usually exceed the memory capacity in size. Cropping a large raster into a small subset even consumes a lot of memory and adds processing time. This function leverages terra SpatRaster proxy to distribute computation jobs over multiple cores. It is assumed that users have multiple large raster files in their disk, then each file path is assigned to a thread. Each thread will directly read raster values from the disk using C++ pointers that operate in terra functions. For use, it is strongly recommended to use vector data with small and confined spatial extent for computation to avoid out-of-memory error. For this, users may need to make subsets of input vector objects in advance.
+#' @param filenames character(n). A vector or list of full file paths of raster files. n is the total number of raster files.
+#' @param fun function supported in scomps.
+#' @param ... Arguments passed to the argument \code{fun}.
+#' @return a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
+#' @author Insang Song \email{geoissong@@gmail.com}
+#' 
+#' @examples 
+#' library(future)
+#' plan(multicore, workers = 4)
+#' # Does not run ...
+#' # distribute_process_multirasters()
+#' @import future
+#' @import progressr
+#' @export
+distribute_process_multirasters <- function(
+  filenames, 
+  fun,
+  ...) {
+  par_fun <- list(...)
+
+  if (any(sapply(filenames, \(x) !file.exists(x)))) {
+    stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
+  }
+
+  file_list <- split(filenames, filenames)
+  results_distributed <- future.apply::future_lapply(
+    file_list,
+    \(x) {
+      sf::sf_use_s2(FALSE)
+      
+      run_result <- tryCatch({
+        res <- fun(...)
+        return(res)
+      },
+      error = function(e) return(data.frame(ID = NA)))
+      return(run_result)
+    },
+    future.seed = TRUE,
+    future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
+  results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+  results_distributed <- results_distributed[!is.na(results_distributed[["ID"]]),]
+  
+  # post-processing
+  detected_id <- grep("^id", names(par_fun), value = TRUE)
+  detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
+  names(results_distributed)[1] <- par_fun[[detected_id]]
+  results_distributed[[par_fun[[detected_id]]]] <-
+    unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
+
+  return(results_distributed)
+}
+
 

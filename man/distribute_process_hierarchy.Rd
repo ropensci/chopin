@@ -25,7 +25,7 @@ a data.frame object with computation results. For entries of the results, consul
 library(future)
 plan(multicore, workers = 4)
 # Does not run ...
-# distribute_process()
+# distribute_process_hierarchy()
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

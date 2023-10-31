@@ -209,7 +209,6 @@ testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("dplyr")
   withr::local_package("progressr")
   withr::local_options(list(sf_use_s2 = FALSE))
-  progressr::handlers(global = TRUE)
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
