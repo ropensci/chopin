@@ -209,6 +209,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("dplyr")
   withr::local_package("progressr")
   withr::local_options(list(sf_use_s2 = FALSE))
+  progressr::handlers(global = TRUE)
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
@@ -219,11 +220,13 @@ testthat::test_that("Processes are properly spawned and compute", {
   terra::crs(ncelev) <- "EPSG:5070"
 
   nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
-  future::plan(multicore, workers = 4)
-  suppressWarnings({res <- distribute_process(grids = nccompreg, grid_target_id = NULL,
-    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")}
+  # future::plan(multicore, workers = 4)
+  res <- suppressWarnings(distribute_process(grids = nccompreg, grid_target_id = NULL,
+    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
   )
-  testthat::expect_equal(!any(is.null(res)), TRUE)
+  testthat::expect_s4_class(nccompreg, "SpatVector")
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 

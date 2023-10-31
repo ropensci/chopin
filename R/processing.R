@@ -290,7 +290,7 @@ aw_covariates <- function(
       poly_intersected[["area_segment_"]] <- terra::expanse(poly_intersected)
       poly_intersected <- data.frame(poly_intersected) |>
         dplyr::group_by(!!rlang::sym(id_poly_in)) |>
-        dplyr::summarize(dplyr::across(is.numeric,
+        dplyr::summarize(dplyr::across(dplyr::where(is.numeric),
           ~stats::weighted.mean(., w = area_segment_))) |>
         dplyr::ungroup()
       return(poly_intersected)
@@ -304,8 +304,8 @@ aw_covariates <- function(
   }
 
   switch(class_poly_in,
-    sf = sf::st_interpolate_aw(poly_weight[, index_numeric],
-      poly_in, extensive = FALSE),
+    sf = suppressWarnings(sf::st_interpolate_aw(poly_weight[, index_numeric],
+      poly_in, extensive = FALSE)),
     terra = aw_covariates_terra(poly_in, poly_weight[, index_numeric],
       id_poly_in = id_poly_in))
     

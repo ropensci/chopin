@@ -1197,7 +1197,7 @@ aw_covariates <- function(
       poly_intersected[["area_segment_"]] <- terra::expanse(poly_intersected)
       poly_intersected <- data.frame(poly_intersected) |>
         dplyr::group_by(!!rlang::sym(id_poly_in)) |>
-        dplyr::summarize(dplyr::across(is.numeric,
+        dplyr::summarize(dplyr::across(dplyr::where(is.numeric),
           ~stats::weighted.mean(., w = area_segment_))) |>
         dplyr::ungroup()
       return(poly_intersected)
@@ -1211,8 +1211,8 @@ aw_covariates <- function(
   }
 
   switch(class_poly_in,
-    sf = sf::st_interpolate_aw(poly_weight[, index_numeric],
-      poly_in, extensive = FALSE),
+    sf = suppressWarnings(sf::st_interpolate_aw(poly_weight[, index_numeric],
+      poly_in, extensive = FALSE)),
     terra = aw_covariates_terra(poly_in, poly_weight[, index_numeric],
       id_poly_in = id_poly_in))
     
@@ -1410,7 +1410,6 @@ extract_with_buffer_kernel <- function(
 #' # Does not run ...
 #' # distribute_process()
 #' @import future
-#' @import progressr
 #' @export
 distribute_process <- function(
   grids, 
@@ -1436,12 +1435,11 @@ distribute_process <- function(
     grid_target_ids <- unique(grids[["CGRIDID"]])[grid_target_id]
   }
   par_fun <- list(...)
-
-  progressr::handlers(global = TRUE)
+  
   grids_target <- grids[grid_target_ids %in% unlist(grids[["CGRIDID"]]),]
   grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
-  pgrs <- progressr::progressor(along = nrow(grids_target))
+  # pgrs <- progressr::progressor(along = nrow(grids_target))
 
   results_distributed <- future.apply::future_lapply(
     grids_target_list,
@@ -1452,11 +1450,11 @@ distribute_process <- function(
         res <- fun(..., grid_ref = x)
         cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
           paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
-        pgrs(print(""))
+        
         return(res)
       },
       error = function(e) return(data.frame(ID = NA)))
-      pgrs(print(""))
+      
       return(run_result)
     },
     future.seed = TRUE,
@@ -1468,10 +1466,8 @@ distribute_process <- function(
   detected_id <- grep("^id", names(par_fun), value = TRUE)
   detected_point <- grep("^points", names(par_fun), value = TRUE)
   names(results_distributed)[1] <- par_fun[[detected_id]]
-  results_distributed[[detected_id]] <- 
-    get(par_fun[[detected_point]])[[par_fun[[detected_id]]]][unlist(results_distributed[[detected_id]])]
-
-  return(results_distributed)
+  results_distributed[[par_fun[[detected_id]]]] <-
+    unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
   
   return(results_distributed)
 }
@@ -1500,7 +1496,6 @@ distribute_process_hierarchy <- function(
   split_level = NULL,
   fun,
   ...) {
-  progressr::handlers(global = TRUE)
   par_fun <- list(...)
 
   if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
@@ -1510,7 +1505,7 @@ distribute_process_hierarchy <- function(
     split_level,
     unlist(regions[[split_level]]))
 
-  pgrs <- progressr::progressor(along = seq_len(split_level))
+  # pgrs <- progressr::progressor(along = seq_len(split_level))
   regions_list <- split(regions, split_level)
 
   results_distributed <- future.apply::future_lapply(
@@ -1520,11 +1515,9 @@ distribute_process_hierarchy <- function(
       
       run_result <- tryCatch({
         res <- fun(..., grid_ref = x)
-        pgrs()
         return(res)
       },
       error = function(e) return(data.frame(ID = NA)))
-      pgrs(print(""))
       return(run_result)
     },
     future.seed = TRUE,
@@ -1536,8 +1529,8 @@ distribute_process_hierarchy <- function(
   detected_id <- grep("^id", names(par_fun), value = TRUE)
   detected_point <- grep("^points", names(par_fun), value = TRUE)
   names(results_distributed)[1] <- par_fun[[detected_id]]
-  results_distributed[[detected_id]] <- 
-    get(par_fun[[detected_point]])[[par_fun[[detected_id]]]][unlist(results_distributed[[detected_id]])]
+  results_distributed[[par_fun[[detected_id]]]] <-
+    unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
 
   return(results_distributed)
 }
@@ -1554,6 +1547,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("dplyr")
   withr::local_package("progressr")
   withr::local_options(list(sf_use_s2 = FALSE))
+  progressr::handlers(global = TRUE)
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
@@ -1564,11 +1558,13 @@ testthat::test_that("Processes are properly spawned and compute", {
   terra::crs(ncelev) <- "EPSG:5070"
 
   nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
-  future::plan(multicore, workers = 4)
-  suppressWarnings({res <- distribute_process(grids = nccompreg, grid_target_id = NULL,
-    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")}
+  # future::plan(multicore, workers = 4)
+  res <- suppressWarnings(distribute_process(grids = nccompreg, grid_target_id = NULL,
+    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
   )
-  testthat::expect_equal(!any(is.null(res)), TRUE)
+  testthat::expect_s4_class(nccompreg, "SpatVector")
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 
@@ -1604,7 +1600,7 @@ We finish by running commands that will document, build, and install the package
 ```{r run-devtools}
 litr::document()
 # devtools::document(".")
-# devtools::test()
+devtools::test()
 # devtools::build(path = "./tools/tarballs")
 devtools::build(path = ".")
 devtools::install(dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)

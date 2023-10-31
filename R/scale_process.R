@@ -16,7 +16,6 @@
 #' # Does not run ...
 #' # distribute_process()
 #' @import future
-#' @import progressr
 #' @export
 distribute_process <- function(
   grids, 
@@ -42,12 +41,11 @@ distribute_process <- function(
     grid_target_ids <- unique(grids[["CGRIDID"]])[grid_target_id]
   }
   par_fun <- list(...)
-
-  progressr::handlers(global = TRUE)
+  
   grids_target <- grids[grid_target_ids %in% unlist(grids[["CGRIDID"]]),]
   grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
-  pgrs <- progressr::progressor(along = nrow(grids_target))
+  # pgrs <- progressr::progressor(along = nrow(grids_target))
 
   results_distributed <- future.apply::future_lapply(
     grids_target_list,
@@ -58,11 +56,11 @@ distribute_process <- function(
         res <- fun(..., grid_ref = x)
         cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
           paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
-        pgrs(print(""))
+        
         return(res)
       },
       error = function(e) return(data.frame(ID = NA)))
-      pgrs(print(""))
+      
       return(run_result)
     },
     future.seed = TRUE,
@@ -74,10 +72,8 @@ distribute_process <- function(
   detected_id <- grep("^id", names(par_fun), value = TRUE)
   detected_point <- grep("^points", names(par_fun), value = TRUE)
   names(results_distributed)[1] <- par_fun[[detected_id]]
-  results_distributed[[detected_id]] <- 
-    get(par_fun[[detected_point]])[[par_fun[[detected_id]]]][unlist(results_distributed[[detected_id]])]
-
-  return(results_distributed)
+  results_distributed[[par_fun[[detected_id]]]] <-
+    unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
   
   return(results_distributed)
 }
@@ -106,7 +102,6 @@ distribute_process_hierarchy <- function(
   split_level = NULL,
   fun,
   ...) {
-  progressr::handlers(global = TRUE)
   par_fun <- list(...)
 
   if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
@@ -116,7 +111,7 @@ distribute_process_hierarchy <- function(
     split_level,
     unlist(regions[[split_level]]))
 
-  pgrs <- progressr::progressor(along = seq_len(split_level))
+  # pgrs <- progressr::progressor(along = seq_len(split_level))
   regions_list <- split(regions, split_level)
 
   results_distributed <- future.apply::future_lapply(
@@ -126,11 +121,9 @@ distribute_process_hierarchy <- function(
       
       run_result <- tryCatch({
         res <- fun(..., grid_ref = x)
-        pgrs()
         return(res)
       },
       error = function(e) return(data.frame(ID = NA)))
-      pgrs(print(""))
       return(run_result)
     },
     future.seed = TRUE,
@@ -142,8 +135,8 @@ distribute_process_hierarchy <- function(
   detected_id <- grep("^id", names(par_fun), value = TRUE)
   detected_point <- grep("^points", names(par_fun), value = TRUE)
   names(results_distributed)[1] <- par_fun[[detected_id]]
-  results_distributed[[detected_id]] <- 
-    get(par_fun[[detected_point]])[[par_fun[[detected_id]]]][unlist(results_distributed[[detected_id]])]
+  results_distributed[[par_fun[[detected_id]]]] <-
+    unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
 
   return(results_distributed)
 }
