@@ -138,9 +138,9 @@ check_bbox <- function(
 #' Check Coordinate Reference System
 #' @param x sf/stars/SpatVector/SpatRaster object.
 #' @return A st_crs or crs object.
-#' @description 
+#' @description It returns st_crs object from sf/Spat* objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples 
+#' @examples
 #' # data
 #' library(sf)
 #' ncpath = system.file("shape/nc.shp", package = "sf")
@@ -168,10 +168,11 @@ check_crs <- function(x) {
 #' @param reference sf/stars/SpatVector/SpatRaster object.
 #' @return logical
 #' @author Insang Song \email{geoissong@@gmail.com}
+#' @importFrom methods is
 #' @export 
 check_within_reference <- function(input_object, reference) {
-    stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
-    stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+  stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+  stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
 
   bbox_input <- input_object |>
     sf::st_bbox() |>

@@ -34,19 +34,19 @@ usethis::create_package(
   )
 )
 usethis::use_build_ignore("rds$", escape = FALSE)
-usethis::use_build_ignore("/tools", escape = FALSE)
-usethis::use_package("dplyr") # Default is "Imports"
-usethis::use_package("sf") # Default is "Imports"
-# usethis::use_package("stars") # Default is "Imports"
-usethis::use_package("terra") # Default is "Imports"
+usethis::use_build_ignore("/tools/*", escape = FALSE)
+usethis::use_package("dplyr")
+usethis::use_package("sf")
+usethis::use_package("terra")
 usethis::use_package("stars")
-usethis::use_package("rlang") # Default is "Imports"
+usethis::use_package("rlang")
 usethis::use_package("testthat")
 usethis::use_package("units")
 usethis::use_package("methods")
+usethis::use_package("progressr")
 usethis::use_package("logr", "Suggests") # Default is "Imports"
-usethis::use_package("future") # Default is "Imports"
-usethis::use_package("future.apply") # Default is "Imports"
+usethis::use_package("future")
+usethis::use_package("future.apply")
 usethis::use_package("igraph", "Suggests") # Default is "Imports"
 usethis::use_package("withr", "Suggests")
 usethis::use_package("covr")
@@ -901,7 +901,8 @@ check_bbox <- function(
 #' @param na.rm logical(1). NA values are omitted when summary is calculated.
 #' @return a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' 
+#' @importFrom rlang sym
+#' @importFrom dplyr across
 #' @export
 extract_with_polygons <- function(
     polys,
@@ -967,7 +968,7 @@ extract_with_polygons <- function(
 #' @param func function taking one numeric vector argument.
 #' @param mode one of "polygon" (generic polygons to extract raster values with) or "buffer" (point with buffer radius)
 #' @param ... various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.
-#' @return 
+#' @return A data.frame object with summarized raster values with respect to the mode (polygon or buffer) and the function.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export
 extract_with <- function(
@@ -975,7 +976,7 @@ extract_with <- function(
   vector, 
   id, 
   func = mean, 
-  mode = c("polygon", "buffer"), 
+  mode = c("polygon", "buffer"),
   ...) {
 
   match.arg(mode)
@@ -987,7 +988,7 @@ extract_with <- function(
 
   extracted <- 
     switch(mode,
-      polygon = extract_with_polygons(vector, raster, id, func),
+      polygon = extract_with_polygons(vector, raster, id, func, ...),
       buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
   return(extracted)
 }
@@ -998,9 +999,9 @@ extract_with <- function(
 #' Check Coordinate Reference System
 #' @param x sf/stars/SpatVector/SpatRaster object.
 #' @return A st_crs or crs object.
-#' @description 
+#' @description It returns st_crs object from sf/Spat* objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples 
+#' @examples
 #' # data
 #' library(sf)
 #' ncpath = system.file("shape/nc.shp", package = "sf")
@@ -1051,10 +1052,11 @@ testthat::test_that("check_crs is working as expected", {
 #' @param reference sf/stars/SpatVector/SpatRaster object.
 #' @return logical
 #' @author Insang Song \email{geoissong@@gmail.com}
+#' @importFrom methods is
 #' @export 
 check_within_reference <- function(input_object, reference) {
-    stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
-    stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+  stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+  stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
 
   bbox_input <- input_object |>
     sf::st_bbox() |>
@@ -1205,7 +1207,7 @@ aw_covariates <- function(
   class_poly_weight <- check_packbound(poly_weight)
 
   if (class_poly_in != class_poly_weight) {
-    class_poly_weight <- switch_packbound(class_poly_weight)
+    poly_weight <- switch_packbound(poly_weight)
   }
 
   switch(class_poly_in,
@@ -1229,6 +1231,43 @@ aw_covariates <- function(
 
 ```
 
+
+```{r aw-test}
+
+testthat::test_that("aw_covariates works as expected.", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("units")
+  withr::local_package("dplyr")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+  nc <- sf::st_transform(nc, 5070)
+  pp <- sf::st_sample(nc, size = 300)
+  pp <- sf::st_as_sf(pp)
+  pp[["id"]] <- seq(1, nrow(pp))
+  sf::st_crs(pp) <- "EPSG:5070"
+  ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+
+  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
+  expect_s3_class(ppb_nc_aw, "sf")
+
+  # terra
+  ppb_t <- terra::vect(ppb)
+  nc_t <- terra::vect(nc)
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, 'id')})
+  expect_s3_class(ppb_nc_aw, "data.frame")
+
+  # auto convert formats
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, 'id')})
+  expect_s3_class(ppb_nc_aw, "data.frame")
+
+})
+
+
+
+```
 
 ```{r, send_to = "R/processing.R"}
 #' @title Extract summarized values from raster with points and a buffer radius (to be written)
@@ -1354,10 +1393,10 @@ extract_with_buffer_kernel <- function(
 ```
 
 
-```{r, send_to = "R/interpret_computational_domain.R"}
-#' @title Process a given function in the entire or partial computational grids (under construction)
+```{r, send_to = "R/scale_process.R"}
+#' @title Process a given function in the entire or partial computational grids
 #' 
-#' @description Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}
+#' @description Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}. This function assumes that users have one raster file and a sizable and spatially distributed target locations. Each thread will process ceiling(|Ng|/|Nt|) grids where |Ng| denotes the number of grids and |Nt| denotes the number of threads.
 #' @param grids sf/SpatVector object. Computational grids. It takes a strict assumption that the grid input is an output of \code{get_computational_regions}
 #' @param grid_target_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param fun function supported in scomps.
@@ -1368,8 +1407,10 @@ extract_with_buffer_kernel <- function(
 #' @examples 
 #' library(future)
 #' plan(multicore, workers = 4)
-#' 
-#' distribute_process()
+#' # Does not run ...
+#' # distribute_process()
+#' @import future
+#' @import progressr
 #' @export
 distribute_process <- function(
   grids, 
@@ -1394,9 +1435,13 @@ distribute_process <- function(
   if (is.numeric(grid_target_id)) {
     grid_target_ids <- unique(grids[["CGRIDID"]])[grid_target_id]
   }
-  
+  par_fun <- list(...)
+
+  progressr::handlers(global = TRUE)
   grids_target <- grids[grid_target_ids %in% unlist(grids[["CGRIDID"]]),]
   grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
+
+  pgrs <- progressr::progressor(along = nrow(grids_target))
 
   results_distributed <- future.apply::future_lapply(
     grids_target_list,
@@ -1404,19 +1449,96 @@ distribute_process <- function(
       sf::sf_use_s2(FALSE)
       
       run_result <- tryCatch({
-        fun(..., grid_ref = x)
-        #fun(...)
-        #print(xx)
+        res <- fun(..., grid_ref = x)
         cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
           paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
+        pgrs(print(""))
+        return(res)
       },
-      error = function(e) return(terra::vect()))
+      error = function(e) return(data.frame(ID = NA)))
+      pgrs(print(""))
       return(run_result)
     },
     future.seed = TRUE,
     future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
-  print(results_distributed)
-  #results_distributed <- do.call(rbind, results_distributed)
+  results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+  results_distributed <- results_distributed[!is.na(results_distributed[["ID"]]),]
+
+  # post-processing
+  detected_id <- grep("^id", names(par_fun), value = TRUE)
+  detected_point <- grep("^points", names(par_fun), value = TRUE)
+  names(results_distributed)[1] <- par_fun[[detected_id]]
+  results_distributed[[detected_id]] <- 
+    get(par_fun[[detected_point]])[[par_fun[[detected_id]]]][unlist(results_distributed[[detected_id]])]
+
+  return(results_distributed)
+  
+  return(results_distributed)
+}
+
+
+#' @title Process a given function using a hierarchy in input data
+#' 
+#' @description "Hierarchy" refers to a system, which divides the entire study region into multiple subregions. It is oftentimes reflected in an area code system (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.). Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}. This function assumes that users have one raster file and a sizable and spatially distributed target locations. Each thread will process ceiling(|Ng|/|Nt|) grids where |Ng| denotes the number of grids and |Nt| denotes the number of threads. Please be advised that accessing the same file simultaneously with multiple processes may result in errors.
+#' @param regions sf/SpatVector object. Computational regions. Only polygons are accepted.
+#' @param split_level character(nrow(regions)) or character(1). The regions will be split by the common level value. The level should be higher than the original data level. A field name with the higher level information is also accepted.
+#' @param fun function supported in scomps.
+#' @param ... Arguments passed to the argument \code{fun}.
+#' @return a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
+#' @author Insang Song \email{geoissong@@gmail.com}
+#' 
+#' @examples 
+#' library(future)
+#' plan(multicore, workers = 4)
+#' # Does not run ...
+#' # distribute_process()
+#' @import future
+#' @import progressr
+#' @export
+distribute_process_hierarchy <- function(
+  regions, 
+  split_level = NULL,
+  fun,
+  ...) {
+  progressr::handlers(global = TRUE)
+  par_fun <- list(...)
+
+  if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
+    stop("The length of split_level is not valid.")
+  }
+  split_level <- ifelse(length(split_level) == nrow(regions),
+    split_level,
+    unlist(regions[[split_level]]))
+
+  pgrs <- progressr::progressor(along = seq_len(split_level))
+  regions_list <- split(regions, split_level)
+
+  results_distributed <- future.apply::future_lapply(
+    regions_list,
+    \(x) {
+      sf::sf_use_s2(FALSE)
+      
+      run_result <- tryCatch({
+        res <- fun(..., grid_ref = x)
+        pgrs()
+        return(res)
+      },
+      error = function(e) return(data.frame(ID = NA)))
+      pgrs(print(""))
+      return(run_result)
+    },
+    future.seed = TRUE,
+    future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
+  results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+  results_distributed <- results_distributed[!is.na(results_distributed[["ID"]]),]
+  
+  # post-processing
+  detected_id <- grep("^id", names(par_fun), value = TRUE)
+  detected_point <- grep("^points", names(par_fun), value = TRUE)
+  names(results_distributed)[1] <- par_fun[[detected_id]]
+  results_distributed[[detected_id]] <- 
+    get(par_fun[[detected_point]])[[par_fun[[detected_id]]]][unlist(results_distributed[[detected_id]])]
+
   return(results_distributed)
 }
 
@@ -1424,12 +1546,13 @@ distribute_process <- function(
 
 
 
-```{r, eval=FALSE}
+```{r test-distribute, eval=FALSE}
 testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
   withr::local_package("dplyr")
+  withr::local_package("progressr")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -1438,18 +1561,40 @@ testthat::test_that("Processes are properly spawned and compute", {
   ncpnts <- readRDS("../testdata/nc_random_point.rds")
   ncpnts <- terra::vect(ncpnts)
   ncelev <- terra::rast("../testdata/nc_srtm15_otm.tif")
+  terra::crs(ncelev) <- "EPSG:5070"
 
-
-  nccompreg <- scomps::get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
-  
-  
-  res <- scomps::distribute_process(grids = nccompreg, grid_target_id = NULL,#grid_id = "CGRIDID",
-    fun = scomps::extract_with_buffer, points = terra::vect(ncpnts), qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
-
+  nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
+  future::plan(multicore, workers = 4)
+  suppressWarnings({res <- distribute_process(grids = nccompreg, grid_target_id = NULL,
+    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")}
+  )
   testthat::expect_equal(!any(is.null(res)), TRUE)
 })
 
 
+```
+
+```{r, eval = FALSE, include = FALSE}
+  # future.apply::future_lapply(
+  #   nccompreg %>% split(., .$CGRIDID),
+  #   \(x) {
+  #     sf::sf_use_s2(FALSE)
+      
+  #     run_result <- tryCatch({
+  #       kk <- scomps::extract_with_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = x)
+  #       #fun(...)
+  #       #print(xx)
+  #       cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
+  #         paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
+  #       return(kk)
+  #     },
+  #     error = function(e) return(data.frame(ID = NA)))
+  #     return(run_result)
+  #   },
+  #   future.seed = TRUE,
+  #   future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
+
+  # scomps::extract_with_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = nccompreg %>% split(., .$CGRIDID) %>% .[[5]])
 ```
 
 ## Documenting the package and building
@@ -1457,11 +1602,13 @@ testthat::test_that("Processes are properly spawned and compute", {
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.
 
 ```{r run-devtools}
-# litr::document() # <-- use instead of devtools::document()
-devtools::document(".")
-devtools::test()
-devtools::build(path = "./tools/tarballs")
+litr::document()
+# devtools::document(".")
+# devtools::test()
+# devtools::build(path = "./tools/tarballs")
+devtools::build(path = ".")
 devtools::install(dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+# litr::document() # <-- use instead of devtools::document()
 # devtools::check(document = FALSE)
 
 ```
@@ -1472,9 +1619,18 @@ print(getwd())
 ```
 
 ```{r post-hoc-cleaning, echo = F}
-gitpath = gsub("/scomps", "", getwd())
+if (!dir.exists(getwd())) {
+  dir.create(getwd())
+}
 
-# system("unalias cp")
+
+gitpath = gsub("/scomps", "", getwd())
+# packdir <- paste0(getwd(), "/scomps")
+
+# if (!dir.exists(paste0(getwd(), "/scomps"))) {
+#   dir.create(paste0(getwd(), "/scomps"))
+# }
+system("unalias cp")
 system(paste0("cp -r ", getwd(), "/* ", gitpath))
 
 Sys.sleep(1)

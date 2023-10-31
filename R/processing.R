@@ -96,7 +96,8 @@ clip_as_extent_ras2 <- function(
 #' @param na.rm logical(1). NA values are omitted when summary is calculated.
 #' @return a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' 
+#' @importFrom rlang sym
+#' @importFrom dplyr across
 #' @export
 extract_with_polygons <- function(
     polys,
@@ -160,7 +161,7 @@ extract_with_polygons <- function(
 #' @param func function taking one numeric vector argument.
 #' @param mode one of "polygon" (generic polygons to extract raster values with) or "buffer" (point with buffer radius)
 #' @param ... various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.
-#' @return 
+#' @return A data.frame object with summarized raster values with respect to the mode (polygon or buffer) and the function.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export
 extract_with <- function(
@@ -168,7 +169,7 @@ extract_with <- function(
   vector, 
   id, 
   func = mean, 
-  mode = c("polygon", "buffer"), 
+  mode = c("polygon", "buffer"),
   ...) {
 
   match.arg(mode)
@@ -180,7 +181,7 @@ extract_with <- function(
 
   extracted <- 
     switch(mode,
-      polygon = extract_with_polygons(vector, raster, id, func),
+      polygon = extract_with_polygons(vector, raster, id, func, ...),
       buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
   return(extracted)
 }
@@ -299,7 +300,7 @@ aw_covariates <- function(
   class_poly_weight <- check_packbound(poly_weight)
 
   if (class_poly_in != class_poly_weight) {
-    class_poly_weight <- switch_packbound(class_poly_weight)
+    poly_weight <- switch_packbound(poly_weight)
   }
 
   switch(class_poly_in,

@@ -1,4 +1,4 @@
 rds$
-/tools
+/tools/*
 /.github
 scomps*.html$
