@@ -1616,7 +1616,7 @@ testthat::test_that("Processes are properly spawned and compute", {
 
   nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
   # future::plan(multicore, workers = 4)
-  res <- suppressWarnings(distribute_process(grids = nccompreg, grid_target_id = NULL,
+  res <- suppressWarnings(distribute_process_grid(grids = nccompreg, grid_target_id = NULL,
     fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
   )
   testthat::expect_s4_class(nccompreg, "SpatVector")
