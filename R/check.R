@@ -137,14 +137,23 @@ check_bbox <- function(
   query_crs <- check_crs(data_query)
 
   ref_crs <- check_crs(reference)
+  if (is.null(reference_crs)) {
+    reference <-
+      sf::st_as_sfc(
+        sf::st_bbox(reference),
+        crs = ref_crs
+      )
+  }
   if (is.na(query_crs) || is.null(query_crs)) {
     stop("The dataset you queried has no CRS.
      Please make sure your dataset has the correct CRS.\n")
   }
-  data_query_bb <- sf::st_bbox(data_query)
+  data_query_bb <-
+    sf::st_as_sfc(sf::st_bbox(data_query),
+                  crs = sf::st_crs(data_query))
 
   query_matched <- sf::st_transform(data_query_bb, sf::st_crs(ref_crs))
-  check_result <- sf::st_within(query_matched, reference)
+  check_result <- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
 }
 
