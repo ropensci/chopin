@@ -7,19 +7,39 @@
 distribute_process_hierarchy(regions, split_level = NULL, fun, ...)
 }
 \arguments{
-\item{regions}{sf/SpatVector object. Computational regions. Only polygons are accepted.}
+\item{regions}{sf/SpatVector object.
+Computational regions. Only polygons are accepted.}
 
-\item{split_level}{character(nrow(regions)) or character(1). The regions will be split by the common level value. The level should be higher than the original data level. A field name with the higher level information is also accepted.}
+\item{split_level}{character(nrow(regions)) or character(1).
+The regions will be split by the common level value.
+The level should be higher than the original data level.
+A field name with the higher level information is also accepted.}
 
 \item{fun}{function supported in scomps.}
 
 \item{...}{Arguments passed to the argument \code{fun}.}
 }
 \value{
-a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
+a data.frame object with computation results.
+For entries of the results, consult the function used in
+\code{fun} argument.
 }
 \description{
-"Hierarchy" refers to a system, which divides the entire study region into multiple subregions. It is oftentimes reflected in an area code system (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.). Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}. This function assumes that users have one raster file and a sizable and spatially distributed target locations. Each thread will process ceiling(|Ng|/|Nt|) grids where |Ng| denotes the number of grids and |Nt| denotes the number of threads. Please be advised that accessing the same file simultaneously with multiple processes may result in errors.
+"Hierarchy" refers to a system,
+which divides the entire study region into multiple subregions.
+It is oftentimes reflected in an area code system
+(e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
+Currently only accepting \link[future]{multicore} setting
+(single node, single process, and multiple threads).
+For details of the terminology in \code{future} package,
+refer to \link[future]{plan}.
+This function assumes that users have one raster file and
+a sizable and spatially distributed target locations.
+Each thread will process ceiling(|Ng|/|Nt|) grids where
+|Ng| denotes the number of grids and |Nt| denotes
+the number of threads. Please be advised that
+accessing the same file simultaneously with
+multiple processes may result in errors.
 }
 \examples{
 library(future)

@@ -7,17 +7,31 @@
 distribute_process_multirasters(filenames, fun, ...)
 }
 \arguments{
-\item{filenames}{character(n). A vector or list of full file paths of raster files. n is the total number of raster files.}
+\item{filenames}{character(n). A vector or list of
+full file paths of raster files. n is the total number of raster files.}
 
 \item{fun}{function supported in scomps.}
 
 \item{...}{Arguments passed to the argument \code{fun}.}
 }
 \value{
-a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
+a data.frame object with computation results.
+For entries of the results, consult the function used in \code{fun} argument.
 }
 \description{
-Large raster files usually exceed the memory capacity in size. Cropping a large raster into a small subset even consumes a lot of memory and adds processing time. This function leverages terra SpatRaster proxy to distribute computation jobs over multiple cores. It is assumed that users have multiple large raster files in their disk, then each file path is assigned to a thread. Each thread will directly read raster values from the disk using C++ pointers that operate in terra functions. For use, it is strongly recommended to use vector data with small and confined spatial extent for computation to avoid out-of-memory error. For this, users may need to make subsets of input vector objects in advance.
+Large raster files usually exceed the memory capacity in size.
+Cropping a large raster into a small subset even consumes
+a lot of memory and adds processing time.
+This function leverages terra SpatRaster proxy
+to distribute computation jobs over multiple cores.
+It is assumed that users have multiple large raster files
+in their disk, then each file path is assigned to a thread.
+Each thread will directly read raster values from
+the disk using C++ pointers that operate in terra functions.
+For use, it is strongly recommended to use vector data with
+small and confined spatial extent for computation to avoid
+out-of-memory error. For this, users may need
+to make subsets of input vector objects in advance.
 }
 \examples{
 library(future)

@@ -296,11 +296,25 @@ testthat::test_that("Processes are properly spawned and compute", {
   ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
   terra::crs(ncelev) <- "EPSG:5070"
 
-  nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)
-  # future::plan(multicore, workers = 4)
-  res <- suppressWarnings(distribute_process_grid(grids = nccompreg, grid_target_id = NULL,
-    fun = extract_with_buffer, points = ncpnts, qsegs = 90L, surf = ncelev, radius = 5e3L, id = "pid")
-  )
+  nccompreg <-
+    get_computational_regions(
+      input = ncpoly,
+      mode = 'grid',
+      nx = 6L,
+      ny = 4L,
+      padding = 3e4L)
+  res <-
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = NULL,
+                              fun = extract_with_buffer,
+                              points = ncpnts,
+                              qsegs = 90L,
+                              surf = ncelev,
+                              radius = 5e3L,
+                              id = "pid")
+    )
   testthat::expect_s4_class(nccompreg, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
