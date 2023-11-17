@@ -1,2 +1,12 @@
+# filesystem remnants
 .DS_Store
+
+# Large datasets for test
 /tools/largedata/
+
+# Slurm logs
+**/*.out
+**/*.error
+
+# Apptainer image file
+/containers/**/*.sif
