@@ -14,7 +14,9 @@ sp_indexing(points_in, ncutsx, ncutsy)
 \item{ncutsy}{integer(1). The number of splits along y-axis.}
 }
 \description{
-Returns a tibble object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
+Returns a tibble object that includes
+x- and y- index by using two inputs ncutsx and ncutsy,
+which are x- and y-directional splits, respectively.
 }
 \author{
 Insang Song

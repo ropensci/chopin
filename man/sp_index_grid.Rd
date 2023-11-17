@@ -14,10 +14,13 @@ sp_index_grid(points_in, ncutsx, ncutsy)
 \item{ncutsy}{integer(1). The number of splits along y-axis.}
 }
 \value{
-A sf or SpatVector object of computation grids with unique grid id (CGRIDID).
+A sf or SpatVector object of computation grids with
+unique grid id (CGRIDID).
 }
 \description{
-Returns a sf object that includes x- and y- index by using two inputs ncutsx and ncutsy, which are x- and y-directional splits, respectively.
+Returns a sf object that includes x- and y- index
+by using two inputs ncutsx and ncutsy, which are x- and
+y-directional splits, respectively.
 }
 \author{
 Insang Song

@@ -67,7 +67,10 @@ check_crs2 <- function(
 #' @param crs character(1). Coordinate reference system definition.
 #' @author Insang Song
 #' @export
-extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326") {
+extent_to_polygon <- function(
+  extent,
+  output_class = "terra",
+  crs = "EPSG:4326") {
   if (!output_class %in% c("sf", "terra")) {
     stop("output_class should be one of 'sf' or 'terra'.\n")
   }
@@ -100,14 +103,25 @@ extent_to_polygon <- function(extent, output_class = "terra", crs = "EPSG:4326")
 
 
 #' Check if the data extent is inside the reference bounding box
-#' 
-#' @description One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data's extent and FALSE otherwise.
+#'
+#' @description One of the most common errors in
+#'  spatial computation is rooted in
+#'  the entirely or partly incomparable spatial extents of input datasets.
+#'  This function returns whether your data is inside
+#'  the target computational extent.
+#'  It is assumed that you know and have the exact computational region.
+#'  This function will return TRUE if the reference region
+#'  completely contains your data's extent and FALSE otherwise.
 #' @param data_query sf*/stars/SpatVector/SpatRaster object.
-#' @param reference sf*/stars/SpatVector/SpatRaster object or a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#' @param reference_crs Well-known-text-formatted or EPSG code of the reference's coordinate system. Only required when a named numeric vector is passed to reference. 
-#' @return TRUE (the queried data extent is completely within the reference bounding box) or FALSE 
+#' @param reference sf*/stars/SpatVector/SpatRaster object or
+#'  a named numeric vector with four names (xmin, ymin, xmax, and ymax).
+#' @param reference_crs Well-known-text-formatted or
+#'  EPSG code of the reference's coordinate system.
+#'  Only required when a named numeric vector is passed to reference.
+#' @return TRUE (the queried data extent is completely within
+#'  the reference bounding box) or FALSE 
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' 
+#'
 #' @export
 check_bbox <- function(
   data_query,
@@ -121,15 +135,25 @@ check_bbox <- function(
     reference <- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
   }
   query_crs <- check_crs(data_query)
+
   ref_crs <- check_crs(reference)
-  if (is.na(query_crs) || is.null(query_crs)) {
-    stop("The dataset you queried has no CRS. Please make sure your dataset has the correct CRS.\n")
+  if (is.null(reference_crs)) {
+    reference <-
+      sf::st_as_sfc(
+        sf::st_bbox(reference),
+        crs = ref_crs
+      )
   }
-  query_matched <- sf::st_transform(data_query, sf::st_crs(ref_crs))
+  if (is.na(query_crs) || is.null(query_crs)) {
+    stop("The dataset you queried has no CRS.
+     Please make sure your dataset has the correct CRS.\n")
+  }
+  data_query_bb <-
+    sf::st_as_sfc(sf::st_bbox(data_query),
+                  crs = sf::st_crs(data_query))
 
-
-
-  check_result <- sf::st_within()
+  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(ref_crs))
+  check_result <- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
 }
 

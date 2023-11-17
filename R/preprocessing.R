@@ -13,12 +13,14 @@ set_clip_extent <- function(
   detected <- check_packbound(pnts)
   if (detected == "terra") {
     ext_input <- terra::ext(pnts)
-    # Note that `+` operation on terra::ext output accounts for the operand as it is.
+    # Note that `+` operation on
+    # terra::ext output accounts for the operand as it is.
     ext_input <- ext_input + (1.1 * buffer_r)
   }
   if (detected == "sf") {
     ext_input <- pnts |> sf::st_bbox()
-    # Note that `+` operation on st_bbox output simply adds the number; we add a vector here.
+    # Note that `+` operation on st_bbox output
+    # simply adds the number; we add a vector here.
     ext_input <- ext_input + ((1.1 * c(-1, -1, 1, 1) * buffer_r))
     ext_input <- sf::st_as_sfc(ext_input)
   }

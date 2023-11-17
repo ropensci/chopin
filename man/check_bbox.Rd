@@ -9,15 +9,26 @@ check_bbox(data_query, reference, reference_crs = NULL)
 \arguments{
 \item{data_query}{sf*/stars/SpatVector/SpatRaster object.}
 
-\item{reference}{sf*/stars/SpatVector/SpatRaster object or a named numeric vector with four names (xmin, ymin, xmax, and ymax).}
+\item{reference}{sf*/stars/SpatVector/SpatRaster object or
+a named numeric vector with four names (xmin, ymin, xmax, and ymax).}
 
-\item{reference_crs}{Well-known-text-formatted or EPSG code of the reference's coordinate system. Only required when a named numeric vector is passed to reference.}
+\item{reference_crs}{Well-known-text-formatted or
+EPSG code of the reference's coordinate system.
+Only required when a named numeric vector is passed to reference.}
 }
 \value{
-TRUE (the queried data extent is completely within the reference bounding box) or FALSE
+TRUE (the queried data extent is completely within
+the reference bounding box) or FALSE
 }
 \description{
-One of the most common errors in spatial computation is rooted in the entirely or partly incomparable spatial extents of input datasets. This function returns whether your data is inside the target computational extent. It is assumed that you know and have the exact computational region. This function will return TRUE if the reference region completely contains your data's extent and FALSE otherwise.
+One of the most common errors in
+spatial computation is rooted in
+the entirely or partly incomparable spatial extents of input datasets.
+This function returns whether your data is inside
+the target computational extent.
+It is assumed that you know and have the exact computational region.
+This function will return TRUE if the reference region
+completely contains your data's extent and FALSE otherwise.
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

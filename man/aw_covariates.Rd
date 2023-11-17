@@ -9,15 +9,18 @@ aw_covariates(poly_in, poly_weight, id_poly_in = "ID")
 \arguments{
 \item{poly_in}{A sf/SpatVector object at weighted means will be calculated.}
 
-\item{poly_weight}{A sf/SpatVector object from which weighted means will be calculated.}
+\item{poly_weight}{A sf/SpatVector object from
+which weighted means will be calculated.}
 
-\item{id_poly_in}{character(1). The unique identifier of each polygon in poly_in}
+\item{id_poly_in}{character(1).
+The unique identifier of each polygon in poly_in}
 }
 \value{
 A data.frame with all numeric fields of area-weighted means.
 }
 \description{
-When poly_in and poly_weight are different classes, poly_weight will be converted to the class of poly_in.
+When poly_in and poly_weight are different classes,
+poly_weight will be converted to the class of poly_in.
 }
 \examples{
 # package
