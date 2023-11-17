@@ -17,7 +17,11 @@ grid_merge(points_in, grid_in, grid_min_features)
 A sf or SpatVector object of computation grids.
 }
 \description{
-Merge boundary-sharing (in "Rook" contiguity) grids with fewer target features than the threshold. This function strongly assumes that the input is returned from the sp_index_grid, which has 'CGRIDID' as the unique id field.
+Merge boundary-sharing (in "Rook" contiguity) grids with
+fewer target features than the threshold.
+This function strongly assumes that the input
+is returned from the sp_index_grid,
+which has 'CGRIDID' as the unique id field.
 }
 \examples{
 # library(sf)

@@ -20,14 +20,22 @@ calculate_sedc(
 
 \item{id}{character(1). Name of the unique id field in point_to.}
 
-\item{sedc_bandwidth}{numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 \%)}
+\item{sedc_bandwidth}{numeric(1).
+Distance at which the source concentration is reduced to
+exp(-3) (approximately -95 \%)}
 
-\item{threshold}{numeric(1). For computational efficiency, the nearest points in threshold will be selected}
+\item{threshold}{numeric(1). For computational efficiency,
+the nearest points in threshold will be selected.
+Default is \code{2 * sedc_bandwidth}.}
 
 \item{target_fields}{character(varying). Field names in characters.}
 }
 \description{
-NOTE: sf implementation is pending. Only available for terra.
+Calculate SEDC covariates
+}
+\note{
+sf implementation is pending. Only available for terra.
+Currently the function internally convert sf objects to terra.
 }
 \author{
 Insang Song

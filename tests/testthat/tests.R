@@ -63,6 +63,21 @@ testthat::test_that("Format is well converted",
 
 
 
+testthat::test_that("vector validity check is cleared", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+
+  testthat::expect_no_error(validate_and_repair_vectors(nc))
+
+  nct <- terra::vect(nc)
+  testthat::expect_no_error(validate_and_repair_vectors(nct))
+})
+
+
 testthat::test_that("Clip extent is set properly", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -94,6 +109,27 @@ testthat::test_that("Clip extent is set properly", {
 })
 
 
+testthat::test_that("Clip by extent works without errors", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+  terra::crs(ncelev) <- "EPSG:5070"
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  ncp <- readRDS("../testdata/nc_random_point.rds")
+  ncp_terra <- terra::vect(ncp)
+
+  testthat::expect_no_error(clip_as_extent_ras(ncp, 30000L, ncelev))
+  testthat::expect_no_error(clip_as_extent_ras(ncp_terra, 30000L, ncelev))
+})
+
+
+
+
 testthat::test_that("Raster is read properly with a window.", {
   withr::local_package("stars")
   withr::local_package("terra")
@@ -116,6 +152,29 @@ testthat::test_that("Raster is read properly with a window.", {
 
 
 
+testthat::test_that("Grid split is well done.", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+
+  testthat::expect_no_error(get_computational_regions(nc, mode = "grid", padding = 3e4L))
+  ncgrid <- get_computational_regions(nc, mode = "grid", padding = 3e4L)
+  testthat::expect_s3_class(ncgrid, "sf")
+
+  nctr <- terra::vect(nc)
+  testthat::expect_no_error(get_computational_regions(nctr, mode = "grid", padding = 3e4L))
+  ncgridtr <- get_computational_regions(nctr, mode = "grid", padding = 3e4L)
+  testthat::expect_s4_class(ncgridtr, "SpatVector")
+
+})
+
+
 testthat::test_that("input extent is converted to a polygon", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -132,6 +191,25 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_error(
     extent_to_polygon(mainland_vec_un, output_class = "sf")
   )
+})
+
+
+testthat::test_that("Check bbox abides.", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  ncp <- sf::read_sf("../testdata/nc_random_point.rds")
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+
+  testthat::expect_no_error(check_bbox(ncp, nc))
+  res <- check_bbox(ncp, nc)
+  testthat::expect_equal(res, TRUE)
 })
 
 
@@ -215,7 +293,7 @@ testthat::test_that("Processes are properly spawned and compute", {
     terra::project("EPSG:5070")
   ncpnts <- readRDS("../testdata/nc_random_point.rds")
   ncpnts <- terra::vect(ncpnts)
-  ncelev <- terra::rast("../testdata/nc_srtm15_otm.tif")
+  ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
   terra::crs(ncelev) <- "EPSG:5070"
 
   nccompreg <- get_computational_regions(input = ncpoly, mode = 'grid', nx=6L, ny=4L, padding=3e4L)

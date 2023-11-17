@@ -44,43 +44,22 @@ clip_as_extent <- function(
 #' @description Clip input raster by the expected maximum extent of computation. 
 #' @author Insang Song
 #' @param pnts sf or SpatVector object
-#' @param buffer_r numeric(1). buffer radius. this value will be automatically multiplied by 1.25
-#' @param nqsegs integer(1). the number of points per a quarter circle
+#' @param buffer_r numeric(1). buffer radius.
+#' This value will be automatically multiplied by 1.25
 #' @param ras SpatRaster object to be clipped
+#' @param nqsegs integer(1). the number of points per a quarter circle
 #' @export
 clip_as_extent_ras <- function(
   pnts,
   buffer_r,
-  nqsegs = 180,
-  ras) {
+  ras,
+  nqsegs = 180L
+  ) {
   if (any(sapply(list(pnts, buffer_r, ras), is.null))) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
   ext_input <- set_clip_extent(pnts, buffer_r) |>
-    terra::ext()
-
-  cae <- terra::crop(ras, ext_input, snap = "out")
-  return(cae)
-}
-
-#' @title clip_as_extent_ras2: Clip input raster (version 2).
-#' @description Clip input raster by the expected maximum extent of computation. 
-#' @author Insang Song
-#' @param points_in sf or SpatVector object
-#' @param buffer_r numeric(1). buffer radius. this value will be automatically multiplied by 1.25
-#' @param nqsegs integer(1). the number of points per a quarter circle
-#' @param ras SpatRaster object to be clipped
-#' @export
-clip_as_extent_ras2 <- function(
-  points_in,
-  buffer_r,
-  nqsegs = 180,
-  ras) {
-  if (any(sapply(list(points_in, buffer_r, ras), is.null))) {
-    stop("Any of required arguments are NULL. Please check.\n")
-  }
-  ext_input <- set_clip_extent(points_in, buffer_r) |>
-    terra::ext()
+    terra::vect()
 
   cae <- terra::crop(ras, ext_input, snap = "out")
   return(cae)
@@ -191,74 +170,94 @@ extract_with <- function(
 #' @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
 #' @param point_to SpatVector object. Locations where each SEDC is calculated.
 #' @param id character(1). Name of the unique id field in point_to.
-#' @param sedc_bandwidth numeric(1). Distance at which the source concentration is reduced to exp(-3) (approximately 95 %)  
-#' @param threshold numeric(1). For computational efficiency, the nearest points in threshold will be selected
+#' @param sedc_bandwidth numeric(1).
+#' Distance at which the source concentration is reduced to
+#'  exp(-3) (approximately -95 %)
+#' @param threshold numeric(1). For computational efficiency,
+#'  the nearest points in threshold will be selected.
+#'  Default is \code{2 * sedc_bandwidth}.
 #' @param target_fields character(varying). Field names in characters.
-#' @description NOTE: sf implementation is pending. Only available for terra.
+#' @note sf implementation is pending. Only available for terra.
+#' Currently the function internally convert sf objects to terra.
 #' @author Insang Song
 #' @export
-calculate_sedc <- function(
-  point_from,
-  point_to,
-  id,
-  sedc_bandwidth,
-  threshold,
-  target_fields) {
+calculate_sedc <-
+  function(
+    point_from,
+    point_to,
+    id,
+    sedc_bandwidth,
+    threshold,
+    target_fields) {
   # define sources, set SEDC exponential decay range
   len_point_from <- seq_len(nrow(point_from))
   len_point_to <- seq_len(nrow(point_to))
 
-  point_from$from_id <- len_point_from
-  # select egrid_v only if closer than 3e5 meters from each aqs
-  point_from_buf <- terra::buffer(
-    point_from_buf,
-    threshold = threshold,
-    quadsegs = 90)
-  point_to <- point_to[point_from_buf, ]
-  point_to$to_id <- len_point_to
+    pkginfo_from <- check_packbound(point_from)
+    pkginfo_to <- check_packbound(point_to)
 
-  # near features with distance argument: only returns integer indices
-  near_from_to <- terra::nearby(point_from, point_to, distance = threshold)
-  # attaching actual distance
-  dist_near_to <- terra::distance(point_from, point_to)
-  dist_near_to_df <- as.vector(dist_near_to)
-  # adding integer indices
-  dist_near_to_tdf <- expand.grid(
-    from_id = len_point_from,
-    to_id = len_point_to)
-  dist_near_to_df <- cbind(dist_near_to_tdf, dist = dist_near_to_df)
+    if (any(pkginfo_from == "sf", pkginfo_to == "sf")) {
+      point_from <- switch_packbound(point_from)
+      point_to <- switch_packbound(point_to)
+    }
+    point_from$from_id <- len_point_from
+    # select egrid_v only if closer than 3e5 meters from each aqs
+    point_from_buf <-
+      terra::buffer(
+                    point_from_buf,
+                    threshold = threshold,
+                    quadsegs = 90)
+    point_to <- point_to[point_from_buf, ]
+    point_to$to_id <- len_point_to
 
-  # summary
-  near_from_to <- near_from_to |>
-    dplyr::as_tibble() |>
-    dplyr::left_join(data.frame(point_from)) |>
-    dplyr::left_join(data.frame(point_to)) |>
-    dplyr::left_join(dist_near_to_df) |>
-    # per the definition in https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
-    # exp(-3) is about 0.05
-    dplyr::mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |>
-    dplyr::group_by(!!rlang::sym(id)) |>
-    dplyr::summarize(
-      dplyr::across(dplyr::all_of(target_fields),
-      list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))
-    ) |>
-    dplyr::ungroup()
+    # near features with distance argument: only returns integer indices
+    near_from_to <- terra::nearby(point_from, point_to, distance = threshold)
+    # attaching actual distance
+    dist_near_to <- terra::distance(point_from, point_to)
+    dist_near_to_df <- as.vector(dist_near_to)
+    # adding integer indices
+    dist_near_to_tdf <-
+      expand.grid(
+                  from_id = len_point_from,
+                  to_id = len_point_to)
+    dist_near_to_df <- cbind(dist_near_to_tdf, dist = dist_near_to_df)
 
-  invisible(near_from_to)
+    # summary
+    near_from_to <- near_from_to |>
+      dplyr::as_tibble() |>
+      dplyr::left_join(data.frame(point_from)) |>
+      dplyr::left_join(data.frame(point_to)) |>
+      dplyr::left_join(dist_near_to_df) |>
+      # per the definition in
+      # https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
+      # exp(-3) is about 0.05
+      dplyr::mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |>
+      dplyr::group_by(!!rlang::sym(id)) |>
+      dplyr::summarize(
+        dplyr::across(
+                      dplyr::all_of(target_fields),
+                      list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))
+      ) |>
+      dplyr::ungroup()
+
+    invisible(near_from_to)
 }
 
 
 #' Computing area weighted covariates using two polygon sf or SpatVector objects
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
-#' @param poly_weight A sf/SpatVector object from which weighted means will be calculated.
-#' @param id_poly_in character(1). The unique identifier of each polygon in poly_in
+#' @param poly_weight A sf/SpatVector object from
+#'  which weighted means will be calculated.
+#' @param id_poly_in character(1).
+#'  The unique identifier of each polygon in poly_in
 #' @return A data.frame with all numeric fields of area-weighted means.
-#' @description When poly_in and poly_weight are different classes, poly_weight will be converted to the class of poly_in. 
+#' @description When poly_in and poly_weight are different classes,
+#'  poly_weight will be converted to the class of poly_in.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples 
 #' # package
 #' library(sf)
-#' 
+#'
 #' # run
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 #' nc <- sf::st_transform(nc, 5070)
@@ -267,7 +266,7 @@ calculate_sedc <- function(
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' sf::st_crs(pp) <- "EPSG:5070"
 #' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
-#' 
+#'
 #' system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
 #' summary(ppb_nc_aw)
 #' #### Example of aw_covariates ends ####
