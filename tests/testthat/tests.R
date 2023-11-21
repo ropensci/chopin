@@ -165,12 +165,43 @@ testthat::test_that("Grid split is well done.", {
 
   testthat::expect_no_error(get_computational_regions(nc, mode = "grid", padding = 3e4L))
   ncgrid <- get_computational_regions(nc, mode = "grid", padding = 3e4L)
-  testthat::expect_s3_class(ncgrid, "sf")
+  testthat::expect_s3_class(ncgrid$original, "sf")
 
   nctr <- terra::vect(nc)
   testthat::expect_no_error(get_computational_regions(nctr, mode = "grid", padding = 3e4L))
   ncgridtr <- get_computational_regions(nctr, mode = "grid", padding = 3e4L)
-  testthat::expect_s4_class(ncgridtr, "SpatVector")
+  testthat::expect_s4_class(ncgridtr$original, "SpatVector")
+
+})
+
+
+testthat::test_that("Grid merge is well done.", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("igraph")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_seed(2023)
+
+  nc <- system.file("shape/nc.shp", package = "sf")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  nctr <- terra::vect(nc)
+  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
+
+  gridded <- get_computational_regions(ncrp, mode = "grid",
+    nx = 8L, ny = 5L, padding = 1e4L)
+  # suppress warnings for "all sub-geometries for which ..."
+  testthat::expect_warning(
+    grid_merge(ncrp, gridded$original, 25L))
+
+  ncptr <- terra::vect(ncrp)
+  griddedtr <- get_computational_regions(ncptr, mode = "grid",
+    nx = 8L, ny = 5L, padding = 1e4L)
+  testthat::expect_warning(
+    grid_merge(ncptr, griddedtr$original, 25L))
 
 })
 
@@ -184,7 +215,7 @@ testthat::test_that("input extent is converted to a polygon", {
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   mainland_box_t <- extent_to_polygon(mainland_vec, output_class = "terra")
   mainland_vec_un <- unname(mainland_vec)
-  
+
   testthat::expect_s3_class(mainland_box, "sf")
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
@@ -211,6 +242,37 @@ testthat::test_that("Check bbox abides.", {
   res <- check_bbox(ncp, nc)
   testthat::expect_equal(res, TRUE)
 })
+
+
+testthat::test_that("extract_with runs well", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncp <- terra::vect(ncp)
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  nccnty <- terra::vect(nccnty)
+  nccnty <- terra::project(nccnty, "EPSG:5070")
+  ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+  ncelev <- terra::unwrap(ncelev)
+
+  # test two modes
+  testthat::expect_no_error(ncexpoly <- extract_with(nccnty, ncelev, "FIPS", mode = "polygon"))
+  testthat::expect_no_error(ncexbuff <- extract_with(ncp, ncelev, "pid", mode = "buffer", radius = 1e4L))
+
+  # errors
+  testthat::expect_error(extract_with(nccnty, ncelev, "GEOID", mode = "whatnot"))
+  testthat::expect_error(extract_with(nccnty, ncelev, "GEOID", mode = "polygon"))
+  testthat::expect_error(extract_with(nccnty, ncelev, 1, mode = "buffer", radius = 1e4L))
+
+})
+
 
 
 testthat::test_that("check_crs is working as expected", {
@@ -285,20 +347,22 @@ testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("sf")
   withr::local_package("future")
   withr::local_package("dplyr")
-  withr::local_package("progressr")
+  withr::local_package("scomps")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
-  ncpnts <- readRDS("../testdata/nc_random_point.rds")
+  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
-  ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+  ncpnts <- terra::project(ncpnts, "EPSG:5070")
+  ncelev <- terra::unwrap(readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
+  names(ncelev) <- c("srtm15")
 
   nccompreg <-
     get_computational_regions(
-      input = ncpoly,
+      input = ncpnts,
       mode = 'grid',
       nx = 6L,
       ny = 4L,
@@ -308,15 +372,18 @@ testthat::test_that("Processes are properly spawned and compute", {
       distribute_process_grid(
                               grids = nccompreg,
                               grid_target_id = NULL,
-                              fun = extract_with_buffer,
+                              fun_dist = extract_with_buffer,
                               points = ncpnts,
                               qsegs = 90L,
                               surf = ncelev,
                               radius = 5e3L,
                               id = "pid")
     )
-  testthat::expect_s4_class(nccompreg, "SpatVector")
+
+  testthat::expect_true(is.list(nccompreg))
+  testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
+  print(res)
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 

@@ -26,17 +26,24 @@ get_computational_regions(
 
 \item{grid_min_features}{integer(1). A threshold to merging adjacent grids}
 
-\item{padding}{numeric(1). A extrusion factor to make buffer to clip actual datasets. Depending on the length unit of the CRS of input.}
+\item{padding}{numeric(1). A extrusion factor to make buffer to
+clip actual datasets. Depending on the length unit of the CRS of input.}
 
-\item{unit}{character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See \href{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html}{units package vignette (web)} for the list of acceptable unit forms.}
+\item{unit}{character(1). The length unit for padding (optional).
+units::set_units is used for padding when sf object is used.
+See \href{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html}{units package vignette (web)}
+for the list of acceptable unit forms.}
 
 \item{...}{arguments passed to the internal function}
 }
 \value{
-A set of polygons in the input class
+A list of two,
+\code{original}: exhaustive and non-overlapping grid polygons in the class of input
+\code{padded}: a square buffer of each polygon in \code{original}. Used for computation.
 }
 \description{
-TODO. Using input points, the bounding box is split to the predefined numbers of columns and rows. Each grid will be buffered by the radius.
+Using input points, the bounding box is split to
+the predefined numbers of columns and rows. Each grid will be buffered by the radius.
 }
 \examples{
 # data

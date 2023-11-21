@@ -27,14 +27,16 @@ which has 'CGRIDID' as the unique id field.
 # library(sf)
 # library(igraph)
 # ligrary(dplyr)
-# dg = sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
-# sf::st_crs(dg) = 5070
-# dgs = sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
-# dgs$CGRIDID = seq(1, nrow(dgs))
+# dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
+# sf::st_crs(dg) <- 5070
+# dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
+# dgs$CGRIDID <- seq(1, nrow(dgs))
 #
-# dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = "Thomas")
-# sf::st_crs(dg_sample) = sf::st_crs(dg)
-# dg_merged = grid_merge(sf::st_as_sf(sss), dgs, 100)
+# dg_sample <- st_sample(dg, kappa = 5e-9, mu = 15,
+# scale = 20000, type = "Thomas")
+# sf::st_crs(dg_sample) <- sf::st_crs(dg)
+# dg_merged <- grid_merge(sf::st_as_sf(sss), dgs, 100)
+
 #### NOT RUN ####
 }
 \author{

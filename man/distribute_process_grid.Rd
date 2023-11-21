@@ -4,22 +4,36 @@
 \alias{distribute_process_grid}
 \title{Process a given function in the entire or partial computational grids}
 \usage{
-distribute_process_grid(grids, grid_target_id = NULL, fun, ...)
+distribute_process_grid(grids, grid_target_id = NULL, fun_dist, ...)
 }
 \arguments{
-\item{grids}{sf/SpatVector object. Computational grids. It takes a strict assumption that the grid input is an output of \code{get_computational_regions}}
+\item{grids}{sf/SpatVector object. Computational grids.
+It takes a strict assumption that the grid input is
+an output of \code{get_computational_regions}}
 
-\item{grid_target_id}{character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
+\item{grid_target_id}{character(1) or numeric(2).
+Default is NULL. If NULL, all grid_ids are used.
+\code{"id_from:id_to"} format or
+\code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
 
-\item{fun}{function supported in scomps.}
+\item{fun_dist}{function supported in scomps.}
 
-\item{...}{Arguments passed to the argument \code{fun}.}
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
 }
 \value{
-a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
+a data.frame object with computation results.
+For entries of the results, consult the function used in
+\code{fun_dist} argument.
 }
 \description{
-Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}. This function assumes that users have one raster file and a sizable and spatially distributed target locations. Each thread will process ceiling(|Ng|/|Nt|) grids where |Ng| denotes the number of grids and |Nt| denotes the number of threads.
+Currently only accepting \link[future]{multicore} setting
+(single node, single process, and multiple threads).
+For details of the terminology in \code{future} package,
+refer to \link[future]{plan}. This function assumes that
+users have one raster file and a sizable and spatially distributed
+target locations. Each thread will process ceiling(|Ng|/|Nt|) grids
+where |Ng| denotes the number of grids and |Nt| denotes
+the number of threads.
 }
 \examples{
 library(future)

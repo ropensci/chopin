@@ -2,7 +2,8 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{extract_with_buffer}
 \alias{extract_with_buffer}
-\title{Extract summarized values from raster with points and a buffer radius (to be written)}
+\title{Extract summarized values from raster with points and
+a buffer radius (to be written)}
 \usage{
 extract_with_buffer(
   points,
@@ -10,7 +11,7 @@ extract_with_buffer(
   radius,
   id,
   qsegs = 90L,
-  func = mean,
+  func = "mean",
   kernel = NULL,
   bandwidth = NULL,
   grid_ref = NULL
@@ -19,13 +20,15 @@ extract_with_buffer(
 \arguments{
 \item{points}{SpatVector object. Coordinates where buffers will be generated}
 
-\item{surf}{SpatRaster object. A raster of whatnot a summary will be calculated}
+\item{surf}{SpatRaster object.
+A raster of whatnot a summary will be calculated}
 
 \item{radius}{numeric(1). Buffer radius. here we assume circular buffers only}
 
 \item{id}{character(1). Unique identifier of each point.}
 
-\item{qsegs}{integer(1). Number of vertices at a quarter of a circle. Default is 90.}
+\item{qsegs}{integer(1). Number of vertices at a quarter of a circle.
+Default is 90.}
 
 \item{func}{a function taking a numeric vector argument.}
 
@@ -33,13 +36,16 @@ extract_with_buffer(
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 
-\item{grid_ref}{SpatVector object. A unit grid polygon that is used to get a subset inside the polygon}
+\item{grid_ref}{SpatVector object.
+A unit grid polygon that is used to get a subset inside the polygon}
 }
 \value{
 a data.frame object with mean value
 }
 \description{
-For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented.
+For simplicity, it is assumed that the coordinate systems of
+the points and the raster are the same.
+Kernel function is not yet implemented.
 }
 \author{
 Insang Song \email{geoissong@gmail.com}
