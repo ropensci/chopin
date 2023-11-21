@@ -4,19 +4,19 @@
 \alias{distribute_process_multirasters}
 \title{Process a given function over multiple large rasters}
 \usage{
-distribute_process_multirasters(filenames, fun, ...)
+distribute_process_multirasters(filenames, fun_dist, ...)
 }
 \arguments{
 \item{filenames}{character(n). A vector or list of
 full file paths of raster files. n is the total number of raster files.}
 
-\item{fun}{function supported in scomps.}
+\item{fun_dist}{function supported in scomps.}
 
-\item{...}{Arguments passed to the argument \code{fun}.}
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
 }
 \value{
 a data.frame object with computation results.
-For entries of the results, consult the function used in \code{fun} argument.
+For entries of the results, consult the function used in \code{fun_dist} argument.
 }
 \description{
 Large raster files usually exceed the memory capacity in size.

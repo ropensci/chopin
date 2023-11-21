@@ -35,7 +35,7 @@ Calculate SEDC covariates
 }
 \note{
 sf implementation is pending. Only available for terra.
-Currently the function internally convert sf objects to terra.
+Currently the function internally converts sf objects to terra.
 }
 \author{
 Insang Song

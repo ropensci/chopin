@@ -65,6 +65,137 @@ clip_as_extent_ras <- function(
   return(cae)
 }
 
+#' @title Extract summarized values from raster with points and
+#'  a buffer radius (to be written)
+#' 
+#' @description For simplicity, it is assumed that the coordinate systems of
+#'  the points and the raster are the same.
+#'  Kernel function is not yet implemented. 
+#' @param points SpatVector object. Coordinates where buffers will be generated
+#' @param surf SpatRaster object.
+#'  A raster of whatnot a summary will be calculated
+#' @param radius numeric(1). Buffer radius. here we assume circular buffers only
+#' @param id character(1). Unique identifier of each point.
+#' @param qsegs integer(1). Number of vertices at a quarter of a circle.
+#'  Default is 90.
+#' @param func a function taking a numeric vector argument.
+#' @param kernel character(1). Name of a kernel function (yet to be implemented)
+#' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param grid_ref SpatVector object.
+#'  A unit grid polygon that is used to get a subset inside the polygon
+#' @return a data.frame object with mean value
+#' @author Insang Song \email{geoissong@@gmail.com}
+#'
+#' @export
+extract_with_buffer <- function(
+    points,
+    surf,
+    radius,
+    id,
+    qsegs = 90L,
+    func = "mean",
+    kernel = NULL,
+    bandwidth = NULL,
+    grid_ref = NULL
+    ) {
+  # type check
+  stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
+  stopifnot("Check class of the input radius.\n" = is.numeric(radius))
+  stopifnot(is.character(id))
+  stopifnot(is.numeric(qsegs))
+
+  if (!is.null(grid_ref)) {
+    points <- points[grid_ref, ]
+  }
+
+  if (!is.null(kernel)) {
+    extracted <- extract_with_buffer_kernel(points = points,
+                                    surf = surf,
+                                    radius = radius,
+                                    id = id,
+                                    func = func,
+                                    qsegs = qsegs,
+                                    kernel = kernel,
+                                    bandwidth = bandwidth)
+    return(extracted)
+  }
+
+  extracted <- extract_with_buffer_flat(points = points,
+                                surf = surf,
+                                radius = radius,
+                                id = id,
+                                func = func,
+                                qsegs = qsegs)
+  return(extracted)
+
+}
+
+# Subfunction: extract with buffers (flat weight; simple mean)
+extract_with_buffer_flat <- function(
+  points,
+  surf,
+  radius,
+  id,
+  qsegs,
+  func = "mean",
+  kernel = NULL,
+  bandwidth = NULL
+  ) {
+  # generate buffers
+  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  # crop raster
+  bufs_extent <- terra::ext(bufs)
+  surf_cropped <- terra::crop(surf, bufs_extent)
+  name_surf_val <- names(surf)
+  # extract raster values
+  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
+    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs_summary <-
+    surf_at_bufs #|>
+      # dplyr::group_by(ID) |>
+      # dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~func(.) , na.rm = TRUE)) |> 
+      # dplyr::ungroup()
+  # colnames(surf_at_bufs_summary)[1] <- id
+  return(surf_at_bufs_summary)
+}
+
+
+# Subfunction: extract with buffers (kernel weight; weighted mean)
+extract_with_buffer_kernel <- function(
+  points,
+  surf,
+  radius,
+  id,
+  qsegs,
+  func = "mean",
+  kernel,
+  bandwidth
+) {
+  # generate buffers
+  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  # crop raster
+  bufs_extent <- terra::ext(bufs)
+  surf_cropped <- terra::crop(surf, bufs_extent)
+  name_surf_val <- names(surf)
+
+  # TODO: kernel implementation
+
+
+  # extract raster values
+  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
+    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs_summary <-
+    surf_at_bufs |>
+      dplyr::group_by(ID) |>
+      dplyr::summarize(
+        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = T)
+      ) |> 
+      dplyr::ungroup()
+  colnames(surf_at_bufs_summary)[1] <- id
+  return(surf_at_bufs_summary)
+}
+
+
 #' @title Extract summarized values from raster with generic polygons
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
@@ -107,10 +238,12 @@ extract_with_polygons <- function(
   }
 
   extract_with_polygons_terra <- function(polys, surf, id, func) {
-    extracted <- terra::extract(surf, polys)
+    extracted <- terra::extract(surf, polys, fun = func, ID = TRUE)
+    extracted$ID <- unlist(polys[[id]])
+    colnames(extracted)[1] <- id
     extracted <- extracted |>
       dplyr::group_by(!!rlang::sym(id)) |>
-      dplyr::summarize(dplyr::across(-!!rlang::sym(id), ~func)) |>
+      dplyr::summarize(dplyr::across(-1, ~func)) |>
       dplyr::ungroup()
     return(extracted)
   }
@@ -133,9 +266,9 @@ extract_with_polygons <- function(
 
 
 #' Extract raster values with point buffers or polygons
-#' 
-#' @param raster SpatRaster object. 
+#'
 #' @param vector SpatVector object.
+#' @param raster SpatRaster object.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
 #' @param mode one of "polygon" (generic polygons to extract raster values with) or "buffer" (point with buffer radius)
@@ -144,23 +277,21 @@ extract_with_polygons <- function(
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export
 extract_with <- function(
-  raster, 
-  vector, 
-  id, 
-  func = mean, 
+  vector,
+  raster,
+  id,
+  func = "mean",
   mode = c("polygon", "buffer"),
   ...) {
 
-  match.arg(mode)
-  # if (!mode %in% c("polygon", "buffer")) {
-  #   stop("Argument 'mode' should be one of 'polygon' or 'buffer'.\n")
-  # }
+  mode <- match.arg(mode)
+
   stopifnot(is.character(id))
   stopifnot(id %in% names(vector))
 
-  extracted <- 
+  extracted <-
     switch(mode,
-      polygon = extract_with_polygons(vector, raster, id, func, ...),
+      polygon = extract_with_polygons(vector, raster, id = id, func = func, ...),
       buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
   return(extracted)
 }
@@ -178,7 +309,7 @@ extract_with <- function(
 #'  Default is \code{2 * sedc_bandwidth}.
 #' @param target_fields character(varying). Field names in characters.
 #' @note sf implementation is pending. Only available for terra.
-#' Currently the function internally convert sf objects to terra.
+#' Currently the function internally converts sf objects to terra.
 #' @author Insang Song
 #' @export
 calculate_sedc <-
@@ -320,125 +451,4 @@ aw_covariates <- function(
 #   dplyr::ungroup()
 
 #ncbufagg = terra::aggregate(ncbuf, by = 'id', fun = weighted.mean, w = ncbuf_a$segarea)
-
-
-#' @title Extract summarized values from raster with points and a buffer radius (to be written)
-#' 
-#' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
-#' @param points SpatVector object. Coordinates where buffers will be generated
-#' @param surf SpatRaster object. A raster of whatnot a summary will be calculated
-#' @param radius numeric(1). Buffer radius. here we assume circular buffers only
-#' @param id character(1). Unique identifier of each point.
-#' @param qsegs integer(1). Number of vertices at a quarter of a circle. Default is 90.
-#' @param func a function taking a numeric vector argument.
-#' @param kernel character(1). Name of a kernel function (yet to be implemented)
-#' @param bandwidth numeric(1). Kernel bandwidth.
-#' @param grid_ref SpatVector object. A unit grid polygon that is used to get a subset inside the polygon
-#' @return a data.frame object with mean value
-#' @author Insang Song \email{geoissong@@gmail.com}
-#' 
-#' @export
-extract_with_buffer <- function(
-    points,
-    surf,
-    radius,
-    id,
-    qsegs = 90L,
-    func = mean,
-    kernel = NULL,
-    bandwidth = NULL,
-    grid_ref = NULL
-    ) {
-  # type check
-  stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
-  stopifnot("Check class of the input radius.\n" = is.numeric(radius))
-  stopifnot(is.character(id))
-  stopifnot(is.numeric(qsegs))
-
-  if (!is.null(grid_ref)) {
-    points <- points[grid_ref, ]
-  }
-
-  if (!is.null(kernel)) {
-    extracted <- extract_with_buffer_kernel(points = points,
-                                    surf = surf,
-                                    radius = radius,
-                                    id = id,
-                                    func = func,
-                                    qsegs = qsegs,
-                                    kernel = kernel,
-                                    bandwidth = bandwidth)
-    return(extracted)
-  }
-
-  extracted <- extract_with_buffer_flat(points = points,
-                                surf = surf,
-                                radius = radius,
-                                id = id,
-                                func = func,
-                                qsegs = qsegs)
-  return(extracted)
-
-}
-
-# Subfunction: extract with buffers (flat weight; simple mean)
-extract_with_buffer_flat <- function(
-  points,
-  surf,
-  radius,
-  id,
-  qsegs,
-  func = mean,
-  kernel = NULL,
-  bandwidth = NULL
-  ) {
-  # generate buffers
-  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-  # crop raster
-  bufs_extent <- terra::ext(bufs)
-  surf_cropped <- terra::crop(surf, bufs_extent)
-  name_surf_val <- names(surf)
-  # extract raster values
-  surf_at_bufs <- terra::extract(surf_cropped, bufs)
-  surf_at_bufs_summary <-
-    surf_at_bufs |>
-      dplyr::group_by(ID) |>
-      dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~mean(., na.rm = TRUE))) |> 
-      dplyr::ungroup()
-  return(surf_at_bufs_summary)
-}
-
-
-# Subfunction: extract with buffers (kernel weight; weighted mean)
-extract_with_buffer_kernel <- function(
-  points,
-  surf,
-  radius,
-  id,
-  qsegs,
-  func = mean,
-  kernel,
-  bandwidth
-) {
-  # generate buffers
-  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-  # crop raster
-  bufs_extent <- terra::ext(bufs)
-  surf_cropped <- terra::crop(surf, bufs_extent)
-  name_surf_val <- names(surf)
-
-  # TODO: kernel implementation
-
-
-  # extract raster values
-  surf_at_bufs <- terra::extract(surf_cropped, bufs)
-  surf_at_bufs_summary <-
-    surf_at_bufs |>
-      dplyr::group_by(ID) |>
-      dplyr::summarize(
-        dplyr::across(dplyr::all_of(name_surf_val), ~mean, na.rm=T)
-      ) |> 
-      dplyr::ungroup()
-  return(surf_at_bufs_summary)
-}
 

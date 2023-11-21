@@ -5,18 +5,18 @@
 \title{Extract raster values with point buffers or polygons}
 \usage{
 extract_with(
-  raster,
   vector,
+  raster,
   id,
-  func = mean,
+  func = "mean",
   mode = c("polygon", "buffer"),
   ...
 )
 }
 \arguments{
-\item{raster}{SpatRaster object.}
-
 \item{vector}{SpatVector object.}
+
+\item{raster}{SpatRaster object.}
 
 \item{id}{character(1). Unique identifier of each point.}
 

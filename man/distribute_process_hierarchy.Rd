@@ -4,7 +4,7 @@
 \alias{distribute_process_hierarchy}
 \title{Process a given function using a hierarchy in input data}
 \usage{
-distribute_process_hierarchy(regions, split_level = NULL, fun, ...)
+distribute_process_hierarchy(regions, split_level = NULL, fun_dist, ...)
 }
 \arguments{
 \item{regions}{sf/SpatVector object.
@@ -15,14 +15,14 @@ The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
 
-\item{fun}{function supported in scomps.}
+\item{fun_dist}{function supported in scomps.}
 
-\item{...}{Arguments passed to the argument \code{fun}.}
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
 }
 \value{
 a data.frame object with computation results.
 For entries of the results, consult the function used in
-\code{fun} argument.
+\code{fun_dist} argument.
 }
 \description{
 "Hierarchy" refers to a system,

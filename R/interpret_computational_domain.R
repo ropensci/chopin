@@ -7,13 +7,20 @@
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
-#' @param padding numeric(1). A extrusion factor to make buffer to clip actual datasets. Depending on the length unit of the CRS of input.
-#' @param unit character(1). The length unit for padding (optional). units::set_units is used for padding when sf object is used. See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html) for the list of acceptable unit forms.
+#' @param padding numeric(1). A extrusion factor to make buffer to
+#'  clip actual datasets. Depending on the length unit of the CRS of input.
+#' @param unit character(1). The length unit for padding (optional).
+#'  units::set_units is used for padding when sf object is used.
+#'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'  for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
-#' @return A set of polygons in the input class
-#' @description TODO. Using input points, the bounding box is split to the predefined numbers of columns and rows. Each grid will be buffered by the radius.   
-#' @author Insang Song 
-#' @examples 
+#' @return A list of two,
+#'   \code{original}: exhaustive and non-overlapping grid polygons in the class of input
+#'   \code{padded}: a square buffer of each polygon in \code{original}. Used for computation.
+#' @description Using input points, the bounding box is split to
+#'  the predefined numbers of columns and rows. Each grid will be buffered by the radius.
+#' @author Insang Song
+#' @examples
 #' # data
 #' library(sf)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -46,14 +53,25 @@ get_computational_regions <- function(
     We convert padding to numeric...\n" = {
                                            is.numeric(padding)})
   # valid unit compatible with units::set_units?
-  switch(mode,
-    grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-    grid_advanced = grid_merge(
-                               points_in = input,
-                               sp_index_grid(input, nx, ny),
-                               grid_min_features = grid_min_features),
-    density = simpleError("density method is under development.\n")
-  )
+  grid_reg <-
+    switch(mode,
+      grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
+      grid_advanced = grid_merge(
+                                points_in = input,
+                                sp_index_grid(input, nx, ny),
+                                grid_min_features = grid_min_features),
+      density = simpleError("density method is under development.\n")
+    )
+
+  type_grid_reg <- check_packbound(grid_reg)
+  grid_reg_pad <-
+    switch(type_grid_reg,
+      sf = sf::st_buffer(grid_reg, dist = padding, endCapStyle = "SQUARE"),
+      terra = terra::buffer(grid_reg, width = padding, capstyle = "square"))
+  grid_results <-
+    list(original = grid_reg,
+         padded = grid_reg_pad)
+  return(grid_results)
 
 }
 
@@ -84,6 +102,7 @@ sp_index_grid <- function(
   sp_index_grid_terra <- function(points_in, ncutsx, ncutsy) {
     grid1 <- terra::rast(points_in, nrows = ncutsy, ncols = ncutsx)
     grid1 <- terra::as.polygons(grid1)
+    grid1 <- grid1[points_in,]
     return(grid1)
   }
   grid_out <- switch(package_detected,
@@ -111,14 +130,16 @@ sp_index_grid <- function(
 #' # library(sf)
 #' # library(igraph)
 #' # ligrary(dplyr)
-#' # dg = sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
-#' # sf::st_crs(dg) = 5070
-#' # dgs = sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
-#' # dgs$CGRIDID = seq(1, nrow(dgs))
+#' # dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
+#' # sf::st_crs(dg) <- 5070
+#' # dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
+#' # dgs$CGRIDID <- seq(1, nrow(dgs))
 #' #
-#' # dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = "Thomas")
-#' # sf::st_crs(dg_sample) = sf::st_crs(dg)
-#' # dg_merged = grid_merge(sf::st_as_sf(sss), dgs, 100)
+#' # dg_sample <- st_sample(dg, kappa = 5e-9, mu = 15,
+#' # scale = 20000, type = "Thomas")
+#' # sf::st_crs(dg_sample) <- sf::st_crs(dg)
+#' # dg_merged <- grid_merge(sf::st_as_sf(sss), dgs, 100)
+#'
 #' #### NOT RUN ####
 #' @export
 grid_merge <- function(points_in, grid_in, grid_min_features) {
@@ -155,7 +176,8 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
   merge_idx <- as.integer(names(identified_graph_member))
   merge_member <- split(merge_idx, identified_graph_member)
-  merge_member_label <- unlist(lapply(merge_member, \(x) paste(x, collapse = "_")))
+  merge_member_label <-
+    unlist(lapply(merge_member, \(x) paste(x, collapse = "_")))
   merge_member_label <- merge_member_label[identified_graph_member]
 
   # sf object manipulation
@@ -173,12 +195,17 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   ## polsby-popper test for shape compactness
   grid_merged <- grid_out[which(grid_out$n_merged > 1),]
   grid_merged_area <- as.numeric(sf::st_area(grid_merged))
-  grid_merged_perimeter <- as.numeric(sf::st_length(sf::st_cast(grid_merged, "LINESTRING")))
-  grid_merged_pptest <- (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
+  grid_merged_perimeter <-
+    as.numeric(sf::st_length(sf::st_cast(grid_merged, "LINESTRING")))
+  grid_merged_pptest <-
+    (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
 
-  # pptest value is bounded [0,1]; 0.3 threshold is groundless at this moment, possibly will make it defined by users.
-  if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) || any(grid_merged_pptest < 0.3)) {
-    warning("The reduced computational regions have too complex shapes. Consider increasing thresholds or using the original grids.\n")
+  # pptest value is bounded [0,1];
+  # 0.3 threshold is groundless at this moment, possibly will make it defined by users.
+  if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
+   any(grid_merged_pptest < 0.3)) {
+    message("The reduced computational regions have too complex shapes.
+     Consider increasing thresholds or using the original grids.\n")
   }
 
   return(grid_out)
