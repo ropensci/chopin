@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-11-17"
+date: "2023-11-21"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.5.11172023",
+    Version = "0.0.6.11212023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -722,14 +722,16 @@ sp_index_grid <- function(
 #' # library(sf)
 #' # library(igraph)
 #' # ligrary(dplyr)
-#' # dg = sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
-#' # sf::st_crs(dg) = 5070
-#' # dgs = sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
-#' # dgs$CGRIDID = seq(1, nrow(dgs))
+#' # dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
+#' # sf::st_crs(dg) <- 5070
+#' # dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
+#' # dgs$CGRIDID <- seq(1, nrow(dgs))
 #' #
-#' # dg_sample = st_sample(dg, kappa = 5e-9, mu = 15, scale = 20000, type = "Thomas")
-#' # sf::st_crs(dg_sample) = sf::st_crs(dg)
-#' # dg_merged = grid_merge(sf::st_as_sf(sss), dgs, 100)
+#' # dg_sample <- st_sample(dg, kappa = 5e-9, mu = 15,
+#' # scale = 20000, type = "Thomas")
+#' # sf::st_crs(dg_sample) <- sf::st_crs(dg)
+#' # dg_merged <- grid_merge(sf::st_as_sf(sss), dgs, 100)
+#'
 #' #### NOT RUN ####
 #' @export
 grid_merge <- function(points_in, grid_in, grid_min_features) {
@@ -766,7 +768,8 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
   merge_idx <- as.integer(names(identified_graph_member))
   merge_member <- split(merge_idx, identified_graph_member)
-  merge_member_label <- unlist(lapply(merge_member, \(x) paste(x, collapse = "_")))
+  merge_member_label <-
+    unlist(lapply(merge_member, \(x) paste(x, collapse = "_")))
   merge_member_label <- merge_member_label[identified_graph_member]
 
   # sf object manipulation
@@ -784,12 +787,17 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   ## polsby-popper test for shape compactness
   grid_merged <- grid_out[which(grid_out$n_merged > 1),]
   grid_merged_area <- as.numeric(sf::st_area(grid_merged))
-  grid_merged_perimeter <- as.numeric(sf::st_length(sf::st_cast(grid_merged, "LINESTRING")))
-  grid_merged_pptest <- (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
+  grid_merged_perimeter <-
+    as.numeric(sf::st_length(sf::st_cast(grid_merged, "LINESTRING")))
+  grid_merged_pptest <-
+    (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
 
-  # pptest value is bounded [0,1]; 0.3 threshold is groundless at this moment, possibly will make it defined by users.
-  if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) || any(grid_merged_pptest < 0.3)) {
-    warning("The reduced computational regions have too complex shapes. Consider increasing thresholds or using the original grids.\n")
+  # pptest value is bounded [0,1];
+  # 0.3 threshold is groundless at this moment, possibly will make it defined by users.
+  if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
+   any(grid_merged_pptest < 0.3)) {
+    warning("The reduced computational regions have too complex shapes.
+     Consider increasing thresholds or using the original grids.\n")
   }
 
   return(grid_out)
@@ -838,6 +846,26 @@ testthat::test_that("Grid split is well done.", {
 
 ```
 
+```{r test-gridmerge}
+testthat::test_that("Grid merge is well done.", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("igraph")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  nctr <- terra::vect(nc)
+  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+
+  gridded <- get_computational_regions(ncp, mode = "grid",
+    nx = 10L, ny = 8L)
+  testthat::expect_no_error(grid_merge(ncp, gridded, 3L))
+
+})
+
+```
 
 
 ```{r, send_to = "R/check.R"}
@@ -894,7 +922,7 @@ testthat::test_that("input extent is converted to a polygon", {
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   mainland_box_t <- extent_to_polygon(mainland_vec, output_class = "terra")
   mainland_vec_un <- unname(mainland_vec)
-  
+
   testthat::expect_s3_class(mainland_box, "sf")
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
@@ -1076,7 +1104,7 @@ extract_with_polygons <- function(
 ```{r, send_to = "R/processing.R"}
 #' Extract raster values with point buffers or polygons
 #' 
-#' @param raster SpatRaster object. 
+#' @param raster SpatRaster object.
 #' @param vector SpatVector object.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
@@ -1093,14 +1121,12 @@ extract_with <- function(
   mode = c("polygon", "buffer"),
   ...) {
 
-  match.arg(mode)
-  # if (!mode %in% c("polygon", "buffer")) {
-  #   stop("Argument 'mode' should be one of 'polygon' or 'buffer'.\n")
-  # }
+  mode <- match.arg(mode)
+
   stopifnot(is.character(id))
   stopifnot(id %in% names(vector))
 
-  extracted <- 
+  extracted <-
     switch(mode,
       polygon = extract_with_polygons(vector, raster, id, func, ...),
       buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
@@ -1108,6 +1134,39 @@ extract_with <- function(
 }
 
 ```
+
+
+```{r test-extractwith}
+testthat::test_that("extract_with runs well", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncp <- terra::vect(ncp)
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  nccnty <- terra::vect(nccnty)
+  nccnty <- terra::project(nccnty, "EPSG:5070")
+  ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+  ncelev <- terra::unwrap(ncelev)
+
+  # test two modes
+  testthat::expect_no_error(ncexpoly <- extract_with(ncelev, nccnty, "FIPS", mode = "polygon"))
+  testthat::expect_no_error(ncexbuff <- extract_with(ncelev, ncp, "pid", mode = "buffer", radius = 1e4L))
+
+  # errors
+  testthat::expect_error(extract_with(ncelev, nccnty, "GEOID", mode = "whatnot"))
+  testthat::expect_error(extract_with(ncelev, nccnty, "GEOID", mode = "polygon"))
+  testthat::expect_error(extract_with(ncelev, nccnty, 1, mode = "buffer", radius = 1e4L))
+
+})
+
+
+```
+
 
 ```{r, send_to = "R/check.R"}
 #' Check Coordinate Reference System
@@ -1218,7 +1277,7 @@ testthat::test_that("nc data is within the mainland US", {
 #'  Default is \code{2 * sedc_bandwidth}.
 #' @param target_fields character(varying). Field names in characters.
 #' @note sf implementation is pending. Only available for terra.
-#' Currently the function internally convert sf objects to terra.
+#' Currently the function internally converts sf objects to terra.
 #' @author Insang Song
 #' @export
 calculate_sedc <-
@@ -1404,18 +1463,24 @@ testthat::test_that("aw_covariates works as expected.", {
 ```
 
 ```{r, send_to = "R/processing.R"}
-#' @title Extract summarized values from raster with points and a buffer radius (to be written)
+#' @title Extract summarized values from raster with points and
+#'  a buffer radius (to be written)
 #' 
-#' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
+#' @description For simplicity, it is assumed that the coordinate systems of
+#'  the points and the raster are the same.
+#'  Kernel function is not yet implemented. 
 #' @param points SpatVector object. Coordinates where buffers will be generated
-#' @param surf SpatRaster object. A raster of whatnot a summary will be calculated
+#' @param surf SpatRaster object.
+#'  A raster of whatnot a summary will be calculated
 #' @param radius numeric(1). Buffer radius. here we assume circular buffers only
 #' @param id character(1). Unique identifier of each point.
-#' @param qsegs integer(1). Number of vertices at a quarter of a circle. Default is 90.
+#' @param qsegs integer(1). Number of vertices at a quarter of a circle.
+#'  Default is 90.
 #' @param func a function taking a numeric vector argument.
 #' @param kernel character(1). Name of a kernel function (yet to be implemented)
 #' @param bandwidth numeric(1). Kernel bandwidth.
-#' @param grid_ref SpatVector object. A unit grid polygon that is used to get a subset inside the polygon
+#' @param grid_ref SpatVector object.
+#'  A unit grid polygon that is used to get a subset inside the polygon
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' 
@@ -1529,16 +1594,30 @@ extract_with_buffer_kernel <- function(
 
 ```{r, send_to = "R/scale_process.R"}
 #' @title Process a given function in the entire or partial computational grids
-#' 
-#' @description Currently only accepting \link[future]{multicore} setting (single node, single process, and multiple threads). For details of the terminology in \code{future} package, refer to \link[future]{plan}. This function assumes that users have one raster file and a sizable and spatially distributed target locations. Each thread will process ceiling(|Ng|/|Nt|) grids where |Ng| denotes the number of grids and |Nt| denotes the number of threads.
-#' @param grids sf/SpatVector object. Computational grids. It takes a strict assumption that the grid input is an output of \code{get_computational_regions}
-#' @param grid_target_id character(1) or numeric(2). Default is NULL. If NULL, all grid_ids are used. \code{"id_from:id_to"} format or \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
+#'
+#' @description Currently only accepting \link[future]{multicore} setting
+#'  (single node, single process, and multiple threads).
+#'  For details of the terminology in \code{future} package,
+#'  refer to \link[future]{plan}. This function assumes that
+#'  users have one raster file and a sizable and spatially distributed
+#'  target locations. Each thread will process ceiling(|Ng|/|Nt|) grids
+#'  where |Ng| denotes the number of grids and |Nt| denotes
+#'  the number of threads.
+#' @param grids sf/SpatVector object. Computational grids.
+#'  It takes a strict assumption that the grid input is
+#'  an output of \code{get_computational_regions}
+#' @param grid_target_id character(1) or numeric(2).
+#'  Default is NULL. If NULL, all grid_ids are used.
+#'  \code{"id_from:id_to"} format or
+#'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param fun function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun}.
-#' @return a data.frame object with computation results. For entries of the results, consult the function used in \code{fun} argument.
+#' @return a data.frame object with computation results.
+#'  For entries of the results, consult the function used in
+#'  \code{fun} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' 
-#' @examples 
+#'
+#' @examples
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
@@ -1608,7 +1687,7 @@ distribute_process_grid <-
 
 
 #' @title Process a given function using a hierarchy in input data
-#' 
+#'
 #' @description "Hierarchy" refers to a system,
 #'  which divides the entire study region into multiple subregions.
 #'  It is oftentimes reflected in an area code system
@@ -1701,7 +1780,7 @@ distribute_process_hierarchy <- function(
 
 
 #' @title Process a given function over multiple large rasters
-#' 
+#'
 #' @description Large raster files usually exceed the memory capacity in size.
 #'  Cropping a large raster into a small subset even consumes
 #'  a lot of memory and adds processing time.
