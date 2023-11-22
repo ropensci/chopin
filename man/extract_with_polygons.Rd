@@ -21,7 +21,7 @@ extract_with_polygons(
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{func}{a generic function name in string or a function taking two arguments that are
-compatible with \code{\link[exactextractr](exact_extract)}.
+compatible with \code{\link[exactextractr]{exact_extract}}.
 For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
 
 \item{na.rm}{logical(1). NA values are omitted when summary is calculated.}

@@ -30,12 +30,25 @@ Default is \code{2 * sedc_bandwidth}.}
 
 \item{target_fields}{character(varying). Field names in characters.}
 }
+\value{
+data.frame (tibble) object with input field names with
+a suffix \code{"_sedc"} where the sums of EDC are stored.
+Additional attributes are attached for the EDC information.
+\itemize{
+\item attr(result, "sedc_bandwidth"): the bandwidth where
+concentration reduces to approximately five percent
+\item attr(result, "sedc_threshold"): the threshold distance
+at which emission source points are excluded beyond that
+}
+}
 \description{
 Calculate SEDC covariates
 }
 \note{
-sf implementation is pending. Only available for terra.
-Currently the function internally converts sf objects to terra.
+Distance calculation is done with terra functions internally.
+Thus, the function internally converts sf objects in \code{point_*} arguments
+to terra.
+The optimal EDC should be carefully chosen by users.
 }
 \author{
 Insang Song

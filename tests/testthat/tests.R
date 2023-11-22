@@ -343,6 +343,38 @@ testthat::test_that("nc data is within the mainland US", {
 })
 
 
+testthat::test_that("SEDC are well calculated.", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # read and generate data
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) |>
+    terra::project("EPSG:5070")
+  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <- terra::vect(ncpnts)
+  ncpnts <- terra::project(ncpnts, "EPSG:5070")
+  ncrand <- terra::spatSample(ncpoly, 250L)
+  ncrand$pollutant1 <- stats::rgamma(250L, 1, 0.01)
+  ncrand$pollutant2 <- stats::rnorm(250L, 30, 4)
+  ncrand$pollutant3 <- stats::rbeta(250L, 0.5, 0.5)
+
+  polnames <- paste0("pollutant", 1:3)
+
+  testthat::expect_no_error(sedc_calc <-
+    calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames))
+  testthat::expect_s3_class(sedc_calc, "data.frame")
+  print(sedc_calc)
+  testthat::expect_equal(sum(paste0(polnames, "_sedc") %in% names(sedc_calc)),
+    length(polnames))
+  testthat::expect_true(!is.null(attr(sedc_calc, "sedc_bandwidth")))
+  testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
+})
+
+
 
 testthat::test_that("aw_covariates works as expected.", {
   withr::local_package("sf")

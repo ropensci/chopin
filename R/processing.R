@@ -199,7 +199,7 @@ extract_with_buffer_kernel <- function(
 #' @param surf SpatRaster object. A raster from which a summary will be calculated
 #' @param id character(1). Unique identifier of each point.
 #' @param func a generic function name in string or a function taking two arguments that are
-#'  compatible with \code{\link[exactextractr](exact_extract)}.
+#'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}
 #' @param na.rm logical(1). NA values are omitted when summary is calculated.
 #' @param grid_ref A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.
@@ -288,8 +288,17 @@ extract_with <- function(
 #'  the nearest points in threshold will be selected.
 #'  Default is \code{2 * sedc_bandwidth}.
 #' @param target_fields character(varying). Field names in characters.
-#' @note sf implementation is pending. Only available for terra.
-#' Currently the function internally converts sf objects to terra.
+#' @return data.frame (tibble) object with input field names with
+#'  a suffix \code{"_sedc"} where the sums of EDC are stored.
+#'  Additional attributes are attached for the EDC information.
+#'    - attr(result, "sedc_bandwidth"): the bandwidth where
+#'  concentration reduces to approximately five percent
+#'    - attr(result, "sedc_threshold"): the threshold distance
+#'  at which emission source points are excluded beyond that
+#' @note Distance calculation is done with terra functions internally.
+#'  Thus, the function internally converts sf objects in \code{point_*} arguments
+#'  to terra.
+#'  The optimal EDC should be carefully chosen by users.
 #' @author Insang Song
 #' @export
 calculate_sedc <-
@@ -315,8 +324,8 @@ calculate_sedc <-
     # select egrid_v only if closer than 3e5 meters from each aqs
     point_from_buf <-
       terra::buffer(
-                    point_from_buf,
-                    threshold = threshold,
+                    point_from,
+                    width = threshold,
                     quadsegs = 90)
     point_to <- point_to[point_from_buf, ]
     point_to$to_id <- len_point_to
@@ -350,8 +359,11 @@ calculate_sedc <-
                       list(sedc = ~sum(w_sedc * ., na.rm = TRUE)))
       ) |>
       dplyr::ungroup()
+    
+    attr(near_from_to, "sedc_bandwidth") <- sedc_bandwidth
+    attr(near_from_to, "sedc_threshold") <- threshold
 
-    invisible(near_from_to)
+    return(near_from_to)
 }
 
 
@@ -421,14 +433,4 @@ aw_covariates <- function(
     
 }
 
-# ncbuf = terra::intersect(vect(ppb), vect(nc))
-# ncbuf_a = ncbuf
-# ncbuf_a$segarea = expanse(ncbuf_a)
-# ncbuf_k = data.frame(ncbuf_a) |>
-#   dplyr::group_by(id) |>
-#   dplyr::summarize(across(is.numeric,
-#                ~weighted.mean(., w = segarea))) |>
-#   dplyr::ungroup()
-
-#ncbufagg = terra::aggregate(ncbuf, by = 'id', fun = weighted.mean, w = ncbuf_a$segarea)
 

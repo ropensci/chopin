@@ -132,7 +132,6 @@ distribute_process_grid <-
 #' # distribute_process_hierarchy()
 #' @import future
 #' @import future.apply
-#' @import progressr
 #' @export
 distribute_process_hierarchy <-
   function(
@@ -220,7 +219,6 @@ distribute_process_hierarchy <-
 #' # distribute_process_multirasters()
 #' @import future
 #' @import future.apply
-#' @import progressr
 #' @export
 distribute_process_multirasters <- function(
   filenames,
