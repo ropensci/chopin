@@ -14,7 +14,7 @@ extract_with(
 )
 }
 \arguments{
-\item{vector}{SpatVector object.}
+\item{vector}{sf/SpatVector object.}
 
 \item{raster}{SpatRaster object.}
 

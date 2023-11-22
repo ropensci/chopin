@@ -4,14 +4,12 @@
 \alias{clip_as_extent}
 \title{Extent clipping}
 \usage{
-clip_as_extent(pnts, buffer_r, nqsegs = NULL, target_input)
+clip_as_extent(pnts, buffer_r, target_input)
 }
 \arguments{
 \item{pnts}{sf or SpatVector object}
 
 \item{buffer_r}{numeric(1). buffer radius. this value will be automatically multiplied by 1.25}
-
-\item{nqsegs}{integer(1). the number of points per a quarter circle; SOON TO BE DEPRECATED}
 
 \item{target_input}{sf or SpatVector object to be clipped}
 }

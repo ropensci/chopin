@@ -4,18 +4,29 @@
 \alias{extract_with_polygons}
 \title{Extract summarized values from raster with generic polygons}
 \usage{
-extract_with_polygons(polys, surf, id, func = mean, na.rm = TRUE)
+extract_with_polygons(
+  polys,
+  surf,
+  id,
+  func = "mean",
+  na.rm = TRUE,
+  grid_ref = NULL
+)
 }
 \arguments{
 \item{polys}{sf/SpatVector object. Polygons.}
 
-\item{surf}{stars/SpatRaster object. A raster of whatnot a summary will be calculated}
+\item{surf}{SpatRaster object. A raster from which a summary will be calculated}
 
 \item{id}{character(1). Unique identifier of each point.}
 
-\item{func}{a function taking one argument. For example, function(x) mean(x, na.rm = TRUE) or \(x) mode(x, na.rm = TRUE)}
+\item{func}{a generic function name in string or a function taking two arguments that are
+compatible with \code{\link[exactextractr]{exact_extract}}.
+For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
 
 \item{na.rm}{logical(1). NA values are omitted when summary is calculated.}
+
+\item{grid_ref}{A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.}
 }
 \value{
 a data.frame object with function value
