@@ -872,7 +872,7 @@ testthat::test_that("Grid merge is well done.", {
   withr::local_package("igraph")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
-  withr::local_seed(2023)
+  withr::local_seed(20231121)
 
   nc <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::read_sf(nc)
