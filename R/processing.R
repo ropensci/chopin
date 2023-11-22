@@ -5,14 +5,12 @@
 #' @author Insang Song
 #' @param pnts sf or SpatVector object
 #' @param buffer_r numeric(1). buffer radius. this value will be automatically multiplied by 1.25
-#' @param nqsegs integer(1). the number of points per a quarter circle; SOON TO BE DEPRECATED
 #' @param target_input sf or SpatVector object to be clipped
 #' @return A clipped sf or SpatVector object.
 #' @export
 clip_as_extent <- function(
   pnts,
   buffer_r,
-  nqsegs = NULL,
   target_input) {
   if (any(sapply(list(pnts, buffer_r, target_input), is.null))) {
     stop("One or more required arguments are NULL. Please check.\n")
@@ -22,9 +20,7 @@ clip_as_extent <- function(
 
   if (detected_pnts != detected_target) {
     warning("Inputs are not the same class.\n")
-    target_input <- switch(detected_target,
-      sf = terra::vect(target_input),
-      terra = sf::st_as_sf(target_input))
+    target_input <- switch_packbound(target_input)
   }
 
   ext_input <- set_clip_extent(pnts, buffer_r)
@@ -200,25 +196,30 @@ extract_with_buffer_kernel <- function(
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
 #' @param polys sf/SpatVector object. Polygons.
-#' @param surf stars/SpatRaster object. A raster of whatnot a summary will be calculated
+#' @param surf SpatRaster object. A raster from which a summary will be calculated
 #' @param id character(1). Unique identifier of each point.
-#' @param func a function taking one argument. For example, function(x) mean(x, na.rm = TRUE) or \(x) mode(x, na.rm = TRUE)
+#' @param func a generic function name in string or a function taking two arguments that are
+#'  compatible with \code{\link[exactextractr](exact_extract)}.
+#'  For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}
 #' @param na.rm logical(1). NA values are omitted when summary is calculated.
+#' @param grid_ref A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.
 #' @return a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @importFrom rlang sym
 #' @importFrom dplyr across
+#' @import exactextractr
 #' @export
 extract_with_polygons <- function(
     polys,
     surf,
     id,
-    func = mean,
-    na.rm = TRUE
+    func = "mean",
+    na.rm = TRUE,
+    grid_ref = NULL
     ) {
   # type check
   stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
-  stopifnot("Check class of the input raster.\n" = any(methods::is(surf, "stars"), methods::is(surf, "SpatRaster")))
+  stopifnot("Check class of the input raster.\n" = methods::is(surf, "SpatRaster"))
   stopifnot(is.character(id))
 
   cls_polys <- check_packbound(polys)
@@ -228,46 +229,25 @@ extract_with_polygons <- function(
     polys <- switch_packbound(polys)
   }
 
-  extract_with_polygons_sf <- function(polys, surf, id, func) {
-    extracted <- stars::st_extract(x = surf, at = polys, FUN = func)
-    # extracted = extracted |>
-    #   group_by(!!sym(id)) |>
-    #   summarize(across(-!!sym(id), ~func)) |>
-    #   ungroup()
-    return(extracted)
+  if (!is.null(grid_ref)) {
+    polys <- polys[grid_ref, ]
   }
 
-  extract_with_polygons_terra <- function(polys, surf, id, func) {
-    extracted <- terra::extract(surf, polys, fun = func, ID = TRUE)
-    extracted$ID <- unlist(polys[[id]])
-    colnames(extracted)[1] <- id
-    extracted <- extracted |>
-      dplyr::group_by(!!rlang::sym(id)) |>
-      dplyr::summarize(dplyr::across(-1, ~func)) |>
-      dplyr::ungroup()
-    return(extracted)
-  }
-
-  extracted_poly <- switch(
-    cls_surf,
-    sf = extract_with_polygons_sf(
-      polys = polys,
-      surf = surf,
-      id = id,
-      func = func),
-    terra = extract_with_polygons_terra(
-      polys = polys,
-      surf = surf,
-      id = id,
-      func = func)
-  )
+  extracted_poly <-
+    exactextractr::exact_extract(
+      x = surf,
+      y = sf::st_as_sf(polys),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id
+    )
   return(extracted_poly)
 }
 
 
 #' Extract raster values with point buffers or polygons
 #'
-#' @param vector SpatVector object.
+#' @param vector sf/SpatVector object.
 #' @param raster SpatRaster object.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.

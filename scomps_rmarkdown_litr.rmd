@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-11-21"
+date: "2023-11-22"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.6.11212023",
+    Version = "0.0.6.11222023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -417,14 +417,12 @@ testthat::test_that("Clip extent is set properly", {
 #' @author Insang Song
 #' @param pnts sf or SpatVector object
 #' @param buffer_r numeric(1). buffer radius. this value will be automatically multiplied by 1.25
-#' @param nqsegs integer(1). the number of points per a quarter circle; SOON TO BE DEPRECATED
 #' @param target_input sf or SpatVector object to be clipped
 #' @return A clipped sf or SpatVector object.
 #' @export
 clip_as_extent <- function(
   pnts,
   buffer_r,
-  nqsegs = NULL,
   target_input) {
   if (any(sapply(list(pnts, buffer_r, target_input), is.null))) {
     stop("One or more required arguments are NULL. Please check.\n")
@@ -434,9 +432,7 @@ clip_as_extent <- function(
 
   if (detected_pnts != detected_target) {
     warning("Inputs are not the same class.\n")
-    target_input <- switch(detected_target,
-      sf = terra::vect(target_input),
-      terra = sf::st_as_sf(target_input))
+    target_input <- switch_packbound(target_input)
   }
 
   ext_input <- set_clip_extent(pnts, buffer_r)
@@ -453,6 +449,43 @@ clip_as_extent <- function(
 }
 ```
 
+```{r test-clip-extent-vector, eval = FALSE}
+testthat::test_that("Vector inputs are clipped by clip_as_extent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county",
+    query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)")
+  nctrct <- terra::vect(ncpath, layer = "tracts")
+
+  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncpt <- terra::vect(ncp)
+
+  ncpt <- ncpt[nccnty, ]
+
+  # terra-terra
+  testthat::expect_no_error(
+    suppressWarnings(cl_terra <- clip_as_extent(
+    pnts = ncpt, buffer_r = 3e4L, target_input = nctrct
+  )))
+  testthat::expect_s4_class(cl_terra, "SpatVector")
+
+  # sf-sf
+  ncp <- sf::st_as_sf(ncpt)
+  nccntysf <- sf::st_as_sf(nccnty)
+  nctrct <- sf::st_as_sf(nctrct)
+  testthat::expect_no_error(
+    suppressWarnings(cl_sf <- clip_as_extent(
+    pnts = ncp, buffer_r = 3e4L, target_input = nctrct
+  )))
+  testthat::expect_s3_class(cl_sf, "sf")
+
+})
+
+```
 
 ```{r, send_to = "R/processing.R"}
 #' @title clip_as_extent_ras: Clip input raster.
@@ -503,38 +536,6 @@ testthat::test_that("Clip by extent works without errors", {
 
 
 
-```
-
-
-```{r, send_to = "R/indexing.R"}
-#' @title Create integer indices for grid
-#' @description Returns a tibble object that includes
-#'  x- and y- index by using two inputs ncutsx and ncutsy,
-#'  which are x- and y-directional splits, respectively.
-#' @author Insang Song
-#' @param points_in sf object. 
-#' @param ncutsx integer(1). The number of splits along x-axis.
-#' @param ncutsy integer(1). The number of splits along y-axis.
-#' @export
-sp_indexing <- function(
-  points_in,
-  ncutsx,
-  ncutsy) {
-  # pts <- data.table(pnts)
-  points_in <- points_in |>
-    dplyr::mutate(or_id = seq(1, dim(points_in)[1]))
-
-  range_x  <- range(points_in$x)
-  # limits_x <- (range_x[1] + seq(0, ncutsx) * (range_x[2] - range_x[1]) / ncutsx)
-  range_y  <- range(points_in$y)
-  # limits_y <- (range_y[1] + seq(0, ncutsy) * (range_y[2] - range_y[1]) / ncutsy)
-
-  points_in_cut <- points_in |>
-    dplyr::mutate(xcut =  as.integer(cut(x, ncutsx, labels = seq(1, ncutsx))),
-           ycut = as.integer(cut(y, ncutsy, labels = seq(1, ncutsy))))
-
-  return(points_in_cut)
-}
 ```
 
 ```{r, send_to = "R/preprocessing.R"}
@@ -1204,25 +1205,30 @@ extract_with_buffer_kernel <- function(
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
 #' @param polys sf/SpatVector object. Polygons.
-#' @param surf stars/SpatRaster object. A raster of whatnot a summary will be calculated
+#' @param surf SpatRaster object. A raster from which a summary will be calculated
 #' @param id character(1). Unique identifier of each point.
-#' @param func a function taking one argument. For example, function(x) mean(x, na.rm = TRUE) or \(x) mode(x, na.rm = TRUE)
+#' @param func a generic function name in string or a function taking two arguments that are
+#'  compatible with \code{\link[exactextractr](exact_extract)}.
+#'  For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}
 #' @param na.rm logical(1). NA values are omitted when summary is calculated.
+#' @param grid_ref A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.
 #' @return a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @importFrom rlang sym
 #' @importFrom dplyr across
+#' @import exactextractr
 #' @export
 extract_with_polygons <- function(
     polys,
     surf,
     id,
-    func = mean,
-    na.rm = TRUE
+    func = "mean",
+    na.rm = TRUE,
+    grid_ref = NULL
     ) {
   # type check
   stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
-  stopifnot("Check class of the input raster.\n" = any(methods::is(surf, "stars"), methods::is(surf, "SpatRaster")))
+  stopifnot("Check class of the input raster.\n" = methods::is(surf, "SpatRaster"))
   stopifnot(is.character(id))
 
   cls_polys <- check_packbound(polys)
@@ -1232,39 +1238,18 @@ extract_with_polygons <- function(
     polys <- switch_packbound(polys)
   }
 
-  extract_with_polygons_sf <- function(polys, surf, id, func) {
-    extracted <- stars::st_extract(x = surf, at = polys, FUN = func)
-    # extracted = extracted |>
-    #   group_by(!!sym(id)) |>
-    #   summarize(across(-!!sym(id), ~func)) |>
-    #   ungroup()
-    return(extracted)
+  if (!is.null(grid_ref)) {
+    polys <- polys[grid_ref, ]
   }
 
-  extract_with_polygons_terra <- function(polys, surf, id, func) {
-    extracted <- terra::extract(surf, polys, fun = func, ID = TRUE)
-    extracted$ID <- unlist(polys[[id]])
-    colnames(extracted)[1] <- id
-    extracted <- extracted |>
-      dplyr::group_by(!!rlang::sym(id)) |>
-      dplyr::summarize(dplyr::across(-1, ~func)) |>
-      dplyr::ungroup()
-    return(extracted)
-  }
-
-  extracted_poly <- switch(
-    cls_surf,
-    sf = extract_with_polygons_sf(
-      polys = polys,
-      surf = surf,
-      id = id,
-      func = func),
-    terra = extract_with_polygons_terra(
-      polys = polys,
-      surf = surf,
-      id = id,
-      func = func)
-  )
+  extracted_poly <-
+    exactextractr::exact_extract(
+      x = surf,
+      y = sf::st_as_sf(polys),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id
+    )
   return(extracted_poly)
 }
 
@@ -1273,7 +1258,7 @@ extract_with_polygons <- function(
 ```{r, send_to = "R/processing.R"}
 #' Extract raster values with point buffers or polygons
 #'
-#' @param vector SpatVector object.
+#' @param vector sf/SpatVector object.
 #' @param raster SpatRaster object.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
@@ -1725,16 +1710,6 @@ distribute_process_grid <-
       future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
-
-    # print(results_distributed)
-    # print(names(results_distributed))
-    # results_distributed <- results_distributed[!is.na(unlist(results_distributed[[detected_id]])),]
-
-    # post-processing
-    # names(results_distributed)[1] <- par_fun[[detected_id]]
-    # results_distributed[[par_fun[[detected_id]]]] <-
-    #   unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
-
     return(results_distributed)
 }
 
@@ -1778,11 +1753,13 @@ distribute_process_grid <-
 #' @import future.apply
 #' @import progressr
 #' @export
-distribute_process_hierarchy <- function(
-  regions,
-  split_level = NULL,
-  fun_dist,
-  ...) {
+distribute_process_hierarchy <-
+  function(
+    regions,
+    split_level = NULL,
+    fun_dist,
+    ...
+  ) {
   par_fun <- list(...)
 
   if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
@@ -1903,12 +1880,6 @@ distribute_process_multirasters <- function(
                   future.packages =
                   c("terra", "sf", "dplyr", "scomps", "future"))
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
-  # results_distributed <-
-  #   results_distributed[!is.na(results_distributed[["ID"]]), ]
-  # post-processing
-  # names(results_distributed)[1] <- par_fun[[detected_id]]
-  # results_distributed[[par_fun[[detected_id]]]] <-
-  #   unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
 
   return(results_distributed)
 }
@@ -1924,7 +1895,6 @@ testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("sf")
   withr::local_package("future")
   withr::local_package("dplyr")
-  withr::local_package("scomps")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -1963,6 +1933,42 @@ testthat::test_that("Processes are properly spawned and compute", {
   print(res)
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
+
+
+```
+
+```{r test-runhierarchy, eval = FALSE}
+testthat::test_that("Processes are properly spawned and compute over hierarchy", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county")
+  nctrct <- terra::vect(ncpath, layer = "tracts")
+  ncelev <- terra::unwrap(readRDS(
+    testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  terra::crs(ncelev) <- "EPSG:5070"
+  names(ncelev) <- c("srtm15")
+
+  res <-
+    suppressWarnings(
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              split_level = "GEOID",
+                              fun_dist = extract_with_polygons,
+                              polys = nctrct,
+                              surf = ncelev,
+                              id = "GEOID",
+                              func = "mean")
+    )
+
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+})
+
 
 
 ```

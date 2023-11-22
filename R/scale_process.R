@@ -91,16 +91,6 @@ distribute_process_grid <-
       future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
-
-    # print(results_distributed)
-    # print(names(results_distributed))
-    # results_distributed <- results_distributed[!is.na(unlist(results_distributed[[detected_id]])),]
-
-    # post-processing
-    # names(results_distributed)[1] <- par_fun[[detected_id]]
-    # results_distributed[[par_fun[[detected_id]]]] <-
-    #   unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
-
     return(results_distributed)
 }
 
@@ -144,11 +134,13 @@ distribute_process_grid <-
 #' @import future.apply
 #' @import progressr
 #' @export
-distribute_process_hierarchy <- function(
-  regions,
-  split_level = NULL,
-  fun_dist,
-  ...) {
+distribute_process_hierarchy <-
+  function(
+    regions,
+    split_level = NULL,
+    fun_dist,
+    ...
+  ) {
   par_fun <- list(...)
 
   if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
@@ -269,12 +261,6 @@ distribute_process_multirasters <- function(
                   future.packages =
                   c("terra", "sf", "dplyr", "scomps", "future"))
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
-  # results_distributed <-
-  #   results_distributed[!is.na(results_distributed[["ID"]]), ]
-  # post-processing
-  # names(results_distributed)[1] <- par_fun[[detected_id]]
-  # results_distributed[[par_fun[[detected_id]]]] <-
-  #   unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
 
   return(results_distributed)
 }

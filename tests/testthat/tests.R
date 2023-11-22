@@ -109,6 +109,42 @@ testthat::test_that("Clip extent is set properly", {
 })
 
 
+testthat::test_that("Vector inputs are clipped by clip_as_extent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county",
+    query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)")
+  nctrct <- terra::vect(ncpath, layer = "tracts")
+
+  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncpt <- terra::vect(ncp)
+
+  ncpt <- ncpt[nccnty, ]
+
+  # terra-terra
+  testthat::expect_no_error(
+    suppressWarnings(cl_terra <- clip_as_extent(
+    pnts = ncpt, buffer_r = 3e4L, target_input = nctrct
+  )))
+  testthat::expect_s4_class(cl_terra, "SpatVector")
+
+  # sf-sf
+  ncp <- sf::st_as_sf(ncpt)
+  nccntysf <- sf::st_as_sf(nccnty)
+  nctrct <- sf::st_as_sf(nctrct)
+  testthat::expect_no_error(
+    suppressWarnings(cl_sf <- clip_as_extent(
+    pnts = ncp, buffer_r = 3e4L, target_input = nctrct
+  )))
+  testthat::expect_s3_class(cl_sf, "sf")
+
+})
+
+
 testthat::test_that("Clip by extent works without errors", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -347,7 +383,6 @@ testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("sf")
   withr::local_package("future")
   withr::local_package("dplyr")
-  withr::local_package("scomps")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -386,6 +421,40 @@ testthat::test_that("Processes are properly spawned and compute", {
   print(res)
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
+
+
+
+testthat::test_that("Processes are properly spawned and compute over hierarchy", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county")
+  nctrct <- terra::vect(ncpath, layer = "tracts")
+  ncelev <- terra::unwrap(readRDS(
+    testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  terra::crs(ncelev) <- "EPSG:5070"
+  names(ncelev) <- c("srtm15")
+
+  res <-
+    suppressWarnings(
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              split_level = "GEOID",
+                              fun_dist = extract_with_polygons,
+                              polys = nctrct,
+                              surf = ncelev,
+                              id = "GEOID",
+                              func = "mean")
+    )
+
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+})
+
 
 
 
