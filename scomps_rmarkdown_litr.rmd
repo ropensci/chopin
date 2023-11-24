@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-11-22"
+date: "2023-11-24"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.6.11222023",
+    Version = "0.0.6.11242023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -198,7 +198,8 @@ testthat::test_that("What package does the input object belong?",
 #' @return Data converted to the other package class (if sf, terra; if terra, sf)
 #' @export
 switch_packbound <- function(input) {
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
+  stopifnot("Input should be one of sf or Spat* object.\n" =
+    any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster")))
   cls_input <- check_packbound(input)
   type_input <- check_datatype(input)
 
@@ -249,41 +250,104 @@ testthat::test_that("Format is well converted",
 ```
 
 ```{r, send_to = "R/check.R"}
-#' @title check_crs2: Coordinate system checker
-#' @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
+#' @title check_crs_align: Check coordinate system then reproject
+#' @description The input is checked whether its coordinate system is
+#'  present. If not, it is reprojected to the CRS specified in
+#' \code{crs_standard}.
 #' @param input Input object one of sf or terra::Spat* object
-#' @param crs_standard character(1). A standard definition of coordinate reference system. Default is "EPSG:4326" Consult [epsg.io](https://epsg.io) for details of other CRS.
+#' @param crs_standard character(1). A standard definition of
+#'  coordinate reference system. Default is "EPSG:4326"
+#'  Consult [epsg.io](https://epsg.io) for details of other CRS.
 #' @return A (reprojected) sf or SpatVector object.
 #' @export
-check_crs2 <- function(
-  input,
-  crs_standard = "EPSG:4326") {
-  check_crs_sf <- function(input) {
-    if (is.na(sf::st_crs(input))) {
-      cat('Please check the coordinate system or its EPSG code of your input object.')
-      return(NULL)
+check_crs_align <-
+  function(
+    input,
+    crs_standard = "EPSG:4326") {
+  
+  if (!is.character(crs_standard)) {
+    stop("crs_standard seems to be in invalid format.
+      It should be '[authority]:[code]' format.
+      Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
+  }
+  check_crs_sf <- function(input, crs_standard) {
+    if (is.na(sf::st_crs(input)) || is.null(sf::st_crs(input))) {
+      stop('Please check the coordinate system or
+       its EPSG code of your input object.')
     }
-    if (sf::st_crs(input)$epsg == crs_standard) {
+    input_crs <- sf::st_crs(input)$epsg
+    standard_crs <- sf::st_crs(crs_standard)$epsg
+    if (input_crs == standard_crs) {
       return(input)
     } 
-    input_transformed <- sf::st_transform(input, sf::st_crs(crs_standard))
+    input_transformed <-
+      sf::st_transform(input, sf::st_crs(crs_standard))
     return(input_transformed)
   }
 
-  check_crs_terra <- function(input) {
-    if (terra::crs(input, describe = TRUE)$code == crs_standard) {
+  check_crs_terra <- function(input, crs_standard) {
+    if (is.na(terra::crs(input)) || is.null(terra::crs(input))) {
+      stop('Please check the coordinate system or
+       its EPSG code of your input object.')
+    }
+    input_crs <- terra::crs(input, describe = TRUE)$code
+    standard_crs <- terra::crs(crs_standard, describe = TRUE)$code
+    if (input_crs == standard_crs) {
       return(input)
     }
-    input_transformed <- terra::project(input, terra::crs(crs_standard))
+    input_transformed <-
+      terra::project(x = input, y = crs_standard)
     return(input_transformed)
   }
 
   detected <- check_packbound(input)
   switch(detected,
-    terra = check_crs_terra(input),
-    sf = check_crs_sf(input))
+    terra = check_crs_terra(input = input, crs_standard = crs_standard),
+    sf = check_crs_sf(input = input, crs_standard = crs_standard))
 }
 ```
+
+
+```{r test-crs-align, eval = FALSE}
+testthat::test_that("CRS is transformed when it is not standard", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  nctr <- terra::vect(nc)
+  terra::crs(nctr) <- "EPSG:5070"
+  ncna <- nc
+  sf::st_crs(ncna) <- NA
+  ncnatr <- terra::vect(ncna)
+
+  testthat::expect_error(check_crs_align(nc, 4326))
+  testthat::expect_error(check_crs_align(ncna, crs_standard = "EPSG:4326"))
+  testthat::expect_error(check_crs_align(ncnatr, "EPSG:4326"))
+
+  testthat::expect_no_error(check_crs_align(nc, crs_standard = "EPSG:4326"))
+  testthat::expect_no_error(check_crs_align(nc, crs_standard = "EPSG:5070"))
+  testthat::expect_no_error(check_crs_align(nctr, crs_standard = "EPSG:4326"))
+  testthat::expect_no_error(check_crs_align(nctr, crs_standard = "EPSG:5070"))
+
+  nctr_align <- check_crs_align(nctr, "EPSG:4326")
+  nc_align <- check_crs_align(nc, "EPSG:4326")
+
+  testthat::expect_s3_class(nc_align, "sf")
+  testthat::expect_s4_class(nctr_align, "SpatVector")
+
+  nc_align_epsg <- sf::st_crs(nc_align)$epsg 
+  nctr_align_epsg <- terra::crs(nctr_align, describe = TRUE)$code
+
+  testthat::expect_equal(nc_align_epsg, 4326)
+  testthat::expect_equal(nctr_align_epsg, "4326")
+
+})
+
+```
+
 
 ```{r, send_to = "R/validate.R"}
 #' Validate and repair input vector data
@@ -1144,6 +1208,7 @@ extract_with_buffer_flat <- function(
   ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  bufs <- reproject_b2r(bufs, surf)
   # crop raster
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
@@ -1174,6 +1239,8 @@ extract_with_buffer_kernel <- function(
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  bufs <- reproject_b2r(bufs, surf)
+
   # crop raster
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
@@ -1189,12 +1256,25 @@ extract_with_buffer_kernel <- function(
     surf_at_bufs |>
       dplyr::group_by(ID) |>
       dplyr::summarize(
-        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = T)
+        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = TRUE)
       ) |> 
       dplyr::ungroup()
   colnames(surf_at_bufs_summary)[1] <- id
   return(surf_at_bufs_summary)
 }
+
+
+# subfunction: reproject buffers to raster's
+reproject_b2r <-
+  function(buffers,
+           raster) {
+    detected_buf <- check_packbound(buffers)
+    detected_ras <- check_packbound(raster)
+    switch(detected_buf,
+           sf = sf::st_transform(buffers, terra::crs(raster)),
+           terra = terra::project(buffers, terra::crs(raster)))
+
+  }
 
 ```
 
@@ -1242,6 +1322,8 @@ extract_with_polygons <- function(
     polys <- polys[grid_ref, ]
   }
 
+  polys <- reproject_b2r(polys, surf)
+
   extracted_poly <-
     exactextractr::exact_extract(
       x = surf,
@@ -1282,8 +1364,8 @@ extract_with <- function(
 
   extracted <-
     switch(mode,
-      polygon = extract_with_polygons(vector, raster, id = id, func = func, ...),
-      buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
+      polygon = extract_with_polygons(polys = vector, surf = raster, id = id, func = func, ...),
+      buffer = extract_with_buffer(points = vector, surf = raster, id = id, func = func, ...))
   return(extracted)
 }
 

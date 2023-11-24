@@ -139,6 +139,7 @@ extract_with_buffer_flat <- function(
   ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  bufs <- reproject_b2r(bufs, surf)
   # crop raster
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
@@ -169,6 +170,8 @@ extract_with_buffer_kernel <- function(
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
+  bufs <- reproject_b2r(bufs, surf)
+
   # crop raster
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
@@ -184,12 +187,25 @@ extract_with_buffer_kernel <- function(
     surf_at_bufs |>
       dplyr::group_by(ID) |>
       dplyr::summarize(
-        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = T)
+        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = TRUE)
       ) |> 
       dplyr::ungroup()
   colnames(surf_at_bufs_summary)[1] <- id
   return(surf_at_bufs_summary)
 }
+
+
+# subfunction: reproject buffers to raster's
+reproject_b2r <-
+  function(buffers,
+           raster) {
+    detected_buf <- check_packbound(buffers)
+    detected_ras <- check_packbound(raster)
+    switch(detected_buf,
+           sf = sf::st_transform(buffers, terra::crs(raster)),
+           terra = terra::project(buffers, terra::crs(raster)))
+
+  }
 
 
 #' @title Extract summarized values from raster with generic polygons
@@ -233,6 +249,8 @@ extract_with_polygons <- function(
     polys <- polys[grid_ref, ]
   }
 
+  polys <- reproject_b2r(polys, surf)
+
   extracted_poly <-
     exactextractr::exact_extract(
       x = surf,
@@ -271,8 +289,8 @@ extract_with <- function(
 
   extracted <-
     switch(mode,
-      polygon = extract_with_polygons(vector, raster, id = id, func = func, ...),
-      buffer = extract_with_buffer(vector, raster, id = id, func = func, ...))
+      polygon = extract_with_polygons(polys = vector, surf = raster, id = id, func = func, ...),
+      buffer = extract_with_buffer(points = vector, surf = raster, id = id, func = func, ...))
   return(extracted)
 }
 

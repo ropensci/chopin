@@ -25,39 +25,60 @@ check_datatype <- function(input) {
   }
 }
 
-#' @title check_crs2: Coordinate system checker
-#' @description The input is checked whether its coordinate system is present. If not, it is reprojected to EPSG:5179.
+#' @title check_crs_align: Check coordinate system then reproject
+#' @description The input is checked whether its coordinate system is
+#'  present. If not, it is reprojected to the CRS specified in
+#' \code{crs_standard}.
 #' @param input Input object one of sf or terra::Spat* object
-#' @param crs_standard character(1). A standard definition of coordinate reference system. Default is "EPSG:4326" Consult [epsg.io](https://epsg.io) for details of other CRS.
+#' @param crs_standard character(1). A standard definition of
+#'  coordinate reference system. Default is "EPSG:4326"
+#'  Consult [epsg.io](https://epsg.io) for details of other CRS.
 #' @return A (reprojected) sf or SpatVector object.
 #' @export
-check_crs2 <- function(
-  input,
-  crs_standard = "EPSG:4326") {
-  check_crs_sf <- function(input) {
-    if (is.na(sf::st_crs(input))) {
-      cat('Please check the coordinate system or its EPSG code of your input object.')
-      return(NULL)
+check_crs_align <-
+  function(
+    input,
+    crs_standard = "EPSG:4326") {
+  
+  if (!is.character(crs_standard)) {
+    stop("crs_standard seems to be in invalid format.
+      It should be '[authority]:[code]' format.
+      Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
+  }
+  check_crs_sf <- function(input, crs_standard) {
+    if (is.na(sf::st_crs(input)) || is.null(sf::st_crs(input))) {
+      stop('Please check the coordinate system or
+       its EPSG code of your input object.')
     }
-    if (sf::st_crs(input)$epsg == crs_standard) {
+    input_crs <- sf::st_crs(input)$epsg
+    standard_crs <- sf::st_crs(crs_standard)$epsg
+    if (input_crs == standard_crs) {
       return(input)
     } 
-    input_transformed <- sf::st_transform(input, sf::st_crs(crs_standard))
+    input_transformed <-
+      sf::st_transform(input, sf::st_crs(crs_standard))
     return(input_transformed)
   }
 
-  check_crs_terra <- function(input) {
-    if (terra::crs(input, describe = TRUE)$code == crs_standard) {
+  check_crs_terra <- function(input, crs_standard) {
+    if (is.na(terra::crs(input)) || is.null(terra::crs(input))) {
+      stop('Please check the coordinate system or
+       its EPSG code of your input object.')
+    }
+    input_crs <- terra::crs(input, describe = TRUE)$code
+    standard_crs <- terra::crs(crs_standard, describe = TRUE)$code
+    if (input_crs == standard_crs) {
       return(input)
     }
-    input_transformed <- terra::project(input, terra::crs(crs_standard))
+    input_transformed <-
+      terra::project(x = input, y = crs_standard)
     return(input_transformed)
   }
 
   detected <- check_packbound(input)
   switch(detected,
-    terra = check_crs_terra(input),
-    sf = check_crs_sf(input))
+    terra = check_crs_terra(input = input, crs_standard = crs_standard),
+    sf = check_crs_sf(input = input, crs_standard = crs_standard))
 }
 
 #' Generate a rectangular polygon from extent
