@@ -63,6 +63,44 @@ testthat::test_that("Format is well converted",
 
 
 
+testthat::test_that("CRS is transformed when it is not standard", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  nctr <- terra::vect(nc)
+  terra::crs(nctr) <- "EPSG:5070"
+  ncna <- nc
+  sf::st_crs(ncna) <- NA
+  ncnatr <- terra::vect(ncna)
+
+  testthat::expect_error(check_crs_align(nc, 4326))
+  testthat::expect_error(check_crs_align(ncna, crs_standard = "EPSG:4326"))
+  testthat::expect_error(check_crs_align(ncnatr, "EPSG:4326"))
+
+  testthat::expect_no_error(check_crs_align(nc, crs_standard = "EPSG:4326"))
+  testthat::expect_no_error(check_crs_align(nc, crs_standard = "EPSG:5070"))
+  testthat::expect_no_error(check_crs_align(nctr, crs_standard = "EPSG:4326"))
+  testthat::expect_no_error(check_crs_align(nctr, crs_standard = "EPSG:5070"))
+
+  nctr_align <- check_crs_align(nctr, "EPSG:4326")
+  nc_align <- check_crs_align(nc, "EPSG:4326")
+
+  testthat::expect_s3_class(nc_align, "sf")
+  testthat::expect_s4_class(nctr_align, "SpatVector")
+
+  nc_align_epsg <- sf::st_crs(nc_align)$epsg 
+  nctr_align_epsg <- terra::crs(nctr_align, describe = TRUE)$code
+
+  testthat::expect_equal(nc_align_epsg, 4326)
+  testthat::expect_equal(nctr_align_epsg, "4326")
+
+})
+
+
 testthat::test_that("vector validity check is cleared", {
   withr::local_package("sf")
   withr::local_package("terra")

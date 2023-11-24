@@ -7,7 +7,8 @@
 #' @return Data converted to the other package class (if sf, terra; if terra, sf)
 #' @export
 switch_packbound <- function(input) {
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
+  stopifnot("Input should be one of sf or Spat* object.\n" =
+    any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster")))
   cls_input <- check_packbound(input)
   type_input <- check_datatype(input)
 
