@@ -1,0 +1,87 @@
+---
+title: "Distribute computational workloads over multiple threads"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{computational_grids}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Plan
+
+- Be planned before you distribute your workload to multiple threads. Major points include:
+    - The peak memory consumption of your process with a small dataset: you can employ the power of parallel processing as far as your computational assets allow. The total memory size may be the highest hurdle for this. Users are strongly recommended to run a small (e.g., target points in a computational grid) example then estimate the total memory demand. Roughly speaking, your machine should be equipped with the memory exceeding (number of threads to be drawn) * (the peak memory usage per thread).
+    - Small datasets are good with the single-thread processing: this package leverages `terra` and `exactextractr` in major processing helper functions. They are based on C++ backends, where users can get a decent performance with just one thread and a relatively small amount of memory capacity. Factors to choose to stay single-thread or go on with multi-thread processing are:
+        - The spatial and temporal resolutions of raster datasets
+        - The spatial extent and study period
+        - The number of points to be processed
+        - Other factors affect the intermediate products' complexity: when you use a set of polygons to summarize raster values, the intermediate memory consumption will depend on the number of vertices in polygon datasets. We recommend users simplify complex polygon features before processing if the simplification does not or trivially impact the expected results. 
+        - These factors interact; for instance, even if the raster has a fine resolution and the large spatial extent, you will not find any performance gain with multi-thread processing when you have a small number of points to process.
+
+
+
+## Operate
+```{r, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+
+- We start with a polygon dataset in North Carolina. This dataset is included in `sf` package.
+
+```{r}
+library(scomps)
+library(dplyr)
+library(sf)
+library(terra)
+library(future)
+library(future.apply)
+options(sf_use_s2 = FALSE)
+
+
+```
+
+
+```{r}
+ncpoly <- system.file("shape/nc.shp", package = "sf")
+ncsf <- sf::read_sf(ncpoly)
+ncsf <- sf::st_transform(ncsf, "EPSG:5070")
+plot(sf::st_geometry(ncsf))
+```
+
+- To demonstrate, a set of 1,000 random points are generated inside the polygons:
+
+```{r }
+ncpoints <- sf::st_sample(ncsf, 1000)
+plot(sf::st_geometry(ncpoints))
+
+# st_sample output is st_sfc. We should convert it to sf
+ncpoints <- st_as_sf(ncpoints)
+ncpoints$pid <- seq(1, nrow(ncpoints))
+
+```
+
+- A motivating example is digital elevation model (DEM) data from Shuttle Radar Topography Mission satellite. We prepared the dataset from `elevatr` package. You may consult the package tutorial for retrieving data directly from OpenTopography via `elevatr`.
+- SpatRaster objects in `terra` package should be serialized to compress then reuse elsewhere. For serialization and de-serialization, `terra::wrap` and `terra::unwrap` need to be used.
+
+```{r load-srtm}
+srtm <- terra::unwrap(readRDS("./tests/testdata/nc_srtm15_otm.rds"))
+plot(srtm)
+terra::crs(srtm) <- "EPSG:5070"
+```
+
+
+### Single-thread processing
+```{r}
+ncpoints_tr <- terra::vect(ncpoints)
+system.time(
+    ncpoints_srtm <-
+        scomps::extract_with(
+            vector = ncpoints_tr,
+            raster = srtm,
+            id = "pid",
+            mode = "buffer",
+            radius = 1e4L) # 10,000 meters (10 km)
+)
+```
+
