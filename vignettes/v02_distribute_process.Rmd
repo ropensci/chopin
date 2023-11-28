@@ -1,0 +1,375 @@
+---
+title: "Distribute computational workloads over multiple threads"
+date: "2023-11-28"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{multithreading}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Plan
+
+- Be planned before you distribute your workload to multiple threads. Major points include:
+    - The peak memory consumption of your process with a small dataset: you can employ the power of parallel processing as far as your computational assets allow. The total memory size may be the highest hurdle for this. Users are strongly recommended to run a small (e.g., target points in a computational grid) example then estimate the total memory demand. Roughly speaking, your machine should be equipped with the memory exceeding (number of threads to be drawn) * (the peak memory usage per thread).
+    - Small datasets are good with the single-thread processing: this package leverages `terra` and `exactextractr` in major processing helper functions. They are based on C++ backends, where users can get a decent performance with just one thread and a relatively small amount of memory capacity. Factors to choose to stay single-thread or go on with multi-thread processing are:
+        - The spatial and temporal resolutions of raster datasets
+        - The spatial extent and study period
+        - The number of points to be processed
+        - Other factors affect the intermediate products' complexity: when you use a set of polygons to summarize raster values, the intermediate memory consumption will depend on the number of vertices in polygon datasets. We recommend users simplify complex polygon features before processing if the simplification does not or trivially impact the expected results. 
+        - These factors interact; for instance, even if the raster has a fine resolution and the large spatial extent, you will not find any performance gain with multi-thread processing when you have a small number of points to process.
+
+
+
+
+```r
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+- A motivating example is extracting mean elevation at 10 kilometers circular point buffers using digital elevation model (DEM) data from Shuttle Radar Topography Mission satellite. We prepared the dataset from `elevatr` package. You may consult the package tutorial for retrieving data directly from OpenTopography via `elevatr`.
+
+- We start with a polygon dataset in North Carolina. This dataset is included in `sf` package.
+
+
+```r
+library(scomps)
+library(dplyr)
+library(sf)
+library(terra)
+library(future)
+library(future.apply)
+library(doFuture)
+library(tigris)
+options(sf_use_s2 = FALSE)
+set.seed(2023, kind = "L'Ecuyer-CMRG")
+```
+
+
+# Use case 1: mean elevation at circular points buffers
+
+
+```r
+ncpoly <- system.file("shape/nc.shp", package = "sf")
+ncsf <- sf::read_sf(ncpoly)
+ncsf <- sf::st_transform(ncsf, "EPSG:5070")
+plot(sf::st_geometry(ncsf))
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+
+- To demonstrate, a set of 1,000 random points are generated inside the polygons:
+
+
+```r
+ncpoints <- sf::st_sample(ncsf, 10000)
+plot(sf::st_geometry(ncpoints))
+```
+
+![plot of chunk point-generation](figure/point-generation-1.png)
+
+```r
+# st_sample output is st_sfc. We should convert it to sf
+ncpoints <- st_as_sf(ncpoints)
+ncpoints$pid <- seq(1, nrow(ncpoints))
+```
+
+- SpatRaster objects in `terra` package should be serialized to compress then reuse elsewhere. For serialization and de-serialization, `terra::wrap` and `terra::unwrap` need to be used.
+
+
+```r
+srtm <- terra::unwrap(readRDS("../../tests/testdata/nc_srtm15_otm.rds"))
+srtm
+```
+
+```
+## class       : SpatRaster 
+## dimensions  : 1534, 2281, 1  (nrow, ncol, nlyr)
+## resolution  : 391.5026, 391.5026  (x, y)
+## extent      : 1012872, 1905890, 1219961, 1820526  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs 
+## source(s)   : memory
+## name        : file928c3830468b 
+## min value   :        -3589.291 
+## max value   :         1946.400
+```
+
+```r
+plot(srtm)
+```
+
+![plot of chunk load-srtm](figure/load-srtm-1.png)
+
+```r
+terra::crs(srtm) <- "EPSG:5070"
+```
+
+- Modern computers usually have more than two threads, which enables users to perform many tasks at the same time. Provided that users have machines with sufficient memory, which runs much faster than network or storage, one can reduce the total processing time by employing multiple threads for processing data.
+- Users need to consider several things before leveraging multi-thread processing in geospatial computation:
+    - The computation task should be divisible: the simplest statement would be the computation at each split must not be related to another.
+    - Each dataset for processing needs to be split beforehand.
+    - Know the characteristics of function you want to parallelize:
+        - Does the function call entire data into memory or refer to the location then read values on demand?
+        - Does the function work with parallel processing?
+
+### Single-thread processing
+
+```r
+ncpoints_tr <- terra::vect(ncpoints)
+system.time(
+    ncpoints_srtm <-
+        scomps::extract_with(
+            vector = ncpoints_tr,
+            raster = srtm,
+            id = "pid",
+            mode = "buffer",
+            radius = 1e4L) # 10,000 meters (10 km)
+)
+```
+
+```
+##    user  system elapsed 
+##   6.602   0.181   6.800
+```
+
+
+### Multi-thread processing
+- Given that the data are distributed across North Carolina, we will consider splitting the points into subregions by grids.
+- `scomps` package has `get_computational_regions` to help splitting the entire study region.
+    - Please note that `get_computational_regions` will accept `padding` argument, by which users can get _padded_ grids to avoid missing raster cells from original unit grid boundaries.
+
+
+```r
+compregions <-
+    scomps::get_computational_regions(
+        ncpoints_tr,
+        mode = "grid",
+        nx = 8L,
+        ny = 5L,
+        padding = 1e4L
+    )
+
+names(compregions)
+```
+
+```
+## [1] "original" "padded"
+```
+
+```r
+oldpar <- par()
+par(mfcol = c(1, 2))
+plot(compregions$original, main = "Original grids")
+plot(compregions$padded, main = "Padded grids")
+```
+
+![plot of chunk generate-compregion](figure/generate-compregion-1.png)
+
+```r
+par(oldpar)
+```
+
+In the figure above, the padded grids have overlaps one another. `get_computational_regions` automatically expand a little more than the input argument `padding`.
+
+Now, we will distribute the computational process for these grids.
+
+
+```r
+plan(multicore, workers = 4L)
+doFuture::registerDoFuture()
+
+system.time(
+    ncpoints_srtm_mthr <-
+        scomps::distribute_process_grid(
+            grids = compregions,
+            grid_target_id = NULL,
+            fun_dist = scomps::extract_with,
+            vector = ncpoints_tr,
+            raster = srtm,
+            id = "pid",
+            mode = "buffer",
+            radius = 1e4L
+        )
+)
+```
+
+```
+## Your input function was 
+##           successfully run at CGRIDID: 1
+## Your input function was 
+##           successfully run at CGRIDID: 2
+## Your input function was 
+##           successfully run at CGRIDID: 3
+## Your input function was 
+##           successfully run at CGRIDID: 4
+## Your input function was 
+##           successfully run at CGRIDID: 5
+## Your input function was 
+##           successfully run at CGRIDID: 6
+## Your input function was 
+##           successfully run at CGRIDID: 7
+## Your input function was 
+##           successfully run at CGRIDID: 8
+## Your input function was 
+##           successfully run at CGRIDID: 9
+## Your input function was 
+##           successfully run at CGRIDID: 10
+## Your input function was 
+##           successfully run at CGRIDID: 11
+## Your input function was 
+##           successfully run at CGRIDID: 12
+## Your input function was 
+##           successfully run at CGRIDID: 13
+## Your input function was 
+##           successfully run at CGRIDID: 14
+## Your input function was 
+##           successfully run at CGRIDID: 15
+## Your input function was 
+##           successfully run at CGRIDID: 16
+## Your input function was 
+##           successfully run at CGRIDID: 17
+## Your input function was 
+##           successfully run at CGRIDID: 18
+## Your input function was 
+##           successfully run at CGRIDID: 19
+## Your input function was 
+##           successfully run at CGRIDID: 20
+## Your input function was 
+##           successfully run at CGRIDID: 21
+## Your input function was 
+##           successfully run at CGRIDID: 22
+## Your input function was 
+##           successfully run at CGRIDID: 23
+## Your input function was 
+##           successfully run at CGRIDID: 24
+## Your input function was 
+##           successfully run at CGRIDID: 25
+## Your input function was 
+##           successfully run at CGRIDID: 26
+## Your input function was 
+##           successfully run at CGRIDID: 27
+## Your input function was 
+##           successfully run at CGRIDID: 28
+## Your input function was 
+##           successfully run at CGRIDID: 29
+## Your input function was 
+##           successfully run at CGRIDID: 30
+## Your input function was 
+##           successfully run at CGRIDID: 31
+## Your input function was 
+##           successfully run at CGRIDID: 32
+## Your input function was 
+##           successfully run at CGRIDID: 33
+```
+
+```
+##    user  system elapsed 
+##   4.540   0.411   2.568
+```
+
+
+
+```r
+ncpoints_srtm_mthr <-
+    ncpoints_srtm_mthr[order(ncpoints_srtm_mthr$pid),]
+all.equal(ncpoints_srtm, ncpoints_srtm_mthr)
+```
+
+```
+## [1] "Attributes: < Component \"row.names\": Mean relative difference: 0.6567904 >"
+## [2] "Component \"mean\": Mean relative difference: 8.712634e-05"
+```
+
+Let's find what the results look like.
+
+
+```r
+ncpoints_s <-
+    merge(ncpoints, ncpoints_srtm)
+ncpoints_m <-
+    merge(ncpoints, ncpoints_srtm_mthr)
+
+plot(ncpoints_s[, "mean"], main = "Single-thread")
+```
+
+![plot of chunk vis-results](figure/vis-results-1.png)
+
+```r
+plot(ncpoints_m[, "mean"], main = "Multi-thread")
+```
+
+![plot of chunk vis-results](figure/vis-results-2.png)
+
+
+
+## Distribute computation through geographic hierarchy
+- We consider "hierarchy," which is usually embedded in many geospatial datasets. Suppose we want to summarize elevation across census geographies in North Carolina. The census geographies are highly organized in order; think of state, counties, zip code areas, census tracts, block groups, and blocks. Some of these are exhaustive to the higher order geographies (e.g., census block groups are exhaustively delineated in a census tract), whereas some do not (not all zip code areas are exhaustively covered by a county).
+- In this example, we consider 
+
+
+
+```r
+nc_county <- tigris::counties(state = "NC", cb = TRUE, year = 2020)
+```
+
+```
+##   |                                                                              |                                                                      |   0%  |                                                                              |                                                                      |   1%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |==                                                                    |   4%  |                                                                              |===                                                                   |   4%  |                                                                              |===                                                                   |   5%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |=====                                                                 |   8%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |=======                                                               |  11%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |==========                                                            |  15%  |                                                                              |===========                                                           |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  16%  |                                                                              |============                                                          |  17%  |                                                                              |============                                                          |  18%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  19%  |                                                                              |===============                                                       |  21%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  25%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  29%  |                                                                              |=========================                                             |  35%  |                                                                              |==================================                                    |  48%  |                                                                              |===========================================                           |  62%  |                                                                              |================================================                      |  68%  |                                                                              |=========================================================             |  81%  |                                                                              |==================================================================    |  94%  |                                                                              |===================================================================== |  98%  |                                                                              |======================================================================|  99%  |                                                                              |======================================================================| 100%
+```
+
+```r
+nc_tracts <- tigris::tracts(cb = TRUE, state = "NC", year = 2020)
+```
+
+```
+##   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |===                                                                   |   5%  |                                                                              |====                                                                  |   5%  |                                                                              |=====                                                                 |   7%  |                                                                              |=====                                                                 |   8%  |                                                                              |======                                                                |   8%  |                                                                              |========                                                              |  11%  |                                                                              |=========                                                             |  13%  |                                                                              |==========================                                            |  37%  |                                                                              |=============================                                         |  41%  |                                                                              |===============================                                       |  44%  |                                                                              |===============================                                       |  45%  |                                                                              |================================                                      |  45%  |                                                                              |======================================                                |  54%  |                                                                              |=============================================                         |  65%  |                                                                              |============================================================          |  86%  |                                                                              |======================================================================| 100%
+```
+
+```r
+nc_county <- sf::st_transform(nc_county, "EPSG:5070")
+nc_tracts <- sf::st_transform(nc_tracts, "EPSG:5070")
+nc_tracts$COUNTY <-
+    paste0(nc_tracts$STATEFP, nc_tracts$COUNTYFP)
+```
+
+## Single-thread processing
+
+
+```r
+system.time(
+    nc_elev_tr_single <- scomps::extract_with(
+        vector = nc_tracts,
+        raster = srtm,
+        id = "GEOID",
+        mode = "polygon"
+    )
+)
+```
+
+```
+##    user  system elapsed 
+##   0.577   0.008   0.587
+```
+
+## Multi-thread processing through hierarchy
+
+
+```r
+system.time(
+    nc_elev_tr_distr <-
+        scomps::distribute_process_hierarchy(
+            regions = nc_county, # higher level geometry
+            split_level = "GEOID", # higher level unique id
+            fun_dist = scomps::extract_with,
+            vector = nc_tracts, # lower level geometry
+            raster = srtm,
+            id = "GEOID", # lower level unique id
+            func = "mean"
+        )
+)
+```
+
+```
+##    user  system elapsed 
+##   0.021   0.010   0.727
+```
+
+It is clearly shown that several thousands of features may not get benefits from parallel processing. However, this approach will be helpful when each geographic area is large and the raster data is too large to handle.

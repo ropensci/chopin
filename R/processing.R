@@ -145,8 +145,15 @@ extract_with_buffer_flat <- function(
   surf_cropped <- terra::crop(surf, bufs_extent)
   name_surf_val <- names(surf)
   # extract raster values
-  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
-    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs <-
+    exactextractr::exact_extract(
+      surf_cropped,
+      sf::st_as_sf(bufs),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
     surf_at_bufs #|>
       # dplyr::group_by(ID) |>
@@ -181,8 +188,15 @@ extract_with_buffer_kernel <- function(
 
 
   # extract raster values
-  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
-    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs <-
+    exactextractr::exact_extract(
+      surf_cropped,
+      sf::st_as_sf(bufs),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
     surf_at_bufs |>
       dplyr::group_by(ID) |>
@@ -241,9 +255,9 @@ extract_with_polygons <- function(
   cls_polys <- check_packbound(polys)
   cls_surf <- check_packbound(surf)
 
-  if (cls_polys != cls_surf) {
-    polys <- switch_packbound(polys)
-  }
+  # if (cls_polys != cls_surf) {
+  #   polys <- switch_packbound(polys)
+  # }
 
   if (!is.null(grid_ref)) {
     polys <- polys[grid_ref, ]
@@ -257,7 +271,9 @@ extract_with_polygons <- function(
       y = sf::st_as_sf(polys),
       fun = func,
       force_df = TRUE,
-      append_cols = id
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07
     )
   return(extracted_poly)
 }

@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-11-24"
+date: "2023-11-28"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.0.6.11242023",
+    Version = "0.1.0.11282023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -48,6 +48,8 @@ usethis::use_package("exactextractr")
 usethis::use_package("future")
 usethis::use_package("future.apply")
 usethis::use_package("covr")
+usethis::use_package("tigris", "Suggests")
+usethis::use_package("doFuture", "Suggests")
 usethis::use_package("logr", "Suggests")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
@@ -112,14 +114,21 @@ saveRDS(huc08sadd, "./tests/testdata/huc08_nc.rds", compress = "xz")
 
 ### Vignettes 1
 
-```{r}
+```{r vig1}
 litr::add_vignettes("../tools/vignettes-sources/v00_good_practice_parallelization.Rmd")
 ```
 
 ### Vignettes 2
 
-```{r}
+```{r vig2}
 litr::add_vignettes("../tools/vignettes-sources/v01_generate_computational_grid.Rmd")
+```
+
+
+### Vignettes 3
+
+```{r vig3}
+litr::add_vignettes("../tools/vignettes-sources/v02_distribute_process.Rmd")
 ```
 
 
@@ -351,10 +360,17 @@ testthat::test_that("CRS is transformed when it is not standard", {
 
 ```{r, send_to = "R/validate.R"}
 #' Validate and repair input vector data
-#' @description It tries repairing input vector data. Vector validity violation usually appears in polygon data with self-crossing or hole orders. This function will pass the input_vector object to sf::st_make_valid() (if input_vector is sf) or terra::makeValid() (if input_vector is SpatVector). May take some time depending on the geometry complexity.
+#' @description It tries repairing input vector data.
+#' Vector validity violation usually appears in polygon data with
+#' self-crossing or
+#' hole orders. This function will pass the input_vector object to
+#' sf::st_make_valid() (if input_vector is sf) or
+#' terra::makeValid() (if input_vector is SpatVector).
+#' May take some time depending on the geometry complexity.
 #' @author Insang Song
 #' @param input_vector One of sf or vect class. Target points of computation.
-#' @return A repaired sf or SpatVector object depending on the class of input_vector.
+#' @returns A repaired sf or SpatVector object depending on
+#'  the class of input_vector.
 #' @export
 validate_and_repair_vectors <- function(input_vector) {
   detected <- check_packbound(input_vector)
@@ -1214,8 +1230,15 @@ extract_with_buffer_flat <- function(
   surf_cropped <- terra::crop(surf, bufs_extent)
   name_surf_val <- names(surf)
   # extract raster values
-  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
-    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs <-
+    exactextractr::exact_extract(
+      surf_cropped,
+      sf::st_as_sf(bufs),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
     surf_at_bufs #|>
       # dplyr::group_by(ID) |>
@@ -1250,8 +1273,15 @@ extract_with_buffer_kernel <- function(
 
 
   # extract raster values
-  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
-    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs <-
+    exactextractr::exact_extract(
+      surf_cropped,
+      sf::st_as_sf(bufs),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
     surf_at_bufs |>
       dplyr::group_by(ID) |>
@@ -1314,9 +1344,9 @@ extract_with_polygons <- function(
   cls_polys <- check_packbound(polys)
   cls_surf <- check_packbound(surf)
 
-  if (cls_polys != cls_surf) {
-    polys <- switch_packbound(polys)
-  }
+  # if (cls_polys != cls_surf) {
+  #   polys <- switch_packbound(polys)
+  # }
 
   if (!is.null(grid_ref)) {
     polys <- polys[grid_ref, ]
@@ -1330,7 +1360,9 @@ extract_with_polygons <- function(
       y = sf::st_as_sf(polys),
       fun = func,
       force_df = TRUE,
-      append_cols = id
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07
     )
   return(extracted_poly)
 }
@@ -1879,7 +1911,6 @@ distribute_process_hierarchy <-
     fun_dist,
     ...
   ) {
-  par_fun <- list(...)
 
   if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
     stop("The length of split_level is not valid.")
@@ -1910,7 +1941,7 @@ distribute_process_hierarchy <-
                   },
                   future.seed = TRUE,
                   future.packages = c("terra", "sf", "dplyr",
-                                      "scomps", "future"))
+                                      "scomps", "future", "exactextractr"))
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
   # results_distributed <-
   #   results_distributed[!is.na(results_distributed[["ID"]]), ]
@@ -1996,7 +2027,9 @@ distribute_process_multirasters <- function(
                   },
                   future.seed = TRUE,
                   future.packages =
-                  c("terra", "sf", "dplyr", "scomps", "future"))
+                  c("terra", "sf", "dplyr",
+                    "scomps", "future",
+                    "exactextractr"))
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)
@@ -2128,7 +2161,6 @@ adhoc <- function() {
                               surf = ncelev,
                               radius = 5e3L,
                               id = "pid")
-  # exactextractr::exact_extract(ncelev, sf::st_as_sf(terra::buffer(ncpnts, 5e3L)), fun = "mean", force_df = TRUE)
 
 }
 adhoc()
@@ -2228,8 +2260,23 @@ litr::document()
 # devtools::document(".")
 devtools::test()
 # devtools::build(path = "./tools/tarballs")
+
 devtools::build(path = ".")
-devtools::install(dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+knitr::knit(
+  "../tools/vignettes-sources/v02_distribute_process.Rmd.orig",
+  output = "./vignettes/v02_distribute_process.Rmd"
+  )
+
+# for pre-built vignettes
+if (dir.exists("./figure")) {
+  if (!dir.exists("./vignettes/figure")) {
+    dir.create("./vignettes/figure")
+  }
+  file.copy(from = "./figure", to = "./vignettes/figure", recursive = TRUE)
+  unlink("figure", recursive = TRUE)
+}
+
+devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
 # litr::document() # <-- use instead of devtools::document()
 # devtools::check(document = FALSE)
 

@@ -140,7 +140,6 @@ distribute_process_hierarchy <-
     fun_dist,
     ...
   ) {
-  par_fun <- list(...)
 
   if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
     stop("The length of split_level is not valid.")
@@ -171,7 +170,7 @@ distribute_process_hierarchy <-
                   },
                   future.seed = TRUE,
                   future.packages = c("terra", "sf", "dplyr",
-                                      "scomps", "future"))
+                                      "scomps", "future", "exactextractr"))
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
   # results_distributed <-
   #   results_distributed[!is.na(results_distributed[["ID"]]), ]
@@ -257,7 +256,9 @@ distribute_process_multirasters <- function(
                   },
                   future.seed = TRUE,
                   future.packages =
-                  c("terra", "sf", "dplyr", "scomps", "future"))
+                  c("terra", "sf", "dplyr",
+                    "scomps", "future",
+                    "exactextractr"))
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)
