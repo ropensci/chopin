@@ -83,11 +83,8 @@ check_crs_align <-
 
 #' Generate a rectangular polygon from extent
 #' 
-#' @param extent input extent.
-#'  A numeric vector with xmin/xmax/ymin/ymax,
-#'  sf::st_bbox() or terra::ext() outputs.
-#' @param output_class character(1).
-#'  Class of the output polygon. One of "sf" or "terra"
+#' @param extent input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.
+#' @param output_class character(1). Class of the output polygon. One of "sf" or "terra"
 #' @param crs character(1). Coordinate reference system definition.
 #' @author Insang Song
 #' @export
@@ -100,8 +97,7 @@ extent_to_polygon <- function(
   }
   if (methods::is(extent, "numeric")) {
     if (is.null(attr(extent, "names"))) {
-      stop("Your extent is an unnamed numeric vector.
-           Please define names xmin/xmax/ymin/ymax explicitly.\n")
+      stop("Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n")
     }
     extent <- switch(
       output_class,

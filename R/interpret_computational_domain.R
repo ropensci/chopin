@@ -3,12 +3,7 @@
 #' Get a set of computational regions
 #' 
 #' @param input sf or Spat* object.
-#' @param mode character(1). Mode of region construction.
-#'  One of "grid" (simple grid regardless of
-#'  the number of features in each grid),
-#'  "density" (clustering-based varying grids),
-#'  "grid_advanced" (merging adjacent grids with
-#'  smaller number of features than grid_min_features). 
+#' @param mode character(1). Mode of region construction. One of "grid" (simple grid regardless of the number of features in each grid), "density" (clustering-based varying grids), "grid_advanced" (merging adjacent grids with smaller number of features than grid_min_features). 
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
@@ -16,18 +11,14 @@
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 #' @param unit character(1). The length unit for padding (optional).
 #'  units::set_units is used for padding when sf object is used.
-#'  See [units package vignette (web)]
-#' (https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
 #' @return A list of two,
-#'   \code{original}: exhaustive and non-overlapping
-#'  grid polygons in the class of input
-#'   \code{padded}: a square buffer of each polygon in
-#'  \code{original}. Used for computation.
+#'   \code{original}: exhaustive and non-overlapping grid polygons in the class of input
+#'   \code{padded}: a square buffer of each polygon in \code{original}. Used for computation.
 #' @description Using input points, the bounding box is split to
-#'  the predefined numbers of columns and rows.
-#'  Each grid will be buffered by the radius.
+#'  the predefined numbers of columns and rows. Each grid will be buffered by the radius.
 #' @author Insang Song
 #' @examples
 #' # data
@@ -39,56 +30,50 @@
 #' # nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
 #' 
 #' @export
-get_computational_regions <-
-  function(
-      input,
-      mode = c("grid", "grid_advanced", "density"),
-      nx = 10L,
-      ny = 10L,
-      grid_min_features = 30L,
-      padding = NULL,
-      unit = NULL,
-      ...) {
+get_computational_regions <- function(
+  input,
+  mode = c("grid", "grid_advanced", "density"),
+  nx = 10L,
+  ny = 10L,
+  grid_min_features = 30L,
+  padding = NULL,
+  unit = NULL,
+  ...) {
+  # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
+  
+  stopifnot("Argument mode should be one of
+    'grid', 'grid_advanced', or 'density'.\n" =
+    mode %in% c("grid", "grid_advanced", "density"))
+  stopifnot("Ensure that nx, ny, and grid_min_features are
+    all integer.\n" = {
+                       all(is.integer(nx),
+                           is.integer(ny),
+                           is.integer(grid_min_features))})
+  stopifnot("padding should be numeric.
+    We convert padding to numeric...\n" = {
+                                           is.numeric(padding)})
+  # valid unit compatible with units::set_units?
+  grid_reg <-
+    switch(mode,
+      grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
+      grid_advanced = grid_merge(
+                                points_in = input,
+                                sp_index_grid(input, nx, ny),
+                                grid_min_features = grid_min_features),
+      density = simpleError("density method is under development.\n")
+    )
 
-    stopifnot("Argument mode should be one of
-      'grid', 'grid_advanced', or 'density'.\n" =
-                mode %in% c("grid", "grid_advanced", "density"))
-    stopifnot("Ensure that nx, ny, and grid_min_features are
-      all integer.\n" = {
-                        all(is.integer(nx),
-                            is.integer(ny),
-                            is.integer(grid_min_features))})
-    stopifnot("padding should be numeric.
-      We convert padding to numeric...\n" = {
-                                            is.numeric(padding)})
-    # valid unit compatible with units::set_units?
-    grid_reg <-
-      switch(mode,
-        grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-        grid_advanced = grid_merge(
-                                  points_in = input,
-                                  sp_index_grid(input, nx, ny),
-                                  grid_min_features = grid_min_features),
-        density = simpleError("density method is under development.\n")
-      )
+  type_grid_reg <- check_packbound(grid_reg)
+  grid_reg_pad <-
+    switch(type_grid_reg,
+      sf = sf::st_buffer(grid_reg, dist = padding, endCapStyle = "SQUARE"),
+      terra = terra::buffer(grid_reg, width = padding, capstyle = "square"))
+  grid_results <-
+    list(original = grid_reg,
+         padded = grid_reg_pad)
+  return(grid_results)
 
-    type_grid_reg <- check_packbound(grid_reg)
-    grid_reg_pad <-
-      switch(type_grid_reg,
-             sf =
-             sf::st_buffer(grid_reg,
-                           dist = padding,
-                           endCapStyle = "SQUARE"),
-             terra =
-             terra::buffer(grid_reg,
-                           width = padding,
-                           capstyle = "square"))
-    grid_results <-
-      list(original = grid_reg,
-           padded = grid_reg_pad)
-    return(grid_results)
-
-  }
+}
 
 #' @title sp_index_grid: Generate grid polygons
 #' @description Returns a sf object that includes x- and y- index
@@ -101,11 +86,10 @@ get_computational_regions <-
 #' @return A sf or SpatVector object of computation grids with
 #'  unique grid id (CGRIDID).
 #' @export
-sp_index_grid <-
-  function(
-    points_in,
-    ncutsx,
-    ncutsy) {
+sp_index_grid <- function(
+  points_in,
+  ncutsx,
+  ncutsy) {
   package_detected <- check_packbound(points_in)
 
   sp_index_grid_sf <- function(points_in, ncutsx, ncutsy) {
@@ -121,13 +105,13 @@ sp_index_grid <-
     grid1 <- grid1[points_in,]
     return(grid1)
   }
-  grid_out <-
-    switch(package_detected,
-           sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
-           terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
+  grid_out <- switch(package_detected,
+    sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
+    terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
 
   grid_out$CGRIDID <- seq(1, nrow(x = grid_out))
   return(grid_out)
+
 }
 
 
@@ -170,12 +154,10 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
   grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
   grid_lt_threshold <- (n_points_in_grid < grid_min_features)
-  stopifnot("Threshold is too low. Please try higher threshold.\n" =
-    sum(grid_lt_threshold) != 0)
+  stopifnot("Threshold is too low. Please try higher threshold.\n" = sum(grid_lt_threshold) != 0)
   grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-  # This part does not work as expected.
-  # Should investigate edge list and actual row index of the grid object; 
+  # This part does not work as expected. Should investigate edge list and actual row index of the grid object; 
   identified <- lapply(grid_rooks, \(x) sort(x[which(x %in% grid_lt_threshold)]))
   identified <- identified[grid_lt_threshold]
   identified <- unique(identified)
@@ -188,6 +170,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
     igraph::graph_from_edgelist(el = _, directed = 0) |>
     igraph::mst() |>
     igraph::components()
+  # return(identified_graph)
 
   identified_graph_member <- identified_graph$membership
 
@@ -200,7 +183,10 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   # sf object manipulation
   grid_out <- grid_in
   grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
-
+  # for (k in seq_along(merge_member_label)) {
+  #   target_idx = merge_member_label[[k]]
+  #   grid_out[["CGRIDID"]][target_idx] = paste("M_", paste(target_idx, collapse = "_"), sep = "")
+  # }
   grid_out <- grid_out |>
     dplyr::group_by(!!rlang::sym("CGRIDID")) |>
     dplyr::summarize(n_merged = dplyr::n()) |>
@@ -215,8 +201,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
     (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
 
   # pptest value is bounded [0,1];
-  # 0.3 threshold is groundless at this moment,
-  # possibly will make it defined by users.
+  # 0.3 threshold is groundless at this moment, possibly will make it defined by users.
   if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
    any(grid_merged_pptest < 0.3)) {
     message("The reduced computational regions have too complex shapes.
@@ -225,6 +210,18 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
   return(grid_out)
 
+  # union unique sets into one
+  # identified_relation = matrix(NA, length(identified), length(identified))
+  # diag(identified_relation) = lengths(identified)
+
+  # for (i in seq_len(length(identified))) {
+  #   for (j in seq(i, length(identified))) {
+  #     identified_relation[i, j] = length(intersect(identified[[i]], identified[[j]]))
+  #     identified_relation[j, i] = identified_relation[i, j]
+  #   }
+  # }
+  # # identified_relation = max(identified_relation) - identified_relation
+  # return(as.dist(identified_relation))
 }
 
 

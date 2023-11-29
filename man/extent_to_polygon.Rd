@@ -7,12 +7,9 @@
 extent_to_polygon(extent, output_class = "terra", crs = "EPSG:4326")
 }
 \arguments{
-\item{extent}{input extent.
-A numeric vector with xmin/xmax/ymin/ymax,
-sf::st_bbox() or terra::ext() outputs.}
+\item{extent}{input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.}
 
-\item{output_class}{character(1).
-Class of the output polygon. One of "sf" or "terra"}
+\item{output_class}{character(1). Class of the output polygon. One of "sf" or "terra"}
 
 \item{crs}{character(1). Coordinate reference system definition.}
 }
