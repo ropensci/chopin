@@ -83,8 +83,11 @@ check_crs_align <-
 
 #' Generate a rectangular polygon from extent
 #' 
-#' @param extent input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.
-#' @param output_class character(1). Class of the output polygon. One of "sf" or "terra"
+#' @param extent input extent.
+#'  A numeric vector with xmin/xmax/ymin/ymax,
+#'  sf::st_bbox() or terra::ext() outputs.
+#' @param output_class character(1).
+#'  Class of the output polygon. One of "sf" or "terra"
 #' @param crs character(1). Coordinate reference system definition.
 #' @author Insang Song
 #' @export
@@ -97,7 +100,8 @@ extent_to_polygon <- function(
   }
   if (methods::is(extent, "numeric")) {
     if (is.null(attr(extent, "names"))) {
-      stop("Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n")
+      stop("Your extent is an unnamed numeric vector.
+           Please define names xmin/xmax/ymin/ymax explicitly.\n")
     }
     extent <- switch(
       output_class,
@@ -191,13 +195,15 @@ check_bbox <- function(
 #' ncpath = system.file("shape/nc.shp", package = "sf")
 #' nc = read_sf(ncpath)
 #' check_crs(nc)
-#' 
-#' @export 
+#'
+#' @export
 check_crs <- function(x) {
-    stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
-    stopifnot(
-      "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
-      !is.na(sf::st_crs(x)) || !is.na(terra::crs(x)))
+  stopifnot("Input is invalid.\n" = any(
+    c("sf", "stars", "SpatVector", "SpatRaster", "SpatRasterDataset") %in% class(x)))
+  stopifnot(
+    "No CRS is defined in the input.
+    Please consult the metadata or the data source.\n" =
+    all(!is.na(sf::st_crs(x)), !is.na(terra::crs(x)), terra::crs(x) != ""))
 
   if (methods::is(x, "sf") || methods::is(x, "stars")) {
     crs_wkt <- sf::st_crs(x)

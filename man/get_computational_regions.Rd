@@ -18,7 +18,12 @@ get_computational_regions(
 \arguments{
 \item{input}{sf or Spat* object.}
 
-\item{mode}{character(1). Mode of region construction. One of "grid" (simple grid regardless of the number of features in each grid), "density" (clustering-based varying grids), "grid_advanced" (merging adjacent grids with smaller number of features than grid_min_features).}
+\item{mode}{character(1). Mode of region construction.
+One of "grid" (simple grid regardless of
+the number of features in each grid),
+"density" (clustering-based varying grids),
+"grid_advanced" (merging adjacent grids with
+smaller number of features than grid_min_features).}
 
 \item{nx}{integer(1). The number of grids along x-axis.}
 
@@ -38,12 +43,15 @@ for the list of acceptable unit forms.}
 }
 \value{
 A list of two,
-\code{original}: exhaustive and non-overlapping grid polygons in the class of input
-\code{padded}: a square buffer of each polygon in \code{original}. Used for computation.
+\code{original}: exhaustive and non-overlapping
+grid polygons in the class of input
+\code{padded}: a square buffer of each polygon in
+\code{original}. Used for computation.
 }
 \description{
 Using input points, the bounding box is split to
-the predefined numbers of columns and rows. Each grid will be buffered by the radius.
+the predefined numbers of columns and rows.
+Each grid will be buffered by the radius.
 }
 \examples{
 # data

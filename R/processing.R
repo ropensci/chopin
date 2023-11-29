@@ -1,10 +1,12 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Extent clipping
-#' @description Clip input vector by the expected maximum extent of computation. 
+#' @description Clip input vector by
+#'  the expected maximum extent of computation. 
 #' @author Insang Song
 #' @param pnts sf or SpatVector object
-#' @param buffer_r numeric(1). buffer radius. this value will be automatically multiplied by 1.25
+#' @param buffer_r numeric(1). buffer radius.
+#'  this value will be automatically multiplied by 1.25
 #' @param target_input sf or SpatVector object to be clipped
 #' @return A clipped sf or SpatVector object.
 #' @export
@@ -145,8 +147,15 @@ extract_with_buffer_flat <- function(
   surf_cropped <- terra::crop(surf, bufs_extent)
   name_surf_val <- names(surf)
   # extract raster values
-  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
-    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs <-
+    exactextractr::exact_extract(
+      surf_cropped,
+      sf::st_as_sf(bufs),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
     surf_at_bufs #|>
       # dplyr::group_by(ID) |>
@@ -181,8 +190,15 @@ extract_with_buffer_kernel <- function(
 
 
   # extract raster values
-  surf_at_bufs <- exactextractr::exact_extract(surf_cropped, sf::st_as_sf(bufs),
-    fun = func, force_df = TRUE, append_cols = id)
+  surf_at_bufs <-
+    exactextractr::exact_extract(
+      surf_cropped,
+      sf::st_as_sf(bufs),
+      fun = func,
+      force_df = TRUE,
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
     surf_at_bufs |>
       dplyr::group_by(ID) |>
@@ -195,19 +211,6 @@ extract_with_buffer_kernel <- function(
 }
 
 
-# subfunction: reproject buffers to raster's
-reproject_b2r <-
-  function(buffers,
-           raster) {
-    detected_buf <- check_packbound(buffers)
-    detected_ras <- check_packbound(raster)
-    switch(detected_buf,
-           sf = sf::st_transform(buffers, terra::crs(raster)),
-           terra = terra::project(buffers, terra::crs(raster)))
-
-  }
-
-
 #' @title Extract summarized values from raster with generic polygons
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
@@ -217,7 +220,6 @@ reproject_b2r <-
 #' @param func a generic function name in string or a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}
-#' @param na.rm logical(1). NA values are omitted when summary is calculated.
 #' @param grid_ref A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.
 #' @return a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -226,16 +228,17 @@ reproject_b2r <-
 #' @import exactextractr
 #' @export
 extract_with_polygons <- function(
-    polys,
-    surf,
-    id,
-    func = "mean",
-    na.rm = TRUE,
-    grid_ref = NULL
-    ) {
+  polys,
+  surf,
+  id,
+  func = "mean",
+  grid_ref = NULL
+) {
   # type check
-  stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
-  stopifnot("Check class of the input raster.\n" = methods::is(surf, "SpatRaster"))
+  stopifnot("Check class of the input points.\n" =
+            any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
+  stopifnot("Check class of the input raster.\n" =
+            methods::is(surf, "SpatRaster"))
   stopifnot(is.character(id))
 
   cls_polys <- check_packbound(polys)
@@ -257,7 +260,9 @@ extract_with_polygons <- function(
       y = sf::st_as_sf(polys),
       fun = func,
       force_df = TRUE,
-      append_cols = id
+      append_cols = id,
+      progress = FALSE,
+      max_cells_in_memory = 5e07
     )
   return(extracted_poly)
 }
@@ -293,6 +298,21 @@ extract_with <- function(
       buffer = extract_with_buffer(points = vector, surf = raster, id = id, func = func, ...))
   return(extracted)
 }
+
+#' @title Reproject vectors to raster's CRS
+#' @param vector sf/stars/SpatVector/SpatRaster object
+#' @param raster SpatRaster object
+#' @returns Reprojected object in the same class as \code{vector}
+#' @author Insang Song
+#' @export
+reproject_b2r <-
+  function(vector,
+           raster) {
+    detected_vec <- check_packbound(vector)
+    switch(detected_vec,
+           sf = sf::st_transform(vector, terra::crs(raster)),
+           terra = terra::project(vector, terra::crs(raster)))
+  }
 
 
 #' Calculate SEDC covariates
