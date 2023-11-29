@@ -36,8 +36,7 @@ clip actual datasets. Depending on the length unit of the CRS of input.}
 
 \item{unit}{character(1). The length unit for padding (optional).
 units::set_units is used for padding when sf object is used.
-See \link{units package vignette (web)}
-(https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+See \href{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html}{units package vignette (web)}
 for the list of acceptable unit forms.}
 
 \item{...}{arguments passed to the internal function}

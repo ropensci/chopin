@@ -220,7 +220,6 @@ extract_with_buffer_kernel <- function(
 #' @param func a generic function name in string or a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}
-#' @param na.rm logical(1). NA values are omitted when summary is calculated.
 #' @param grid_ref A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.
 #' @return a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -300,17 +299,19 @@ extract_with <- function(
   return(extracted)
 }
 
-# subfunction: reproject buffers to raster's
+# Reproject vectors to raster's CRS
+#' @param vector sf/stars/SpatVector/SpatRaster object
+#' @param raster SpatRaster object
+#' @returns Reprojected object in the same class as \code{vector}
+#' @author Insang Song
 #' @export
 reproject_b2r <-
-  function(buffers,
+  function(vector,
            raster) {
-    detected_buf <- check_packbound(buffers)
-    detected_ras <- check_packbound(raster)
-    switch(detected_buf,
-           sf = sf::st_transform(buffers, terra::crs(raster)),
-           terra = terra::project(buffers, terra::crs(raster)))
-
+    detected_vec <- check_packbound(vector)
+    switch(detected_vec,
+           sf = sf::st_transform(vector, terra::crs(raster)),
+           terra = terra::project(vector, terra::crs(raster)))
   }
 
 

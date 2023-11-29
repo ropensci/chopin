@@ -18,8 +18,6 @@ compatible with \code{\link[exactextractr]{exact_extract}}.
 For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
 
 \item{grid_ref}{A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.}
-
-\item{na.rm}{logical(1). NA values are omitted when summary is calculated.}
 }
 \value{
 a data.frame object with function value

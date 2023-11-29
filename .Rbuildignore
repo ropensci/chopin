@@ -2,3 +2,5 @@
 /.github
 scomps*.html$
 ^LICENSE\.md$
+/figure
+/containers

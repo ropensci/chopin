@@ -16,8 +16,7 @@
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 #' @param unit character(1). The length unit for padding (optional).
 #'  units::set_units is used for padding when sf object is used.
-#'  See [units package vignette (web)]
-#' (https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
 #' @return A list of two,
@@ -37,7 +36,7 @@
 #' nc <- st_transform(nc, "EPSG:5070")
 #' # run
 #' # nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
-#' 
+#'
 #' @export
 get_computational_regions <-
   function(
@@ -204,7 +203,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   grid_out <- grid_out |>
     dplyr::group_by(!!rlang::sym("CGRIDID")) |>
     dplyr::summarize(n_merged = dplyr::n()) |>
-    dplyr::ungroup() 
+    dplyr::ungroup()
 
   ## polsby-popper test for shape compactness
   grid_merged <- grid_out[which(grid_out$n_merged > 1),]
