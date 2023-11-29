@@ -1591,7 +1591,7 @@ sp_index_grid &lt;-
   return(extracted)
 }
 
-# Reproject vectors to raster&#39;s CRS
+#&#39; @title Reproject vectors to raster&#39;s CRS
 #&#39; @param vector sf/stars/SpatVector/SpatRaster object
 #&#39; @param raster SpatRaster object
 #&#39; @returns Reprojected object in the same class as \code{vector}
@@ -2376,10 +2376,8 @@ cat(getwd())
 print(getwd())</code></pre>
 <pre><code>## ℹ Updating scomps documentation
 ## ℹ Loading scomps
-## Writing &#39;NAMESPACE&#39;</code></pre>
-<pre><code>## Warning: Skipping &#39;reproject_b2r.Rd&#39;
-## ℹ File lacks name and/or title</code></pre>
-<pre><code>## Writing &#39;NAMESPACE&#39;
+## Writing &#39;NAMESPACE&#39;
+## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;check_packbound.Rd&#39;
 ## Writing &#39;check_crs_align.Rd&#39;
 ## Writing &#39;extent_to_polygon.Rd&#39;
@@ -2397,6 +2395,7 @@ print(getwd())</code></pre>
 ## Writing &#39;extract_with_buffer.Rd&#39;
 ## Writing &#39;extract_with_polygons.Rd&#39;
 ## Writing &#39;extract_with.Rd&#39;
+## Writing &#39;reproject_b2r.Rd&#39;
 ## Writing &#39;calculate_sedc.Rd&#39;
 ## Writing &#39;aw_covariates.Rd&#39;
 ## Writing &#39;distribute_process_grid.Rd&#39;
@@ -2452,7 +2451,7 @@ devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, q
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpAmXOIc/downloaded_packages
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpfdLLzo/downloaded_packages
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
 ##   /Users/songi2/Documents/GitHub/Scalable_GIS/scomps --install-tests \
 ##   --no-docs --no-multiarch --no-demo 

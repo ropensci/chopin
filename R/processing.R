@@ -299,7 +299,7 @@ extract_with <- function(
   return(extracted)
 }
 
-# Reproject vectors to raster's CRS
+#' @title Reproject vectors to raster's CRS
 #' @param vector sf/stars/SpatVector/SpatRaster object
 #' @param raster SpatRaster object
 #' @returns Reprojected object in the same class as \code{vector}
