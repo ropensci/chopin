@@ -209,19 +209,6 @@ extract_with_buffer_kernel <- function(
 }
 
 
-# subfunction: reproject buffers to raster's
-reproject_b2r <-
-  function(buffers,
-           raster) {
-    detected_buf <- check_packbound(buffers)
-    detected_ras <- check_packbound(raster)
-    switch(detected_buf,
-           sf = sf::st_transform(buffers, terra::crs(raster)),
-           terra = terra::project(buffers, terra::crs(raster)))
-
-  }
-
-
 #' @title Extract summarized values from raster with generic polygons
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
@@ -240,24 +227,25 @@ reproject_b2r <-
 #' @import exactextractr
 #' @export
 extract_with_polygons <- function(
-    polys,
-    surf,
-    id,
-    func = "mean",
-    na.rm = TRUE,
-    grid_ref = NULL
-    ) {
+  polys,
+  surf,
+  id,
+  func = "mean",
+  grid_ref = NULL
+) {
   # type check
-  stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
-  stopifnot("Check class of the input raster.\n" = methods::is(surf, "SpatRaster"))
+  stopifnot("Check class of the input points.\n" =
+            any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
+  stopifnot("Check class of the input raster.\n" =
+            methods::is(surf, "SpatRaster"))
   stopifnot(is.character(id))
 
   cls_polys <- check_packbound(polys)
   cls_surf <- check_packbound(surf)
 
-  # if (cls_polys != cls_surf) {
-  #   polys <- switch_packbound(polys)
-  # }
+  if (cls_polys != cls_surf) {
+    polys <- switch_packbound(polys)
+  }
 
   if (!is.null(grid_ref)) {
     polys <- polys[grid_ref, ]
@@ -309,6 +297,19 @@ extract_with <- function(
       buffer = extract_with_buffer(points = vector, surf = raster, id = id, func = func, ...))
   return(extracted)
 }
+
+# subfunction: reproject buffers to raster's
+#' @export
+reproject_b2r <-
+  function(buffers,
+           raster) {
+    detected_buf <- check_packbound(buffers)
+    detected_ras <- check_packbound(raster)
+    switch(detected_buf,
+           sf = sf::st_transform(buffers, terra::crs(raster)),
+           terra = terra::project(buffers, terra::crs(raster)))
+
+  }
 
 
 #' Calculate SEDC covariates

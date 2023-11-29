@@ -3,7 +3,7 @@ title: "Good practice of scomps with HPC"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{good_practice_hpc}
+  %\VignetteIndexEntry{Good practice of scomps with HPC}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -24,7 +24,6 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ### Practice for minimizing errors
 - Consider using `try()` or `tryCatch()` not to a tiny error will halt all the work without any results 
     - Especially with the higher-level functions
-- "IPDE -- Inspect, Predict, Decide, Execute" all the time
 
 ### Raster-Vector overlay
 - Make `sp_index_grid()` to get padded grid objects

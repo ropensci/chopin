@@ -98,6 +98,10 @@ testthat::test_that("CRS is transformed when it is not standard", {
   testthat::expect_equal(nc_align_epsg, 4326)
   testthat::expect_equal(nctr_align_epsg, "4326")
 
+  terra::crs(ncnatr) <- NULL
+  # error case
+  testthat::expect_error(check_crs_align(ncnatr, "EPSG:4326"))
+
 })
 
 
@@ -169,7 +173,7 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
     pnts = ncpt, buffer_r = 3e4L, target_input = nctrct
   )))
   testthat::expect_s4_class(cl_terra, "SpatVector")
-
+  
   # sf-sf
   ncp <- sf::st_as_sf(ncpt)
   nccntysf <- sf::st_as_sf(nccnty)
@@ -179,6 +183,18 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
     pnts = ncp, buffer_r = 3e4L, target_input = nctrct
   )))
   testthat::expect_s3_class(cl_sf, "sf")
+
+  # sf-terra
+  testthat::expect_error(
+    clip_as_extent(
+      pnts = ncpt, buffer_r = 3e4L,
+      target_input = sf::st_as_sf(nctrct)
+  ))
+
+  testthat::expect_error(
+    clip_as_extent(
+      pnts = NULL, buffer_r = 3e4L, target_input = nctrct
+  ))
 
 })
 
@@ -199,6 +215,7 @@ testthat::test_that("Clip by extent works without errors", {
 
   testthat::expect_no_error(clip_as_extent_ras(ncp, 30000L, ncelev))
   testthat::expect_no_error(clip_as_extent_ras(ncp_terra, 30000L, ncelev))
+  testthat::expect_error(clip_as_extent_ras(ncp_terra, NULL, ncelev))
 })
 
 
@@ -265,17 +282,21 @@ testthat::test_that("Grid merge is well done.", {
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
-  gridded <- get_computational_regions(ncrp, mode = "grid",
-    nx = 8L, ny = 5L, padding = 1e4L)
+  gridded <-
+    get_computational_regions(ncrp,
+                              mode = "grid",
+                              nx = 8L, ny = 5L,
+                              padding = 1e4L)
   # suppress warnings for "all sub-geometries for which ..."
-  testthat::expect_warning(
-    grid_merge(ncrp, gridded$original, 25L))
+  testthat::expect_warning(grid_merge(ncrp, gridded$original, 25L))
 
   ncptr <- terra::vect(ncrp)
-  griddedtr <- get_computational_regions(ncptr, mode = "grid",
-    nx = 8L, ny = 5L, padding = 1e4L)
-  testthat::expect_warning(
-    grid_merge(ncptr, griddedtr$original, 25L))
+  griddedtr <-
+    get_computational_regions(ncptr,
+                              mode = "grid",
+                              nx = 8L, ny = 5L,
+                              padding = 1e4L)
+  testthat::expect_warning(grid_merge(ncptr, griddedtr$original, 25L))
 
 })
 
@@ -332,18 +353,21 @@ testthat::test_that("extract_with runs well", {
   ncp <- terra::vect(ncp)
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- terra::vect(nccnty)
-  nccnty <- terra::project(nccnty, "EPSG:5070")
+  nccntytr <- terra::project(nccnty, "EPSG:5070")
   ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
   ncelev <- terra::unwrap(ncelev)
 
+  nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
+  testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
+
   # test two modes
-  testthat::expect_no_error(ncexpoly <- extract_with(nccnty, ncelev, "FIPS", mode = "polygon"))
+  testthat::expect_no_error(ncexpoly <- extract_with(nccntytr, ncelev, "FIPS", mode = "polygon"))
   testthat::expect_no_error(ncexbuff <- extract_with(ncp, ncelev, "pid", mode = "buffer", radius = 1e4L))
 
   # errors
-  testthat::expect_error(extract_with(nccnty, ncelev, "GEOID", mode = "whatnot"))
-  testthat::expect_error(extract_with(nccnty, ncelev, "GEOID", mode = "polygon"))
-  testthat::expect_error(extract_with(nccnty, ncelev, 1, mode = "buffer", radius = 1e4L))
+  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "whatnot"))
+  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "polygon"))
+  testthat::expect_error(extract_with(nccntytr, ncelev, 1, mode = "buffer", radius = 1e4L))
 
 })
 
@@ -410,6 +434,14 @@ testthat::test_that("SEDC are well calculated.", {
     length(polnames))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_bandwidth")))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
+
+  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <- sf::st_transform(ncpnts, "EPSG:5070")
+  ncrandsf <- sf::st_as_sf(ncrand)
+
+  testthat::expect_no_error(
+    calculate_sedc(ncpnts, ncrandsf, "pid", 3e4L, 5e4L, polnames)
+  )
 })
 
 
@@ -485,11 +517,55 @@ testthat::test_that("Processes are properly spawned and compute", {
                               id = "pid")
     )
 
+  testthat::expect_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1/10",
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              qsegs = 90L,
+                              surf = ncelev,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1:10",
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              qsegs = 90L,
+                              surf = ncelev,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
+  testthat::expect_no_error(
+    out_weird <- 
+      suppressWarnings(
+        distribute_process_grid(
+                                grids = nccompreg,
+                                grid_target_id = NULL,
+                                fun_dist = extract_with_buffer,
+                                points = ncpnts,
+                                qsegs = 90L,
+                                surf = ncelev,
+                                radius = 5e3L,
+                                id = "phid")
+      )
+  )
+
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
-  print(res)
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+  testthat::expect_equal(names(out_weird)[1], "ID")
+  testthat::expect_true(all(is.na(unlist(out_weird))))
 })
 
 

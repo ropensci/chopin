@@ -3,7 +3,7 @@ title: "Distribute computational workloads over multiple threads"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{multithreading}
+  %\VignetteIndexEntry{Distribute computational workloads over multiple threads}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

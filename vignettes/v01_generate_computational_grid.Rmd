@@ -3,7 +3,7 @@ title: "Generate computational grids"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{computational_grids}
+  %\VignetteIndexEntry{Generate computational grids}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
