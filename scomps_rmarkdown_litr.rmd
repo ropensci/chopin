@@ -50,7 +50,6 @@ usethis::use_package("future.apply")
 usethis::use_package("covr")
 usethis::use_package("tigris", "Suggests")
 usethis::use_package("doFuture", "Suggests")
-usethis::use_package("logr", "Suggests")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
@@ -353,6 +352,10 @@ testthat::test_that("CRS is transformed when it is not standard", {
   testthat::expect_equal(nc_align_epsg, 4326)
   testthat::expect_equal(nctr_align_epsg, "4326")
 
+  terra::crs(ncnatr) <- NULL
+  # error case
+  testthat::expect_error(check_crs_align(ncnatr, "EPSG:4326"))
+
 })
 
 ```
@@ -403,29 +406,6 @@ testthat::test_that("vector validity check is cleared", {
 ```
 
 
-```{r, send_to = "R/logging.R"}
-#' Turn on logging
-#' @author Insang Song
-#' @param expr expression. Any function call to be logged.
-#' @param dolog logical(1). Will the messages be logged.
-#' @param logpath character(1). Log file path with the full log file name.
-#' @return Nothing. It will export a log file in the specified path as logpath.
-#' @export
-initate_log <- function(
-  expr,
-  dolog = FALSE,
-  logpath) {
-  if (!dolog) {
-    return(NULL)
-  }
-  logr::log_path(logpath)
-  try(expr)
-  logr::log_close()
-  return(NULL)
-}
-
-
-```
 
 ```{r, send_to = "R/preprocessing.R"}
 #' Setting the clipping extent
@@ -552,7 +532,7 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
     pnts = ncpt, buffer_r = 3e4L, target_input = nctrct
   )))
   testthat::expect_s4_class(cl_terra, "SpatVector")
-
+  
   # sf-sf
   ncp <- sf::st_as_sf(ncpt)
   nccntysf <- sf::st_as_sf(nccnty)
@@ -562,6 +542,18 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
     pnts = ncp, buffer_r = 3e4L, target_input = nctrct
   )))
   testthat::expect_s3_class(cl_sf, "sf")
+
+  # sf-terra
+  testthat::expect_error(
+    clip_as_extent(
+      pnts = ncpt, buffer_r = 3e4L,
+      target_input = sf::st_as_sf(nctrct)
+  ))
+
+  testthat::expect_error(
+    clip_as_extent(
+      pnts = NULL, buffer_r = 3e4L, target_input = nctrct
+  ))
 
 })
 
@@ -612,6 +604,7 @@ testthat::test_that("Clip by extent works without errors", {
 
   testthat::expect_no_error(clip_as_extent_ras(ncp, 30000L, ncelev))
   testthat::expect_no_error(clip_as_extent_ras(ncp_terra, 30000L, ncelev))
+  testthat::expect_error(clip_as_extent_ras(ncp_terra, NULL, ncelev))
 })
 
 
@@ -669,9 +662,9 @@ testthat::test_that("Raster is read properly with a window.", {
 #' Estimate computational demands from inputs (to be written)
 #' 
 #' @param inputs character vector of file paths
-#' @param nx integer(1). 
-#' @param ny integer(1). 
-#' @param padding numeric(1). Extrusion factor 
+#' @param nx integer(1).
+#' @param ny integer(1).
+#' @param padding numeric(1). Extrusion factor
 #' @author Insang Song
 #' @export 
 estimate_demands <- function(
@@ -679,12 +672,12 @@ estimate_demands <- function(
   nx, ny,
   padding
 ) {
-  ## cpu 
+  ## cpu
   ## memory
   ## estimate maximum coverage
   ## clipped data size
   ## total distributed memory
-  ## return a list of total demands 
+  ## return a list of total demands
   ## print summary of results
 }
 
@@ -695,7 +688,12 @@ estimate_demands <- function(
 #' Get a set of computational regions
 #' 
 #' @param input sf or Spat* object.
-#' @param mode character(1). Mode of region construction. One of "grid" (simple grid regardless of the number of features in each grid), "density" (clustering-based varying grids), "grid_advanced" (merging adjacent grids with smaller number of features than grid_min_features). 
+#' @param mode character(1). Mode of region construction.
+#'  One of "grid" (simple grid regardless of
+#'  the number of features in each grid),
+#'  "density" (clustering-based varying grids),
+#'  "grid_advanced" (merging adjacent grids with
+#'  smaller number of features than grid_min_features). 
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
@@ -703,14 +701,18 @@ estimate_demands <- function(
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 #' @param unit character(1). The length unit for padding (optional).
 #'  units::set_units is used for padding when sf object is used.
-#'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'  See [units package vignette (web)]
+#' (https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
 #' @return A list of two,
-#'   \code{original}: exhaustive and non-overlapping grid polygons in the class of input
-#'   \code{padded}: a square buffer of each polygon in \code{original}. Used for computation.
+#'   \code{original}: exhaustive and non-overlapping
+#'  grid polygons in the class of input
+#'   \code{padded}: a square buffer of each polygon in
+#'  \code{original}. Used for computation.
 #' @description Using input points, the bounding box is split to
-#'  the predefined numbers of columns and rows. Each grid will be buffered by the radius.
+#'  the predefined numbers of columns and rows.
+#'  Each grid will be buffered by the radius.
 #' @author Insang Song
 #' @examples
 #' # data
@@ -722,50 +724,56 @@ estimate_demands <- function(
 #' # nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
 #' 
 #' @export
-get_computational_regions <- function(
-  input,
-  mode = c("grid", "grid_advanced", "density"),
-  nx = 10L,
-  ny = 10L,
-  grid_min_features = 30L,
-  padding = NULL,
-  unit = NULL,
-  ...) {
-  # stopifnot("Invalid input.\n" = !any(grepl("^(sf|Spat)", class(input))))
-  
-  stopifnot("Argument mode should be one of
-    'grid', 'grid_advanced', or 'density'.\n" =
-    mode %in% c("grid", "grid_advanced", "density"))
-  stopifnot("Ensure that nx, ny, and grid_min_features are
-    all integer.\n" = {
-                       all(is.integer(nx),
-                           is.integer(ny),
-                           is.integer(grid_min_features))})
-  stopifnot("padding should be numeric.
-    We convert padding to numeric...\n" = {
-                                           is.numeric(padding)})
-  # valid unit compatible with units::set_units?
-  grid_reg <-
-    switch(mode,
-      grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-      grid_advanced = grid_merge(
-                                points_in = input,
-                                sp_index_grid(input, nx, ny),
-                                grid_min_features = grid_min_features),
-      density = simpleError("density method is under development.\n")
-    )
+get_computational_regions <-
+  function(
+      input,
+      mode = c("grid", "grid_advanced", "density"),
+      nx = 10L,
+      ny = 10L,
+      grid_min_features = 30L,
+      padding = NULL,
+      unit = NULL,
+      ...) {
 
-  type_grid_reg <- check_packbound(grid_reg)
-  grid_reg_pad <-
-    switch(type_grid_reg,
-      sf = sf::st_buffer(grid_reg, dist = padding, endCapStyle = "SQUARE"),
-      terra = terra::buffer(grid_reg, width = padding, capstyle = "square"))
-  grid_results <-
-    list(original = grid_reg,
-         padded = grid_reg_pad)
-  return(grid_results)
+    stopifnot("Argument mode should be one of
+      'grid', 'grid_advanced', or 'density'.\n" =
+                mode %in% c("grid", "grid_advanced", "density"))
+    stopifnot("Ensure that nx, ny, and grid_min_features are
+      all integer.\n" = {
+                        all(is.integer(nx),
+                            is.integer(ny),
+                            is.integer(grid_min_features))})
+    stopifnot("padding should be numeric.
+      We convert padding to numeric...\n" = {
+                                            is.numeric(padding)})
+    # valid unit compatible with units::set_units?
+    grid_reg <-
+      switch(mode,
+        grid = sp_index_grid(points_in = input, ncutsx = nx, ncutsy = ny),
+        grid_advanced = grid_merge(
+                                  points_in = input,
+                                  sp_index_grid(input, nx, ny),
+                                  grid_min_features = grid_min_features),
+        density = simpleError("density method is under development.\n")
+      )
 
-}
+    type_grid_reg <- check_packbound(grid_reg)
+    grid_reg_pad <-
+      switch(type_grid_reg,
+             sf =
+             sf::st_buffer(grid_reg,
+                           dist = padding,
+                           endCapStyle = "SQUARE"),
+             terra =
+             terra::buffer(grid_reg,
+                           width = padding,
+                           capstyle = "square"))
+    grid_results <-
+      list(original = grid_reg,
+           padded = grid_reg_pad)
+    return(grid_results)
+
+  }
 
 #' @title sp_index_grid: Generate grid polygons
 #' @description Returns a sf object that includes x- and y- index
@@ -778,10 +786,11 @@ get_computational_regions <- function(
 #' @return A sf or SpatVector object of computation grids with
 #'  unique grid id (CGRIDID).
 #' @export
-sp_index_grid <- function(
-  points_in,
-  ncutsx,
-  ncutsy) {
+sp_index_grid <-
+  function(
+    points_in,
+    ncutsx,
+    ncutsy) {
   package_detected <- check_packbound(points_in)
 
   sp_index_grid_sf <- function(points_in, ncutsx, ncutsy) {
@@ -797,13 +806,13 @@ sp_index_grid <- function(
     grid1 <- grid1[points_in,]
     return(grid1)
   }
-  grid_out <- switch(package_detected,
-    sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
-    terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
+  grid_out <-
+    switch(package_detected,
+           sf = sp_index_grid_sf(points_in, ncutsx, ncutsy),
+           terra = sp_index_grid_terra(points_in, ncutsx, ncutsy))
 
   grid_out$CGRIDID <- seq(1, nrow(x = grid_out))
   return(grid_out)
-
 }
 
 
@@ -846,10 +855,12 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
   grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
   grid_lt_threshold <- (n_points_in_grid < grid_min_features)
-  stopifnot("Threshold is too low. Please try higher threshold.\n" = sum(grid_lt_threshold) != 0)
+  stopifnot("Threshold is too low. Please try higher threshold.\n" =
+    sum(grid_lt_threshold) != 0)
   grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-  # This part does not work as expected. Should investigate edge list and actual row index of the grid object; 
+  # This part does not work as expected.
+  # Should investigate edge list and actual row index of the grid object; 
   identified <- lapply(grid_rooks, \(x) sort(x[which(x %in% grid_lt_threshold)]))
   identified <- identified[grid_lt_threshold]
   identified <- unique(identified)
@@ -862,7 +873,6 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
     igraph::graph_from_edgelist(el = _, directed = 0) |>
     igraph::mst() |>
     igraph::components()
-  # return(identified_graph)
 
   identified_graph_member <- identified_graph$membership
 
@@ -875,10 +885,7 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
   # sf object manipulation
   grid_out <- grid_in
   grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
-  # for (k in seq_along(merge_member_label)) {
-  #   target_idx = merge_member_label[[k]]
-  #   grid_out[["CGRIDID"]][target_idx] = paste("M_", paste(target_idx, collapse = "_"), sep = "")
-  # }
+
   grid_out <- grid_out |>
     dplyr::group_by(!!rlang::sym("CGRIDID")) |>
     dplyr::summarize(n_merged = dplyr::n()) |>
@@ -893,7 +900,8 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
     (4 * pi * grid_merged_area) / (grid_merged_perimeter ^ 2)
 
   # pptest value is bounded [0,1];
-  # 0.3 threshold is groundless at this moment, possibly will make it defined by users.
+  # 0.3 threshold is groundless at this moment,
+  # possibly will make it defined by users.
   if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
    any(grid_merged_pptest < 0.3)) {
     message("The reduced computational regions have too complex shapes.
@@ -902,18 +910,6 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
   return(grid_out)
 
-  # union unique sets into one
-  # identified_relation = matrix(NA, length(identified), length(identified))
-  # diag(identified_relation) = lengths(identified)
-
-  # for (i in seq_len(length(identified))) {
-  #   for (j in seq(i, length(identified))) {
-  #     identified_relation[i, j] = length(intersect(identified[[i]], identified[[j]]))
-  #     identified_relation[j, i] = identified_relation[i, j]
-  #   }
-  # }
-  # # identified_relation = max(identified_relation) - identified_relation
-  # return(as.dist(identified_relation))
 }
 
 
@@ -963,17 +959,21 @@ testthat::test_that("Grid merge is well done.", {
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
-  gridded <- get_computational_regions(ncrp, mode = "grid",
-    nx = 8L, ny = 5L, padding = 1e4L)
+  gridded <-
+    get_computational_regions(ncrp,
+                              mode = "grid",
+                              nx = 8L, ny = 5L,
+                              padding = 1e4L)
   # suppress warnings for "all sub-geometries for which ..."
-  testthat::expect_warning(
-    grid_merge(ncrp, gridded$original, 25L))
+  testthat::expect_warning(grid_merge(ncrp, gridded$original, 25L))
 
   ncptr <- terra::vect(ncrp)
-  griddedtr <- get_computational_regions(ncptr, mode = "grid",
-    nx = 8L, ny = 5L, padding = 1e4L)
-  testthat::expect_warning(
-    grid_merge(ncptr, griddedtr$original, 25L))
+  griddedtr <-
+    get_computational_regions(ncptr,
+                              mode = "grid",
+                              nx = 8L, ny = 5L,
+                              padding = 1e4L)
+  testthat::expect_warning(grid_merge(ncptr, griddedtr$original, 25L))
 
 })
 
@@ -983,8 +983,11 @@ testthat::test_that("Grid merge is well done.", {
 ```{r, send_to = "R/check.R"}
 #' Generate a rectangular polygon from extent
 #' 
-#' @param extent input extent. A numeric vector with xmin/xmax/ymin/ymax, sf::st_bbox() or terra::ext() outputs.
-#' @param output_class character(1). Class of the output polygon. One of "sf" or "terra"
+#' @param extent input extent.
+#'  A numeric vector with xmin/xmax/ymin/ymax,
+#'  sf::st_bbox() or terra::ext() outputs.
+#' @param output_class character(1).
+#'  Class of the output polygon. One of "sf" or "terra"
 #' @param crs character(1). Coordinate reference system definition.
 #' @author Insang Song
 #' @export
@@ -997,7 +1000,8 @@ extent_to_polygon <- function(
   }
   if (methods::is(extent, "numeric")) {
     if (is.null(attr(extent, "names"))) {
-      stop("Your extent is an unnamed numeric vector. Please define names xmin/xmax/ymin/ymax explicitly.\n")
+      stop("Your extent is an unnamed numeric vector.
+           Please define names xmin/xmax/ymin/ymax explicitly.\n")
     }
     extent <- switch(
       output_class,
@@ -1293,19 +1297,6 @@ extract_with_buffer_kernel <- function(
   return(surf_at_bufs_summary)
 }
 
-
-# subfunction: reproject buffers to raster's
-reproject_b2r <-
-  function(buffers,
-           raster) {
-    detected_buf <- check_packbound(buffers)
-    detected_ras <- check_packbound(raster)
-    switch(detected_buf,
-           sf = sf::st_transform(buffers, terra::crs(raster)),
-           terra = terra::project(buffers, terra::crs(raster)))
-
-  }
-
 ```
 
 
@@ -1329,24 +1320,25 @@ reproject_b2r <-
 #' @import exactextractr
 #' @export
 extract_with_polygons <- function(
-    polys,
-    surf,
-    id,
-    func = "mean",
-    na.rm = TRUE,
-    grid_ref = NULL
-    ) {
+  polys,
+  surf,
+  id,
+  func = "mean",
+  grid_ref = NULL
+) {
   # type check
-  stopifnot("Check class of the input points.\n" = any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
-  stopifnot("Check class of the input raster.\n" = methods::is(surf, "SpatRaster"))
+  stopifnot("Check class of the input points.\n" =
+            any(methods::is(polys, "sf"), methods::is(polys, "SpatVector")))
+  stopifnot("Check class of the input raster.\n" =
+            methods::is(surf, "SpatRaster"))
   stopifnot(is.character(id))
 
   cls_polys <- check_packbound(polys)
   cls_surf <- check_packbound(surf)
 
-  # if (cls_polys != cls_surf) {
-  #   polys <- switch_packbound(polys)
-  # }
+  if (cls_polys != cls_surf) {
+    polys <- switch_packbound(polys)
+  }
 
   if (!is.null(grid_ref)) {
     polys <- polys[grid_ref, ]
@@ -1401,6 +1393,19 @@ extract_with <- function(
   return(extracted)
 }
 
+# subfunction: reproject buffers to raster's
+#' @export
+reproject_b2r <-
+  function(buffers,
+           raster) {
+    detected_buf <- check_packbound(buffers)
+    detected_ras <- check_packbound(raster)
+    switch(detected_buf,
+           sf = sf::st_transform(buffers, terra::crs(raster)),
+           terra = terra::project(buffers, terra::crs(raster)))
+
+  }
+
 ```
 
 
@@ -1419,18 +1424,21 @@ testthat::test_that("extract_with runs well", {
   ncp <- terra::vect(ncp)
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- terra::vect(nccnty)
-  nccnty <- terra::project(nccnty, "EPSG:5070")
+  nccntytr <- terra::project(nccnty, "EPSG:5070")
   ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
   ncelev <- terra::unwrap(ncelev)
 
+  nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
+  testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
+
   # test two modes
-  testthat::expect_no_error(ncexpoly <- extract_with(nccnty, ncelev, "FIPS", mode = "polygon"))
+  testthat::expect_no_error(ncexpoly <- extract_with(nccntytr, ncelev, "FIPS", mode = "polygon"))
   testthat::expect_no_error(ncexbuff <- extract_with(ncp, ncelev, "pid", mode = "buffer", radius = 1e4L))
 
   # errors
-  testthat::expect_error(extract_with(nccnty, ncelev, "GEOID", mode = "whatnot"))
-  testthat::expect_error(extract_with(nccnty, ncelev, "GEOID", mode = "polygon"))
-  testthat::expect_error(extract_with(nccnty, ncelev, 1, mode = "buffer", radius = 1e4L))
+  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "whatnot"))
+  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "polygon"))
+  testthat::expect_error(extract_with(nccntytr, ncelev, 1, mode = "buffer", radius = 1e4L))
 
 })
 
@@ -1657,6 +1665,14 @@ testthat::test_that("SEDC are well calculated.", {
     length(polnames))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_bandwidth")))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
+
+  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <- sf::st_transform(ncpnts, "EPSG:5070")
+  ncrandsf <- sf::st_as_sf(ncrand)
+
+  testthat::expect_no_error(
+    calculate_sedc(ncpnts, ncrandsf, "pid", 3e4L, 5e4L, polnames)
+  )
 })
 
 ```
@@ -2078,11 +2094,55 @@ testthat::test_that("Processes are properly spawned and compute", {
                               id = "pid")
     )
 
+  testthat::expect_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1/10",
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              qsegs = 90L,
+                              surf = ncelev,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1:10",
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              qsegs = 90L,
+                              surf = ncelev,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
+  testthat::expect_no_error(
+    out_weird <- 
+      suppressWarnings(
+        distribute_process_grid(
+                                grids = nccompreg,
+                                grid_target_id = NULL,
+                                fun_dist = extract_with_buffer,
+                                points = ncpnts,
+                                qsegs = 90L,
+                                surf = ncelev,
+                                radius = 5e3L,
+                                id = "phid")
+      )
+  )
+
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
-  print(res)
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+  testthat::expect_equal(names(out_weird)[1], "ID")
+  testthat::expect_true(all(is.na(unlist(out_weird))))
 })
 
 
@@ -2255,30 +2315,46 @@ exactextractr::exact_extract(ncelev, sf::st_as_sf(terra::buffer(ncpnts, 5e3L)), 
 
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.
 
-```{r run-devtools}
+```{r run-devtools, eval = TRUE, results = "asis", message = TRUE, echo = TRUE}
 litr::document()
 # devtools::document(".")
-devtools::test()
 # devtools::build(path = "./tools/tarballs")
+# devtools::build(pkg = "./scomps")
 
-devtools::build(path = ".")
-knitr::knit(
-  "../tools/vignettes-sources/v02_distribute_process.Rmd.orig",
-  output = "./vignettes/v02_distribute_process.Rmd"
-  )
+# devtools::build(pkg = ".")
+# knitr::knit(
+#   "../tools/vignettes-sources/v02_distribute_process.Rmd.orig",
+#   output = "./vignettes/v02_distribute_process.Rmd"
+#   )
+pkgbuild::build(path = ".")
+cat(getwd())
+print(getwd())
+```
 
+
+```{r copy-prebuilt-figures}
 # for pre-built vignettes
-if (dir.exists("./figure")) {
+if (dir.exists("../figure")) {
   if (!dir.exists("./vignettes/figure")) {
     dir.create("./vignettes/figure")
   }
-  file.copy(from = "./figure", to = "./vignettes/figure", recursive = TRUE)
-  unlink("figure", recursive = TRUE)
+  file.copy(from = "../figure", to = "./vignettes/figure", recursive = TRUE)
+  # unlink("../figure", recursive = TRUE)
 }
 
-devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
-# litr::document() # <-- use instead of devtools::document()
-# devtools::check(document = FALSE)
+# devtools::test()
+
+devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+
+```
+
+```{r, include = FALSE}
+# When the build was stuck after major/minor function update and
+# any vignette is changed, run below. 
+# knitr::knit(
+#   "./tools/vignettes-sources/v02_distribute_process.Rmd.orig",
+#   output = "./tools/vignettes-sources/v02_distribute_process.Rmd"
+#   )
 
 ```
 

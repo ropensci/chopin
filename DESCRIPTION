@@ -29,10 +29,9 @@ Suggests:
     future.batchtools,
     igraph,
     knitr,
-    logr,
     rmarkdown,
     tigris,
     withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-LitrId: 2266480a46f5f920e3b3c7295e8cffa6
+LitrId: 7c71c4e72df3344ccaa0a358828a8fc5
