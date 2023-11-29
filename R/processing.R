@@ -1,10 +1,12 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Extent clipping
-#' @description Clip input vector by the expected maximum extent of computation. 
+#' @description Clip input vector by
+#'  the expected maximum extent of computation. 
 #' @author Insang Song
 #' @param pnts sf or SpatVector object
-#' @param buffer_r numeric(1). buffer radius. this value will be automatically multiplied by 1.25
+#' @param buffer_r numeric(1). buffer radius.
+#'  this value will be automatically multiplied by 1.25
 #' @param target_input sf or SpatVector object to be clipped
 #' @return A clipped sf or SpatVector object.
 #' @export

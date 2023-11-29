@@ -195,13 +195,15 @@ check_bbox <- function(
 #' ncpath = system.file("shape/nc.shp", package = "sf")
 #' nc = read_sf(ncpath)
 #' check_crs(nc)
-#' 
-#' @export 
+#'
+#' @export
 check_crs <- function(x) {
-    stopifnot("Input is invalid.\n" = (methods::is(x, "sf") || methods::is(x, "stars") || methods::is(x, "SpatVector") || methods::is(x, "SpatRaster")))
-    stopifnot(
-      "No CRS is defined in the input. Please consult the metadata or the data source.\n" =
-      !is.na(sf::st_crs(x)) || !is.na(terra::crs(x)))
+  stopifnot("Input is invalid.\n" = any(
+    c("sf", "stars", "SpatVector", "SpatRaster", "SpatRasterDataset") %in% class(x)))
+  stopifnot(
+    "No CRS is defined in the input.
+    Please consult the metadata or the data source.\n" =
+    all(!is.na(sf::st_crs(x)), !is.na(terra::crs(x)), terra::crs(x) != ""))
 
   if (methods::is(x, "sf") || methods::is(x, "stars")) {
     crs_wkt <- sf::st_crs(x)

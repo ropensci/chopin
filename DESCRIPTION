@@ -34,4 +34,5 @@ Suggests:
     withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-LitrId: 856fbc82d8e3452d1e60913b499cfdc0
+LitrVersionUsed: 0.9.0
+LitrId: c80997e31b8499c0dd23c81022248a1c

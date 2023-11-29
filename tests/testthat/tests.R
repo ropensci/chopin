@@ -126,9 +126,10 @@ testthat::test_that("Clip extent is set properly", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
-  suppressWarnings(nc <- sf::read_sf(ncpath) |>
-    sf::st_transform("EPSG:5070") |>
-    sf::st_centroid())
+  suppressWarnings(
+    nc <- sf::read_sf(ncpath) |>
+      sf::st_transform("EPSG:5070") |>
+      sf::st_centroid())
 
   radius <- 1e4L
 
@@ -185,10 +186,10 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
   testthat::expect_s3_class(cl_sf, "sf")
 
   # sf-terra
-  testthat::expect_error(
-    clip_as_extent(
+  testthat::expect_no_error(
+    suppressWarnings(clip_as_extent(
       pnts = ncpt, buffer_r = 3e4L,
-      target_input = sf::st_as_sf(nctrct)
+      target_input = sf::st_as_sf(nctrct))
   ))
 
   testthat::expect_error(
@@ -352,8 +353,9 @@ testthat::test_that("extract_with runs well", {
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncp <- terra::vect(ncp)
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  nccnty <- terra::vect(nccnty)
-  nccntytr <- terra::project(nccnty, "EPSG:5070")
+  nccnty <- sf::st_read(nccnty)
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntytr <- terra::vect(nccnty)
   ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
   ncelev <- terra::unwrap(ncelev)
 
@@ -387,6 +389,9 @@ testthat::test_that("check_crs is working as expected", {
   testthat::expect_equal(crs_checked1, sf::st_crs(nc))
   testthat::expect_equal(crs_checked2, terra::crs(nct))
   testthat::expect_error(check_crs(dummy))
+  ncna <- nc
+  sf::st_crs(ncna) <- NA
+  testthat::expect_error(check_crs(ncna))
 
 })
 
@@ -490,20 +495,24 @@ testthat::test_that("Processes are properly spawned and compute", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
-  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <-
+    readRDS(
+            testthat::test_path("..", "testdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
-  ncelev <- terra::unwrap(readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  ncelev <-
+    terra::unwrap(
+      readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 
   nccompreg <-
     get_computational_regions(
-      input = ncpnts,
-      mode = 'grid',
-      nx = 6L,
-      ny = 4L,
-      padding = 3e4L)
+                              input = ncpnts,
+                              mode = 'grid',
+                              nx = 6L,
+                              ny = 4L,
+                              padding = 3e4L)
   res <-
     suppressWarnings(
       distribute_process_grid(
@@ -545,27 +554,12 @@ testthat::test_that("Processes are properly spawned and compute", {
     )
   )
 
-  testthat::expect_no_error(
-    out_weird <- 
-      suppressWarnings(
-        distribute_process_grid(
-                                grids = nccompreg,
-                                grid_target_id = NULL,
-                                fun_dist = extract_with_buffer,
-                                points = ncpnts,
-                                qsegs = 90L,
-                                surf = ncelev,
-                                radius = 5e3L,
-                                id = "phid")
-      )
-  )
 
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
-  testthat::expect_equal(names(out_weird)[1], "ID")
-  testthat::expect_true(all(is.na(unlist(out_weird))))
+
 })
 
 

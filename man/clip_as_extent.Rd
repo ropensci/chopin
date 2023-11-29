@@ -9,7 +9,8 @@ clip_as_extent(pnts, buffer_r, target_input)
 \arguments{
 \item{pnts}{sf or SpatVector object}
 
-\item{buffer_r}{numeric(1). buffer radius. this value will be automatically multiplied by 1.25}
+\item{buffer_r}{numeric(1). buffer radius.
+this value will be automatically multiplied by 1.25}
 
 \item{target_input}{sf or SpatVector object to be clipped}
 }
@@ -17,7 +18,8 @@ clip_as_extent(pnts, buffer_r, target_input)
 A clipped sf or SpatVector object.
 }
 \description{
-Clip input vector by the expected maximum extent of computation.
+Clip input vector by
+the expected maximum extent of computation.
 }
 \author{
 Insang Song
