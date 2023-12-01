@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-11-29"
+date: "2023-12-01"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.1.0.11282023",
+    Version = "0.1.1.12012023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -2066,9 +2066,30 @@ distribute_process_multirasters <- function(
 }
 
 
+
+#' @title Quick wrapper for parallel processing
+#' @param fun function name without parenthesis.
+#' @param ... passed to \code{fun}. Should follow the order of
+#'  arguments of the original function.
+#' @param grid_ref character(1). internally passed to
+#'  \code{distribute_*} function.
+#' @export
+dispatcher <-
+  function(fun,
+           ...,
+           grid_ref = NULL) {
+    parsed_args <- list(...)
+    print(parsed_args)
+    fun(...)
+  }
+
 ```
 
 
+```{r test-dispatcher, eval = FALSE}
+dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
+
+```
 
 ```{r test-distribute, eval=FALSE}
 testthat::test_that("Processes are properly spawned and compute", {
