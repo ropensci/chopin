@@ -2069,24 +2069,61 @@ distribute_process_multirasters <- function(
 
 #' @title Quick wrapper for parallel processing
 #' @param fun function name without parenthesis.
+#' @param at SpatVector/sf. Location/area where
+#'  covariates will be calculated.
+#' @param from SpatRaster/SpatVector/sf. From which outcomes are
+#' calculated.
+#' @param grids SpatVector. Grids each of which will get
+#'  split work demand. Should have an identifier field
+#'  named "CGRIDID".
+#' @param grid_ref character(1). internally passed to
+#'  \code{distribute_*} function. If not NULL, grid mode is
+#' activated.
 #' @param ... passed to \code{fun}. Should follow the order of
 #'  arguments of the original function.
-#' @param grid_ref character(1). internally passed to
-#'  \code{distribute_*} function.
+#' @author Insang Song
+#' @importFrom methods is
 #' @export
 dispatcher <-
   function(fun,
-           ...,
-           grid_ref = NULL) {
-    parsed_args <- list(...)
-    print(parsed_args)
-    fun(...)
+           at = NULL,
+           from = NULL,
+           grids = NULL,
+           grid_ref = NULL,
+           ...) {
+    # parsed_args <- list(...)
+    if (!methods::is(at, "SpatVector")) {
+      at <- switch_packbound(at)
+    }
+    if (check_packbound(from) != "terra") {
+      from <- switch_packbound(from)
+    }
+    # detect class
+    # args_class_detected <- lapply(parsed_args, \(x) class(x)[1])
+    # crop or partially read input
+
+    grid_now <- grids[grids$CGRIDID == grid_ref, ]
+    at_sub <- terra::crop(at, grid_now)
+    from_sub <- terra::crop(from, grid_now)
+    fun(at_sub, from_sub, ...)
   }
 
 ```
 
 
 ```{r test-dispatcher, eval = FALSE}
+testthat::test_that('dispatcher should work properly', {
+  withr::local_package('terra')
+  withr::local_package('sf')
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # main test
+
+  # expect
+  testthat::expect_equal()
+
+})
+
 dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
 
 ```
