@@ -15,7 +15,8 @@ set_clip_extent(pnts, buffer_r)
 A terra::ext or sfc_POLYGON object of the computation extent.
 }
 \description{
-Return clipping extent with buffer radius. It assumes the input CRS is projected and linear unit is meters.
+Return clipping extent with buffer radius.
+It assumes the input CRS is projected and linear unit is meters.
 }
 \author{
 Insang Song

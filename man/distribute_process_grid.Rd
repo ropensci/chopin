@@ -35,6 +35,19 @@ target locations. Each thread will process ceiling(|Ng|/|Nt|) grids
 where |Ng| denotes the number of grids and |Nt| denotes
 the number of threads.
 }
+\note{
+In dynamic dots (\code{...}), the first and second
+arguments should be the \code{fun_dist} arguments where
+sf/SpatVector objects are accepted.
+Virtually any sf/terra functions that accept two arguments
+can be put in \code{fun_dist}, but please be advised that
+some spatial operations do not necessarily give the
+exact result from what would have been done single-thread.
+For example, distance calculated through this function may return the
+lower value than actual because the computational region was reduced.
+This would be the case especially where the target features
+are spatially sparsely distributed.
+}
 \examples{
 library(future)
 plan(multicore, workers = 4)

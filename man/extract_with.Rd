@@ -22,12 +22,16 @@ extract_with(
 
 \item{func}{function taking one numeric vector argument.}
 
-\item{mode}{one of "polygon" (generic polygons to extract raster values with) or "buffer" (point with buffer radius)}
+\item{mode}{one of "polygon"
+(generic polygons to extract raster values with) or
+"buffer" (point with buffer radius)}
 
-\item{...}{various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.}
+\item{...}{various. Passed to extract_with_buffer.
+See \code{?extract_with_buffer} for details.}
 }
 \value{
-A data.frame object with summarized raster values with respect to the mode (polygon or buffer) and the function.
+A data.frame object with summarized raster values with
+respect to the mode (polygon or buffer) and the function.
 }
 \description{
 Extract raster values with point buffers or polygons

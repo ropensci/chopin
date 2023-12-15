@@ -14,7 +14,8 @@ calculate_sedc(
 )
 }
 \arguments{
-\item{point_from}{SpatVector object. Locations where the sum of SEDCs are calculated.}
+\item{point_from}{SpatVector object. Locations where
+the sum of SEDCs are calculated.}
 
 \item{point_to}{SpatVector object. Locations where each SEDC is calculated.}
 
@@ -46,8 +47,8 @@ Calculate SEDC covariates
 }
 \note{
 Distance calculation is done with terra functions internally.
-Thus, the function internally converts sf objects in \code{point_*} arguments
-to terra.
+Thus, the function internally converts sf objects in
+\code{point_*} arguments to terra.
 The optimal EDC should be carefully chosen by users.
 }
 \author{

@@ -10,6 +10,17 @@
 #'  target locations. Each thread will process ceiling(|Ng|/|Nt|) grids
 #'  where |Ng| denotes the number of grids and |Nt| denotes
 #'  the number of threads.
+#' @note In dynamic dots (\code{...}), the first and second
+#' arguments should be the \code{fun_dist} arguments where
+#' sf/SpatVector objects are accepted.
+#' Virtually any sf/terra functions that accept two arguments
+#' can be put in \code{fun_dist}, but please be advised that
+#' some spatial operations do not necessarily give the
+#' exact result from what would have been done single-thread.
+#' For example, distance calculated through this function may return the
+#' lower value than actual because the computational region was reduced.
+#' This would be the case especially where the target features
+#' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
 #'  an output of \code{get_computational_regions}
@@ -19,7 +30,7 @@
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param fun_dist function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
-#' @return a data.frame object with computation results.
+#' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -30,6 +41,9 @@
 #' # Does not run ...
 #' # distribute_process_grid()
 #' @import future
+#' @importFrom future.apply future_lapply
+#' @importFrom rlang inject
+#' @importFrom rlang `!!!`
 #' @export
 distribute_process_grid <-
   function(
@@ -49,8 +63,9 @@ distribute_process_grid <-
     }
     if (is.character(grid_target_id)) {
       grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
-      grid_target_ids <- c(which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
-                      which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
+      grid_target_ids <-
+        c(which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
+          which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
     }
     if (is.numeric(grid_target_id)) {
       grid_target_ids <- unique(grids$original[["CGRIDID"]])[grid_target_id]
@@ -61,22 +76,34 @@ distribute_process_grid <-
     if (is.null(detected_id)) {
       detected_id <- "ID"
     }
-    detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
-    
-    grids_target <- grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]),]
+    # detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
+
+    grids_target <-
+      grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
     grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
     results_distributed <- future.apply::future_lapply(
       grids_target_list,
-      \(x) {
+      \(grid) {
         sf::sf_use_s2(FALSE)
-        
+
         run_result <- tryCatch({
-          res <- fun_dist(..., grid_ref = x)
+          ## TODO:
+          ## parse function arguments
+          args_input <- list(...)
+          # args_fun <- formals(fun_dist)
+          ## Strongly assuming that
+          # the first is "at", the second is "from"
+          args_input[[1]] <-
+            args_input[[1]][grid, ]
+          args_input[[2]] <-
+            args_input[[2]][grid, ]
+
+          res <- rlang::inject(fun_dist(rlang::`!!!`(args_input)))
           cat(sprintf("Your input function was 
           successfully run at CGRIDID: %s\n",
             as.character(unlist(x[["CGRIDID"]]))))
-          
+
           return(res)
         },
         error = function(e) {
@@ -84,7 +111,7 @@ distribute_process_grid <-
           colnames(fallback)[1] <- detected_id
           return(fallback)
         })
-        
+
         return(run_result)
       },
       future.seed = TRUE,
@@ -112,6 +139,17 @@ distribute_process_grid <-
 #'  the number of threads. Please be advised that
 #'  accessing the same file simultaneously with
 #'  multiple processes may result in errors.
+#' @note In dynamic dots (\code{...}), the first and second
+#' arguments should be the \code{fun_dist} arguments where
+#' sf/SpatVector objects are accepted.
+#' Virtually any sf/terra functions that accept two arguments
+#' can be put in \code{fun_dist}, but please be advised that
+#' some spatial operations do not necessarily give the
+#' exact result from what would have been done single-thread.
+#' For example, distance calculated through this function may return the
+#' lower value than actual because the computational region was reduced.
+#' This would be the case especially where the target features
+#' are spatially sparsely distributed.
 #' @param regions sf/SpatVector object.
 #'  Computational regions. Only polygons are accepted.
 #' @param split_level character(nrow(regions)) or character(1).
@@ -120,7 +158,7 @@ distribute_process_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param fun_dist function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
-#' @return a data.frame object with computation results.
+#' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -131,7 +169,9 @@ distribute_process_grid <-
 #' # Does not run ...
 #' # distribute_process_hierarchy()
 #' @import future
-#' @import future.apply
+#' @importFrom future.apply future_lapply
+#' @importFrom rlang inject
+#' @importFrom rlang `!!!`
 #' @export
 distribute_process_hierarchy <-
   function(
@@ -141,48 +181,48 @@ distribute_process_hierarchy <-
     ...
   ) {
 
-  if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
-    stop("The length of split_level is not valid.")
-  }
-  split_level <- ifelse(length(split_level) == nrow(regions),
-    split_level,
-    unlist(regions[[split_level]]))
+    if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
+      stop("The length of split_level is not valid.")
+    }
+    split_level <-
+      ifelse(length(split_level) == nrow(regions),
+             split_level,
+             unlist(regions[[split_level]]))
 
-  # pgrs <- progressr::progressor(along = seq_len(split_level))
-  regions_list <- split(regions, split_level)
+    regions_list <- split(regions, split_level)
 
-  results_distributed <-
-    future_lapply(
-                  regions_list,
-                  \(x) {
-                    sf::sf_use_s2(FALSE)
-                    run_result <-
-                      tryCatch(
-                               {
-                                 res <- fun_dist(..., grid_ref = x)
-                                 return(res)
-                               },
-                               error =
-                               function(e) {
-                                 return(data.frame(ID = NA))
-                               })
-                    return(run_result)
-                  },
-                  future.seed = TRUE,
-                  future.packages = c("terra", "sf", "dplyr",
-                                      "scomps", "future", "exactextractr"))
-  results_distributed <- do.call(dplyr::bind_rows, results_distributed)
-  # results_distributed <-
-  #   results_distributed[!is.na(results_distributed[["ID"]]), ]
+    results_distributed <-
+      future_lapply(
+                    regions_list,
+                    \(subregion) {
+                      sf::sf_use_s2(FALSE)
+                      run_result <-
+                        tryCatch(
+                                 {
+                                  args_input <- list(...)
+                                  ## Strongly assuming that
+                                  # the first is "at", the second is "from"
+                                  args_input[[1]] <-
+                                    args_input[[1]][subregion, ]
+                                  args_input[[2]] <-
+                                    args_input[[2]][subregion, ]
 
-  # post-processing
-  # detected_id <- grep("^id", names(par_fun), value = TRUE)
-  # detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
-  # names(results_distributed)[1] <- par_fun[[detected_id]]
-  # results_distributed[[par_fun[[detected_id]]]] <-
-  #   unlist(par_fun[[detected_point]][[par_fun[[detected_id]]]])
+                                  res <-
+                                    rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+                                  return(res)
+                                },
+                                error =
+                                function(e) {
+                                  return(data.frame(ID = NA))
+                                })
+                      return(run_result)
+                    },
+                    future.seed = TRUE,
+                    future.packages = c("terra", "sf", "dplyr",
+                                        "scomps", "future", "exactextractr"))
+    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
-  return(results_distributed)
+    return(results_distributed)
 }
 
 
@@ -208,7 +248,8 @@ distribute_process_hierarchy <-
 #' @param fun_dist function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @return a data.frame object with computation results.
-#'  For entries of the results, consult the function used in \code{fun_dist} argument.
+#'  For entries of the results,
+#'  consult the function used in \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #'
 #' @examples
@@ -244,9 +285,23 @@ distribute_process_multirasters <- function(
 
                     run_result <-
                       tryCatch({
-                        res <- fun_dist(...)
-                        return(res)
-                      },
+                                args_input <- list(...)
+                                rast_target <- rast_short()
+                                # cls_detected <-
+                                #   sapply(args_input, \(x) class(x)[1])
+                                # cls_raster <- (cls_detected %in% c("SpatRasterDataSet", "SpatRaster"))
+                                # rast_target <- unlist(args_input[cls_raster])
+                                
+                                rast_short()
+                                args_input[[1]] <-
+                                  args_input[[1]][subregion, ]
+                                args_input[[2]] <-
+                                  args_input[[2]][subregion, ]
+
+                                res <-
+                                  rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+                                return(res)
+                                },
                       error = function(e) {
                         fallback <- data.frame(ID = NA)
                         colnames(fallback)[1] <- detected_id
@@ -263,5 +318,6 @@ distribute_process_multirasters <- function(
 
   return(results_distributed)
 }
+
 
 

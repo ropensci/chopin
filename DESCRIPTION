@@ -1,6 +1,6 @@
 Package: scomps
 Title: Scalable R geospatial computation
-Version: 0.1.0.11282023
+Version: 0.1.1.12152023
 Authors@R: 
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
@@ -28,11 +28,8 @@ Suggests:
     doFuture,
     future.batchtools,
     igraph,
-    knitr,
-    rmarkdown,
     tigris,
     withr
-VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 27f6f5c2ca8a6ac7b17c7948754bf5d4
+LitrId: 256301285aae36e853e535d150868ced

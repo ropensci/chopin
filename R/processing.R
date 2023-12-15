@@ -68,8 +68,8 @@ clip_as_extent_ras <- function(
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
-#'  Kernel function is not yet implemented. 
-#' @param points SpatVector object. Coordinates where buffers will be generated
+#'  Kernel function is not yet implemented.
+#' @param points sf/SpatVector object. Coordinates where buffers will be generated
 #' @param surf SpatRaster object.
 #'  A raster of whatnot a summary will be calculated
 #' @param radius numeric(1). Buffer radius. here we assume circular buffers only
@@ -79,51 +79,59 @@ clip_as_extent_ras <- function(
 #' @param func a function taking a numeric vector argument.
 #' @param kernel character(1). Name of a kernel function (yet to be implemented)
 #' @param bandwidth numeric(1). Kernel bandwidth.
-#' @param grid_ref SpatVector object.
-#'  A unit grid polygon that is used to get a subset inside the polygon
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
-#'
+#' @importFrom exactextractr exact_extract
+#' @importFrom terra ext
+#' @importFrom terra crop
+#' @importFrom terra buffer
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr all_of
+#' @importFrom dplyr across
+#' @importFrom dplyr ungroup
 #' @export
 extract_with_buffer <- function(
-    points,
-    surf,
-    radius,
-    id,
-    qsegs = 90L,
-    func = "mean",
-    kernel = NULL,
-    bandwidth = NULL,
-    grid_ref = NULL
-    ) {
+  points,
+  surf,
+  radius,
+  id,
+  qsegs = 90L,
+  func = "mean",
+  kernel = NULL,
+  bandwidth = NULL
+  ) {
   # type check
-  stopifnot("Check class of the input points.\n" = methods::is(points, "SpatVector"))
-  stopifnot("Check class of the input radius.\n" = is.numeric(radius))
-  stopifnot(is.character(id))
-  stopifnot(is.numeric(qsegs))
-
-  if (!is.null(grid_ref)) {
-    points <- points[grid_ref, ]
+  if (!methods::is(points, "SpatVector")) {
+    if (!methods::is(points, "sf")) {
+      stop("Check class of the input points.\n")
+    }
+    points <- terra::vect(points)
   }
+  if (!is.numeric(radius)) stop("Check class of the input radius.\n")
+  if (!is.character(id)) stop("id should be a character.\n")
+  if (!is.numeric(qsegs)) stop("qsegs should be numeric.\n")
 
   if (!is.null(kernel)) {
-    extracted <- extract_with_buffer_kernel(points = points,
-                                    surf = surf,
-                                    radius = radius,
-                                    id = id,
-                                    func = func,
-                                    qsegs = qsegs,
-                                    kernel = kernel,
-                                    bandwidth = bandwidth)
+    extracted <-
+      extract_with_buffer_kernel(points = points,
+                                 surf = surf,
+                                 radius = radius,
+                                 id = id,
+                                 func = func,
+                                 qsegs = qsegs,
+                                 kernel = kernel,
+                                 bandwidth = bandwidth)
     return(extracted)
   }
 
-  extracted <- extract_with_buffer_flat(points = points,
-                                surf = surf,
-                                radius = radius,
-                                id = id,
-                                func = func,
-                                qsegs = qsegs)
+  extracted <-
+    extract_with_buffer_flat(points = points,
+                             surf = surf,
+                             radius = radius,
+                             id = id,
+                             func = func,
+                             qsegs = qsegs)
   return(extracted)
 
 }
@@ -212,27 +220,30 @@ extract_with_buffer_kernel <- function(
 
 
 #' @title Extract summarized values from raster with generic polygons
-#' 
-#' @description For simplicity, it is assumed that the coordinate systems of the points and the raster are the same. Kernel function is not yet implemented. 
+#'
+#' @description For simplicity, it is assumed that the coordinate systems of
+#'  the points and the raster are the same.
+#'  Kernel function is not yet implemented.
 #' @param polys sf/SpatVector object. Polygons.
-#' @param surf SpatRaster object. A raster from which a summary will be calculated
+#' @param surf SpatRaster object.
+#'  A raster from which a summary will be calculated
 #' @param id character(1). Unique identifier of each point.
-#' @param func a generic function name in string or a function taking two arguments that are
+#' @param func a generic function name in string or
+#'  a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}
-#' @param grid_ref A character or sf/SpatVector object. To subset \code{polys} in \code{distribute_*} functions.
-#' @return a data.frame object with function value
+#' @returns a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
+#' @importFrom methods is
 #' @importFrom rlang sym
 #' @importFrom dplyr across
-#' @import exactextractr
+#' @importFrom exactextractr exact_extract
 #' @export
 extract_with_polygons <- function(
   polys,
   surf,
   id,
-  func = "mean",
-  grid_ref = NULL
+  func = "mean"
 ) {
   # type check
   stopifnot("Check class of the input points.\n" =
@@ -248,9 +259,9 @@ extract_with_polygons <- function(
     polys <- switch_packbound(polys)
   }
 
-  if (!is.null(grid_ref)) {
-    polys <- polys[grid_ref, ]
-  }
+  # if (!is.null(grid_ref)) {
+  #   polys <- polys[grid_ref, ]
+  # }
 
   polys <- reproject_b2r(polys, surf)
 
@@ -274,9 +285,13 @@ extract_with_polygons <- function(
 #' @param raster SpatRaster object.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
-#' @param mode one of "polygon" (generic polygons to extract raster values with) or "buffer" (point with buffer radius)
-#' @param ... various. Passed to extract_with_buffer. See \code{?extract_with_buffer} for details.
-#' @return A data.frame object with summarized raster values with respect to the mode (polygon or buffer) and the function.
+#' @param mode one of "polygon"
+#'  (generic polygons to extract raster values with) or
+#'  "buffer" (point with buffer radius)
+#' @param ... various. Passed to extract_with_buffer.
+#'  See \code{?extract_with_buffer} for details.
+#' @return A data.frame object with summarized raster values with
+#'  respect to the mode (polygon or buffer) and the function.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @export
 extract_with <- function(
@@ -294,8 +309,18 @@ extract_with <- function(
 
   extracted <-
     switch(mode,
-      polygon = extract_with_polygons(polys = vector, surf = raster, id = id, func = func, ...),
-      buffer = extract_with_buffer(points = vector, surf = raster, id = id, func = func, ...))
+      polygon = extract_with_polygons(
+                                      polys = vector,
+                                      surf = raster,
+                                      id = id,
+                                      func = func,
+                                      ...),
+      buffer = extract_with_buffer(
+                                   points = vector,
+                                   surf = raster,
+                                   id = id,
+                                   func = func,
+                                   ...))
   return(extracted)
 }
 
@@ -316,7 +341,8 @@ reproject_b2r <-
 
 
 #' Calculate SEDC covariates
-#' @param point_from SpatVector object. Locations where the sum of SEDCs are calculated.
+#' @param point_from SpatVector object. Locations where
+#'  the sum of SEDCs are calculated.
 #' @param point_to SpatVector object. Locations where each SEDC is calculated.
 #' @param id character(1). Name of the unique id field in point_to.
 #' @param sedc_bandwidth numeric(1).
@@ -334,10 +360,22 @@ reproject_b2r <-
 #'    - attr(result, "sedc_threshold"): the threshold distance
 #'  at which emission source points are excluded beyond that
 #' @note Distance calculation is done with terra functions internally.
-#'  Thus, the function internally converts sf objects in \code{point_*} arguments
-#'  to terra.
+#'  Thus, the function internally converts sf objects in
+#'  \code{point_*} arguments to terra.
 #'  The optimal EDC should be carefully chosen by users.
 #' @author Insang Song
+#' @importFrom dplyr as_tibble
+#' @importFrom dplyr left_join
+#' @importFrom dplyr summarize
+#' @importFrom dplyr mutate
+#' @importFrom dplyr group_by
+#' @importFrom dplyr all_of
+#' @importFrom dplyr across
+#' @importFrom dplyr ungroup
+#' @importFrom terra nearby
+#' @importFrom terra distance
+#' @importFrom terra buffer
+#' @importFrom rlang sym
 #' @export
 calculate_sedc <-
   function(
@@ -415,7 +453,7 @@ calculate_sedc <-
 #' @description When poly_in and poly_weight are different classes,
 #'  poly_weight will be converted to the class of poly_in.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples 
+#' @examples
 #' # package
 #' library(sf)
 #'
@@ -431,20 +469,35 @@ calculate_sedc <-
 #' system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
 #' summary(ppb_nc_aw)
 #' #### Example of aw_covariates ends ####
+#' @importFrom terra expanse
+#' @importFrom rlang sym
+#' @importFrom dplyr where
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr across
+#' @importFrom dplyr ungroup
+#' @importFrom terra intersect
+#' @importFrom sf st_interpolate_aw
+#' @importFrom stats weighted.mean
 #' @export
 aw_covariates <- function(
-  poly_in, 
+  poly_in,
   poly_weight, 
   id_poly_in = "ID") {
-  stopifnot("Inputs have invalid classes.\n" = 
-    methods::is(poly_in, "sf") || methods::is(poly_weight, "sf") || methods::is(poly_in, "SpatVector") || methods::is(poly_weight, "SpatVector"))
-  #check_crs()
+    if (any(
+      !methods::is(poly_in, "sf"),
+      !methods::is(poly_weight, "sf"),
+      !methods::is(poly_in, "SpatVector"),
+      !methods::is(poly_weight, "SpatVector")
+    )) {
+      stop("Inputs have invalid classes.\n")
+    }
   ## distinguish numeric and nonnumeric columns
   index_numeric <- grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
 
   aw_covariates_terra <- function(
-    poly_in, 
-    poly_weight, 
+    poly_in,
+    poly_weight,
     id_poly_in = id_poly_in) {
       poly_intersected <- terra::intersect(poly_in, poly_weight)
       poly_intersected[["area_segment_"]] <- terra::expanse(poly_intersected)
@@ -468,7 +521,7 @@ aw_covariates <- function(
       poly_in, extensive = FALSE)),
     terra = aw_covariates_terra(poly_in, poly_weight[, index_numeric],
       id_poly_in = id_poly_in))
-    
+
 }
 
 

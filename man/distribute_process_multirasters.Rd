@@ -16,7 +16,8 @@ full file paths of raster files. n is the total number of raster files.}
 }
 \value{
 a data.frame object with computation results.
-For entries of the results, consult the function used in \code{fun_dist} argument.
+For entries of the results,
+consult the function used in \code{fun_dist} argument.
 }
 \description{
 Large raster files usually exceed the memory capacity in size.

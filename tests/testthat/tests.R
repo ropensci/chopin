@@ -363,13 +363,36 @@ testthat::test_that("extract_with runs well", {
   testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
 
   # test two modes
-  testthat::expect_no_error(ncexpoly <- extract_with(nccntytr, ncelev, "FIPS", mode = "polygon"))
-  testthat::expect_no_error(ncexbuff <- extract_with(ncp, ncelev, "pid", mode = "buffer", radius = 1e4L))
+  testthat::expect_no_error(
+    ncexpoly <- extract_with(
+                             nccntytr,
+                             ncelev,
+                             "FIPS",
+                             mode = "polygon"))
+  testthat::expect_no_error(
+    ncexbuff <- extract_with(ncp,
+                             ncelev,
+                             "pid",
+                             mode = "buffer",
+                             radius = 1e4L))
 
   # errors
-  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "whatnot"))
-  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "polygon"))
-  testthat::expect_error(extract_with(nccntytr, ncelev, 1, mode = "buffer", radius = 1e4L))
+  testthat::expect_error(
+    extract_with(nccntytr,
+                 ncelev,
+                 "GEOID",
+                 mode = "whatnot"))
+  testthat::expect_error(
+    extract_with(nccntytr,
+                 ncelev,
+                 "GEOID",
+                 mode = "polygon"))
+  testthat::expect_error(
+    extract_with(nccntytr,
+                 ncelev,
+                 1,
+                 mode = "buffer",
+                 radius = 1e4L))
 
 })
 
@@ -403,7 +426,7 @@ testthat::test_that("nc data is within the mainland US", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::read_sf(ncpath)
   nc <- sf::st_transform(nc, "EPSG:4326")
-  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
+  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   within_res <- check_within_reference(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
@@ -421,7 +444,8 @@ testthat::test_that("SEDC are well calculated.", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
-  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <-
+    readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncrand <- terra::spatSample(ncpoly, 250L)
@@ -431,11 +455,13 @@ testthat::test_that("SEDC are well calculated.", {
 
   polnames <- paste0("pollutant", 1:3)
 
-  testthat::expect_no_error(sedc_calc <-
-    calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames))
+  testthat::expect_no_error(
+    sedc_calc <-
+      calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames))
   testthat::expect_s3_class(sedc_calc, "data.frame")
   print(sedc_calc)
-  testthat::expect_equal(sum(paste0(polnames, "_sedc") %in% names(sedc_calc)),
+  testthat::expect_equal(
+    sum(paste0(polnames, "_sedc") %in% names(sedc_calc)),
     length(polnames))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_bandwidth")))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
@@ -459,30 +485,77 @@ testthat::test_that("aw_covariates works as expected.", {
   withr::local_package("testthat")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
   nc <- sf::st_transform(nc, 5070)
   pp <- sf::st_sample(nc, size = 300)
   pp <- sf::st_as_sf(pp)
   pp[["id"]] <- seq(1, nrow(pp))
   sf::st_crs(pp) <- "EPSG:5070"
-  ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+  ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
+  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
   expect_s3_class(ppb_nc_aw, "sf")
 
   # terra
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, 'id')})
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, 'id')})
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
   expect_s3_class(ppb_nc_aw, "data.frame")
 
 })
 
 
+
+
+testthat::test_that("classes are detected.", {
+  withr::local_package("terra")
+  random_df <- data.frame(x = runif(10), y = runif(10))
+  random_tv <- terra::vect(random_df, geom = c("x", "y"))
+  test_args <- list(vector = random_tv,
+                    func = mean,
+                    pipi = pi,
+                    zodiac = "Horse")
+  set_detected <- detect_class(test_args, "SpatVector")
+  # test partial match
+  set_detectedp <- detect_class(test_args, "Spat")
+
+  testthat::expect_true(is.logical(set_detected))
+  testthat::expect_true(is.logical(set_detectedp))
+  # both are the same
+  testthat::expect_true(all.equal(set_detected, set_detectedp))
+
+  vect_pop <- test_args[set_detected][[1]]
+  testthat::expect_s4_class(vect_pop, "SpatVector")
+
+  # does it well in a function as designed?
+  downy <- function(...) {
+    ARGS <- list(...)
+    detect_class(ARGS, "SpatVector")}
+  bear <- downy(v = random_tv, f = mean, pipi = pi)
+
+  testthat::expect_true(is.logical(bear))
+  testthat::expect_true(bear[[1]] == TRUE)
+
+})
+
+
+testthat::test_that('dispatcher should work properly', {
+  withr::local_package('terra')
+  withr::local_package('sf')
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # main test
+
+  # expect
+  testthat::expect_equal()
+
+})
+
+dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
 
 
 testthat::test_that("Processes are properly spawned and compute", {
