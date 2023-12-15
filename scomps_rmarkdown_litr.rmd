@@ -284,10 +284,7 @@ check_crs_align <-
       Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
   }
   check_crs_sf <- function(input, crs_standard) {
-    if (is.na(sf::st_crs(input)) || is.null(sf::st_crs(input))) {
-      stop('Please check the coordinate system or
-       its EPSG code of your input object.')
-    }
+    invisible(check_crs(input))
     input_crs <- sf::st_crs(input)$epsg
     standard_crs <- sf::st_crs(crs_standard)$epsg
     if (input_crs == standard_crs) {
@@ -299,10 +296,7 @@ check_crs_align <-
   }
 
   check_crs_terra <- function(input, crs_standard) {
-    if (is.na(terra::crs(input)) || is.null(terra::crs(input))) {
-      stop('Please check the coordinate system or
-       its EPSG code of your input object.')
-    }
+    invisible(check_crs(input))
     input_crs <- terra::crs(input, describe = TRUE)$code
     standard_crs <- terra::crs(crs_standard, describe = TRUE)$code
     if (input_crs == standard_crs) {
@@ -852,9 +846,6 @@ sp_index_grid <-
 #' # dg_merged <- grid_merge(sf::st_as_sf(sss), dgs, 100)
 #'
 #' #### NOT RUN ####
-#' @importFrom igraph graph_from_edgelist
-#' @importFrom igraph mst
-#' @importFrom igraph components
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup
@@ -1064,9 +1055,13 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_s3_class(mainland_box, "sf")
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
+  # error cases
   testthat::expect_error(
     extent_to_polygon(mainland_vec_un, output_class = "sf")
   )
+  testthat::expect_error(
+    extent_to_polygon(mainland_vec_un, output_class = "GeoDataFrames")
+  )  
 })
 
 ```
@@ -1085,11 +1080,7 @@ testthat::test_that("input extent is converted to a polygon", {
 #'  This function will return TRUE if the reference region
 #'  completely contains your data's extent and FALSE otherwise.
 #' @param data_query sf*/stars/SpatVector/SpatRaster object.
-#' @param reference sf*/stars/SpatVector/SpatRaster object or
-#'  a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#' @param reference_crs Well-known-text-formatted or
-#'  EPSG code of the reference's coordinate system.
-#'  Only required when a named numeric vector is passed to reference.
+#' @param reference sf*/stars/SpatVector/SpatRaster object
 #' @return TRUE (the queried data extent is completely within
 #'  the reference bounding box) or FALSE
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -1097,34 +1088,18 @@ testthat::test_that("input extent is converted to a polygon", {
 #' @export
 check_bbox <- function(
   data_query,
-  reference,
-  reference_crs = NULL
+  reference
 ) {
-  if (is.numeric(reference) && is.null(reference_crs)) {
-    stop("CRS should be entered when the reference extent is a vector.\n")
-  }
-  if (is.numeric(reference) && !is.null(reference_crs)) {
-    reference <- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
-  }
-  query_crs <- check_crs(data_query)
+  reference <- sf::st_as_sfc(sf::st_bbox(reference))
+  print(sf::st_crs(reference))
+  # invisible check data_query CRS check
+  invisible(check_crs(data_query))
 
-  ref_crs <- check_crs(reference)
-  if (is.null(reference_crs)) {
-    reference <-
-      sf::st_as_sfc(
-        sf::st_bbox(reference),
-        crs = ref_crs
-      )
-  }
-  if (is.na(query_crs) || is.null(query_crs)) {
-    stop("The dataset you queried has no CRS.
-     Please make sure your dataset has the correct CRS.\n")
-  }
   data_query_bb <-
     sf::st_as_sfc(sf::st_bbox(data_query),
                   crs = sf::st_crs(data_query))
-
-  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(ref_crs))
+  print(sf::st_crs(data_query_bb))
+  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(reference))
   check_result <- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
 }
@@ -1149,6 +1124,9 @@ testthat::test_that("Check bbox abides.", {
   testthat::expect_no_error(check_bbox(ncp, nc))
   res <- check_bbox(ncp, nc)
   testthat::expect_equal(res, TRUE)
+
+  # error cases
+  testthat::expect_no_error(check_bbox(ncp, sf::st_bbox(nc)))
 })
 
 ```
@@ -1563,6 +1541,9 @@ testthat::test_that("check_crs is working as expected", {
   ncna <- nc
   sf::st_crs(ncna) <- NA
   testthat::expect_error(check_crs(ncna))
+  nctna <- nct
+  terra::crs(nctna) <- ""
+  testthat::expect_error(check_crs(nctna))
 
 })
 
@@ -1624,6 +1605,11 @@ testthat::test_that("nc data is within the mainland US", {
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   within_res <- check_within_reference(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
+
+  # error cases
+  testthat::expect_error(check_within_reference(list(1), mainland_box))
+  testthat::expect_error(check_within_reference(nc, list(1)))
+
 })
 
 ```
@@ -2026,8 +2012,11 @@ distribute_process_grid <-
     if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
       stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
     }
-    if (is.numeric(grid_target_id) && length(grid_target_id) != 2) {
-      stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
+    if (is.numeric(grid_target_id)) {
+      if (length(grid_target_id) != 2) {
+        stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
+      }
+      grid_target_ids <- unique(grids$original[["CGRIDID"]])[grid_target_id]
     }
     # subset using grids and grid_id
     if (is.null(grid_target_id)) {
@@ -2039,16 +2028,13 @@ distribute_process_grid <-
         c(which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
           which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
     }
-    if (is.numeric(grid_target_id)) {
-      grid_target_ids <- unique(grids$original[["CGRIDID"]])[grid_target_id]
-    }
+
     par_fun <- list(...)
     detected_id <- grep("^id", names(par_fun), value = TRUE)
     detected_id <- par_fun[[detected_id]]
     if (is.null(detected_id)) {
       detected_id <- "ID"
     }
-    # detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
 
     grids_target <-
       grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
@@ -2060,8 +2046,6 @@ distribute_process_grid <-
         sf::sf_use_s2(FALSE)
 
         run_result <- tryCatch({
-          ## TODO:
-          ## parse function arguments
           args_input <- list(...)
           # args_fun <- formals(fun_dist)
           ## Strongly assuming that
@@ -2164,7 +2148,7 @@ distribute_process_hierarchy <-
              split_level,
              unlist(regions[[split_level]]))
 
-    regions_list <- base::split(regions, split_level)
+    regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
       future_lapply(
@@ -2174,6 +2158,7 @@ distribute_process_hierarchy <-
                       run_result <-
                         tryCatch(
                                  {
+                                  subregion <- regions[startsWith(split_level, subregion), ]
                                   args_input <- list(...)
                                   ## Strongly assuming that
                                   # the first is "at", the second is "from"
@@ -2262,12 +2247,12 @@ distribute_process_multirasters <- function(
                     run_result <-
                       tryCatch({
                                 args_input <- list(...)
-                                vect_target_tr <- rast_short(args_input, "SpatVector")
-                                vect_target_sf <- rast_short(args_input, "sf")
+                                vect_target_tr <- detect_class(args_input, "SpatVector")
+                                vect_target_sf <- detect_class(args_input, "sf")
                                 vect_target <- (vect_target_tr | vect_target_sf)             
                                 vect_ext <- terra::ext(args_input[vect_target][[1]])
                                 
-                                rast_target <- rast_short(args_input, "SpatRaster")
+                                rast_target <- detect_class(args_input, "SpatRaster")
 
                                 args_input[rast_target] <- rast_short(path, win = vect_ext)
                                 
@@ -2355,6 +2340,21 @@ testthat::test_that("Processes are properly spawned and compute", {
     )
   )
 
+  testthat::expect_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = c(1, 100, 125),
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
+
   testthat::expect_no_error(
     suppressWarnings(
       distribute_process_grid(
@@ -2397,23 +2397,89 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 
-  res <-
+  testthat::expect_no_error(
+    res <-
+      suppressWarnings(
+        distribute_process_hierarchy(
+                                regions = nccnty,
+                                split_level = "GEOID",
+                                fun_dist = extract_with_polygons,
+                                polys = nctrct,
+                                surf = ncelev,
+                                id = "GEOID",
+                                func = "mean")
+      )
+  )
+
+  testthat::expect_error(
     suppressWarnings(
       distribute_process_hierarchy(
                               regions = nccnty,
-                              split_level = "GEOID",
+                              split_level = c(1, 2, 3),
                               fun_dist = extract_with_polygons,
                               polys = nctrct,
                               surf = ncelev,
                               id = "GEOID",
                               func = "mean")
     )
+  )
+
 
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 
+
+```
+
+```{r test-multirasters, eval = FALSE}
+testthat::test_that("Processes are properly spawned and compute over hierarchy", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county")
+  ncelev <- terra::unwrap(readRDS(
+    testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  terra::crs(ncelev) <- "EPSG:5070"
+  names(ncelev) <- c("srtm15")
+  tdir <- tempdir()
+  terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+  
+  testfiles <- list.files(tempdir(), pattern = "*.tif$", full.names = TRUE)
+  testthat::expect_no_error(
+    res <- distribute_process_multirasters(
+      filenames = testfiles,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+  )
+
+  testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
+  testthat::expect_error(
+    res <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+  )
+
+})
 
 ```
 

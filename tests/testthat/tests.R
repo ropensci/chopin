@@ -315,9 +315,13 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_s3_class(mainland_box, "sf")
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
+  # error cases
   testthat::expect_error(
     extent_to_polygon(mainland_vec_un, output_class = "sf")
   )
+  testthat::expect_error(
+    extent_to_polygon(mainland_vec_un, output_class = "GeoDataFrames")
+  )  
 })
 
 
@@ -337,6 +341,9 @@ testthat::test_that("Check bbox abides.", {
   testthat::expect_no_error(check_bbox(ncp, nc))
   res <- check_bbox(ncp, nc)
   testthat::expect_equal(res, TRUE)
+
+  # error cases
+  testthat::expect_no_error(check_bbox(ncp, sf::st_bbox(nc)))
 })
 
 
@@ -415,6 +422,9 @@ testthat::test_that("check_crs is working as expected", {
   ncna <- nc
   sf::st_crs(ncna) <- NA
   testthat::expect_error(check_crs(ncna))
+  nctna <- nct
+  terra::crs(nctna) <- ""
+  testthat::expect_error(check_crs(nctna))
 
 })
 
@@ -430,6 +440,11 @@ testthat::test_that("nc data is within the mainland US", {
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   within_res <- check_within_reference(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
+
+  # error cases
+  testthat::expect_error(check_within_reference(list(1), mainland_box))
+  testthat::expect_error(check_within_reference(nc, list(1)))
+
 })
 
 
@@ -599,6 +614,21 @@ testthat::test_that("Processes are properly spawned and compute", {
     )
   )
 
+  testthat::expect_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = c(1, 100, 125),
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
+
   testthat::expect_no_error(
     suppressWarnings(
       distribute_process_grid(
@@ -639,22 +669,86 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 
-  res <-
+  testthat::expect_no_error(
+    res <-
+      suppressWarnings(
+        distribute_process_hierarchy(
+                                regions = nccnty,
+                                split_level = "GEOID",
+                                fun_dist = extract_with_polygons,
+                                polys = nctrct,
+                                surf = ncelev,
+                                id = "GEOID",
+                                func = "mean")
+      )
+  )
+
+  testthat::expect_error(
     suppressWarnings(
       distribute_process_hierarchy(
                               regions = nccnty,
-                              split_level = "GEOID",
+                              split_level = c(1, 2, 3),
                               fun_dist = extract_with_polygons,
                               polys = nctrct,
                               surf = ncelev,
                               id = "GEOID",
                               func = "mean")
     )
+  )
+
 
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 
+
+
+testthat::test_that("Processes are properly spawned and compute over hierarchy", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county")
+  ncelev <- terra::unwrap(readRDS(
+    testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  terra::crs(ncelev) <- "EPSG:5070"
+  names(ncelev) <- c("srtm15")
+  tdir <- tempdir()
+  terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+  
+  testfiles <- list.files(tempdir(), pattern = "*.tif$", full.names = TRUE)
+  testthat::expect_no_error(
+    res <- distribute_process_multirasters(
+      filenames = testfiles,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+  )
+
+  testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
+  testthat::expect_error(
+    res <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+  )
+
+})
 
 

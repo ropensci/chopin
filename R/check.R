@@ -46,10 +46,7 @@ check_crs_align <-
       Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
   }
   check_crs_sf <- function(input, crs_standard) {
-    if (is.na(sf::st_crs(input)) || is.null(sf::st_crs(input))) {
-      stop('Please check the coordinate system or
-       its EPSG code of your input object.')
-    }
+    invisible(check_crs(input))
     input_crs <- sf::st_crs(input)$epsg
     standard_crs <- sf::st_crs(crs_standard)$epsg
     if (input_crs == standard_crs) {
@@ -61,10 +58,7 @@ check_crs_align <-
   }
 
   check_crs_terra <- function(input, crs_standard) {
-    if (is.na(terra::crs(input)) || is.null(terra::crs(input))) {
-      stop('Please check the coordinate system or
-       its EPSG code of your input object.')
-    }
+    invisible(check_crs(input))
     input_crs <- terra::crs(input, describe = TRUE)$code
     standard_crs <- terra::crs(crs_standard, describe = TRUE)$code
     if (input_crs == standard_crs) {
@@ -138,11 +132,7 @@ extent_to_polygon <- function(
 #'  This function will return TRUE if the reference region
 #'  completely contains your data's extent and FALSE otherwise.
 #' @param data_query sf*/stars/SpatVector/SpatRaster object.
-#' @param reference sf*/stars/SpatVector/SpatRaster object or
-#'  a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#' @param reference_crs Well-known-text-formatted or
-#'  EPSG code of the reference's coordinate system.
-#'  Only required when a named numeric vector is passed to reference.
+#' @param reference sf*/stars/SpatVector/SpatRaster object
 #' @return TRUE (the queried data extent is completely within
 #'  the reference bounding box) or FALSE
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -150,34 +140,18 @@ extent_to_polygon <- function(
 #' @export
 check_bbox <- function(
   data_query,
-  reference,
-  reference_crs = NULL
+  reference
 ) {
-  if (is.numeric(reference) && is.null(reference_crs)) {
-    stop("CRS should be entered when the reference extent is a vector.\n")
-  }
-  if (is.numeric(reference) && !is.null(reference_crs)) {
-    reference <- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
-  }
-  query_crs <- check_crs(data_query)
+  reference <- sf::st_as_sfc(sf::st_bbox(reference))
+  print(sf::st_crs(reference))
+  # invisible check data_query CRS check
+  invisible(check_crs(data_query))
 
-  ref_crs <- check_crs(reference)
-  if (is.null(reference_crs)) {
-    reference <-
-      sf::st_as_sfc(
-        sf::st_bbox(reference),
-        crs = ref_crs
-      )
-  }
-  if (is.na(query_crs) || is.null(query_crs)) {
-    stop("The dataset you queried has no CRS.
-     Please make sure your dataset has the correct CRS.\n")
-  }
   data_query_bb <-
     sf::st_as_sfc(sf::st_bbox(data_query),
                   crs = sf::st_crs(data_query))
-
-  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(ref_crs))
+  print(sf::st_crs(data_query_bb))
+  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(reference))
   check_result <- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
 }

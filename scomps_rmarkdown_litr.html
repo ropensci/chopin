@@ -572,10 +572,7 @@ check_crs_align &lt;-
       Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n&quot;)
   }
   <span id='check_crs_sf'>check_crs_sf</span> &lt;- function(input, crs_standard) {
-    if (is.na(sf::st_crs(input)) || is.null(sf::st_crs(input))) {
-      stop(&#39;Please check the coordinate system or
-       its EPSG code of your input object.&#39;)
-    }
+    invisible(<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(input))
     input_crs &lt;- sf::st_crs(input)$epsg
     standard_crs &lt;- sf::st_crs(crs_standard)$epsg
     if (input_crs == standard_crs) {
@@ -587,10 +584,7 @@ check_crs_align &lt;-
   }
 
   <span id='check_crs_terra'>check_crs_terra</span> &lt;- function(input, crs_standard) {
-    if (is.na(terra::crs(input)) || is.null(terra::crs(input))) {
-      stop(&#39;Please check the coordinate system or
-       its EPSG code of your input object.&#39;)
-    }
+    invisible(<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(input))
     input_crs &lt;- terra::crs(input, describe = TRUE)$code
     standard_crs &lt;- terra::crs(crs_standard, describe = TRUE)$code
     if (input_crs == standard_crs) {
@@ -1093,9 +1087,6 @@ sp_index_grid &lt;-
 #&#39; # dg_merged &lt;- <a href='scomps_rmarkdown_litr.html#grid_merge'>grid_merge</a>(sf::st_as_sf(sss), dgs, 100)
 #&#39;
 #&#39; #### NOT RUN ####
-#&#39; @importFrom igraph graph_from_edgelist
-#&#39; @importFrom igraph mst
-#&#39; @importFrom igraph components
 #&#39; @importFrom dplyr group_by
 #&#39; @importFrom dplyr summarize
 #&#39; @importFrom dplyr ungroup
@@ -1292,9 +1283,13 @@ sp_index_grid &lt;-
   testthat::expect_s3_class(mainland_box, &quot;sf&quot;)
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, &quot;SpatVector&quot;)
+  # error cases
   testthat::expect_error(
     <a href='scomps_rmarkdown_litr.html#extent_to_polygon'>extent_to_polygon</a>(mainland_vec_un, output_class = &quot;sf&quot;)
   )
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extent_to_polygon'>extent_to_polygon</a>(mainland_vec_un, output_class = &quot;GeoDataFrames&quot;)
+  )  
 })
 </code></pre>
 <pre><code>## Test passed</code></pre>
@@ -1309,11 +1304,7 @@ sp_index_grid &lt;-
 #&#39;  This function will return TRUE if the reference region
 #&#39;  completely contains your data&#39;s extent and FALSE otherwise.
 #&#39; @param data_query sf*/stars/SpatVector/SpatRaster object.
-#&#39; @param reference sf*/stars/SpatVector/SpatRaster object or
-#&#39;  a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#&#39; @param reference_crs Well-known-text-formatted or
-#&#39;  EPSG code of the reference&#39;s coordinate system.
-#&#39;  Only required when a named numeric vector is passed to reference.
+#&#39; @param reference sf*/stars/SpatVector/SpatRaster object
 #&#39; @return TRUE (the queried data extent is completely within
 #&#39;  the reference bounding box) or FALSE
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
@@ -1321,34 +1312,18 @@ sp_index_grid &lt;-
 #&#39; @export
 <span id='check_bbox'>check_bbox</span> &lt;- function(
   data_query,
-  reference,
-  reference_crs = NULL
+  reference
 ) {
-  if (is.numeric(reference) &amp;&amp; is.null(reference_crs)) {
-    stop(&quot;CRS should be entered when the reference extent is a vector.\n&quot;)
-  }
-  if (is.numeric(reference) &amp;&amp; !is.null(reference_crs)) {
-    reference &lt;- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
-  }
-  query_crs &lt;- <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(data_query)
+  reference &lt;- sf::st_as_sfc(sf::st_bbox(reference))
+  print(sf::st_crs(reference))
+  # invisible check data_query CRS check
+  invisible(<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(data_query))
 
-  ref_crs &lt;- <a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(reference)
-  if (is.null(reference_crs)) {
-    reference &lt;-
-      sf::st_as_sfc(
-        sf::st_bbox(reference),
-        crs = ref_crs
-      )
-  }
-  if (is.na(query_crs) || is.null(query_crs)) {
-    stop(&quot;The dataset you queried has no CRS.
-     Please make sure your dataset has the correct CRS.\n&quot;)
-  }
   data_query_bb &lt;-
     sf::st_as_sfc(sf::st_bbox(data_query),
                   crs = sf::st_crs(data_query))
-
-  query_matched &lt;- sf::st_transform(data_query_bb, sf::st_crs(ref_crs))
+  print(sf::st_crs(data_query_bb))
+  query_matched &lt;- sf::st_transform(data_query_bb, sf::st_crs(reference))
   check_result &lt;- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
 }
@@ -1370,6 +1345,9 @@ sp_index_grid &lt;-
   testthat::expect_no_error(<a href='scomps_rmarkdown_litr.html#check_bbox'>check_bbox</a>(ncp, nc))
   res &lt;- <a href='scomps_rmarkdown_litr.html#check_bbox'>check_bbox</a>(ncp, nc)
   testthat::expect_equal(res, TRUE)
+
+  # error cases
+  testthat::expect_no_error(<a href='scomps_rmarkdown_litr.html#check_bbox'>check_bbox</a>(ncp, sf::st_bbox(nc)))
 })
 </code></pre>
 <pre class="r"><code>#&#39; @title Extract summarized values from raster with points and
@@ -1760,6 +1738,9 @@ reproject_b2r &lt;-
   ncna &lt;- nc
   sf::st_crs(ncna) &lt;- NA
   testthat::expect_error(<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(ncna))
+  nctna &lt;- nct
+  terra::crs(nctna) &lt;- &quot;&quot;
+  testthat::expect_error(<a href='scomps_rmarkdown_litr.html#check_crs'>check_crs</a>(nctna))
 
 })
 </code></pre>
@@ -1815,6 +1796,11 @@ reproject_b2r &lt;-
   mainland_box &lt;- <a href='scomps_rmarkdown_litr.html#extent_to_polygon'>extent_to_polygon</a>(mainland_vec, output_class = &quot;sf&quot;)
   within_res &lt;- <a href='scomps_rmarkdown_litr.html#check_within_reference'>check_within_reference</a>(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
+
+  # error cases
+  testthat::expect_error(<a href='scomps_rmarkdown_litr.html#check_within_reference'>check_within_reference</a>(list(1), mainland_box))
+  testthat::expect_error(<a href='scomps_rmarkdown_litr.html#check_within_reference'>check_within_reference</a>(nc, list(1)))
+
 })
 </code></pre>
 <pre class="r"><code>#&#39; Calculate SEDC covariates
@@ -2190,8 +2176,11 @@ distribute_process_grid &lt;-
     if (is.character(grid_target_id) &amp;&amp; !grepl(&quot;:&quot;, grid_target_id)) {
       stop(&quot;Character grid_target_id should be in a form of &#39;startid:endid&#39;.\n&quot;)
     }
-    if (is.numeric(grid_target_id) &amp;&amp; length(grid_target_id) != 2) {
-      stop(&quot;Numeric grid_target_id should be in a form of c(startid, endid).\n&quot;)
+    if (is.numeric(grid_target_id)) {
+      if (length(grid_target_id) != 2) {
+        stop(&quot;Numeric grid_target_id should be in a form of c(startid, endid).\n&quot;)
+      }
+      grid_target_ids &lt;- unique(grids$original[[&quot;CGRIDID&quot;]])[grid_target_id]
     }
     # subset using grids and grid_id
     if (is.null(grid_target_id)) {
@@ -2203,16 +2192,13 @@ distribute_process_grid &lt;-
         c(which(unique(grids$original[[&quot;CGRIDID&quot;]]) == grid_id_parsed[1]),
           which(unique(grids$original[[&quot;CGRIDID&quot;]]) == grid_id_parsed[2]))
     }
-    if (is.numeric(grid_target_id)) {
-      grid_target_ids &lt;- unique(grids$original[[&quot;CGRIDID&quot;]])[grid_target_id]
-    }
+
     par_fun &lt;- list(...)
     detected_id &lt;- grep(&quot;^id&quot;, names(par_fun), value = TRUE)
     detected_id &lt;- par_fun[[detected_id]]
     if (is.null(detected_id)) {
       detected_id &lt;- &quot;ID&quot;
     }
-    # detected_point &lt;- grep(&quot;^(points|poly)&quot;, names(par_fun), value = TRUE)
 
     grids_target &lt;-
       grids$original[grid_target_ids %in% unlist(grids$original[[&quot;CGRIDID&quot;]]), ]
@@ -2224,8 +2210,6 @@ distribute_process_grid &lt;-
         sf::sf_use_s2(FALSE)
 
         run_result &lt;- tryCatch({
-          ## TODO:
-          ## parse function arguments
           args_input &lt;- list(...)
           # args_fun &lt;- formals(fun_dist)
           ## Strongly assuming that
@@ -2328,7 +2312,7 @@ distribute_process_hierarchy &lt;-
              split_level,
              unlist(regions[[split_level]]))
 
-    regions_list &lt;- base::split(regions, split_level)
+    regions_list &lt;- base::split(split_level, split_level)
 
     results_distributed &lt;-
       future_lapply(
@@ -2338,6 +2322,7 @@ distribute_process_hierarchy &lt;-
                       run_result &lt;-
                         tryCatch(
                                  {
+                                  subregion &lt;- regions[startsWith(split_level, subregion), ]
                                   args_input &lt;- list(...)
                                   ## Strongly assuming that
                                   # the first is &quot;at&quot;, the second is &quot;from&quot;
@@ -2426,12 +2411,12 @@ distribute_process_hierarchy &lt;-
                     run_result &lt;-
                       tryCatch({
                                 args_input &lt;- list(...)
-                                vect_target_tr &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(args_input, &quot;SpatVector&quot;)
-                                vect_target_sf &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(args_input, &quot;sf&quot;)
+                                vect_target_tr &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatVector&quot;)
+                                vect_target_sf &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;sf&quot;)
                                 vect_target &lt;- (vect_target_tr | vect_target_sf)             
                                 vect_ext &lt;- terra::ext(args_input[vect_target][[1]])
                                 
-                                rast_target &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(args_input, &quot;SpatRaster&quot;)
+                                rast_target &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatRaster&quot;)
 
                                 args_input[rast_target] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(path, win = vect_ext)
                                 
@@ -2515,6 +2500,21 @@ distribute_process_hierarchy &lt;-
     )
   )
 
+  testthat::expect_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = c(1, 100, 125),
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = 5e3L,
+                              id = &quot;pid&quot;)
+    )
+  )
+
+
   testthat::expect_no_error(
     suppressWarnings(
       distribute_process_grid(
@@ -2554,23 +2554,86 @@ distribute_process_hierarchy &lt;-
   terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
   names(ncelev) &lt;- c(&quot;srtm15&quot;)
 
-  res &lt;-
+  testthat::expect_no_error(
+    res &lt;-
+      suppressWarnings(
+        distribute_process_hierarchy(
+                                regions = nccnty,
+                                split_level = &quot;GEOID&quot;,
+                                fun_dist = extract_with_polygons,
+                                polys = nctrct,
+                                surf = ncelev,
+                                id = &quot;GEOID&quot;,
+                                func = &quot;mean&quot;)
+      )
+  )
+
+  testthat::expect_error(
     suppressWarnings(
       distribute_process_hierarchy(
                               regions = nccnty,
-                              split_level = &quot;GEOID&quot;,
+                              split_level = c(1, 2, 3),
                               fun_dist = extract_with_polygons,
                               polys = nctrct,
                               surf = ncelev,
                               id = &quot;GEOID&quot;,
                               func = &quot;mean&quot;)
     )
+  )
+
 
   testthat::expect_s3_class(res, &quot;data.frame&quot;)
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 
+</code></pre>
+<pre class="r"><code>testthat::test_that(&quot;Processes are properly spawned and compute over hierarchy&quot;, {
+  withr::local_package(&quot;terra&quot;)
+  withr::local_package(&quot;sf&quot;)
+  withr::local_package(&quot;future&quot;)
+  withr::local_package(&quot;future.apply&quot;)
+  withr::local_package(&quot;dplyr&quot;)
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath &lt;- testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
+  nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
+  ncelev &lt;- terra::unwrap(readRDS(
+    testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_srtm15_otm.rds&quot;)))
+  terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
+  names(ncelev) &lt;- c(&quot;srtm15&quot;)
+  tdir &lt;- tempdir()
+  terra::writeRaster(ncelev, file.path(tdir, &quot;test1.tif&quot;), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, &quot;test2.tif&quot;), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, &quot;test3.tif&quot;), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, &quot;test4.tif&quot;), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, &quot;test5.tif&quot;), overwrite = TRUE)
+  
+  testfiles &lt;- list.files(tempdir(), pattern = &quot;*.tif$&quot;, full.names = TRUE)
+  testthat::expect_no_error(
+    res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
+      filenames = testfiles,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = &quot;GEOID&quot;,
+      func = &quot;mean&quot;
+    )
+  )
+
+  testfiles_corrupted &lt;- c(testfiles, &quot;/home/runner/fallin.tif&quot;)
+  testthat::expect_error(
+    res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
+      filenames = testfiles_corrupted,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = &quot;GEOID&quot;,
+      func = &quot;mean&quot;
+    )
+  )
+
+})
 </code></pre>
 </div>
 <div id="documenting-the-package-and-building" class="section level2">

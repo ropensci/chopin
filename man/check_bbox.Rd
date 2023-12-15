@@ -4,17 +4,12 @@
 \alias{check_bbox}
 \title{Check if the data extent is inside the reference bounding box}
 \usage{
-check_bbox(data_query, reference, reference_crs = NULL)
+check_bbox(data_query, reference)
 }
 \arguments{
 \item{data_query}{sf*/stars/SpatVector/SpatRaster object.}
 
-\item{reference}{sf*/stars/SpatVector/SpatRaster object or
-a named numeric vector with four names (xmin, ymin, xmax, and ymax).}
-
-\item{reference_crs}{Well-known-text-formatted or
-EPSG code of the reference's coordinate system.
-Only required when a named numeric vector is passed to reference.}
+\item{reference}{sf*/stars/SpatVector/SpatRaster object}
 }
 \value{
 TRUE (the queried data extent is completely within

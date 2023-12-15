@@ -57,8 +57,11 @@ distribute_process_grid <-
     if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
       stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
     }
-    if (is.numeric(grid_target_id) && length(grid_target_id) != 2) {
-      stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
+    if (is.numeric(grid_target_id)) {
+      if (length(grid_target_id) != 2) {
+        stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
+      }
+      grid_target_ids <- unique(grids$original[["CGRIDID"]])[grid_target_id]
     }
     # subset using grids and grid_id
     if (is.null(grid_target_id)) {
@@ -70,16 +73,13 @@ distribute_process_grid <-
         c(which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
           which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
     }
-    if (is.numeric(grid_target_id)) {
-      grid_target_ids <- unique(grids$original[["CGRIDID"]])[grid_target_id]
-    }
+
     par_fun <- list(...)
     detected_id <- grep("^id", names(par_fun), value = TRUE)
     detected_id <- par_fun[[detected_id]]
     if (is.null(detected_id)) {
       detected_id <- "ID"
     }
-    # detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
 
     grids_target <-
       grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
@@ -91,8 +91,6 @@ distribute_process_grid <-
         sf::sf_use_s2(FALSE)
 
         run_result <- tryCatch({
-          ## TODO:
-          ## parse function arguments
           args_input <- list(...)
           # args_fun <- formals(fun_dist)
           ## Strongly assuming that
@@ -195,7 +193,7 @@ distribute_process_hierarchy <-
              split_level,
              unlist(regions[[split_level]]))
 
-    regions_list <- base::split(regions, split_level)
+    regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
       future_lapply(
@@ -205,6 +203,7 @@ distribute_process_hierarchy <-
                       run_result <-
                         tryCatch(
                                  {
+                                  subregion <- regions[startsWith(split_level, subregion), ]
                                   args_input <- list(...)
                                   ## Strongly assuming that
                                   # the first is "at", the second is "from"
@@ -293,12 +292,12 @@ distribute_process_multirasters <- function(
                     run_result <-
                       tryCatch({
                                 args_input <- list(...)
-                                vect_target_tr <- rast_short(args_input, "SpatVector")
-                                vect_target_sf <- rast_short(args_input, "sf")
+                                vect_target_tr <- detect_class(args_input, "SpatVector")
+                                vect_target_sf <- detect_class(args_input, "sf")
                                 vect_target <- (vect_target_tr | vect_target_sf)             
                                 vect_ext <- terra::ext(args_input[vect_target][[1]])
                                 
-                                rast_target <- rast_short(args_input, "SpatRaster")
+                                rast_target <- detect_class(args_input, "SpatRaster")
 
                                 args_input[rast_target] <- rast_short(path, win = vect_ext)
                                 

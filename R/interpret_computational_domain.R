@@ -158,9 +158,6 @@ sp_index_grid <-
 #' # dg_merged <- grid_merge(sf::st_as_sf(sss), dgs, 100)
 #'
 #' #### NOT RUN ####
-#' @importFrom igraph graph_from_edgelist
-#' @importFrom igraph mst
-#' @importFrom igraph components
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup
