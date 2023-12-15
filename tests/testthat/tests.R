@@ -543,25 +543,11 @@ testthat::test_that("classes are detected.", {
 })
 
 
-testthat::test_that('dispatcher should work properly', {
-  withr::local_package('terra')
-  withr::local_package('sf')
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  # main test
-
-  # expect
-  testthat::expect_equal()
-
-})
-
-dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
-
-
 testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
+  withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
 
@@ -593,8 +579,8 @@ testthat::test_that("Processes are properly spawned and compute", {
                               grid_target_id = NULL,
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = "pid")
     )
@@ -606,8 +592,8 @@ testthat::test_that("Processes are properly spawned and compute", {
                               grid_target_id = "1/10",
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = "pid")
     )
@@ -620,8 +606,8 @@ testthat::test_that("Processes are properly spawned and compute", {
                               grid_target_id = "1:10",
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = "pid")
     )
@@ -641,6 +627,7 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
+  withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
 

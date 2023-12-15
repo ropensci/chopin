@@ -1722,10 +1722,15 @@ reproject_b2r &lt;-
   ref_class &lt;- c(&quot;sf&quot;, &quot;stars&quot;, &quot;SpatVector&quot;,
                  &quot;SpatRaster&quot;, &quot;SpatRasterDataset&quot;)
 
-  if (any(ref_class %in% class(x))) {
+  if (!any(ref_class %in% class(x))) {
     stop(&quot;Input is invalid.\n&quot;)
   }
-  if (any(is.na(sf::st_crs(x)), is.na(terra::crs(x)), terra::crs(x) == &quot;&quot;)) {
+  class_type &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(x)
+  if (class_type == &quot;sf&quot; &amp;&amp; is.na(sf::st_crs(x))) {
+    stop(&quot;No CRS is defined in the input.
+    Please consult the metadata or the data source.\n&quot;)
+  }
+  if (class_type == &quot;terra&quot; &amp;&amp; any(is.na(terra::crs(x)), terra::crs(x) == &quot;&quot;)) {
     stop(&quot;No CRS is defined in the input.
     Please consult the metadata or the data source.\n&quot;)
   }
@@ -1766,20 +1771,20 @@ reproject_b2r &lt;-
 #&#39; @importFrom methods is
 #&#39; @export 
 <span id='check_within_reference'>check_within_reference</span> &lt;- function(input_object, reference) {
-  if (any(
-    !methods::is(input_object, &quot;sf&quot;),
-    !methods::is(input_object, &quot;stars&quot;),
-    !methods::is(input_object, &quot;SpatVector&quot;),
-    !methods::is(input_object, &quot;SpatRaster&quot;)
+  if (!any(
+    methods::is(input_object, &quot;sf&quot;),
+    methods::is(input_object, &quot;stars&quot;),
+    methods::is(input_object, &quot;SpatVector&quot;),
+    methods::is(input_object, &quot;SpatRaster&quot;)
   )) {
     stop(&quot;Input is invalid.\n&quot;)
   }
 
-  if (any(
-    !methods::is(reference, &quot;sf&quot;),
-    !methods::is(reference, &quot;stars&quot;),
-    !methods::is(reference, &quot;SpatVector&quot;),
-    !methods::is(reference, &quot;SpatRaster&quot;)
+  if (!any(
+    methods::is(reference, &quot;sf&quot;),
+    methods::is(reference, &quot;stars&quot;),
+    methods::is(reference, &quot;SpatVector&quot;),
+    methods::is(reference, &quot;SpatRaster&quot;)
   )) {
     stop(&quot;Reference is invalid.\n&quot;)
   }
@@ -1995,13 +2000,13 @@ calculate_sedc &lt;-
 #&#39; @export
 <span id='aw_covariates'>aw_covariates</span> &lt;- function(
   poly_in,
-  poly_weight, 
+  poly_weight,
   id_poly_in = &quot;ID&quot;) {
-    if (any(
-      !methods::is(poly_in, &quot;sf&quot;),
-      !methods::is(poly_weight, &quot;sf&quot;),
-      !methods::is(poly_in, &quot;SpatVector&quot;),
-      !methods::is(poly_weight, &quot;SpatVector&quot;)
+    if (!any(
+      methods::is(poly_in, &quot;sf&quot;),
+      methods::is(poly_weight, &quot;sf&quot;),
+      methods::is(poly_in, &quot;SpatVector&quot;),
+      methods::is(poly_weight, &quot;SpatVector&quot;)
     )) {
       stop(&quot;Inputs have invalid classes.\n&quot;)
     }
@@ -2156,6 +2161,8 @@ testthat::test_that(&quot;aw_covariates works as expected.&quot;, {
 #&#39;  Default is NULL. If NULL, all grid_ids are used.
 #&#39;  \code{&quot;id_from:id_to&quot;} format or
 #&#39;  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
+#&#39; @param debug logical(1). Prints error messages
+#&#39; if there were any errors during the calculation.
 #&#39; @param fun_dist function supported in scomps.
 #&#39; @param ... Arguments passed to the argument \code{fun_dist}.
 #&#39; @returns a data.frame object with computation results.
@@ -2177,6 +2184,7 @@ distribute_process_grid &lt;-
   function(
       grids,
       grid_target_id = NULL,
+      debug = FALSE,
       fun_dist,
       ...) {
     if (is.character(grid_target_id) &amp;&amp; !grepl(&quot;:&quot;, grid_target_id)) {
@@ -2224,17 +2232,17 @@ distribute_process_grid &lt;-
           # the first is &quot;at&quot;, the second is &quot;from&quot;
           args_input[[1]] &lt;-
             args_input[[1]][grid, ]
-          args_input[[2]] &lt;-
-            args_input[[2]][grid, ]
 
-          res &lt;- rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+          res &lt;- rlang::inject(fun_dist(!!!args_input))
           cat(sprintf(&quot;Your input function was 
           successfully run at CGRIDID: %s\n&quot;,
-            as.character(unlist(x[[&quot;CGRIDID&quot;]]))))
+            as.character(unlist(grid[[&quot;CGRIDID&quot;]]))))
 
           return(res)
         },
         error = function(e) {
+          if (debug) print(e)
+
           fallback &lt;- data.frame(ID = NA)
           colnames(fallback)[1] &lt;- detected_id
           return(fallback)
@@ -2284,6 +2292,8 @@ distribute_process_grid &lt;-
 #&#39;  The regions will be split by the common level value.
 #&#39;  The level should be higher than the original data level.
 #&#39;  A field name with the higher level information is also accepted.
+#&#39; @param debug logical(1). Prints error messages
+#&#39; if there were any errors during the calculation.
 #&#39; @param fun_dist function supported in scomps.
 #&#39; @param ... Arguments passed to the argument \code{fun_dist}.
 #&#39; @returns a data.frame object with computation results.
@@ -2305,6 +2315,7 @@ distribute_process_hierarchy &lt;-
   function(
     regions,
     split_level = NULL,
+    debug = FALSE,
     fun_dist,
     ...
   ) {
@@ -2317,7 +2328,7 @@ distribute_process_hierarchy &lt;-
              split_level,
              unlist(regions[[split_level]]))
 
-    regions_list &lt;- split(regions, split_level)
+    regions_list &lt;- base::split(regions, split_level)
 
     results_distributed &lt;-
       future_lapply(
@@ -2332,15 +2343,14 @@ distribute_process_hierarchy &lt;-
                                   # the first is &quot;at&quot;, the second is &quot;from&quot;
                                   args_input[[1]] &lt;-
                                     args_input[[1]][subregion, ]
-                                  args_input[[2]] &lt;-
-                                    args_input[[2]][subregion, ]
 
                                   res &lt;-
-                                    rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+                                    rlang::inject(fun_dist(!!!args_input))
                                   return(res)
                                 },
                                 error =
                                 function(e) {
+                                  if (debug) print(e)
                                   return(data.frame(ID = NA))
                                 })
                       return(run_result)
@@ -2373,9 +2383,11 @@ distribute_process_hierarchy &lt;-
 #&#39;  to make subsets of input vector objects in advance.
 #&#39; @param filenames character(n). A vector or list of
 #&#39;  full file paths of raster files. n is the total number of raster files.
+#&#39; @param debug logical(1). Prints error messages
+#&#39; if there were any errors during the calculation.
 #&#39; @param fun_dist function supported in scomps.
 #&#39; @param ... Arguments passed to the argument \code{fun_dist}.
-#&#39; @return a data.frame object with computation results.
+#&#39; @returns a data.frame object with computation results.
 #&#39;  For entries of the results,
 #&#39;  consult the function used in \code{fun_dist} argument.
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
@@ -2390,6 +2402,7 @@ distribute_process_hierarchy &lt;-
 #&#39; @export
 <span id='distribute_process_multirasters'>distribute_process_multirasters</span> &lt;- function(
   filenames,
+  debug = FALSE,
   fun_dist,
   ...) {
   par_fun &lt;- list(...)
@@ -2398,7 +2411,6 @@ distribute_process_hierarchy &lt;-
   if (is.null(detected_id)) {
     detected_id &lt;- &quot;ID&quot;
   }
-  detected_point &lt;- grep(&quot;^(points|poly)&quot;, names(par_fun), value = TRUE)
 
   if (any(sapply(filenames, \(x) !file.exists(x)))) {
     stop(&quot;One or many of files do not exist in provided file paths. Check the paths again.\n&quot;)
@@ -2408,29 +2420,27 @@ distribute_process_hierarchy &lt;-
   results_distributed &lt;-
     future_lapply(
                   file_list,
-                  \(x) {
+                  \(path) {
                     sf::sf_use_s2(FALSE)
 
                     run_result &lt;-
                       tryCatch({
                                 args_input &lt;- list(...)
-                                rast_target &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>()
-                                # cls_detected &lt;-
-                                #   sapply(args_input, \(x) class(x)[1])
-                                # cls_raster &lt;- (cls_detected %in% c(&quot;SpatRasterDataSet&quot;, &quot;SpatRaster&quot;))
-                                # rast_target &lt;- unlist(args_input[cls_raster])
+                                vect_target_tr &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(args_input, &quot;SpatVector&quot;)
+                                vect_target_sf &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(args_input, &quot;sf&quot;)
+                                vect_target &lt;- (vect_target_tr | vect_target_sf)             
+                                vect_ext &lt;- terra::ext(args_input[vect_target][[1]])
                                 
-                                <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>()
-                                args_input[[1]] &lt;-
-                                  args_input[[1]][subregion, ]
-                                args_input[[2]] &lt;-
-                                  args_input[[2]][subregion, ]
+                                rast_target &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(args_input, &quot;SpatRaster&quot;)
 
+                                args_input[rast_target] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(path, win = vect_ext)
+                                
                                 res &lt;-
-                                  rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+                                  rlang::inject(fun_dist(!!!args_input))
                                 return(res)
                                 },
                       error = function(e) {
+                        if (debug) print(e)
                         fallback &lt;- data.frame(ID = NA)
                         colnames(fallback)[1] &lt;- detected_id
                         return(fallback)
@@ -2449,24 +2459,11 @@ distribute_process_hierarchy &lt;-
 
 
 </code></pre>
-<pre class="r"><code>testthat::test_that(&#39;dispatcher should work properly&#39;, {
-  withr::local_package(&#39;terra&#39;)
-  withr::local_package(&#39;sf&#39;)
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  # main test
-
-  # expect
-  testthat::expect_equal()
-
-})
-
-dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
-</code></pre>
 <pre class="r"><code>testthat::test_that(&quot;Processes are properly spawned and compute&quot;, {
   withr::local_package(&quot;terra&quot;)
   withr::local_package(&quot;sf&quot;)
   withr::local_package(&quot;future&quot;)
+  withr::local_package(&quot;future.apply&quot;)
   withr::local_package(&quot;dplyr&quot;)
   withr::local_options(list(sf_use_s2 = FALSE))
 
@@ -2498,8 +2495,8 @@ dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
                               grid_target_id = NULL,
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = &quot;pid&quot;)
     )
@@ -2511,8 +2508,8 @@ dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
                               grid_target_id = &quot;1/10&quot;,
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = &quot;pid&quot;)
     )
@@ -2525,8 +2522,8 @@ dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
                               grid_target_id = &quot;1:10&quot;,
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = &quot;pid&quot;)
     )
@@ -2545,6 +2542,7 @@ dispatcher(fun = mean, x = c(1,2,3,4), na.rm = TRUE)
   withr::local_package(&quot;terra&quot;)
   withr::local_package(&quot;sf&quot;)
   withr::local_package(&quot;future&quot;)
+  withr::local_package(&quot;future.apply&quot;)
   withr::local_package(&quot;dplyr&quot;)
   withr::local_options(list(sf_use_s2 = FALSE))
 

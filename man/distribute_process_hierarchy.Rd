@@ -4,7 +4,13 @@
 \alias{distribute_process_hierarchy}
 \title{Process a given function using a hierarchy in input data}
 \usage{
-distribute_process_hierarchy(regions, split_level = NULL, fun_dist, ...)
+distribute_process_hierarchy(
+  regions,
+  split_level = NULL,
+  debug = FALSE,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{regions}{sf/SpatVector object.
@@ -14,6 +20,9 @@ Computational regions. Only polygons are accepted.}
 The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
+
+\item{debug}{logical(1). Prints error messages
+if there were any errors during the calculation.}
 
 \item{fun_dist}{function supported in scomps.}
 

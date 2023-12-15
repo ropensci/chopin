@@ -28,6 +28,8 @@
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
+#' @param debug logical(1). Prints error messages
+#' if there were any errors during the calculation.
 #' @param fun_dist function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
@@ -49,6 +51,7 @@ distribute_process_grid <-
   function(
       grids,
       grid_target_id = NULL,
+      debug = FALSE,
       fun_dist,
       ...) {
     if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
@@ -96,17 +99,17 @@ distribute_process_grid <-
           # the first is "at", the second is "from"
           args_input[[1]] <-
             args_input[[1]][grid, ]
-          args_input[[2]] <-
-            args_input[[2]][grid, ]
 
-          res <- rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+          res <- rlang::inject(fun_dist(!!!args_input))
           cat(sprintf("Your input function was 
           successfully run at CGRIDID: %s\n",
-            as.character(unlist(x[["CGRIDID"]]))))
+            as.character(unlist(grid[["CGRIDID"]]))))
 
           return(res)
         },
         error = function(e) {
+          if (debug) print(e)
+
           fallback <- data.frame(ID = NA)
           colnames(fallback)[1] <- detected_id
           return(fallback)
@@ -156,6 +159,8 @@ distribute_process_grid <-
 #'  The regions will be split by the common level value.
 #'  The level should be higher than the original data level.
 #'  A field name with the higher level information is also accepted.
+#' @param debug logical(1). Prints error messages
+#' if there were any errors during the calculation.
 #' @param fun_dist function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
@@ -177,6 +182,7 @@ distribute_process_hierarchy <-
   function(
     regions,
     split_level = NULL,
+    debug = FALSE,
     fun_dist,
     ...
   ) {
@@ -189,7 +195,7 @@ distribute_process_hierarchy <-
              split_level,
              unlist(regions[[split_level]]))
 
-    regions_list <- split(regions, split_level)
+    regions_list <- base::split(regions, split_level)
 
     results_distributed <-
       future_lapply(
@@ -204,15 +210,14 @@ distribute_process_hierarchy <-
                                   # the first is "at", the second is "from"
                                   args_input[[1]] <-
                                     args_input[[1]][subregion, ]
-                                  args_input[[2]] <-
-                                    args_input[[2]][subregion, ]
 
                                   res <-
-                                    rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+                                    rlang::inject(fun_dist(!!!args_input))
                                   return(res)
                                 },
                                 error =
                                 function(e) {
+                                  if (debug) print(e)
                                   return(data.frame(ID = NA))
                                 })
                       return(run_result)
@@ -245,9 +250,11 @@ distribute_process_hierarchy <-
 #'  to make subsets of input vector objects in advance.
 #' @param filenames character(n). A vector or list of
 #'  full file paths of raster files. n is the total number of raster files.
+#' @param debug logical(1). Prints error messages
+#' if there were any errors during the calculation.
 #' @param fun_dist function supported in scomps.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
-#' @return a data.frame object with computation results.
+#' @returns a data.frame object with computation results.
 #'  For entries of the results,
 #'  consult the function used in \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -262,6 +269,7 @@ distribute_process_hierarchy <-
 #' @export
 distribute_process_multirasters <- function(
   filenames,
+  debug = FALSE,
   fun_dist,
   ...) {
   par_fun <- list(...)
@@ -270,7 +278,6 @@ distribute_process_multirasters <- function(
   if (is.null(detected_id)) {
     detected_id <- "ID"
   }
-  detected_point <- grep("^(points|poly)", names(par_fun), value = TRUE)
 
   if (any(sapply(filenames, \(x) !file.exists(x)))) {
     stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
@@ -280,29 +287,27 @@ distribute_process_multirasters <- function(
   results_distributed <-
     future_lapply(
                   file_list,
-                  \(x) {
+                  \(path) {
                     sf::sf_use_s2(FALSE)
 
                     run_result <-
                       tryCatch({
                                 args_input <- list(...)
-                                rast_target <- rast_short()
-                                # cls_detected <-
-                                #   sapply(args_input, \(x) class(x)[1])
-                                # cls_raster <- (cls_detected %in% c("SpatRasterDataSet", "SpatRaster"))
-                                # rast_target <- unlist(args_input[cls_raster])
+                                vect_target_tr <- rast_short(args_input, "SpatVector")
+                                vect_target_sf <- rast_short(args_input, "sf")
+                                vect_target <- (vect_target_tr | vect_target_sf)             
+                                vect_ext <- terra::ext(args_input[vect_target][[1]])
                                 
-                                rast_short()
-                                args_input[[1]] <-
-                                  args_input[[1]][subregion, ]
-                                args_input[[2]] <-
-                                  args_input[[2]][subregion, ]
+                                rast_target <- rast_short(args_input, "SpatRaster")
 
+                                args_input[rast_target] <- rast_short(path, win = vect_ext)
+                                
                                 res <-
-                                  rlang::inject(fun_dist(rlang::`!!!`(args_input)))
+                                  rlang::inject(fun_dist(!!!args_input))
                                 return(res)
                                 },
                       error = function(e) {
+                        if (debug) print(e)
                         fallback <- data.frame(ID = NA)
                         colnames(fallback)[1] <- detected_id
                         return(fallback)

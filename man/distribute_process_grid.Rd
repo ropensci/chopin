@@ -4,7 +4,13 @@
 \alias{distribute_process_grid}
 \title{Process a given function in the entire or partial computational grids}
 \usage{
-distribute_process_grid(grids, grid_target_id = NULL, fun_dist, ...)
+distribute_process_grid(
+  grids,
+  grid_target_id = NULL,
+  debug = FALSE,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{grids}{sf/SpatVector object. Computational grids.
@@ -15,6 +21,9 @@ an output of \code{get_computational_regions}}
 Default is NULL. If NULL, all grid_ids are used.
 \code{"id_from:id_to"} format or
 \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
+
+\item{debug}{logical(1). Prints error messages
+if there were any errors during the calculation.}
 
 \item{fun_dist}{function supported in scomps.}
 

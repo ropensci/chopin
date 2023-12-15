@@ -482,13 +482,13 @@ calculate_sedc <-
 #' @export
 aw_covariates <- function(
   poly_in,
-  poly_weight, 
+  poly_weight,
   id_poly_in = "ID") {
-    if (any(
-      !methods::is(poly_in, "sf"),
-      !methods::is(poly_weight, "sf"),
-      !methods::is(poly_in, "SpatVector"),
-      !methods::is(poly_weight, "SpatVector")
+    if (!any(
+      methods::is(poly_in, "sf"),
+      methods::is(poly_weight, "sf"),
+      methods::is(poly_in, "SpatVector"),
+      methods::is(poly_weight, "SpatVector")
     )) {
       stop("Inputs have invalid classes.\n")
     }

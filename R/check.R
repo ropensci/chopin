@@ -203,10 +203,15 @@ check_crs <- function(x) {
   ref_class <- c("sf", "stars", "SpatVector",
                  "SpatRaster", "SpatRasterDataset")
 
-  if (any(ref_class %in% class(x))) {
+  if (!any(ref_class %in% class(x))) {
     stop("Input is invalid.\n")
   }
-  if (any(is.na(sf::st_crs(x)), is.na(terra::crs(x)), terra::crs(x) == "")) {
+  class_type <- check_packbound(x)
+  if (class_type == "sf" && is.na(sf::st_crs(x))) {
+    stop("No CRS is defined in the input.
+    Please consult the metadata or the data source.\n")
+  }
+  if (class_type == "terra" && any(is.na(terra::crs(x)), terra::crs(x) == "")) {
     stop("No CRS is defined in the input.
     Please consult the metadata or the data source.\n")
   }
@@ -228,20 +233,20 @@ check_crs <- function(x) {
 #' @importFrom methods is
 #' @export 
 check_within_reference <- function(input_object, reference) {
-  if (any(
-    !methods::is(input_object, "sf"),
-    !methods::is(input_object, "stars"),
-    !methods::is(input_object, "SpatVector"),
-    !methods::is(input_object, "SpatRaster")
+  if (!any(
+    methods::is(input_object, "sf"),
+    methods::is(input_object, "stars"),
+    methods::is(input_object, "SpatVector"),
+    methods::is(input_object, "SpatRaster")
   )) {
     stop("Input is invalid.\n")
   }
 
-  if (any(
-    !methods::is(reference, "sf"),
-    !methods::is(reference, "stars"),
-    !methods::is(reference, "SpatVector"),
-    !methods::is(reference, "SpatRaster")
+  if (!any(
+    methods::is(reference, "sf"),
+    methods::is(reference, "stars"),
+    methods::is(reference, "SpatVector"),
+    methods::is(reference, "SpatRaster")
   )) {
     stop("Reference is invalid.\n")
   }
