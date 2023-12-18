@@ -609,6 +609,10 @@ testthat::test_that("Processes are properly spawned and compute", {
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 
+  ncsamp <- terra::spatSample(terra::ext(ncelev), 1e4L,
+    lonlat = FALSE, as.points = TRUE)
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
   nccompreg <-
     get_computational_regions(
                               input = ncpnts,
@@ -673,6 +677,20 @@ testthat::test_that("Processes are properly spawned and compute", {
   )
 
 
+  testthat::expect_no_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = c(1, 3),
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
@@ -696,6 +714,19 @@ testthat::test_that("Processes are properly spawned and compute", {
   testthat::expect_s3_class(resnas, "data.frame")
   testthat::expect_true(anyNA(resnas))
 
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnas0 <-
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1:10",
+                              fun_dist = terra::nearest,
+                              x = ncpnts,
+                              y = ncsamp,
+                              id = "pid")
+    )
+  )
+
 })
 
 
@@ -716,6 +747,10 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
     testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
+
+  ncsamp <- terra::spatSample(terra::ext(ncelev), 1e4L,
+    lonlat = FALSE, as.points = TRUE)
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 
   testthat::expect_no_error(
     res <-
@@ -759,6 +794,9 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
     )
   )
 
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
+
   testthat::expect_no_error(
     suppressWarnings(
       resnasx <-
@@ -766,15 +804,26 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
                               regions = nccnty,
                               debug = TRUE,
                               split_level = "GEOID",
-                              fun_dist = terra::nearest,
-                              x = nctrct,
-                              y = ncelev)
+                              fun_dist = extract_with_buffer,
+                              points = terra::centroids(nctrct),
+                              surf = ncelev,
+                              id = "GEOID",
+                              radius = -1e3L)
     )
   )
 
-  testthat::expect_s3_class(resnas, "data.frame")
-  testthat::expect_true(anyNA(resnas))
-
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasz <-
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              debug = TRUE,
+                              split_level = "GEOID",
+                              fun_dist = terra::nearest,
+                              x = nctrct,
+                              y = ncsamp)
+    )
+  )
 })
 
 
@@ -843,7 +892,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
   
-  testfiles <- list.files(tempdir(), pattern = "*.tif$", full.names = TRUE)
+  testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
   testthat::expect_no_error(
     res <- distribute_process_multirasters(
       filenames = testfiles,

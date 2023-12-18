@@ -21,6 +21,7 @@ Imports:
     stars,
     terra
 Suggests: 
+    covr,
     doFuture,
     future.batchtools,
     igraph,
@@ -30,7 +31,8 @@ Suggests:
     tigris,
     units,
     withr
+URL: https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 1bbc27e35b87062b5bc27236aeb07b45
+LitrId: e0e37a23a0fd922826781cebde84874e
