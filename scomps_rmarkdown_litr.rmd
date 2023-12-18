@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-12-15"
+date: "2023-12-18"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.1.1.12152023",
+    Version = "0.1.1.12192023",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -2171,6 +2171,8 @@ distribute_process_grid <-
             if ("id" %in% names(formals(fun_dist))) {
               detected_id <- list(...)
               detected_id <- detected_id$id
+            } else {
+              detected_id <- "id"
             }
             colnames(fallback)[1] <- detected_id
             return(fallback)
@@ -2691,6 +2693,8 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     )
   )
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
   testthat::expect_warning(

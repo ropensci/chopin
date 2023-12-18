@@ -117,6 +117,8 @@ distribute_process_grid <-
             if ("id" %in% names(formals(fun_dist))) {
               detected_id <- list(...)
               detected_id <- detected_id$id
+            } else {
+              detected_id <- "id"
             }
             colnames(fallback)[1] <- detected_id
             return(fallback)

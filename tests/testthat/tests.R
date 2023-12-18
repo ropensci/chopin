@@ -854,6 +854,8 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     )
   )
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
   testthat::expect_warning(
