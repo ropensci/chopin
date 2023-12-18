@@ -45,12 +45,13 @@ usethis::use_package("sf")
 usethis::use_package("terra")
 usethis::use_package("stars")
 usethis::use_package("rlang")
-usethis::use_package("testthat", "Suggests")
-usethis::use_package("units", "Suggests")
 usethis::use_package("methods")
 usethis::use_package("exactextractr")
 usethis::use_package("future")
 usethis::use_package("future.apply")
+usethis::use_package("covr", "Suggests")
+usethis::use_package("testthat", "Suggests")
+usethis::use_package("units", "Suggests")
 usethis::use_package("tigris", "Suggests")
 usethis::use_package("doFuture", "Suggests")
 usethis::use_package("future.batchtools", "Suggests")
@@ -59,6 +60,10 @@ usethis::use_package("withr", "Suggests")
 # usethis::use_gpl3_license()
 usethis::use_mit_license(copyright_holder = "I. Song")
 
+usethis::use_pkgdown()
+
+# usethis::use_pkgdown_github_pages()
+
 
 # usethis::use_vignette("scomps_1_setting_distribution.rmd")
 ```
@@ -66,9 +71,10 @@ usethis::use_mit_license(copyright_holder = "I. Song")
 -->
 
 ```{r}
-# parallelly::availableCores()
-# plan(future.batchtools::batchtools_slurm)
-
+desc::desc_set(
+  "URL",
+  "https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS"
+  )
 ```
 
 
@@ -2884,13 +2890,22 @@ if (dir.exists("../figure")) {
   # unlink("../figure", recursive = TRUE)
 }
 
-devtools::build(pkg = ".")
+# devtools::build(pkg = ".")
 # knitr::knit(
 #   "../tools/vignettes-sources/v02_distribute_process.Rmd.orig",
 #   output = "./vignettes/v02_distribute_process.Rmd"
 #   )
-cat(getwd())
-print(getwd())
+# cat(getwd())
+# print(getwd())
+```
+
+```{r, eval = FALSE}
+litr::add_pkgdown("../tools/pkgdown-source/_pkgdown.yml")
+```
+
+
+```{r comment=''}
+cat(readLines("../tools/pkgdown-source/_pkgdown.yml"), sep = '\n')
 ```
 
 
@@ -2908,7 +2923,7 @@ pkgbuild::build(path = ".")
 
 # devtools::test()
 
-devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
 
 ```
 
@@ -2946,6 +2961,11 @@ system(paste0("rm -r ", getwd()))
 ```{r post-hoc-manualrun, eval = FALSE}
 system(paste0("cp -r ./scomps/* ."))
 system("rm -r ./scomps")
+if (!dir.exists("./docs")) {
+  dir.create("./docs")
+}
+system("mv _pkgdown.yml ./docs")
+
 devtools::test()
 
 ```
