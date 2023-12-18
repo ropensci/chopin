@@ -1,5 +1,28 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
+#' Kernel functions
+#' @param kernel Kernel type. One of
+#' 'uniform', 'quartic', 'triweight', and 'epanechnikov'
+#' @param d Distance
+#' @param bw Bandwidth of a kernel
+#' @references \href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}
+#' @export
+kernelfunction <-
+  function(
+    d,
+    bw,
+    kernel = c("uniform", "quartic", "triweight", "epanechnikov")
+  ) {
+    kernel <- match.arg(kernel)
+    switch(kernel,
+      uniform = 1,
+      quartic = (15/16) * (1 - (1 - ((d/bw)^2))^2),
+      triweight = 1 - ((d/bw)^3),
+      epanechnikov = (3/4) * (1 - (d/bw)^2)
+    )
+
+  }
+
 #' Extent clipping
 #' @description Clip input vector by
 #'  the expected maximum extent of computation. 
@@ -68,7 +91,6 @@ clip_as_extent_ras <- function(
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
-#'  Kernel function is not yet implemented.
 #' @param points sf/SpatVector object. Coordinates where buffers will be generated
 #' @param surf SpatRaster object.
 #'  A raster of whatnot a summary will be calculated
@@ -77,7 +99,8 @@ clip_as_extent_ras <- function(
 #' @param qsegs integer(1). Number of vertices at a quarter of a circle.
 #'  Default is 90.
 #' @param func a function taking a numeric vector argument.
-#' @param kernel character(1). Name of a kernel function (yet to be implemented)
+#' @param kernel character(1). Name of a kernel function
+#' One of 'uniform', 'triweight', 'quartic', and 'epanechnikov'
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -153,7 +176,7 @@ extract_with_buffer_flat <- function(
   # crop raster
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
-  name_surf_val <- names(surf)
+
   # extract raster values
   surf_at_bufs <-
     exactextractr::exact_extract(
@@ -165,11 +188,8 @@ extract_with_buffer_flat <- function(
       progress = FALSE,
       max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
-    surf_at_bufs #|>
-      # dplyr::group_by(ID) |>
-      # dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~func(.) , na.rm = TRUE)) |> 
-      # dplyr::ungroup()
-  # colnames(surf_at_bufs_summary)[1] <- id
+    surf_at_bufs
+
   return(surf_at_bufs_summary)
 }
 
@@ -181,7 +201,7 @@ extract_with_buffer_kernel <- function(
   radius,
   id,
   qsegs,
-  func = "mean",
+  func = stats::weighted.mean,
   kernel,
   bandwidth
 ) {
@@ -190,29 +210,43 @@ extract_with_buffer_kernel <- function(
   bufs <- reproject_b2r(bufs, surf)
 
   # crop raster
+  clip_as_extent()
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
   name_surf_val <- names(surf)
 
-  # TODO: kernel implementation
-
+  coords_df <- as.data.frame(points, geom = "XY")
+  coords_df <-
+    coords_df[, grep(sprintf("^(%s|%s|%s)", id, "x", "y"), names(coords_df))]
+  names(coords_df)[grep("(x|y)")] <- c("xorig", "yorig")
 
   # extract raster values
   surf_at_bufs <-
     exactextractr::exact_extract(
       surf_cropped,
       sf::st_as_sf(bufs),
-      fun = func,
       force_df = TRUE,
-      append_cols = id,
+      include_cols = id,
       progress = FALSE,
+      include_area = TRUE,
+      include_xy = TRUE,
       max_cells_in_memory = 5e07)
+  surf_at_bufs <- do.call(rbind, surf_at_bufs)
   surf_at_bufs_summary <-
     surf_at_bufs |>
-      dplyr::group_by(ID) |>
+      dplyr::left_join(coords_df, by = id) |>
+      dplyr::mutate(
+        pairdist = terra::distance(
+          x = cbind(xorig, yorig),
+          y = cbind(x, y),
+          pairwise = TRUE
+        ),
+        w_kernel = kernelfunction(pairdist, bandwidth, kernel),
+        w_kernelarea = w_kernel * coverage_fraction) |>
+      dplyr::group_by(!!rlang::sym(id)) |>
       dplyr::summarize(
-        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = TRUE)
-      ) |> 
+        dplyr::across(dplyr::all_of(name_surf_val), ~func(., w = w_kernelarea), na.rm = TRUE)
+      ) |>
       dplyr::ungroup()
   colnames(surf_at_bufs_summary)[1] <- id
   return(surf_at_bufs_summary)

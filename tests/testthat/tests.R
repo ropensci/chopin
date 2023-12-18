@@ -1,4 +1,13 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand  
+testthat::test_that("Kernel functions work okay", {
+  testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
+  testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
+  testthat::expect_no_error(kernelfunction(10, 100, "quartic"))
+  testthat::expect_no_error(kernelfunction(10, 100, "triweight"))
+  testthat::expect_no_error(kernelfunction(10, 100, "epanechnikov"))
+})
+
+
 testthat::test_that("What package does the input object belong?",
 {
   withr::local_package("stars")
@@ -663,7 +672,8 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(ncpath, layer = "county")
-  nctrct <- terra::vect(ncpath, layer = "tracts")
+  nctrct <- sf::st_read(ncpath, layer = "tracts")
+  nctrct <- terra::vect(nctrct)
   ncelev <- terra::unwrap(readRDS(
     testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
@@ -696,12 +706,53 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
     )
   )
 
-
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 
+
+
+testthat::test_that("generic function should be parallelized properly", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # main test
+  pnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  pnts <- terra::vect(pnts)
+  rd1 <-
+    terra::vect(testthat::test_path("..", "testdata", "ncroads_first.gpkg"))
+
+  pnts <- terra::project(pnts, "EPSG:5070")
+  rd1 <- terra::project(rd1, "EPSG:5070")
+  # expect
+
+  nccompreg <-
+    get_computational_regions(
+                              input = pnts,
+                              mode = "grid",
+                              nx = 6L,
+                              ny = 4L,
+                              padding = 3e4L)
+  future::plan(future::multicore, workers = 6L)
+  testthat::expect_no_error(
+    res <-
+      suppressWarnings(
+        distribute_process_grid(
+                                grids = nccompreg,
+                                fun_dist = terra::nearest,
+                                x = pnts,
+                                y = rd1)
+      )
+  )
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(nrow(res), nrow(pnts))
+
+})
 
 
 testthat::test_that("Processes are properly spawned and compute over hierarchy", {

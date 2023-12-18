@@ -45,14 +45,12 @@ usethis::use_package("sf")
 usethis::use_package("terra")
 usethis::use_package("stars")
 usethis::use_package("rlang")
-usethis::use_package("testthat")
-usethis::use_package("units")
+usethis::use_package("testthat", "Suggests")
+usethis::use_package("units", "Suggests")
 usethis::use_package("methods")
-usethis::use_package("progressr")
 usethis::use_package("exactextractr")
 usethis::use_package("future")
 usethis::use_package("future.apply")
-usethis::use_package("covr")
 usethis::use_package("tigris", "Suggests")
 usethis::use_package("doFuture", "Suggests")
 usethis::use_package("future.batchtools", "Suggests")
@@ -139,6 +137,59 @@ litr::add_vignettes("../tools/vignettes-sources/v02_distribute_process.Rmd")
 # Now to the package itself
 
 ### Create functions
+
+
+```{r testcheck, eval = FALSE, include = FALSE}
+
+repan <- function(d, bw) return ((3/4) * (1 - ((d/bw)^2)))
+
+bench::mark(
+    repanRun = repan(300, 1000),
+    # cepanRun = kernelCpp(300, 1000, "epanechnikov"),
+    rrkrun = kernelfunction("epanechnikov", 300, 1000),
+    iterations = 1000L
+ 
+)
+
+```
+```{r, send_to = "R/processing.R"}
+#' Kernel functions
+#' @param kernel Kernel type. One of
+#' 'uniform', 'quartic', 'triweight', and 'epanechnikov'
+#' @param d Distance
+#' @param bw Bandwidth of a kernel
+#' @references \href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}
+#' @export
+kernelfunction <-
+  function(
+    d,
+    bw,
+    kernel = c("uniform", "quartic", "triweight", "epanechnikov")
+  ) {
+    kernel <- match.arg(kernel)
+    switch(kernel,
+      uniform = 1,
+      quartic = (15/16) * (1 - (1 - ((d/bw)^2))^2),
+      triweight = 1 - ((d/bw)^3),
+      epanechnikov = (3/4) * (1 - (d/bw)^2)
+    )
+
+  }
+```
+
+
+```{r test-kernel-function, eval = FALSE}
+testthat::test_that("Kernel functions work okay", {
+  testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
+  testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
+  testthat::expect_no_error(kernelfunction(10, 100, "quartic"))
+  testthat::expect_no_error(kernelfunction(10, 100, "triweight"))
+  testthat::expect_no_error(kernelfunction(10, 100, "epanechnikov"))
+})
+
+```
+
+
 ```{r, send_to = "R/check.R"}
 #' @title Return the package the input object is based on
 #' @description Detect whether the input object is sf or Spat* object.
@@ -1138,7 +1189,6 @@ testthat::test_that("Check bbox abides.", {
 #' 
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
-#'  Kernel function is not yet implemented.
 #' @param points sf/SpatVector object. Coordinates where buffers will be generated
 #' @param surf SpatRaster object.
 #'  A raster of whatnot a summary will be calculated
@@ -1147,7 +1197,8 @@ testthat::test_that("Check bbox abides.", {
 #' @param qsegs integer(1). Number of vertices at a quarter of a circle.
 #'  Default is 90.
 #' @param func a function taking a numeric vector argument.
-#' @param kernel character(1). Name of a kernel function (yet to be implemented)
+#' @param kernel character(1). Name of a kernel function
+#' One of 'uniform', 'triweight', 'quartic', and 'epanechnikov'
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @return a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -1223,7 +1274,7 @@ extract_with_buffer_flat <- function(
   # crop raster
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
-  name_surf_val <- names(surf)
+
   # extract raster values
   surf_at_bufs <-
     exactextractr::exact_extract(
@@ -1235,11 +1286,8 @@ extract_with_buffer_flat <- function(
       progress = FALSE,
       max_cells_in_memory = 5e07)
   surf_at_bufs_summary <-
-    surf_at_bufs #|>
-      # dplyr::group_by(ID) |>
-      # dplyr::summarize(dplyr::across(dplyr::all_of(name_surf_val), ~func(.) , na.rm = TRUE)) |> 
-      # dplyr::ungroup()
-  # colnames(surf_at_bufs_summary)[1] <- id
+    surf_at_bufs
+
   return(surf_at_bufs_summary)
 }
 
@@ -1251,7 +1299,7 @@ extract_with_buffer_kernel <- function(
   radius,
   id,
   qsegs,
-  func = "mean",
+  func = stats::weighted.mean,
   kernel,
   bandwidth
 ) {
@@ -1260,29 +1308,43 @@ extract_with_buffer_kernel <- function(
   bufs <- reproject_b2r(bufs, surf)
 
   # crop raster
+  clip_as_extent()
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
   name_surf_val <- names(surf)
 
-  # TODO: kernel implementation
-
+  coords_df <- as.data.frame(points, geom = "XY")
+  coords_df <-
+    coords_df[, grep(sprintf("^(%s|%s|%s)", id, "x", "y"), names(coords_df))]
+  names(coords_df)[grep("(x|y)")] <- c("xorig", "yorig")
 
   # extract raster values
   surf_at_bufs <-
     exactextractr::exact_extract(
       surf_cropped,
       sf::st_as_sf(bufs),
-      fun = func,
       force_df = TRUE,
-      append_cols = id,
+      include_cols = id,
       progress = FALSE,
+      include_area = TRUE,
+      include_xy = TRUE,
       max_cells_in_memory = 5e07)
+  surf_at_bufs <- do.call(rbind, surf_at_bufs)
   surf_at_bufs_summary <-
     surf_at_bufs |>
-      dplyr::group_by(ID) |>
+      dplyr::left_join(coords_df, by = id) |>
+      dplyr::mutate(
+        pairdist = terra::distance(
+          x = cbind(xorig, yorig),
+          y = cbind(x, y),
+          pairwise = TRUE
+        ),
+        w_kernel = kernelfunction(pairdist, bandwidth, kernel),
+        w_kernelarea = w_kernel * coverage_fraction) |>
+      dplyr::group_by(!!rlang::sym(id)) |>
       dplyr::summarize(
-        dplyr::across(dplyr::all_of(name_surf_val), ~func(.), na.rm = TRUE)
-      ) |> 
+        dplyr::across(dplyr::all_of(name_surf_val), ~func(., w = w_kernelarea), na.rm = TRUE)
+      ) |>
       dplyr::ungroup()
   colnames(surf_at_bufs_summary)[1] <- id
   return(surf_at_bufs_summary)
@@ -2029,49 +2091,58 @@ distribute_process_grid <-
           which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
     }
 
-    par_fun <- list(...)
-    detected_id <- grep("^id", names(par_fun), value = TRUE)
-    detected_id <- par_fun[[detected_id]]
-    if (is.null(detected_id)) {
-      detected_id <- "ID"
-    }
-
     grids_target <-
       grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
     grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
-    results_distributed <- future.apply::future_lapply(
-      grids_target_list,
-      \(grid) {
-        sf::sf_use_s2(FALSE)
+    results_distributed <-
+      future.apply::future_lapply(
+        grids_target_list,
+        \(grid) {
+          sf::sf_use_s2(FALSE)
 
-        run_result <- tryCatch({
-          args_input <- list(...)
-          # args_fun <- formals(fun_dist)
-          ## Strongly assuming that
-          # the first is "at", the second is "from"
-          args_input[[1]] <-
-            args_input[[1]][grid, ]
+          run_result <- tryCatch({
+            args_input <- list(...)
+            # args_fun <- formals(fun_dist)
+            ## Strongly assuming that
+            # the first is "at", the second is "from"
+            args_input[[1]] <-
+              args_input[[1]][grid, ]
+            if (class(args_input[[2]])[1] == "SpatVector") {
+              args_input[[2]] <-
+                args_input[[2]][
+                  grids$padded[grids$padded$CGRIDID == grid$CGRIDID, ], ]
+            }
+            if (!"id" %in% names(formals(fun_dist))) {
+              args_input$id <- NULL
+            }
 
-          res <- rlang::inject(fun_dist(!!!args_input))
-          cat(sprintf("Your input function was 
-          successfully run at CGRIDID: %s\n",
-            as.character(unlist(grid[["CGRIDID"]]))))
+            res <- rlang::inject(fun_dist(!!!args_input))
+            cat(sprintf("Your input function was 
+            successfully run at CGRIDID: %s\n",
+              as.character(unlist(grid[["CGRIDID"]]))))
 
-          return(res)
+            if (!is.data.frame(res)) {
+              res <- as.data.frame(res)
+            }
+
+            return(res)
+          },
+          error = function(e) {
+            if (debug) print(e)
+            fallback <- data.frame(ID = NA)
+            if (!"id" %in% names(formals(fun_dist))) {
+              detected_id <- list(...)
+              detected_id <- detected_id$id
+            }
+            colnames(fallback)[1] <- detected_id
+            return(fallback)
+          })
+
+          return(run_result)
         },
-        error = function(e) {
-          if (debug) print(e)
-
-          fallback <- data.frame(ID = NA)
-          colnames(fallback)[1] <- detected_id
-          return(fallback)
-        })
-
-        return(run_result)
-      },
-      future.seed = TRUE,
-      future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
+        future.seed = TRUE,
+        future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -2158,20 +2229,32 @@ distribute_process_hierarchy <-
                       run_result <-
                         tryCatch(
                                  {
-                                  subregion <- regions[startsWith(split_level, subregion), ]
+                                  # TODO: padded subregion to deal with
+                                  # edge cases; how to determine padding?
+                                  subregion <- regions[startsWith(split_level, subregion)]
                                   args_input <- list(...)
                                   ## Strongly assuming that
                                   # the first is "at", the second is "from"
                                   args_input[[1]] <-
                                     args_input[[1]][subregion, ]
+                                  if (!"id" %in% names(formals(fun_dist))) {
+                                    args_input$id <- NULL
+                                  }
 
                                   res <-
                                     rlang::inject(fun_dist(!!!args_input))
+                                  if (!is.data.frame(res)) {
+                                    res <- as.data.frame(res)
+                                  }
                                   return(res)
                                 },
                                 error =
                                 function(e) {
                                   if (debug) print(e)
+                                  if (!"id" %in% names(formals(fun_dist))) {
+                                    detected_id <- list(...)
+                                    detected_id <- detected_id$id
+                                  }
                                   return(data.frame(ID = NA))
                                 })
                       return(run_result)
@@ -2226,12 +2309,12 @@ distribute_process_multirasters <- function(
   debug = FALSE,
   fun_dist,
   ...) {
-  par_fun <- list(...)
-  detected_id <- grep("^id", names(par_fun), value = TRUE)
-  detected_id <- par_fun[[detected_id]]
-  if (is.null(detected_id)) {
-    detected_id <- "ID"
-  }
+  # par_fun <- list(...)
+  # detected_id <- grep("^id", names(par_fun), value = TRUE)
+  # detected_id <- par_fun[[detected_id]]
+  # if (is.null(detected_id)) {
+  #   detected_id <- "ID"
+  # }
 
   if (any(sapply(filenames, \(x) !file.exists(x)))) {
     stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
@@ -2255,14 +2338,25 @@ distribute_process_multirasters <- function(
                                 rast_target <- detect_class(args_input, "SpatRaster")
 
                                 args_input[rast_target] <- rast_short(path, win = vect_ext)
+                                if (!"id" %in% names(formals(fun_dist))) {
+                                  args_input$id <- NULL
+                                }
                                 
                                 res <-
                                   rlang::inject(fun_dist(!!!args_input))
+                                if (!is.data.frame(res)) {
+                                  res <- as.data.frame(res)
+                                }
+
                                 return(res)
                                 },
                       error = function(e) {
                         if (debug) print(e)
                         fallback <- data.frame(ID = NA)
+                        if (!"id" %in% names(formals(fun_dist))) {
+                          detected_id <- list(...)
+                          detected_id <- detected_id$id
+                        }
                         colnames(fallback)[1] <- detected_id
                         return(fallback)
                       })
@@ -2391,7 +2485,8 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(ncpath, layer = "county")
-  nctrct <- terra::vect(ncpath, layer = "tracts")
+  nctrct <- sf::st_read(ncpath, layer = "tracts")
+  nctrct <- terra::vect(nctrct)
   ncelev <- terra::unwrap(readRDS(
     testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
@@ -2424,12 +2519,56 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
     )
   )
 
-
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 })
 
 
+
+```
+
+
+```{r test-generic-function, eval = FALSE}
+testthat::test_that("generic function should be parallelized properly", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # main test
+  pnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  pnts <- terra::vect(pnts)
+  rd1 <-
+    terra::vect(testthat::test_path("..", "testdata", "ncroads_first.gpkg"))
+
+  pnts <- terra::project(pnts, "EPSG:5070")
+  rd1 <- terra::project(rd1, "EPSG:5070")
+  # expect
+
+  nccompreg <-
+    get_computational_regions(
+                              input = pnts,
+                              mode = "grid",
+                              nx = 6L,
+                              ny = 4L,
+                              padding = 3e4L)
+  future::plan(future::multicore, workers = 6L)
+  testthat::expect_no_error(
+    res <-
+      suppressWarnings(
+        distribute_process_grid(
+                                grids = nccompreg,
+                                fun_dist = terra::nearest,
+                                x = pnts,
+                                y = rd1)
+      )
+  )
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(nrow(res), nrow(pnts))
+
+})
 
 ```
 
@@ -2654,7 +2793,7 @@ pkgbuild::build(path = ".")
 
 # devtools::test()
 
-devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
 
 ```
 
@@ -2692,6 +2831,6 @@ system(paste0("rm -r ", getwd()))
 ```{r post-hoc-manualrun, eval = FALSE}
 system(paste0("cp -r ./scomps/* ."))
 system("rm -r ./scomps")
-
+devtools::test()
 
 ```

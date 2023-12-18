@@ -31,7 +31,8 @@ Default is 90.}
 
 \item{func}{a function taking a numeric vector argument.}
 
-\item{kernel}{character(1). Name of a kernel function (yet to be implemented)}
+\item{kernel}{character(1). Name of a kernel function
+One of 'uniform', 'triweight', 'quartic', and 'epanechnikov'}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 }
@@ -41,7 +42,6 @@ a data.frame object with mean value
 \description{
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
-Kernel function is not yet implemented.
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

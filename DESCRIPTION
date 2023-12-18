@@ -11,25 +11,23 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
-    covr,
     dplyr,
     exactextractr,
     future,
     future.apply,
     methods,
-    progressr,
     rlang,
     sf,
     stars,
-    terra,
-    testthat,
-    units
+    terra
 Suggests: 
     doFuture,
     future.batchtools,
     igraph,
+    testthat (>= 3.0.0),
     tigris,
+    units,
     withr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 7257094bb3467e9ae0dc2cb267c95b4a
+LitrId: 59d1d0efe6be9cf6266f49229108e877

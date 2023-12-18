@@ -74,49 +74,58 @@ distribute_process_grid <-
           which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
     }
 
-    par_fun <- list(...)
-    detected_id <- grep("^id", names(par_fun), value = TRUE)
-    detected_id <- par_fun[[detected_id]]
-    if (is.null(detected_id)) {
-      detected_id <- "ID"
-    }
-
     grids_target <-
       grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
     grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
-    results_distributed <- future.apply::future_lapply(
-      grids_target_list,
-      \(grid) {
-        sf::sf_use_s2(FALSE)
+    results_distributed <-
+      future.apply::future_lapply(
+        grids_target_list,
+        \(grid) {
+          sf::sf_use_s2(FALSE)
 
-        run_result <- tryCatch({
-          args_input <- list(...)
-          # args_fun <- formals(fun_dist)
-          ## Strongly assuming that
-          # the first is "at", the second is "from"
-          args_input[[1]] <-
-            args_input[[1]][grid, ]
+          run_result <- tryCatch({
+            args_input <- list(...)
+            # args_fun <- formals(fun_dist)
+            ## Strongly assuming that
+            # the first is "at", the second is "from"
+            args_input[[1]] <-
+              args_input[[1]][grid, ]
+            if (class(args_input[[2]])[1] == "SpatVector") {
+              args_input[[2]] <-
+                args_input[[2]][
+                  grids$padded[grids$padded$CGRIDID == grid$CGRIDID, ], ]
+            }
+            if (!"id" %in% names(formals(fun_dist))) {
+              args_input$id <- NULL
+            }
 
-          res <- rlang::inject(fun_dist(!!!args_input))
-          cat(sprintf("Your input function was 
-          successfully run at CGRIDID: %s\n",
-            as.character(unlist(grid[["CGRIDID"]]))))
+            res <- rlang::inject(fun_dist(!!!args_input))
+            cat(sprintf("Your input function was 
+            successfully run at CGRIDID: %s\n",
+              as.character(unlist(grid[["CGRIDID"]]))))
 
-          return(res)
+            if (!is.data.frame(res)) {
+              res <- as.data.frame(res)
+            }
+
+            return(res)
+          },
+          error = function(e) {
+            if (debug) print(e)
+            fallback <- data.frame(ID = NA)
+            if (!"id" %in% names(formals(fun_dist))) {
+              detected_id <- list(...)
+              detected_id <- detected_id$id
+            }
+            colnames(fallback)[1] <- detected_id
+            return(fallback)
+          })
+
+          return(run_result)
         },
-        error = function(e) {
-          if (debug) print(e)
-
-          fallback <- data.frame(ID = NA)
-          colnames(fallback)[1] <- detected_id
-          return(fallback)
-        })
-
-        return(run_result)
-      },
-      future.seed = TRUE,
-      future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
+        future.seed = TRUE,
+        future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -203,20 +212,32 @@ distribute_process_hierarchy <-
                       run_result <-
                         tryCatch(
                                  {
-                                  subregion <- regions[startsWith(split_level, subregion), ]
+                                  # TODO: padded subregion to deal with
+                                  # edge cases; how to determine padding?
+                                  subregion <- regions[startsWith(split_level, subregion)]
                                   args_input <- list(...)
                                   ## Strongly assuming that
                                   # the first is "at", the second is "from"
                                   args_input[[1]] <-
                                     args_input[[1]][subregion, ]
+                                  if (!"id" %in% names(formals(fun_dist))) {
+                                    args_input$id <- NULL
+                                  }
 
                                   res <-
                                     rlang::inject(fun_dist(!!!args_input))
+                                  if (!is.data.frame(res)) {
+                                    res <- as.data.frame(res)
+                                  }
                                   return(res)
                                 },
                                 error =
                                 function(e) {
                                   if (debug) print(e)
+                                  if (!"id" %in% names(formals(fun_dist))) {
+                                    detected_id <- list(...)
+                                    detected_id <- detected_id$id
+                                  }
                                   return(data.frame(ID = NA))
                                 })
                       return(run_result)
@@ -271,12 +292,12 @@ distribute_process_multirasters <- function(
   debug = FALSE,
   fun_dist,
   ...) {
-  par_fun <- list(...)
-  detected_id <- grep("^id", names(par_fun), value = TRUE)
-  detected_id <- par_fun[[detected_id]]
-  if (is.null(detected_id)) {
-    detected_id <- "ID"
-  }
+  # par_fun <- list(...)
+  # detected_id <- grep("^id", names(par_fun), value = TRUE)
+  # detected_id <- par_fun[[detected_id]]
+  # if (is.null(detected_id)) {
+  #   detected_id <- "ID"
+  # }
 
   if (any(sapply(filenames, \(x) !file.exists(x)))) {
     stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
@@ -300,14 +321,25 @@ distribute_process_multirasters <- function(
                                 rast_target <- detect_class(args_input, "SpatRaster")
 
                                 args_input[rast_target] <- rast_short(path, win = vect_ext)
+                                if (!"id" %in% names(formals(fun_dist))) {
+                                  args_input$id <- NULL
+                                }
                                 
                                 res <-
                                   rlang::inject(fun_dist(!!!args_input))
+                                if (!is.data.frame(res)) {
+                                  res <- as.data.frame(res)
+                                }
+
                                 return(res)
                                 },
                       error = function(e) {
                         if (debug) print(e)
                         fallback <- data.frame(ID = NA)
+                        if (!"id" %in% names(formals(fun_dist))) {
+                          detected_id <- list(...)
+                          detected_id <- detected_id$id
+                        }
                         colnames(fallback)[1] <- detected_id
                         return(fallback)
                       })
