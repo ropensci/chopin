@@ -2478,11 +2478,12 @@ distribute_process_hierarchy &lt;-
                                 vect_target_tr &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatVector&quot;)
                                 vect_target_sf &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;sf&quot;)
                                 vect_target &lt;- (vect_target_tr | vect_target_sf)             
-                                vect_ext &lt;- terra::ext(args_input[vect_target][[1]])
+                                vect_ext &lt;- args_input[vect_target]
+                                vect_ext &lt;- terra::ext(vect_ext[[1]])
                                 
-                                rast_target &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatRaster&quot;)
+                                rast_target &lt;- which(<a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatRaster&quot;))
 
-                                args_input[rast_target] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(path, win = vect_ext)
+                                args_input[[rast_target]] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(path, win = vect_ext)
                                 if (!&quot;id&quot; %in% names(formals(fun_dist))) {
                                   args_input$id &lt;- NULL
                                 }
@@ -2704,7 +2705,7 @@ distribute_process_hierarchy &lt;-
 
 })
 </code></pre>
-<pre class="r"><code>testthat::test_that(&quot;Processes are properly spawned and compute over hierarchy&quot;, {
+<pre class="r"><code>testthat::test_that(&quot;Processes are properly spawned and compute over multirasters&quot;, {
   withr::local_package(&quot;terra&quot;)
   withr::local_package(&quot;sf&quot;)
   withr::local_package(&quot;future&quot;)
@@ -2849,7 +2850,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## * building ‘scomps_0.1.1.12152023.tar.gz’
 ## 
 ## Running /usr/lib/R/bin/R CMD INSTALL \
-##   /tmp/RtmptGfmmU/scomps_0.1.1.12152023.tar.gz --install-tests --no-docs \
+##   /tmp/RtmpZsIFMf/scomps_0.1.1.12152023.tar.gz --install-tests --no-docs \
 ##   --no-multiarch --no-demo 
 ## * installing to library ‘/home/felix/R/x86_64-pc-linux-gnu-library/4.3’
 ## * installing *source* package ‘scomps’ ...

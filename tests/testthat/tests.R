@@ -755,7 +755,7 @@ testthat::test_that("generic function should be parallelized properly", {
 })
 
 
-testthat::test_that("Processes are properly spawned and compute over hierarchy", {
+testthat::test_that("Processes are properly spawned and compute over multirasters", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
