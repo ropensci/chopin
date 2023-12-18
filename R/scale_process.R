@@ -61,7 +61,7 @@ distribute_process_grid <-
       if (length(grid_target_id) != 2) {
         stop("Numeric grid_target_id should be in a form of c(startid, endid).\n")
       }
-      grid_target_ids <- unique(grids$original[["CGRIDID"]])[grid_target_id]
+      grid_target_ids <- unlist(grids$original[["CGRIDID"]])[grid_target_id]
     }
     # subset using grids and grid_id
     if (is.null(grid_target_id)) {
@@ -70,8 +70,8 @@ distribute_process_grid <-
     if (is.character(grid_target_id)) {
       grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
       grid_target_ids <-
-        c(which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
-          which(unique(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
+        c(which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
+          which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
     }
 
     grids_target <-
@@ -237,11 +237,15 @@ distribute_process_hierarchy <-
                                 error =
                                 function(e) {
                                   if (debug) print(e)
+                                  fallback <- data.frame(ID = NA)
                                   if ("id" %in% names(formals(fun_dist))) {
                                     detected_id <- list(...)
                                     detected_id <- detected_id$id
+                                  } else {
+                                    detected_id <- "id"
                                   }
-                                  return(data.frame(ID = NA))
+                                  colnames(fallback)[1] <- detected_id
+                                  return(fallback)
                                 })
                       return(run_result)
                     },
@@ -311,8 +315,6 @@ distribute_process_multirasters <- function(
     future_lapply(
                   file_list,
                   \(path) {
-                    sf::sf_use_s2(FALSE)
-
                     run_result <-
                       tryCatch({
                         args_input <- list(...)
@@ -323,17 +325,12 @@ distribute_process_multirasters <- function(
                         vect_ext <- terra::ext(vect_ext[[1]])
 
                         rast_target <- which(detect_class(args_input, "SpatRaster"))
+                        args_input[[rast_target]] <- rast_short(rasterpath = path, win = vect_ext)
+                        if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
 
-                        args_input[[rast_target]] <- rast_short(path, win = vect_ext)
-                        if (!"id" %in% names(formals(fun_dist))) {
-                          args_input$id <- NULL
-                        }
-
-                        res <-
-                          rlang::inject(fun_dist(!!!args_input))
-                        if (!is.data.frame(res)) {
-                          res <- as.data.frame(res)
-                        }
+                        res <- rlang::inject(fun_dist(!!!args_input))
+                        if (!is.data.frame(res)) res <- as.data.frame(res)
+                        res$base_raster <- path
 
                         return(res)
                         },

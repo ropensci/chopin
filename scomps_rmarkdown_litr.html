@@ -2279,7 +2279,7 @@ distribute_process_grid &lt;-
       if (length(grid_target_id) != 2) {
         stop(&quot;Numeric grid_target_id should be in a form of c(startid, endid).\n&quot;)
       }
-      grid_target_ids &lt;- unique(grids$original[[&quot;CGRIDID&quot;]])[grid_target_id]
+      grid_target_ids &lt;- unlist(grids$original[[&quot;CGRIDID&quot;]])[grid_target_id]
     }
     # subset using grids and grid_id
     if (is.null(grid_target_id)) {
@@ -2288,8 +2288,8 @@ distribute_process_grid &lt;-
     if (is.character(grid_target_id)) {
       grid_id_parsed &lt;- strsplit(grid_target_id, &quot;:&quot;, fixed = TRUE)[[1]]
       grid_target_ids &lt;-
-        c(which(unique(grids$original[[&quot;CGRIDID&quot;]]) == grid_id_parsed[1]),
-          which(unique(grids$original[[&quot;CGRIDID&quot;]]) == grid_id_parsed[2]))
+        c(which(unlist(grids$original[[&quot;CGRIDID&quot;]]) == grid_id_parsed[1]),
+          which(unlist(grids$original[[&quot;CGRIDID&quot;]]) == grid_id_parsed[2]))
     }
 
     grids_target &lt;-
@@ -2455,11 +2455,15 @@ distribute_process_hierarchy &lt;-
                                 error =
                                 function(e) {
                                   if (debug) print(e)
+                                  fallback &lt;- data.frame(ID = NA)
                                   if (&quot;id&quot; %in% names(formals(fun_dist))) {
                                     detected_id &lt;- list(...)
                                     detected_id &lt;- detected_id$id
+                                  } else {
+                                    detected_id &lt;- &quot;id&quot;
                                   }
-                                  return(data.frame(ID = NA))
+                                  colnames(fallback)[1] &lt;- detected_id
+                                  return(fallback)
                                 })
                       return(run_result)
                     },
@@ -2529,8 +2533,6 @@ distribute_process_hierarchy &lt;-
     future_lapply(
                   file_list,
                   \(path) {
-                    sf::sf_use_s2(FALSE)
-
                     run_result &lt;-
                       tryCatch({
                         args_input &lt;- list(...)
@@ -2541,17 +2543,12 @@ distribute_process_hierarchy &lt;-
                         vect_ext &lt;- terra::ext(vect_ext[[1]])
 
                         rast_target &lt;- which(<a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatRaster&quot;))
+                        args_input[[rast_target]] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(rasterpath = path, win = vect_ext)
+                        if (!&quot;id&quot; %in% names(formals(fun_dist))) args_input$id &lt;- NULL
 
-                        args_input[[rast_target]] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(path, win = vect_ext)
-                        if (!&quot;id&quot; %in% names(formals(fun_dist))) {
-                          args_input$id &lt;- NULL
-                        }
-
-                        res &lt;-
-                          rlang::inject(fun_dist(!!!args_input))
-                        if (!is.data.frame(res)) {
-                          res &lt;- as.data.frame(res)
-                        }
+                        res &lt;- rlang::inject(fun_dist(!!!args_input))
+                        if (!is.data.frame(res)) res &lt;- as.data.frame(res)
+                        res$base_raster &lt;- path
 
                         return(res)
                         },
@@ -2600,6 +2597,10 @@ distribute_process_hierarchy &lt;-
       readRDS(testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_srtm15_otm.rds&quot;)))
   terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
   names(ncelev) &lt;- c(&quot;srtm15&quot;)
+
+  ncsamp &lt;- terra::spatSample(terra::ext(ncelev), 1e4L,
+    lonlat = FALSE, as.points = TRUE)
+  ncsamp$kid &lt;- sprintf(&quot;K-%05d&quot;, seq(1, nrow(ncsamp)))
 
   nccompreg &lt;-
     get_computational_regions(
@@ -2665,6 +2666,20 @@ distribute_process_hierarchy &lt;-
   )
 
 
+  testthat::expect_no_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = c(1, 3),
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = 5e3L,
+                              id = &quot;pid&quot;)
+    )
+  )
+
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, &quot;SpatVector&quot;)
   testthat::expect_s3_class(res, &quot;data.frame&quot;)
@@ -2688,6 +2703,19 @@ distribute_process_hierarchy &lt;-
   testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
   testthat::expect_true(anyNA(resnas))
 
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnas0 &lt;-
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = &quot;1:10&quot;,
+                              fun_dist = terra::nearest,
+                              x = ncpnts,
+                              y = ncsamp,
+                              id = &quot;pid&quot;)
+    )
+  )
+
 })
 
 </code></pre>
@@ -2707,6 +2735,10 @@ distribute_process_hierarchy &lt;-
     testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_srtm15_otm.rds&quot;)))
   terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
   names(ncelev) &lt;- c(&quot;srtm15&quot;)
+
+  ncsamp &lt;- terra::spatSample(terra::ext(ncelev), 1e4L,
+    lonlat = FALSE, as.points = TRUE)
+  ncsamp$kid &lt;- sprintf(&quot;K-%05d&quot;, seq(1, nrow(ncsamp)))
 
   testthat::expect_no_error(
     res &lt;-
@@ -2750,6 +2782,9 @@ distribute_process_hierarchy &lt;-
     )
   )
 
+  testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
+  testthat::expect_true(anyNA(resnas))
+
   testthat::expect_no_error(
     suppressWarnings(
       resnasx &lt;-
@@ -2757,15 +2792,26 @@ distribute_process_hierarchy &lt;-
                               regions = nccnty,
                               debug = TRUE,
                               split_level = &quot;GEOID&quot;,
-                              fun_dist = terra::nearest,
-                              x = nctrct,
-                              y = ncelev)
+                              fun_dist = extract_with_buffer,
+                              points = terra::centroids(nctrct),
+                              surf = ncelev,
+                              id = &quot;GEOID&quot;,
+                              radius = -1e3L)
     )
   )
 
-  testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
-  testthat::expect_true(anyNA(resnas))
-
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasz &lt;-
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              debug = TRUE,
+                              split_level = &quot;GEOID&quot;,
+                              fun_dist = terra::nearest,
+                              x = nctrct,
+                              y = ncsamp)
+    )
+  )
 })
 
 
@@ -2832,7 +2878,7 @@ distribute_process_hierarchy &lt;-
   terra::writeRaster(ncelev, file.path(tdir, &quot;test4.tif&quot;), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, &quot;test5.tif&quot;), overwrite = TRUE)
   
-  testfiles &lt;- list.files(tempdir(), pattern = &quot;*.tif$&quot;, full.names = TRUE)
+  testfiles &lt;- list.files(tdir, pattern = &quot;*.tif$&quot;, full.names = TRUE)
   testthat::expect_no_error(
     res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles,
@@ -2993,7 +3039,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp8JxXAh/downloaded_packages
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpvTxaud/downloaded_packages
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -3007,7 +3053,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp8JxXAh/scomps_0.1.1.12192023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpvTxaud/scomps_0.1.1.12192023.tar.gz \
 ##   --install-tests --no-docs --no-multiarch --no-demo 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
