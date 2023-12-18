@@ -1992,7 +1992,7 @@ calculate_sedc &lt;-
     sedc_calc &lt;-
       calculate_sedc(ncpnts, ncrand, &quot;pid&quot;, 3e4L, 5e4L, polnames))
   testthat::expect_s3_class(sedc_calc, &quot;data.frame&quot;)
-  print(sedc_calc)
+  
   testthat::expect_equal(
     sum(paste0(polnames, &quot;_sedc&quot;) %in% names(sedc_calc)),
     length(polnames))
@@ -2956,7 +2956,7 @@ devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, q
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmptTZeUl/downloaded_packages
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp6sYMZM/downloaded_packages
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
 ##   /Users/songi2/Documents/GitHub/Scalable_GIS/scomps --install-tests \
 ##   --no-docs --no-multiarch --no-demo 

@@ -1846,7 +1846,7 @@ testthat::test_that("SEDC are well calculated.", {
     sedc_calc <-
       calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames))
   testthat::expect_s3_class(sedc_calc, "data.frame")
-  print(sedc_calc)
+  
   testthat::expect_equal(
     sum(paste0(polnames, "_sedc") %in% names(sedc_calc)),
     length(polnames))
