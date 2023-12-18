@@ -1,4 +1,13 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand  
+testthat::test_that("Kernel functions work okay", {
+  testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
+  testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
+  testthat::expect_no_error(kernelfunction(10, 100, "quartic"))
+  testthat::expect_no_error(kernelfunction(10, 100, "triweight"))
+  testthat::expect_no_error(kernelfunction(10, 100, "epanechnikov"))
+})
+
+
 testthat::test_that("What package does the input object belong?",
 {
   withr::local_package("stars")
@@ -315,9 +324,13 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_s3_class(mainland_box, "sf")
   # terra Spat* objects are s4 class...
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
+  # error cases
   testthat::expect_error(
     extent_to_polygon(mainland_vec_un, output_class = "sf")
   )
+  testthat::expect_error(
+    extent_to_polygon(mainland_vec_un, output_class = "GeoDataFrames")
+  )  
 })
 
 
@@ -337,6 +350,9 @@ testthat::test_that("Check bbox abides.", {
   testthat::expect_no_error(check_bbox(ncp, nc))
   res <- check_bbox(ncp, nc)
   testthat::expect_equal(res, TRUE)
+
+  # error cases
+  testthat::expect_no_error(check_bbox(ncp, sf::st_bbox(nc)))
 })
 
 
@@ -363,13 +379,56 @@ testthat::test_that("extract_with runs well", {
   testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
 
   # test two modes
-  testthat::expect_no_error(ncexpoly <- extract_with(nccntytr, ncelev, "FIPS", mode = "polygon"))
-  testthat::expect_no_error(ncexbuff <- extract_with(ncp, ncelev, "pid", mode = "buffer", radius = 1e4L))
+  testthat::expect_no_error(
+    ncexpoly <- extract_with(
+                             nccntytr,
+                             ncelev,
+                             "FIPS",
+                             mode = "polygon"))
+  testthat::expect_no_error(
+    ncexbuff <- extract_with(ncp,
+                             ncelev,
+                             "pid",
+                             mode = "buffer",
+                             radius = 1e4L))
+
+  testthat::expect_no_error(
+    ncexbuffkern <- extract_with_buffer(ncp,
+                             ncelev,
+                             "pid",
+                             kernel = "epanechnikov",
+                             func = stats::weighted.mean,
+                             bandwidth = 1.25e4L,
+                             radius = 1e4L))
+
+  testthat::expect_no_error(
+    ncexbuffkern <- extract_with(ncp,
+                             ncelev,
+                             "pid",
+                             mode = "buffer",
+                             kernel = "epanechnikov",
+                             func = stats::weighted.mean,
+                             bandwidth = 1.25e4L,
+                             radius = 1e4L))
+
 
   # errors
-  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "whatnot"))
-  testthat::expect_error(extract_with(nccntytr, ncelev, "GEOID", mode = "polygon"))
-  testthat::expect_error(extract_with(nccntytr, ncelev, 1, mode = "buffer", radius = 1e4L))
+  testthat::expect_error(
+    extract_with(nccntytr,
+                 ncelev,
+                 "GEOID",
+                 mode = "whatnot"))
+  testthat::expect_error(
+    extract_with(nccntytr,
+                 ncelev,
+                 "GEOID",
+                 mode = "polygon"))
+  testthat::expect_error(
+    extract_with(nccntytr,
+                 ncelev,
+                 1,
+                 mode = "buffer",
+                 radius = 1e4L))
 
 })
 
@@ -392,6 +451,9 @@ testthat::test_that("check_crs is working as expected", {
   ncna <- nc
   sf::st_crs(ncna) <- NA
   testthat::expect_error(check_crs(ncna))
+  nctna <- nct
+  terra::crs(nctna) <- ""
+  testthat::expect_error(check_crs(nctna))
 
 })
 
@@ -403,10 +465,15 @@ testthat::test_that("nc data is within the mainland US", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::read_sf(ncpath)
   nc <- sf::st_transform(nc, "EPSG:4326")
-  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
+  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
   mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
   within_res <- check_within_reference(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
+
+  # error cases
+  testthat::expect_error(check_within_reference(list(1), mainland_box))
+  testthat::expect_error(check_within_reference(nc, list(1)))
+
 })
 
 
@@ -421,7 +488,8 @@ testthat::test_that("SEDC are well calculated.", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
-  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <-
+    readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncrand <- terra::spatSample(ncpoly, 250L)
@@ -431,11 +499,13 @@ testthat::test_that("SEDC are well calculated.", {
 
   polnames <- paste0("pollutant", 1:3)
 
-  testthat::expect_no_error(sedc_calc <-
-    calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames))
+  testthat::expect_no_error(
+    sedc_calc <-
+      calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames))
   testthat::expect_s3_class(sedc_calc, "data.frame")
-  print(sedc_calc)
-  testthat::expect_equal(sum(paste0(polnames, "_sedc") %in% names(sedc_calc)),
+  
+  testthat::expect_equal(
+    sum(paste0(polnames, "_sedc") %in% names(sedc_calc)),
     length(polnames))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_bandwidth")))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
@@ -459,25 +529,25 @@ testthat::test_that("aw_covariates works as expected.", {
   withr::local_package("testthat")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
   nc <- sf::st_transform(nc, 5070)
   pp <- sf::st_sample(nc, size = 300)
   pp <- sf::st_as_sf(pp)
   pp[["id"]] <- seq(1, nrow(pp))
   sf::st_crs(pp) <- "EPSG:5070"
-  ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+  ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, 'id')})
+  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
   expect_s3_class(ppb_nc_aw, "sf")
 
   # terra
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, 'id')})
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, 'id')})
+  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
   expect_s3_class(ppb_nc_aw, "data.frame")
 
 })
@@ -485,10 +555,43 @@ testthat::test_that("aw_covariates works as expected.", {
 
 
 
+testthat::test_that("classes are detected.", {
+  withr::local_package("terra")
+  random_df <- data.frame(x = runif(10), y = runif(10))
+  random_tv <- terra::vect(random_df, geom = c("x", "y"))
+  test_args <- list(vector = random_tv,
+                    func = mean,
+                    pipi = pi,
+                    zodiac = "Horse")
+  set_detected <- detect_class(test_args, "SpatVector")
+  # test partial match
+  set_detectedp <- detect_class(test_args, "Spat")
+
+  testthat::expect_true(is.logical(set_detected))
+  testthat::expect_true(is.logical(set_detectedp))
+  # both are the same
+  testthat::expect_true(all.equal(set_detected, set_detectedp))
+
+  vect_pop <- test_args[set_detected][[1]]
+  testthat::expect_s4_class(vect_pop, "SpatVector")
+
+  # does it well in a function as designed?
+  downy <- function(...) {
+    ARGS <- list(...)
+    detect_class(ARGS, "SpatVector")}
+  bear <- downy(v = random_tv, f = mean, pipi = pi)
+
+  testthat::expect_true(is.logical(bear))
+  testthat::expect_true(bear[[1]] == TRUE)
+
+})
+
+
 testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
+  withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
 
@@ -520,8 +623,8 @@ testthat::test_that("Processes are properly spawned and compute", {
                               grid_target_id = NULL,
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = "pid")
     )
@@ -533,12 +636,27 @@ testthat::test_that("Processes are properly spawned and compute", {
                               grid_target_id = "1/10",
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = "pid")
     )
   )
+
+  testthat::expect_error(
+    suppressWarnings(
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = c(1, 100, 125),
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = 5e3L,
+                              id = "pid")
+    )
+  )
+
 
   testthat::expect_no_error(
     suppressWarnings(
@@ -547,8 +665,8 @@ testthat::test_that("Processes are properly spawned and compute", {
                               grid_target_id = "1:10",
                               fun_dist = extract_with_buffer,
                               points = ncpnts,
-                              qsegs = 90L,
                               surf = ncelev,
+                              qsegs = 90L,
                               radius = 5e3L,
                               id = "pid")
     )
@@ -558,7 +676,25 @@ testthat::test_that("Processes are properly spawned and compute", {
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
-  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+  testthat::expect_true(!anyNA(unlist(res)))
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnas <-
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1:10",
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = -5e3L,
+                              id = "pid")
+    )
+  )
+
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
 
 })
 
@@ -568,33 +704,196 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
+  withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(ncpath, layer = "county")
-  nctrct <- terra::vect(ncpath, layer = "tracts")
+  nctrct <- sf::st_read(ncpath, layer = "tracts")
+  nctrct <- terra::vect(nctrct)
   ncelev <- terra::unwrap(readRDS(
     testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 
-  res <-
+  testthat::expect_no_error(
+    res <-
+      suppressWarnings(
+        distribute_process_hierarchy(
+                                regions = nccnty,
+                                split_level = "GEOID",
+                                fun_dist = extract_with_polygons,
+                                polys = nctrct,
+                                surf = ncelev,
+                                id = "GEOID",
+                                func = "mean")
+      )
+  )
+
+  testthat::expect_error(
     suppressWarnings(
       distribute_process_hierarchy(
                               regions = nccnty,
-                              split_level = "GEOID",
+                              split_level = c(1, 2, 3),
                               fun_dist = extract_with_polygons,
                               polys = nctrct,
                               surf = ncelev,
                               id = "GEOID",
                               func = "mean")
     )
+  )
 
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnas <-
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              split_level = "GEOID",
+                              fun_dist = terra::nearest,
+                              polys = nctrct,
+                              surf = ncelev)
+    )
+  )
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasx <-
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              debug = TRUE,
+                              split_level = "GEOID",
+                              fun_dist = terra::nearest,
+                              x = nctrct,
+                              y = ncelev)
+    )
+  )
+
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
+
 })
 
 
+
+
+testthat::test_that("generic function should be parallelized properly", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # main test
+  pnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  pnts <- terra::vect(pnts)
+  rd1 <-
+    terra::vect(testthat::test_path("..", "testdata", "ncroads_first.gpkg"))
+
+  pnts <- terra::project(pnts, "EPSG:5070")
+  rd1 <- terra::project(rd1, "EPSG:5070")
+  # expect
+
+  nccompreg <-
+    get_computational_regions(
+                              input = pnts,
+                              mode = "grid",
+                              nx = 6L,
+                              ny = 4L,
+                              padding = 3e4L)
+  future::plan(future::multicore, workers = 6L)
+  testthat::expect_no_error(
+    res <-
+      suppressWarnings(
+        distribute_process_grid(
+                                grids = nccompreg,
+                                fun_dist = terra::nearest,
+                                x = pnts,
+                                y = rd1)
+      )
+  )
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_equal(nrow(res), nrow(pnts))
+
+})
+
+
+testthat::test_that("Processes are properly spawned and compute over multirasters", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  nccnty <- terra::vect(ncpath, layer = "county")
+  ncelev <- terra::unwrap(readRDS(
+    testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  terra::crs(ncelev) <- "EPSG:5070"
+  names(ncelev) <- c("srtm15")
+  tdir <- tempdir()
+  terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+  terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+  
+  testfiles <- list.files(tempdir(), pattern = "*.tif$", full.names = TRUE)
+  testthat::expect_no_error(
+    res <- distribute_process_multirasters(
+      filenames = testfiles,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+  )
+  testthat::expect_s3_class(res, "data.frame")
+  testthat::expect_true(!anyNA(res))
+
+  testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
+  testthat::expect_warning(
+    res <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+  )
+  testthat::expect_no_error(
+    suppressWarnings(resnas <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    ))
+  )
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
+
+  testthat::expect_no_error(
+    suppressWarnings(resnasx <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      debug = TRUE,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    ))
+  )
+
+
+})
 
 

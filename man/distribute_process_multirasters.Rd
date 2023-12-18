@@ -4,11 +4,14 @@
 \alias{distribute_process_multirasters}
 \title{Process a given function over multiple large rasters}
 \usage{
-distribute_process_multirasters(filenames, fun_dist, ...)
+distribute_process_multirasters(filenames, debug = FALSE, fun_dist, ...)
 }
 \arguments{
 \item{filenames}{character(n). A vector or list of
 full file paths of raster files. n is the total number of raster files.}
+
+\item{debug}{logical(1). Prints error messages
+if there were any errors during the calculation.}
 
 \item{fun_dist}{function supported in scomps.}
 
@@ -16,7 +19,8 @@ full file paths of raster files. n is the total number of raster files.}
 }
 \value{
 a data.frame object with computation results.
-For entries of the results, consult the function used in \code{fun_dist} argument.
+For entries of the results,
+consult the function used in \code{fun_dist} argument.
 }
 \description{
 Large raster files usually exceed the memory capacity in size.

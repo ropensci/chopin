@@ -1,28 +1,6 @@
-[![test-coverage](https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/test-coverage.yaml)
-[![codecov](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/graph/badge.svg?token=IG64A3MFUA)](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS)
-[![R-CMD-check](https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/check-standard.yaml)
-
-    
-# Scalable_GIS
-Scalable GIS methods for environmental and climate data analysis 
-
-
-# Basic design
-- Processing functions accept sf/terra classes for spatial data. Raster-vector overlay is done with `exactextractr`.
-- As of version 0.1.0, this package supports three basic functions that are readily parallelized over multithread environments:
-    - `extract_with`: extract raster values with point buffers or polygons.
-        - `extract_with_polygons`
-        - `extract_with_buffer`
-    - `calculate_sedc`: calculate sums of exponentially decaying contributions
-    - `aw_covariates`: area-weighted covariates based on target and reference polygons
-
-- When processing points/polygons in parallel, the entire study area will be divided into partly overlapped grids or processed through its own hierarchy.
-    - `distribute_process_grid`
-    - `distribute_process_hierarchy`
-
-
-# Use case
-- Please refer to a small example below for extracting mean altitude values at circular point buffers and census tracts in North Carolina.
+``` r
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
 
 ``` r
 library(scomps)
@@ -414,7 +392,29 @@ system.time(
 )
 #>    user  system elapsed 
 #>   0.036   0.000   0.036
+knitr::kable(head(res))
 ```
 
+| from_id |  from_x |  from_y | to_id |  distance |
+|--------:|--------:|--------:|------:|----------:|
+|       1 | 1401370 | 1608239 |    NA | 30053.952 |
+|       2 | 1332751 | 1601423 |    NA | 14346.061 |
+|       3 | 1405505 | 1617417 |    NA | 35164.291 |
+|       4 | 1330270 | 1598246 |    NA | 16103.851 |
+|       1 | 1511056 | 1608509 |    NA | 24443.245 |
+|       2 | 1537861 | 1599604 |    NA |  3509.205 |
+
+``` r
+knitr::kable(head(restr))
+```
+
+| from_id |  from_x |  from_y | to_id |  distance |
+|--------:|--------:|--------:|:------|----------:|
+|       1 | 1717064 | 1633983 | NA    |  9485.128 |
+|       2 | 1661430 | 1585445 | NA    |  1597.318 |
+|       3 | 1271148 | 1553158 | NA    | 45573.234 |
+|       4 | 1519455 | 1408060 | NA    |  1668.273 |
+|       5 | 1511056 | 1608509 | NA    | 24443.245 |
+|       6 | 1453314 | 1448260 | NA    |  3835.407 |
 
 <sup>Created on 2023-12-18 with [reprex v2.0.2](https://reprex.tidyverse.org)</sup>

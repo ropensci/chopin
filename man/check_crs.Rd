@@ -21,7 +21,6 @@ library(sf)
 ncpath = system.file("shape/nc.shp", package = "sf")
 nc = read_sf(ncpath)
 check_crs(nc)
-
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

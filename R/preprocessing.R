@@ -1,7 +1,8 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
 #' Setting the clipping extent
-#' @description Return clipping extent with buffer radius. It assumes the input CRS is projected and linear unit is meters.
+#' @description Return clipping extent with buffer radius.
+#'  It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
 #' @param pnts One of sf or vect class. Target points of computation.
 #' @param buffer_r numeric(1). Buffer radius. It is assumed in metres 

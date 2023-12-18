@@ -4,7 +4,13 @@
 \alias{distribute_process_hierarchy}
 \title{Process a given function using a hierarchy in input data}
 \usage{
-distribute_process_hierarchy(regions, split_level = NULL, fun_dist, ...)
+distribute_process_hierarchy(
+  regions,
+  split_level = NULL,
+  debug = FALSE,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{regions}{sf/SpatVector object.
@@ -14,6 +20,9 @@ Computational regions. Only polygons are accepted.}
 The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
+
+\item{debug}{logical(1). Prints error messages
+if there were any errors during the calculation.}
 
 \item{fun_dist}{function supported in scomps.}
 
@@ -40,6 +49,19 @@ Each thread will process ceiling(|Ng|/|Nt|) grids where
 the number of threads. Please be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
+}
+\note{
+In dynamic dots (\code{...}), the first and second
+arguments should be the \code{fun_dist} arguments where
+sf/SpatVector objects are accepted.
+Virtually any sf/terra functions that accept two arguments
+can be put in \code{fun_dist}, but please be advised that
+some spatial operations do not necessarily give the
+exact result from what would have been done single-thread.
+For example, distance calculated through this function may return the
+lower value than actual because the computational region was reduced.
+This would be the case especially where the target features
+are spatially sparsely distributed.
 }
 \examples{
 library(future)

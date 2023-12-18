@@ -13,12 +13,11 @@ extract_with_buffer(
   qsegs = 90L,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL,
-  grid_ref = NULL
+  bandwidth = NULL
 )
 }
 \arguments{
-\item{points}{SpatVector object. Coordinates where buffers will be generated}
+\item{points}{sf/SpatVector object. Coordinates where buffers will be generated}
 
 \item{surf}{SpatRaster object.
 A raster of whatnot a summary will be calculated}
@@ -32,12 +31,10 @@ Default is 90.}
 
 \item{func}{a function taking a numeric vector argument.}
 
-\item{kernel}{character(1). Name of a kernel function (yet to be implemented)}
+\item{kernel}{character(1). Name of a kernel function
+One of 'uniform', 'triweight', 'quartic', and 'epanechnikov'}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
-
-\item{grid_ref}{SpatVector object.
-A unit grid polygon that is used to get a subset inside the polygon}
 }
 \value{
 a data.frame object with mean value
@@ -45,7 +42,6 @@ a data.frame object with mean value
 \description{
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
-Kernel function is not yet implemented.
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

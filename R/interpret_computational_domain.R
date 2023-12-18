@@ -77,11 +77,13 @@ get_computational_regions <-
              sf =
              sf::st_buffer(grid_reg,
                            dist = padding,
-                           endCapStyle = "SQUARE"),
+                           endCapStyle = "SQUARE",
+                           joinStyle = "MITRE"),
              terra =
              terra::buffer(grid_reg,
                            width = padding,
-                           capstyle = "square"))
+                           capstyle = "square",
+                           joinstyle = "mitre"))
     grid_results <-
       list(original = grid_reg,
            padded = grid_reg_pad)
@@ -156,6 +158,14 @@ sp_index_grid <-
 #' # dg_merged <- grid_merge(sf::st_as_sf(sss), dgs, 100)
 #'
 #' #### NOT RUN ####
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarize
+#' @importFrom dplyr ungroup
+#' @importFrom dplyr n
+#' @importFrom sf st_relate
+#' @importFrom sf st_length
+#' @importFrom sf st_cast
+#' @importFrom rlang sym
 #' @export
 grid_merge <- function(points_in, grid_in, grid_min_features) {
   package_detected <- check_packbound(points_in)
@@ -175,7 +185,8 @@ grid_merge <- function(points_in, grid_in, grid_min_features) {
 
   # This part does not work as expected.
   # Should investigate edge list and actual row index of the grid object; 
-  identified <- lapply(grid_rooks, \(x) sort(x[which(x %in% grid_lt_threshold)]))
+  identified <- lapply(grid_rooks,
+                       \(x) sort(x[which(x %in% grid_lt_threshold)]))
   identified <- identified[grid_lt_threshold]
   identified <- unique(identified)
   identified <- identified[sapply(identified, length) > 1]

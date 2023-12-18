@@ -4,7 +4,13 @@
 \alias{distribute_process_grid}
 \title{Process a given function in the entire or partial computational grids}
 \usage{
-distribute_process_grid(grids, grid_target_id = NULL, fun_dist, ...)
+distribute_process_grid(
+  grids,
+  grid_target_id = NULL,
+  debug = FALSE,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{grids}{sf/SpatVector object. Computational grids.
@@ -15,6 +21,9 @@ an output of \code{get_computational_regions}}
 Default is NULL. If NULL, all grid_ids are used.
 \code{"id_from:id_to"} format or
 \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
+
+\item{debug}{logical(1). Prints error messages
+if there were any errors during the calculation.}
 
 \item{fun_dist}{function supported in scomps.}
 
@@ -34,6 +43,19 @@ users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process ceiling(|Ng|/|Nt|) grids
 where |Ng| denotes the number of grids and |Nt| denotes
 the number of threads.
+}
+\note{
+In dynamic dots (\code{...}), the first and second
+arguments should be the \code{fun_dist} arguments where
+sf/SpatVector objects are accepted.
+Virtually any sf/terra functions that accept two arguments
+can be put in \code{fun_dist}, but please be advised that
+some spatial operations do not necessarily give the
+exact result from what would have been done single-thread.
+For example, distance calculated through this function may return the
+lower value than actual because the computational region was reduced.
+This would be the case especially where the target features
+are spatially sparsely distributed.
 }
 \examples{
 library(future)

@@ -46,10 +46,7 @@ check_crs_align <-
       Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
   }
   check_crs_sf <- function(input, crs_standard) {
-    if (is.na(sf::st_crs(input)) || is.null(sf::st_crs(input))) {
-      stop('Please check the coordinate system or
-       its EPSG code of your input object.')
-    }
+    invisible(check_crs(input))
     input_crs <- sf::st_crs(input)$epsg
     standard_crs <- sf::st_crs(crs_standard)$epsg
     if (input_crs == standard_crs) {
@@ -61,10 +58,7 @@ check_crs_align <-
   }
 
   check_crs_terra <- function(input, crs_standard) {
-    if (is.na(terra::crs(input)) || is.null(terra::crs(input))) {
-      stop('Please check the coordinate system or
-       its EPSG code of your input object.')
-    }
+    invisible(check_crs(input))
     input_crs <- terra::crs(input, describe = TRUE)$code
     standard_crs <- terra::crs(crs_standard, describe = TRUE)$code
     if (input_crs == standard_crs) {
@@ -92,9 +86,9 @@ check_crs_align <-
 #' @author Insang Song
 #' @export
 extent_to_polygon <- function(
-  extent,
-  output_class = "terra",
-  crs = "EPSG:4326") {
+    extent,
+    output_class = "terra",
+    crs = "EPSG:4326") {
   if (!output_class %in% c("sf", "terra")) {
     stop("output_class should be one of 'sf' or 'terra'.\n")
   }
@@ -138,46 +132,26 @@ extent_to_polygon <- function(
 #'  This function will return TRUE if the reference region
 #'  completely contains your data's extent and FALSE otherwise.
 #' @param data_query sf*/stars/SpatVector/SpatRaster object.
-#' @param reference sf*/stars/SpatVector/SpatRaster object or
-#'  a named numeric vector with four names (xmin, ymin, xmax, and ymax).
-#' @param reference_crs Well-known-text-formatted or
-#'  EPSG code of the reference's coordinate system.
-#'  Only required when a named numeric vector is passed to reference.
+#' @param reference sf*/stars/SpatVector/SpatRaster object
 #' @return TRUE (the queried data extent is completely within
-#'  the reference bounding box) or FALSE 
+#'  the reference bounding box) or FALSE
 #' @author Insang Song \email{geoissong@@gmail.com}
 #'
 #' @export
 check_bbox <- function(
   data_query,
-  reference,
-  reference_crs = NULL
+  reference
 ) {
-  if (is.numeric(reference) && is.null(reference_crs)) {
-    stop("CRS should be entered when the reference extent is a vector.\n")
-  }
-  if (is.numeric(reference) && !is.null(reference_crs)) {
-    reference <- sf::st_as_sfc(sf::st_bbox(reference), crs = reference_crs)
-  }
-  query_crs <- check_crs(data_query)
+  reference <- sf::st_as_sfc(sf::st_bbox(reference))
+  print(sf::st_crs(reference))
+  # invisible check data_query CRS check
+  invisible(check_crs(data_query))
 
-  ref_crs <- check_crs(reference)
-  if (is.null(reference_crs)) {
-    reference <-
-      sf::st_as_sfc(
-        sf::st_bbox(reference),
-        crs = ref_crs
-      )
-  }
-  if (is.na(query_crs) || is.null(query_crs)) {
-    stop("The dataset you queried has no CRS.
-     Please make sure your dataset has the correct CRS.\n")
-  }
   data_query_bb <-
     sf::st_as_sfc(sf::st_bbox(data_query),
                   crs = sf::st_crs(data_query))
-
-  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(ref_crs))
+  print(sf::st_crs(data_query_bb))
+  query_matched <- sf::st_transform(data_query_bb, sf::st_crs(reference))
   check_result <- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
 }
@@ -195,15 +169,26 @@ check_bbox <- function(
 #' ncpath = system.file("shape/nc.shp", package = "sf")
 #' nc = read_sf(ncpath)
 #' check_crs(nc)
-#'
+#' @importFrom sf st_crs
+#' @importFrom terra crs
+#' @importFrom methods is
 #' @export
 check_crs <- function(x) {
-  stopifnot("Input is invalid.\n" = any(
-    c("sf", "stars", "SpatVector", "SpatRaster", "SpatRasterDataset") %in% class(x)))
-  stopifnot(
-    "No CRS is defined in the input.
-    Please consult the metadata or the data source.\n" =
-    all(!is.na(sf::st_crs(x)), !is.na(terra::crs(x)), terra::crs(x) != ""))
+  ref_class <- c("sf", "stars", "SpatVector",
+                 "SpatRaster", "SpatRasterDataset")
+
+  if (!any(ref_class %in% class(x))) {
+    stop("Input is invalid.\n")
+  }
+  class_type <- check_packbound(x)
+  if (class_type == "sf" && is.na(sf::st_crs(x))) {
+    stop("No CRS is defined in the input.
+    Please consult the metadata or the data source.\n")
+  }
+  if (class_type == "terra" && any(is.na(terra::crs(x)), terra::crs(x) == "")) {
+    stop("No CRS is defined in the input.
+    Please consult the metadata or the data source.\n")
+  }
 
   if (methods::is(x, "sf") || methods::is(x, "stars")) {
     crs_wkt <- sf::st_crs(x)
@@ -222,8 +207,23 @@ check_crs <- function(x) {
 #' @importFrom methods is
 #' @export 
 check_within_reference <- function(input_object, reference) {
-  stopifnot("Input is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
-  stopifnot("Reference is invalid.\n" = (methods::is(input_object, "sf") || methods::is(input_object, "stars") || methods::is(input_object, "SpatVector") || methods::is(input_object, "SpatRaster")))
+  if (!any(
+    methods::is(input_object, "sf"),
+    methods::is(input_object, "stars"),
+    methods::is(input_object, "SpatVector"),
+    methods::is(input_object, "SpatRaster")
+  )) {
+    stop("Input is invalid.\n")
+  }
+
+  if (!any(
+    methods::is(reference, "sf"),
+    methods::is(reference, "stars"),
+    methods::is(reference, "SpatVector"),
+    methods::is(reference, "SpatRaster")
+  )) {
+    stop("Reference is invalid.\n")
+  }
 
   bbox_input <- input_object |>
     sf::st_bbox() |>
@@ -237,6 +237,32 @@ check_within_reference <- function(input_object, reference) {
   iswithin <- length(iswithin[[1]])
   iswithin <- (iswithin == 1)
   invisible(iswithin)
+}
+
+
+
+#' Detect classes in function arguments
+#' @param args Any list, but preferably generated by \code{list(...)} inside
+#' a function.
+#' @param search character(1). Class name to search. Partial match is supported.
+#' @returns logical vector.
+#' @author Insang Song
+#' @description When a R function is defined in an ordinary
+#' fashion (i.e., assigning a function by \code{<- function(...)})
+#' would be subject to ambiguity particularly if the function
+#' name is the same as the generic function name(s).
+#' This function supports detecting classes of arguments in
+#' a loosely defined function.
+#' @export
+
+detect_class <- function(
+  args,
+  search
+) {
+  searchphrase <- sprintf("(%s)", search)
+  args_scanned <- lapply(args, function(x) any(grepl(searchphrase, class(x))))
+  args_scanned <- sapply(args_scanned, any)
+  return(args_scanned)
 }
 
 

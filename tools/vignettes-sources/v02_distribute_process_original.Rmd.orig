@@ -170,18 +170,20 @@ plot(ncpoints_m[, "mean"], main = "Multi-thread")
 
 ## Distribute computation through geographic hierarchy
 - We consider "hierarchy," which is usually embedded in many geospatial datasets. Suppose we want to summarize elevation across census geographies in North Carolina. The census geographies are highly organized in order; think of state, counties, zip code areas, census tracts, block groups, and blocks. Some of these are exhaustive to the higher order geographies (e.g., census block groups are exhaustively delineated in a census tract), whereas some do not (not all zip code areas are exhaustively covered by a county).
-- In this example, we consider 
+- In this example, we consider census tracts and counties to distribute the computation task for mean elevation values at census tracts over counties.
 
 
 ```{r get-hierarchy}
-nc_county <- tigris::counties(state = "NC", cb = TRUE, year = 2020)
-nc_tracts <- tigris::tracts(cb = TRUE, state = "NC", year = 2020)
+nc_county <- file.path("../testdata/nc_hierarchy.gpkg")
+nc_county <- sf::st_read(nc_county, layer = "county")
+
+nc_tracts <- file.path("../testdata/nc_hierarchy.gpkg")
+nc_tracts <- sf::st_read(nc_tracts, layer = "tracts")
 
 nc_county <- sf::st_transform(nc_county, "EPSG:5070")
 nc_tracts <- sf::st_transform(nc_tracts, "EPSG:5070")
 nc_tracts$COUNTY <-
-    paste0(nc_tracts$STATEFP, nc_tracts$COUNTYFP)
-
+    substr(nc_tracts$GEOID, 1, 5)
 ```
 
 ## Single-thread processing
@@ -216,3 +218,93 @@ system.time(
 ```
 
 It is clearly shown that several thousands of features may not get benefits from parallel processing. However, this approach will be helpful when each geographic area is large and the raster data is too large to handle.
+
+
+
+## Multi-thread processing over large rasters
+
+In many cases users have parallelized over multiple files, i.e., large raster files. Leveraging memory-saving `terra`'s C++ pointers, users will want to use `distribute_process_multirasters`, where they are assumed to have the raster file paths to distribute. In standard vector-raster overlays, `distribute_process_multirasters` will help especially when users have multiple sizable raster files to extract values with moderately sized vectors.
+
+
+```{r multirasters}
+ncpath <- "../testdata/nc_hierarchy.gpkg"
+nccnty <- terra::vect(ncpath, layer = "county")
+ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+terra::crs(ncelev) <- "EPSG:5070"
+names(ncelev) <- c("srtm15")
+tdir <- tempdir()
+terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+testfiles <- list.files(tempdir(), pattern = "*.tif$", full.names = TRUE)
+testfiles
+```
+
+
+```{r multirasters-processing}
+res <- distribute_process_multirasters(
+      filenames = testfiles,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+
+knitr::kable(head(res))
+```
+
+## Distributing sf/terra functions
+
+Users also can pass generic terra functions to multiple threads.
+
+Some considerations apply:
+- If a function to calculate the nearest distance, edge cases may present especially when the target dataset are too sparse to be located in the padded calculation extent. For example, when users want to distribute `terra::nearest()` to calculate the nearest distance from ranch locations to the primary roads, some ranch locations might have no destination primary roads if the calculation grids are too finely defined.
+- We strongly assume that users have unique identifiers in input data. The passed argument in `distribute_process_*` functions is expected to include `id` argument to designate the origin locations' unique identifiers.
+
+
+### Example
+- The example below shows how to distribute a `terra` function `nearest` is distributed over regular computational grids.
+
+
+```{r generic-distribution}
+pnts <- readRDS("../testdata/nc_random_point.rds")
+pnts <- terra::vect(pnts)
+rd1 <- terra::vect(
+    file.path("../testdata/ncroads_first.gpkg"))
+
+pnts <- terra::project(pnts, "EPSG:5070")
+rd1 <- terra::project(rd1, "EPSG:5070")
+
+
+nccompreg <-
+    get_computational_regions(
+                              input = pnts,
+                              mode = "grid",
+                              nx = 6L,
+                              ny = 4L,
+                              padding = 3e4L)
+  
+future::plan(future::multicore, workers = 6L)
+
+system.time(
+res <-
+  distribute_process_grid(
+                          grids = nccompreg,
+                          fun_dist = terra::nearest,
+                          x = pnts,
+                          y = rd1)
+)
+
+
+
+system.time(
+  restr <- terra::nearest(x = pnts, y = rd1)
+)
+knitr::kable(head(res))
+knitr::kable(head(restr))
+```
+

@@ -1,0 +1,35 @@
+---
+title: "Exponentially decaying contributions"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Exponentially decaying contributions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+## Exponentially decaying contributions (EDC)
+### Formula
+
+
+
+
+### Sum of EDC
+
+
+
+## Get EDC
+### Concept
+
+
+
+### Under-the-hood processes
+
+
+
+
+
+
+## References
