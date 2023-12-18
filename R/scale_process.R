@@ -114,7 +114,7 @@ distribute_process_grid <-
           error = function(e) {
             if (debug) print(e)
             fallback <- data.frame(ID = NA)
-            if (!"id" %in% names(formals(fun_dist))) {
+            if ("id" %in% names(formals(fun_dist))) {
               detected_id <- list(...)
               detected_id <- detected_id$id
             }
@@ -214,7 +214,8 @@ distribute_process_hierarchy <-
                                  {
                                   # TODO: padded subregion to deal with
                                   # edge cases; how to determine padding?
-                                  subregion <- regions[startsWith(split_level, subregion)]
+                                  subregion <-
+                                    regions[startsWith(split_level, subregion)]
                                   args_input <- list(...)
                                   ## Strongly assuming that
                                   # the first is "at", the second is "from"
@@ -234,7 +235,7 @@ distribute_process_hierarchy <-
                                 error =
                                 function(e) {
                                   if (debug) print(e)
-                                  if (!"id" %in% names(formals(fun_dist))) {
+                                  if ("id" %in% names(formals(fun_dist))) {
                                     detected_id <- list(...)
                                     detected_id <- detected_id$id
                                   }
@@ -248,7 +249,7 @@ distribute_process_hierarchy <-
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
-}
+  }
 
 
 
@@ -299,9 +300,9 @@ distribute_process_multirasters <- function(
   #   detected_id <- "ID"
   # }
 
-  if (any(sapply(filenames, \(x) !file.exists(x)))) {
-    stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
-  }
+  # if (any(sapply(filenames, \(x) !file.exists(x)))) {
+  #   stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
+  # }
 
   file_list <- split(filenames, filenames)
   results_distributed <-
@@ -312,32 +313,32 @@ distribute_process_multirasters <- function(
 
                     run_result <-
                       tryCatch({
-                                args_input <- list(...)
-                                vect_target_tr <- detect_class(args_input, "SpatVector")
-                                vect_target_sf <- detect_class(args_input, "sf")
-                                vect_target <- (vect_target_tr | vect_target_sf)             
-                                vect_ext <- args_input[vect_target]
-                                vect_ext <- terra::ext(vect_ext[[1]])
-                                
-                                rast_target <- which(detect_class(args_input, "SpatRaster"))
+                        args_input <- list(...)
+                        vect_target_tr <- detect_class(args_input, "SpatVector")
+                        vect_target_sf <- detect_class(args_input, "sf")
+                        vect_target <- (vect_target_tr | vect_target_sf)
+                        vect_ext <- args_input[vect_target]
+                        vect_ext <- terra::ext(vect_ext[[1]])
 
-                                args_input[[rast_target]] <- rast_short(path, win = vect_ext)
-                                if (!"id" %in% names(formals(fun_dist))) {
-                                  args_input$id <- NULL
-                                }
-                                
-                                res <-
-                                  rlang::inject(fun_dist(!!!args_input))
-                                if (!is.data.frame(res)) {
-                                  res <- as.data.frame(res)
-                                }
+                        rast_target <- which(detect_class(args_input, "SpatRaster"))
 
-                                return(res)
-                                },
+                        args_input[[rast_target]] <- rast_short(path, win = vect_ext)
+                        if (!"id" %in% names(formals(fun_dist))) {
+                          args_input$id <- NULL
+                        }
+
+                        res <-
+                          rlang::inject(fun_dist(!!!args_input))
+                        if (!is.data.frame(res)) {
+                          res <- as.data.frame(res)
+                        }
+
+                        return(res)
+                        },
                       error = function(e) {
                         if (debug) print(e)
                         fallback <- data.frame(ID = NA)
-                        if (!"id" %in% names(formals(fun_dist))) {
+                        if ("id" %in% names(formals(fun_dist))) {
                           detected_id <- list(...)
                           detected_id <- detected_id$id
                         }

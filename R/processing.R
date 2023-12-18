@@ -210,15 +210,16 @@ extract_with_buffer_kernel <- function(
   bufs <- reproject_b2r(bufs, surf)
 
   # crop raster
-  clip_as_extent()
   bufs_extent <- terra::ext(bufs)
   surf_cropped <- terra::crop(surf, bufs_extent)
-  name_surf_val <- names(surf)
+  name_surf_val <-
+    ifelse(terra::nlyr(surf_cropped) == 1,
+           "value", names(surf_cropped))
 
   coords_df <- as.data.frame(points, geom = "XY")
   coords_df <-
     coords_df[, grep(sprintf("^(%s|%s|%s)", id, "x", "y"), names(coords_df))]
-  names(coords_df)[grep("(x|y)")] <- c("xorig", "yorig")
+  names(coords_df)[grep("(x|y)", names(coords_df))] <- c("xorig", "yorig")
 
   # extract raster values
   surf_at_bufs <-
@@ -239,13 +240,14 @@ extract_with_buffer_kernel <- function(
         pairdist = terra::distance(
           x = cbind(xorig, yorig),
           y = cbind(x, y),
-          pairwise = TRUE
+          pairwise = TRUE,
+          lonlat = terra::is.lonlat(points)
         ),
         w_kernel = kernelfunction(pairdist, bandwidth, kernel),
         w_kernelarea = w_kernel * coverage_fraction) |>
       dplyr::group_by(!!rlang::sym(id)) |>
       dplyr::summarize(
-        dplyr::across(dplyr::all_of(name_surf_val), ~func(., w = w_kernelarea), na.rm = TRUE)
+        dplyr::across(dplyr::all_of(name_surf_val), ~func(., w = w_kernelarea))
       ) |>
       dplyr::ungroup()
   colnames(surf_at_bufs_summary)[1] <- id

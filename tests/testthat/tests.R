@@ -392,6 +392,26 @@ testthat::test_that("extract_with runs well", {
                              mode = "buffer",
                              radius = 1e4L))
 
+  testthat::expect_no_error(
+    ncexbuffkern <- extract_with_buffer(ncp,
+                             ncelev,
+                             "pid",
+                             kernel = "epanechnikov",
+                             func = stats::weighted.mean,
+                             bandwidth = 1.25e4L,
+                             radius = 1e4L))
+
+  testthat::expect_no_error(
+    ncexbuffkern <- extract_with(ncp,
+                             ncelev,
+                             "pid",
+                             mode = "buffer",
+                             kernel = "epanechnikov",
+                             func = stats::weighted.mean,
+                             bandwidth = 1.25e4L,
+                             radius = 1e4L))
+
+
   # errors
   testthat::expect_error(
     extract_with(nccntytr,
@@ -656,7 +676,25 @@ testthat::test_that("Processes are properly spawned and compute", {
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
-  testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+  testthat::expect_true(!anyNA(unlist(res)))
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnas <-
+      distribute_process_grid(
+                              grids = nccompreg,
+                              grid_target_id = "1:10",
+                              fun_dist = extract_with_buffer,
+                              points = ncpnts,
+                              surf = ncelev,
+                              qsegs = 90L,
+                              radius = -5e3L,
+                              id = "pid")
+    )
+  )
+
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
 
 })
 
@@ -708,6 +746,35 @@ testthat::test_that("Processes are properly spawned and compute over hierarchy",
 
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnas <-
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              split_level = "GEOID",
+                              fun_dist = terra::nearest,
+                              polys = nctrct,
+                              surf = ncelev)
+    )
+  )
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasx <-
+      distribute_process_hierarchy(
+                              regions = nccnty,
+                              debug = TRUE,
+                              split_level = "GEOID",
+                              fun_dist = terra::nearest,
+                              x = nctrct,
+                              y = ncelev)
+    )
+  )
+
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
+
 })
 
 
@@ -789,7 +856,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   )
 
   testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
-  testthat::expect_error(
+  testthat::expect_warning(
     res <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
@@ -799,6 +866,31 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     )
   )
+  testthat::expect_no_error(
+    suppressWarnings(resnas <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    ))
+  )
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
+
+  testthat::expect_no_error(
+    suppressWarnings(resnasx <- distribute_process_multirasters(
+      filenames = testfiles_corrupted,
+      debug = TRUE,
+      fun_dist = extract_with_polygons,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    ))
+  )
+
 
 })
 

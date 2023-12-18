@@ -24,10 +24,13 @@ Suggests:
     doFuture,
     future.batchtools,
     igraph,
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0),
     tigris,
     units,
     withr
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 531c76e2fb2b370df0bd7aa059cc2cdb
+LitrId: 81666995d76fe29d4d2a16477742c9eb
