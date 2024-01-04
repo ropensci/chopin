@@ -1505,7 +1505,7 @@ sp_index_grid &lt;-
   bufs &lt;- reproject_b2r(bufs, surf)
   # crop raster
   bufs_extent &lt;- terra::ext(bufs)
-  surf_cropped &lt;- terra::crop(surf, bufs_extent)
+  surf_cropped &lt;- terra::crop(surf, bufs_extent, snap = &quot;out&quot;)
 
   # extract raster values
   surf_at_bufs &lt;-
@@ -1541,7 +1541,7 @@ sp_index_grid &lt;-
 
   # crop raster
   bufs_extent &lt;- terra::ext(bufs)
-  surf_cropped &lt;- terra::crop(surf, bufs_extent)
+  surf_cropped &lt;- terra::crop(surf, bufs_extent, snap = &quot;out&quot;)
   name_surf_val &lt;-
     ifelse(terra::nlyr(surf_cropped) == 1,
            &quot;value&quot;, names(surf_cropped))
@@ -3033,13 +3033,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
 <pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.1.1.12192023.tar.gz&quot;</code></pre>
-<pre><code>## sf (1.0-14 -&gt; 1.0-15) [CRAN]</code></pre>
-<pre><code>## Installing 1 packages: sf</code></pre>
-<pre><code>## Installing package into &#39;/Users/songi2/Library/R/arm64/4.3/library&#39;
-## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
-## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpvTxaud/downloaded_packages
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -3053,7 +3047,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpvTxaud/scomps_0.1.1.12192023.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpqsbDcn/scomps_0.1.1.12192023.tar.gz \
 ##   --install-tests --no-docs --no-multiarch --no-demo 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
