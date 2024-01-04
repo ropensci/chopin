@@ -175,7 +175,7 @@ extract_with_buffer_flat <- function(
   bufs <- reproject_b2r(bufs, surf)
   # crop raster
   bufs_extent <- terra::ext(bufs)
-  surf_cropped <- terra::crop(surf, bufs_extent)
+  surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
 
   # extract raster values
   surf_at_bufs <-
@@ -211,7 +211,7 @@ extract_with_buffer_kernel <- function(
 
   # crop raster
   bufs_extent <- terra::ext(bufs)
-  surf_cropped <- terra::crop(surf, bufs_extent)
+  surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
   name_surf_val <-
     ifelse(terra::nlyr(surf_cropped) == 1,
            "value", names(surf_cropped))
