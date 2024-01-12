@@ -885,14 +885,14 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
     testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
-  tdir <- tempdir()
+  tdir <- tempdir(check = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
-  
-  testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
+
+  testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
   testthat::expect_no_error(
     res <- distribute_process_multirasters(
       filenames = testfiles,
@@ -907,7 +907,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
-  testthat::expect_warning(
+  testthat::expect_error(
     res <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
@@ -917,9 +917,14 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     )
   )
+
+  testthat::expect_s3_class(resnas, "data.frame")
+  testthat::expect_true(anyNA(resnas))
+
   testthat::expect_no_error(
-    suppressWarnings(resnas <- distribute_process_multirasters(
+    suppressWarnings(resnasx <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
+      debug = FALSE,
       fun_dist = extract_with_polygons,
       polys = nccnty,
       surf = ncelev,
@@ -927,8 +932,6 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     ))
   )
-  testthat::expect_s3_class(resnas, "data.frame")
-  testthat::expect_true(anyNA(resnas))
 
   testthat::expect_no_error(
     suppressWarnings(resnasx <- distribute_process_multirasters(

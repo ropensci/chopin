@@ -307,7 +307,7 @@ distribute_process_multirasters <- function(
   # }
 
   if (any(sapply(filenames, \(x) !file.exists(x)))) {
-    stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
+    warning("One or many of files do not exist in provided file paths. Outputs would be invalid.\n")
   }
 
   file_list <- split(filenames, filenames)

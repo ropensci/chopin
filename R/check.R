@@ -15,6 +15,9 @@ check_packbound <- function(input) {
   return("sf")
 }
 
+
+#' @noRd
+#' @export
 check_datatype <- function(input) {
   stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
   if (any(methods::is(input, "SpatVector"), methods::is(input, "sf"))) {
