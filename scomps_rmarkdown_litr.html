@@ -2923,8 +2923,8 @@ distribute_process_hierarchy &lt;-
   testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted &lt;- c(testfiles, &quot;/home/runner/fallin.tif&quot;)
-  testthat::expect_no_error(
-    res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
+  testthat::expect_condition(
+    resnas &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
       polys = nccnty,
@@ -2937,8 +2937,9 @@ distribute_process_hierarchy &lt;-
   testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
   testthat::expect_true(anyNA(resnas))
 
-  testthat::expect_message(
-    suppressWarnings(resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
+  # error case
+  testthat::expect_condition(
+    resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
       debug = TRUE,
       fun_dist = extract_with_polygons,
@@ -2946,10 +2947,8 @@ distribute_process_hierarchy &lt;-
       surf = ncelev,
       id = &quot;GEOID&quot;,
       func = &quot;mean&quot;
-    ))
+    )
   )
-
-
 
 })
 </code></pre>
@@ -3062,7 +3061,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpnUWGOJ/downloaded_packages
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmpl2Ec4s/downloaded_packages
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -3076,7 +3075,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpnUWGOJ/scomps_0.1.2.01122024.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmpl2Ec4s/scomps_0.1.2.01122024.tar.gz \
 ##   --install-tests --no-docs --no-multiarch --no-demo 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
