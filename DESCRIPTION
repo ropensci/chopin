@@ -8,6 +8,7 @@ Description: A package for scalable geospatial computation for
     environmental health research
 License: MIT + file LICENSE
 Encoding: UTF-8
+LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
@@ -35,7 +36,6 @@ URL: https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
-LazyData: true
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 87c0f1aa2e25cf3e6bab83b0f987b5f8
+LitrId: aa92c0452e0d00d0ae2306e0de7d43b9

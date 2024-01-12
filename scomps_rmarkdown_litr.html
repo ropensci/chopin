@@ -377,7 +377,8 @@ of the R package.</p>
       email = &quot;geoissong@gmail.com&quot;,
       role = c(&quot;aut&quot;, &quot;cre&quot;),
       comment = c(ORCID = &quot;0000-0001-8732-3256&quot;)
-      )
+    ),
+    LazyData = &quot;true&quot;
   )
 )
 #usethis::use_build_ignore(&quot;rds$&quot;, escape = FALSE)
@@ -449,6 +450,7 @@ usethis::use_pkgdown()
 ##     units,
 ##     withr
 ## Encoding: UTF-8
+## LazyData: true
 ## Roxygen: list(markdown = TRUE)
 ## RoxygenNote: 7.2.3</code></pre>
 <div id="test-data-generation" class="section level3">
@@ -472,7 +474,6 @@ usethis::use_pkgdown()
 usethis::use_data(prediction_grid, compress = &quot;xz&quot;)</code></pre>
 <pre><code>## ✔ Adding &#39;R&#39; to Depends field in DESCRIPTION
 ## ✔ Creating &#39;data/&#39;
-## ✔ Setting LazyData to &#39;true&#39; in &#39;DESCRIPTION&#39;
 ## ✔ Saving &#39;prediction_grid&#39; to &#39;data/prediction_grid.rda&#39;
 ## • Document your data (see &#39;https://r-pkgs.org/data.html&#39;)</code></pre>
 <pre class="r"><code>#&#39; Regular grid points in the mainland United States at 1km spatial resolution
@@ -540,7 +541,15 @@ kernelfunction &lt;-
 }
 
 
-#&#39; @noRd
+#&#39; Return the data type
+#&#39; @description This function returns one of &#39;vector&#39; or &#39;raster&#39; depending on the input class.
+#&#39; @param input Spat*/sf/stars object.
+#&#39; @note \code{stars} object is tricky a little whether to classify vector or raster. In this package, \code{stars} object will be considered raster.
+#&#39; @author Insang song
+#&#39; @return character(1). One of &#39;vector&#39; or &#39;raster&#39;.
+#&#39; @importFrom methods is
+#&#39; @importFrom terra vect
+#&#39; @importFrom terra rast
 #&#39; @export
 <span id='check_datatype'>check_datatype</span> &lt;- function(input) {
   stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
@@ -3031,6 +3040,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 ## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;check_packbound.Rd&#39;
+## Writing &#39;check_datatype.Rd&#39;
 ## Writing &#39;check_crs_align.Rd&#39;
 ## Writing &#39;extent_to_polygon.Rd&#39;
 ## Writing &#39;check_bbox.Rd&#39;
@@ -3084,10 +3094,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 }
 pkgbuild::build(path = &quot;.&quot;)
 
-# devtools::test()
-
-devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
-</code></pre>
+# devtools::test()</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
@@ -3101,45 +3108,6 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
 <pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.1.2.01122024.tar.gz&quot;</code></pre>
-<pre><code>## DBI (1.2.0 -&gt; 1.2.1) [CRAN]</code></pre>
-<pre><code>## Installing 1 packages: DBI</code></pre>
-<pre><code>## Installing package into &#39;/Users/songi2/Library/R/arm64/4.3/library&#39;
-## (as &#39;lib&#39; is unspecified)</code></pre>
-<pre><code>## 
-## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpoVqIO2/downloaded_packages
-## ── R CMD build ─────────────────────────────────────────────────────────────────
-## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
-## * preparing ‘scomps’:
-## * checking DESCRIPTION meta-information ... OK
-## * installing the package to build vignettes
-## * creating vignettes ... OK
-## * checking for LF line-endings in source and make files and shell scripts
-## * checking for empty or unneeded directories
-## * building ‘scomps_0.1.2.01122024.tar.gz’
-## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
-## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
-## 
-## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpoVqIO2/scomps_0.1.2.01122024.tar.gz \
-##   --install-tests --no-docs --no-multiarch --no-demo 
-## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
-## * installing *source* package ‘scomps’ ...
-## ** using staged installation
-## ** R
-## ** data
-## *** moving datasets to lazyload DB
-## ** inst
-## ** tests
-## ** byte-compile and prepare package for lazy loading
-## ** help
-## *** installing help indices
-## ** building package indices
-## ** installing vignettes
-## ** testing if installed package can be loaded from temporary location
-## ** testing if installed package can be loaded from final location
-## ** testing if installed package keeps a record of temporary installation path
-## * DONE (scomps)</code></pre>
 <pre class="r"><code>if (!dir.exists(getwd())) {
   dir.create(getwd())
 }
