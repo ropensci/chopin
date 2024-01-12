@@ -400,7 +400,7 @@ usethis::use_package(&quot;covr&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;testthat&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;units&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;tigris&quot;, &quot;Suggests&quot;)
-usethis::use_package(&quot;doFuture&quot;, &quot;Suggests&quot;)
+usethis::use_package(&quot;doFuture&quot;)
 usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;igraph&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;withr&quot;, &quot;Suggests&quot;)
@@ -430,6 +430,7 @@ usethis::use_pkgdown()
 ## URL:
 ##     https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
 ## Imports:
+##     doFuture,
 ##     dplyr,
 ##     exactextractr,
 ##     future,
@@ -441,7 +442,6 @@ usethis::use_pkgdown()
 ##     terra
 ## Suggests:
 ##     covr,
-##     doFuture,
 ##     future.batchtools,
 ##     igraph,
 ##     testthat,
@@ -971,7 +971,12 @@ check_crs_align &lt;-
         is(win, &quot;SpatExtent&quot;))) {
     stop(&quot;Argument win should be one of named numeric vector or SpatExtent object.\n&quot;)
   }
-  if (is.numeric(win) &amp;&amp; !all(grepl(&quot;(xmax|xmin|ymax|ymin)&quot;, names(win)))) {
+  if (
+    all(
+      is.numeric(win),
+      !all(grepl(&quot;(xmax|xmin|ymax|ymin)&quot;, names(win))) || is.null(names(win))
+    )
+  ) {
     stop(&quot;Numeric win without names is detected. Set valid names for all win elements.\n&quot;)
   }
   invisible(terra::rast(rasterpath, win = win))
@@ -1802,6 +1807,33 @@ reproject_b2r &lt;-
                  1,
                  mode = &quot;buffer&quot;,
                  radius = 1e4L))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(as.list(ncp),
+                 ncelev,
+                 &quot;GEOID&quot;,
+                 mode = &quot;buffer&quot;,
+                 radius = 1e4L))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(sf::st_as_sf(ncp),
+                 ncelev,
+                 &quot;GEOID&quot;,
+                 mode = &quot;buffer&quot;,
+                 radius = 1e4L))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(sf::st_as_sf(ncp),
+                 ncelev,
+                 1,
+                 mode = &quot;buffer&quot;,
+                 radius = &quot;Ibidem&quot;))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with_buffer'>extract_with_buffer</a>(ncp,
+                        ncelev,
+                        &quot;pid&quot;,
+                        kernel = &quot;epanechnikov&quot;,
+                        func = stats::weighted.mean,
+                        bandwidth = 1.25e4L,
+                        radius = 1e4L,
+                        qsegs = 3 + 2i))
 
 })
 
@@ -2171,19 +2203,27 @@ testthat::test_that(&quot;aw_covariates works as expected.&quot;, {
   sf::st_crs(pp) &lt;- &quot;EPSG:5070&quot;
   ppb &lt;- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, &quot;km&quot;))
 
-  system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &quot;id&quot;)})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &quot;id&quot;)})
+  )
   expect_s3_class(ppb_nc_aw, &quot;sf&quot;)
 
   # terra
   ppb_t &lt;- terra::vect(ppb)
   nc_t &lt;- terra::vect(nc)
-  system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc_t, &quot;id&quot;)})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc_t, &quot;id&quot;)})
+  )
   expect_s3_class(ppb_nc_aw, &quot;data.frame&quot;)
 
   # auto convert formats
-  system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc, &quot;id&quot;)})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc, &quot;id&quot;)})
+  )
   expect_s3_class(ppb_nc_aw, &quot;data.frame&quot;)
 
+  # error case
+  testthat::expect_error(<a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(as.list(ppb_t), nc, &quot;id&quot;))
 })
 
 
@@ -2537,6 +2577,7 @@ distribute_process_hierarchy &lt;-
 #&#39; # <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>()
 #&#39; @import future
 #&#39; @import future.apply
+#&#39; @import doFuture
 #&#39; @export
 <span id='distribute_process_multirasters'>distribute_process_multirasters</span> &lt;- function(
   filenames,
@@ -2893,7 +2934,11 @@ distribute_process_hierarchy &lt;-
   withr::local_package(&quot;future&quot;)
   withr::local_package(&quot;future.apply&quot;)
   withr::local_package(&quot;dplyr&quot;)
-  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+      ))
 
   ncpath &lt;- testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
   nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
@@ -2938,6 +2983,7 @@ distribute_process_hierarchy &lt;-
   testthat::expect_true(anyNA(resnas))
 
   # error case
+  future::plan(future::sequential)
   testthat::expect_condition(
     resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
@@ -3061,7 +3107,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmpl2Ec4s/downloaded_packages
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpoVqIO2/downloaded_packages
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -3075,7 +3121,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmpl2Ec4s/scomps_0.1.2.01122024.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpoVqIO2/scomps_0.1.2.01122024.tar.gz \
 ##   --install-tests --no-docs --no-multiarch --no-demo 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...

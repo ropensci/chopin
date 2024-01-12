@@ -53,7 +53,7 @@ usethis::use_package("covr", "Suggests")
 usethis::use_package("testthat", "Suggests")
 usethis::use_package("units", "Suggests")
 usethis::use_package("tigris", "Suggests")
-usethis::use_package("doFuture", "Suggests")
+usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
@@ -708,7 +708,12 @@ rast_short <- function(rasterpath, win) {
         is(win, "SpatExtent"))) {
     stop("Argument win should be one of named numeric vector or SpatExtent object.\n")
   }
-  if (is.numeric(win) && !all(grepl("(xmax|xmin|ymax|ymin)", names(win)))) {
+  if (
+    all(
+      is.numeric(win),
+      !all(grepl("(xmax|xmin|ymax|ymin)", names(win))) || is.null(names(win))
+    )
+  ) {
     stop("Numeric win without names is detected. Set valid names for all win elements.\n")
   }
   invisible(terra::rast(rasterpath, win = win))
@@ -1601,6 +1606,33 @@ testthat::test_that("extract_with runs well", {
                  1,
                  mode = "buffer",
                  radius = 1e4L))
+  testthat::expect_error(
+    extract_with(as.list(ncp),
+                 ncelev,
+                 "GEOID",
+                 mode = "buffer",
+                 radius = 1e4L))
+  testthat::expect_error(
+    extract_with(sf::st_as_sf(ncp),
+                 ncelev,
+                 "GEOID",
+                 mode = "buffer",
+                 radius = 1e4L))
+  testthat::expect_error(
+    extract_with(sf::st_as_sf(ncp),
+                 ncelev,
+                 1,
+                 mode = "buffer",
+                 radius = "Ibidem"))
+  testthat::expect_error(
+    extract_with_buffer(ncp,
+                        ncelev,
+                        "pid",
+                        kernel = "epanechnikov",
+                        func = stats::weighted.mean,
+                        bandwidth = 1.25e4L,
+                        radius = 1e4L,
+                        qsegs = 3 + 2i))
 
 })
 
@@ -1999,19 +2031,27 @@ testthat::test_that("aw_covariates works as expected.", {
   sf::st_crs(pp) <- "EPSG:5070"
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "sf")
 
   # terra
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
+  # error case
+  testthat::expect_error(aw_covariates(as.list(ppb_t), nc, "id"))
 })
 
 
@@ -2377,6 +2417,7 @@ distribute_process_hierarchy <-
 #' # distribute_process_multirasters()
 #' @import future
 #' @import future.apply
+#' @import doFuture
 #' @export
 distribute_process_multirasters <- function(
   filenames,
@@ -2747,7 +2788,11 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
-  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+      ))
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(ncpath, layer = "county")
@@ -2792,6 +2837,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   testthat::expect_true(anyNA(resnas))
 
   # error case
+  future::plan(future::sequential)
   testthat::expect_condition(
     resnasx <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
@@ -2987,9 +3033,6 @@ if (dir.exists("../figure")) {
 pkgbuild::build(path = ".")
 
 # devtools::test()
-
-devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
-
 ```
 
 ```{r, include = FALSE}
@@ -3031,6 +3074,14 @@ system("rm -r ./scomps")
 # }
 # system("mv _pkgdown.yml ./docs")
 
+devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+
+
 devtools::test()
 covr::package_coverage()
+```
+
+```{r slurm-submission-template, eval = FALSE, include = FALSE}
+# slurm submission is here
+
 ```

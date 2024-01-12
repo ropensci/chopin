@@ -11,6 +11,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
+    doFuture,
     dplyr,
     exactextractr,
     future,
@@ -22,7 +23,6 @@ Imports:
     terra
 Suggests: 
     covr,
-    doFuture,
     future.batchtools,
     igraph,
     knitr,
@@ -38,4 +38,4 @@ Depends:
 LazyData: true
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 083c5cfaf3173c779a48c55c33eea32b
+LitrId: 87c0f1aa2e25cf3e6bab83b0f987b5f8

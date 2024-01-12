@@ -429,6 +429,33 @@ testthat::test_that("extract_with runs well", {
                  1,
                  mode = "buffer",
                  radius = 1e4L))
+  testthat::expect_error(
+    extract_with(as.list(ncp),
+                 ncelev,
+                 "GEOID",
+                 mode = "buffer",
+                 radius = 1e4L))
+  testthat::expect_error(
+    extract_with(sf::st_as_sf(ncp),
+                 ncelev,
+                 "GEOID",
+                 mode = "buffer",
+                 radius = 1e4L))
+  testthat::expect_error(
+    extract_with(sf::st_as_sf(ncp),
+                 ncelev,
+                 1,
+                 mode = "buffer",
+                 radius = "Ibidem"))
+  testthat::expect_error(
+    extract_with_buffer(ncp,
+                        ncelev,
+                        "pid",
+                        kernel = "epanechnikov",
+                        func = stats::weighted.mean,
+                        bandwidth = 1.25e4L,
+                        radius = 1e4L,
+                        qsegs = 3 + 2i))
 
 })
 
@@ -537,19 +564,27 @@ testthat::test_that("aw_covariates works as expected.", {
   sf::st_crs(pp) <- "EPSG:5070"
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "sf")
 
   # terra
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
+  # error case
+  testthat::expect_error(aw_covariates(as.list(ppb_t), nc, "id"))
 })
 
 
@@ -877,7 +912,11 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
-  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+      ))
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(ncpath, layer = "county")
@@ -922,6 +961,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   testthat::expect_true(anyNA(resnas))
 
   # error case
+  future::plan(future::sequential)
   testthat::expect_condition(
     resnasx <- distribute_process_multirasters(
       filenames = testfiles_corrupted,

@@ -293,6 +293,7 @@ distribute_process_hierarchy <-
 #' # distribute_process_multirasters()
 #' @import future
 #' @import future.apply
+#' @import doFuture
 #' @export
 distribute_process_multirasters <- function(
   filenames,
