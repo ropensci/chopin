@@ -40,7 +40,12 @@ rast_short <- function(rasterpath, win) {
         is(win, "SpatExtent"))) {
     stop("Argument win should be one of named numeric vector or SpatExtent object.\n")
   }
-  if (is.numeric(win) && !all(grepl("(xmax|xmin|ymax|ymin)", names(win)))) {
+  if (
+    all(
+      is.numeric(win),
+      !all(grepl("(xmax|xmin|ymax|ymin)", names(win))) || is.null(names(win))
+    )
+  ) {
     stop("Numeric win without names is detected. Set valid names for all win elements.\n")
   }
   invisible(terra::rast(rasterpath, win = win))

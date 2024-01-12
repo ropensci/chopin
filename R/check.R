@@ -15,6 +15,17 @@ check_packbound <- function(input) {
   return("sf")
 }
 
+
+#' Return the data type
+#' @description This function returns one of 'vector' or 'raster' depending on the input class.
+#' @param input Spat*/sf/stars object.
+#' @note \code{stars} object is tricky a little whether to classify vector or raster. In this package, \code{stars} object will be considered raster.
+#' @author Insang song
+#' @return character(1). One of 'vector' or 'raster'.
+#' @importFrom methods is
+#' @importFrom terra vect
+#' @importFrom terra rast
+#' @export
 check_datatype <- function(input) {
   stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
   if (any(methods::is(input, "SpatVector"), methods::is(input, "sf"))) {

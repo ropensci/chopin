@@ -11,7 +11,7 @@
 
 <meta name="author" content="Insang Song" />
 
-<meta name="date" content="2023-12-18" />
+<meta name="date" content="2024-01-12" />
 
 <title>Creating the scomps R package</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Creating the <code>scomps</code> R
 package</h1>
 <h4 class="author">Insang Song</h4>
-<h4 class="date">2023-12-18</h4>
+<h4 class="date">2024-01-12</h4>
 
 </div>
 
@@ -368,7 +368,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.1.1.12192023&quot;,
+    Version = &quot;0.1.2.01122024&quot;,
     Title = &quot;Scalable R geospatial computation&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = person(
@@ -377,7 +377,9 @@ of the R package.</p>
       email = &quot;geoissong@gmail.com&quot;,
       role = c(&quot;aut&quot;, &quot;cre&quot;),
       comment = c(ORCID = &quot;0000-0001-8732-3256&quot;)
-      )
+    ),
+    LazyData = &quot;true&quot;,
+    LazyDataCompression = &quot;xz&quot;
   )
 )
 #usethis::use_build_ignore(&quot;rds$&quot;, escape = FALSE)
@@ -400,7 +402,7 @@ usethis::use_package(&quot;covr&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;testthat&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;units&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;tigris&quot;, &quot;Suggests&quot;)
-usethis::use_package(&quot;doFuture&quot;, &quot;Suggests&quot;)
+usethis::use_package(&quot;doFuture&quot;)
 usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;igraph&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;withr&quot;, &quot;Suggests&quot;)
@@ -421,7 +423,7 @@ usethis::use_pkgdown()
   )</code></pre>
 <pre><code>## Package: scomps
 ## Title: Scalable R geospatial computation
-## Version: 0.1.1.12192023
+## Version: 0.1.2.01122024
 ## Authors@R (parsed):
 ##     * Insang Song &lt;geoissong@gmail.com&gt; [aut, cre] (&lt;https://orcid.org/0000-0001-8732-3256&gt;)
 ## Description: A package for scalable geospatial computation for
@@ -430,6 +432,7 @@ usethis::use_pkgdown()
 ## URL:
 ##     https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
 ## Imports:
+##     doFuture,
 ##     dplyr,
 ##     exactextractr,
 ##     future,
@@ -441,7 +444,6 @@ usethis::use_pkgdown()
 ##     terra
 ## Suggests:
 ##     covr,
-##     doFuture,
 ##     future.batchtools,
 ##     igraph,
 ##     testthat,
@@ -449,6 +451,8 @@ usethis::use_pkgdown()
 ##     units,
 ##     withr
 ## Encoding: UTF-8
+## LazyData: true
+## LazyDataCompression: xz
 ## Roxygen: list(markdown = TRUE)
 ## RoxygenNote: 7.2.3</code></pre>
 <div id="test-data-generation" class="section level3">
@@ -465,6 +469,28 @@ usethis::use_pkgdown()
 <div id="vignettes-3" class="section level3">
 <h3>Vignettes 3</h3>
 <pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/v02_distribute_process.Rmd&quot;)</code></pre>
+</div>
+<div id="add-data" class="section level3">
+<h3>Add data</h3>
+<pre class="r"><code>prediction_grid &lt;- readRDS(&quot;../tools/testdata/prediction_grid.rds&quot;)
+usethis::use_data(prediction_grid, compress = &quot;xz&quot;)</code></pre>
+<pre><code>## ✔ Adding &#39;R&#39; to Depends field in DESCRIPTION
+## ✔ Creating &#39;data/&#39;
+## ✔ Saving &#39;prediction_grid&#39; to &#39;data/prediction_grid.rda&#39;
+## • Document your data (see &#39;https://r-pkgs.org/data.html&#39;)</code></pre>
+<pre class="r"><code>#&#39; Regular grid points in the mainland United States at 1km spatial resolution
+#&#39;
+#&#39; @format A data frame with 8,092,995 rows and three variables:
+#&#39; \describe{
+#&#39; \item{site_id}{Unique point identifier. Arbitrarily generated.}
+#&#39; \item{lon}{Longitude}
+#&#39; \item{lat}{Latitude}
+#&#39; }
+#&#39; @note Coordinates are in EPSG:5070 (Conus Albers Equal Area)
+#&#39; @source Mainland United States polygon was obtained from the US Census Bureau.
+&quot;prediction_grid&quot;
+</code></pre>
+<pre><code>## [1] &quot;prediction_grid&quot;</code></pre>
 </div>
 </div>
 <div id="now-to-the-package-itself" class="section level1">
@@ -516,6 +542,17 @@ kernelfunction &lt;-
   return(&quot;sf&quot;)
 }
 
+
+#&#39; Return the data type
+#&#39; @description This function returns one of &#39;vector&#39; or &#39;raster&#39; depending on the input class.
+#&#39; @param input Spat*/sf/stars object.
+#&#39; @note \code{stars} object is tricky a little whether to classify vector or raster. In this package, \code{stars} object will be considered raster.
+#&#39; @author Insang song
+#&#39; @return character(1). One of &#39;vector&#39; or &#39;raster&#39;.
+#&#39; @importFrom methods is
+#&#39; @importFrom terra vect
+#&#39; @importFrom terra rast
+#&#39; @export
 <span id='check_datatype'>check_datatype</span> &lt;- function(input) {
   stopifnot(&quot;Input should be one of sf or Spat* object.\n&quot; = any(methods::is(input, &quot;sf&quot;), methods::is(input, &quot;stars&quot;), methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;SpatRaster&quot;)))
   if (any(methods::is(input, &quot;SpatVector&quot;), methods::is(input, &quot;sf&quot;))) {
@@ -945,7 +982,12 @@ check_crs_align &lt;-
         is(win, &quot;SpatExtent&quot;))) {
     stop(&quot;Argument win should be one of named numeric vector or SpatExtent object.\n&quot;)
   }
-  if (is.numeric(win) &amp;&amp; !all(grepl(&quot;(xmax|xmin|ymax|ymin)&quot;, names(win)))) {
+  if (
+    all(
+      is.numeric(win),
+      !all(grepl(&quot;(xmax|xmin|ymax|ymin)&quot;, names(win))) || is.null(names(win))
+    )
+  ) {
     stop(&quot;Numeric win without names is detected. Set valid names for all win elements.\n&quot;)
   }
   invisible(terra::rast(rasterpath, win = win))
@@ -1776,6 +1818,33 @@ reproject_b2r &lt;-
                  1,
                  mode = &quot;buffer&quot;,
                  radius = 1e4L))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(as.list(ncp),
+                 ncelev,
+                 &quot;GEOID&quot;,
+                 mode = &quot;buffer&quot;,
+                 radius = 1e4L))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(sf::st_as_sf(ncp),
+                 ncelev,
+                 &quot;GEOID&quot;,
+                 mode = &quot;buffer&quot;,
+                 radius = 1e4L))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(sf::st_as_sf(ncp),
+                 ncelev,
+                 1,
+                 mode = &quot;buffer&quot;,
+                 radius = &quot;Ibidem&quot;))
+  testthat::expect_error(
+    <a href='scomps_rmarkdown_litr.html#extract_with_buffer'>extract_with_buffer</a>(ncp,
+                        ncelev,
+                        &quot;pid&quot;,
+                        kernel = &quot;epanechnikov&quot;,
+                        func = stats::weighted.mean,
+                        bandwidth = 1.25e4L,
+                        radius = 1e4L,
+                        qsegs = 3 + 2i))
 
 })
 
@@ -2145,19 +2214,27 @@ testthat::test_that(&quot;aw_covariates works as expected.&quot;, {
   sf::st_crs(pp) &lt;- &quot;EPSG:5070&quot;
   ppb &lt;- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, &quot;km&quot;))
 
-  system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &quot;id&quot;)})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb, nc, &quot;id&quot;)})
+  )
   expect_s3_class(ppb_nc_aw, &quot;sf&quot;)
 
   # terra
   ppb_t &lt;- terra::vect(ppb)
   nc_t &lt;- terra::vect(nc)
-  system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc_t, &quot;id&quot;)})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc_t, &quot;id&quot;)})
+  )
   expect_s3_class(ppb_nc_aw, &quot;data.frame&quot;)
 
   # auto convert formats
-  system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc, &quot;id&quot;)})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw &lt;- <a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(ppb_t, nc, &quot;id&quot;)})
+  )
   expect_s3_class(ppb_nc_aw, &quot;data.frame&quot;)
 
+  # error case
+  testthat::expect_error(<a href='scomps_rmarkdown_litr.html#aw_covariates'>aw_covariates</a>(as.list(ppb_t), nc, &quot;id&quot;))
 })
 
 
@@ -2511,6 +2588,7 @@ distribute_process_hierarchy &lt;-
 #&#39; # <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>()
 #&#39; @import future
 #&#39; @import future.apply
+#&#39; @import doFuture
 #&#39; @export
 <span id='distribute_process_multirasters'>distribute_process_multirasters</span> &lt;- function(
   filenames,
@@ -2525,50 +2603,54 @@ distribute_process_hierarchy &lt;-
   # }
 
   # if (any(sapply(filenames, \(x) !file.exists(x)))) {
-  #   stop(&quot;One or many of files do not exist in provided file paths. Check the paths again.\n&quot;)
+  #   warning(&quot;One or many of files do not exist in provided file paths. Outputs would be invalid.\n&quot;)
   # }
 
   file_list &lt;- split(filenames, filenames)
   results_distributed &lt;-
     future_lapply(
-                  file_list,
-                  \(path) {
-                    run_result &lt;-
-                      tryCatch({
-                        args_input &lt;- list(...)
-                        vect_target_tr &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatVector&quot;)
-                        vect_target_sf &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;sf&quot;)
-                        vect_target &lt;- (vect_target_tr | vect_target_sf)
-                        vect_ext &lt;- args_input[vect_target]
-                        vect_ext &lt;- terra::ext(vect_ext[[1]])
+      file_list,
+      function(path) {
+        run_result &lt;-
+          try({
+            args_input &lt;- list(...)
+            vect_target_tr &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatVector&quot;)
+            vect_target_sf &lt;- <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;sf&quot;)
+            vect_target &lt;- (vect_target_tr | vect_target_sf)
+            vect_ext &lt;- args_input[vect_target]
+            vect_ext &lt;- terra::ext(vect_ext[[1]])
 
-                        rast_target &lt;- which(<a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatRaster&quot;))
-                        args_input[[rast_target]] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(rasterpath = path, win = vect_ext)
-                        if (!&quot;id&quot; %in% names(formals(fun_dist))) args_input$id &lt;- NULL
+            rast_target &lt;- which(<a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(args_input, &quot;SpatRaster&quot;))
+            args_input[[rast_target]] &lt;- <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(rasterpath = path, win = vect_ext)
+            if (!&quot;id&quot; %in% names(formals(fun_dist))) args_input$id &lt;- NULL
 
-                        res &lt;- rlang::inject(fun_dist(!!!args_input))
-                        if (!is.data.frame(res)) res &lt;- as.data.frame(res)
-                        res$base_raster &lt;- path
+            res &lt;- rlang::inject(fun_dist(!!!args_input))
+            if (!is.data.frame(res)) res &lt;- as.data.frame(res)
+            res$base_raster &lt;- path
 
-                        return(res)
-                        },
-                      error = function(e) {
-                        if (debug) print(e)
-                        fallback &lt;- data.frame(ID = NA)
-                        if (&quot;id&quot; %in% names(formals(fun_dist))) {
-                          detected_id &lt;- list(...)
-                          detected_id &lt;- detected_id$id
-                        }
-                        colnames(fallback)[1] &lt;- detected_id
-                        return(fallback)
-                      })
-                    return(run_result)
-                  },
-                  future.seed = TRUE,
-                  future.packages =
-                  c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;,
-                    &quot;scomps&quot;, &quot;future&quot;,
-                    &quot;exactextractr&quot;))
+            res
+          }
+          )
+        if (inherits(run_result, &quot;try-error&quot;)) {
+          if (debug) {
+            message(attr(run_result, &quot;condition&quot;)$message)
+          }
+          fallback &lt;- data.frame(ID = NA)
+          if (&quot;id&quot; %in% names(formals(fun_dist))) {
+            detected_id &lt;- list(...)
+            detected_id &lt;- detected_id$id
+          }
+          colnames(fallback)[1] &lt;- detected_id
+          run_result &lt;- fallback
+        }
+        return(run_result)
+      },
+      future.seed = TRUE,
+      future.packages =
+      c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;, &quot;rlang&quot;,
+        &quot;scomps&quot;, &quot;future&quot;,
+        &quot;exactextractr&quot;)
+    )
   results_distributed &lt;- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)
@@ -2863,7 +2945,11 @@ distribute_process_hierarchy &lt;-
   withr::local_package(&quot;future&quot;)
   withr::local_package(&quot;future.apply&quot;)
   withr::local_package(&quot;dplyr&quot;)
-  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+      ))
 
   ncpath &lt;- testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
   nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
@@ -2871,14 +2957,14 @@ distribute_process_hierarchy &lt;-
     testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_srtm15_otm.rds&quot;)))
   terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
   names(ncelev) &lt;- c(&quot;srtm15&quot;)
-  tdir &lt;- tempdir()
+  tdir &lt;- tempdir(check = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, &quot;test1.tif&quot;), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, &quot;test2.tif&quot;), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, &quot;test3.tif&quot;), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, &quot;test4.tif&quot;), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, &quot;test5.tif&quot;), overwrite = TRUE)
-  
-  testfiles &lt;- list.files(tdir, pattern = &quot;*.tif$&quot;, full.names = TRUE)
+
+  testfiles &lt;- list.files(tdir, pattern = &quot;tif$&quot;, full.names = TRUE)
   testthat::expect_no_error(
     res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles,
@@ -2893,8 +2979,8 @@ distribute_process_hierarchy &lt;-
   testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted &lt;- c(testfiles, &quot;/home/runner/fallin.tif&quot;)
-  testthat::expect_warning(
-    res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
+  testthat::expect_condition(
+    resnas &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
       polys = nccnty,
@@ -2903,21 +2989,14 @@ distribute_process_hierarchy &lt;-
       func = &quot;mean&quot;
     )
   )
-  testthat::expect_no_error(
-    suppressWarnings(resnas &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
-      filenames = testfiles_corrupted,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = &quot;GEOID&quot;,
-      func = &quot;mean&quot;
-    ))
-  )
+
   testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
   testthat::expect_true(anyNA(resnas))
 
-  testthat::expect_no_error(
-    suppressWarnings(resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
+  # error case
+  future::plan(future::sequential)
+  testthat::expect_condition(
+    resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
       debug = TRUE,
       fun_dist = extract_with_polygons,
@@ -2925,9 +3004,8 @@ distribute_process_hierarchy &lt;-
       surf = ncelev,
       id = &quot;GEOID&quot;,
       func = &quot;mean&quot;
-    ))
+    )
   )
-
 
 })
 </code></pre>
@@ -2964,6 +3042,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 ## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;check_packbound.Rd&#39;
+## Writing &#39;check_datatype.Rd&#39;
 ## Writing &#39;check_crs_align.Rd&#39;
 ## Writing &#39;extent_to_polygon.Rd&#39;
 ## Writing &#39;check_bbox.Rd&#39;
@@ -2974,6 +3053,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 ## Writing &#39;get_computational_regions.Rd&#39;
 ## Writing &#39;sp_index_grid.Rd&#39;
 ## Writing &#39;grid_merge.Rd&#39;
+## Writing &#39;prediction_grid.Rd&#39;
 ## Writing &#39;set_clip_extent.Rd&#39;
 ## Writing &#39;rast_short.Rd&#39;
 ## Writing &#39;kernelfunction.Rd&#39;
@@ -3016,10 +3096,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 }
 pkgbuild::build(path = &quot;.&quot;)
 
-# devtools::test()
-
-devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
-</code></pre>
+# devtools::test()</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
@@ -3029,41 +3106,10 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## * creating vignettes ... OK
 ## * checking for LF line-endings in source and make files and shell scripts
 ## * checking for empty or unneeded directories
-## * building ‘scomps_0.1.1.12192023.tar.gz’
+## * building ‘scomps_0.1.2.01122024.tar.gz’
 ## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.1.1.12192023.tar.gz&quot;</code></pre>
-<pre><code>## 
-## ── R CMD build ─────────────────────────────────────────────────────────────────
-## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
-## * preparing ‘scomps’:
-## * checking DESCRIPTION meta-information ... OK
-## * installing the package to build vignettes
-## * creating vignettes ... OK
-## * checking for LF line-endings in source and make files and shell scripts
-## * checking for empty or unneeded directories
-## * building ‘scomps_0.1.1.12192023.tar.gz’
-## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
-## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
-## 
-## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpqsbDcn/scomps_0.1.1.12192023.tar.gz \
-##   --install-tests --no-docs --no-multiarch --no-demo 
-## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
-## * installing *source* package ‘scomps’ ...
-## ** using staged installation
-## ** R
-## ** inst
-## ** tests
-## ** byte-compile and prepare package for lazy loading
-## ** help
-## *** installing help indices
-## ** building package indices
-## ** installing vignettes
-## ** testing if installed package can be loaded from temporary location
-## ** testing if installed package can be loaded from final location
-## ** testing if installed package keeps a record of temporary installation path
-## * DONE (scomps)</code></pre>
+<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.1.2.01122024.tar.gz&quot;</code></pre>
 <pre class="r"><code>if (!dir.exists(getwd())) {
   dir.create(getwd())
 }

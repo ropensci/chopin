@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-12-18"
+date: "2024-01-12"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.1.1.12192023",
+    Version = "0.1.2.01122024",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -30,7 +30,9 @@ usethis::create_package(
       email = "geoissong@gmail.com",
       role = c("aut", "cre"),
       comment = c(ORCID = "0000-0001-8732-3256")
-      )
+    ),
+    LazyData = "true",
+    LazyDataCompression = "xz"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
@@ -53,7 +55,7 @@ usethis::use_package("covr", "Suggests")
 usethis::use_package("testthat", "Suggests")
 usethis::use_package("units", "Suggests")
 usethis::use_package("tigris", "Suggests")
-usethis::use_package("doFuture", "Suggests")
+usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
@@ -140,6 +142,27 @@ litr::add_vignettes("../tools/vignettes-sources/v02_distribute_process.Rmd")
 ```
 
 
+### Add data
+```{r add-data}
+prediction_grid <- readRDS("../tools/testdata/prediction_grid.rds")
+usethis::use_data(prediction_grid, compress = "xz")
+```
+
+```{r doc-data}
+#' Regular grid points in the mainland United States at 1km spatial resolution
+#'
+#' @format A data frame with 8,092,995 rows and three variables:
+#' \describe{
+#' \item{site_id}{Unique point identifier. Arbitrarily generated.}
+#' \item{lon}{Longitude}
+#' \item{lat}{Latitude}
+#' }
+#' @note Coordinates are in EPSG:5070 (Conus Albers Equal Area)
+#' @source Mainland United States polygon was obtained from the US Census Bureau.
+"prediction_grid"
+
+```
+
 # Now to the package itself
 
 ### Create functions
@@ -212,6 +235,17 @@ check_packbound <- function(input) {
   return("sf")
 }
 
+
+#' Return the data type
+#' @description This function returns one of 'vector' or 'raster' depending on the input class.
+#' @param input Spat*/sf/stars object.
+#' @note \code{stars} object is tricky a little whether to classify vector or raster. In this package, \code{stars} object will be considered raster.
+#' @author Insang song
+#' @return character(1). One of 'vector' or 'raster'.
+#' @importFrom methods is
+#' @importFrom terra vect
+#' @importFrom terra rast
+#' @export
 check_datatype <- function(input) {
   stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
   if (any(methods::is(input, "SpatVector"), methods::is(input, "sf"))) {
@@ -684,7 +718,12 @@ rast_short <- function(rasterpath, win) {
         is(win, "SpatExtent"))) {
     stop("Argument win should be one of named numeric vector or SpatExtent object.\n")
   }
-  if (is.numeric(win) && !all(grepl("(xmax|xmin|ymax|ymin)", names(win)))) {
+  if (
+    all(
+      is.numeric(win),
+      !all(grepl("(xmax|xmin|ymax|ymin)", names(win))) || is.null(names(win))
+    )
+  ) {
     stop("Numeric win without names is detected. Set valid names for all win elements.\n")
   }
   invisible(terra::rast(rasterpath, win = win))
@@ -1577,6 +1616,33 @@ testthat::test_that("extract_with runs well", {
                  1,
                  mode = "buffer",
                  radius = 1e4L))
+  testthat::expect_error(
+    extract_with(as.list(ncp),
+                 ncelev,
+                 "GEOID",
+                 mode = "buffer",
+                 radius = 1e4L))
+  testthat::expect_error(
+    extract_with(sf::st_as_sf(ncp),
+                 ncelev,
+                 "GEOID",
+                 mode = "buffer",
+                 radius = 1e4L))
+  testthat::expect_error(
+    extract_with(sf::st_as_sf(ncp),
+                 ncelev,
+                 1,
+                 mode = "buffer",
+                 radius = "Ibidem"))
+  testthat::expect_error(
+    extract_with_buffer(ncp,
+                        ncelev,
+                        "pid",
+                        kernel = "epanechnikov",
+                        func = stats::weighted.mean,
+                        bandwidth = 1.25e4L,
+                        radius = 1e4L,
+                        qsegs = 3 + 2i))
 
 })
 
@@ -1975,19 +2041,27 @@ testthat::test_that("aw_covariates works as expected.", {
   sf::st_crs(pp) <- "EPSG:5070"
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "sf")
 
   # terra
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
-  system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+  testthat::expect_no_error(
+    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+  )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
+  # error case
+  testthat::expect_error(aw_covariates(as.list(ppb_t), nc, "id"))
 })
 
 
@@ -2353,6 +2427,7 @@ distribute_process_hierarchy <-
 #' # distribute_process_multirasters()
 #' @import future
 #' @import future.apply
+#' @import doFuture
 #' @export
 distribute_process_multirasters <- function(
   filenames,
@@ -2367,50 +2442,54 @@ distribute_process_multirasters <- function(
   # }
 
   # if (any(sapply(filenames, \(x) !file.exists(x)))) {
-  #   stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
+  #   warning("One or many of files do not exist in provided file paths. Outputs would be invalid.\n")
   # }
 
   file_list <- split(filenames, filenames)
   results_distributed <-
     future_lapply(
-                  file_list,
-                  \(path) {
-                    run_result <-
-                      tryCatch({
-                        args_input <- list(...)
-                        vect_target_tr <- detect_class(args_input, "SpatVector")
-                        vect_target_sf <- detect_class(args_input, "sf")
-                        vect_target <- (vect_target_tr | vect_target_sf)
-                        vect_ext <- args_input[vect_target]
-                        vect_ext <- terra::ext(vect_ext[[1]])
+      file_list,
+      function(path) {
+        run_result <-
+          try({
+            args_input <- list(...)
+            vect_target_tr <- detect_class(args_input, "SpatVector")
+            vect_target_sf <- detect_class(args_input, "sf")
+            vect_target <- (vect_target_tr | vect_target_sf)
+            vect_ext <- args_input[vect_target]
+            vect_ext <- terra::ext(vect_ext[[1]])
 
-                        rast_target <- which(detect_class(args_input, "SpatRaster"))
-                        args_input[[rast_target]] <- rast_short(rasterpath = path, win = vect_ext)
-                        if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
+            rast_target <- which(detect_class(args_input, "SpatRaster"))
+            args_input[[rast_target]] <- rast_short(rasterpath = path, win = vect_ext)
+            if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
 
-                        res <- rlang::inject(fun_dist(!!!args_input))
-                        if (!is.data.frame(res)) res <- as.data.frame(res)
-                        res$base_raster <- path
+            res <- rlang::inject(fun_dist(!!!args_input))
+            if (!is.data.frame(res)) res <- as.data.frame(res)
+            res$base_raster <- path
 
-                        return(res)
-                        },
-                      error = function(e) {
-                        if (debug) print(e)
-                        fallback <- data.frame(ID = NA)
-                        if ("id" %in% names(formals(fun_dist))) {
-                          detected_id <- list(...)
-                          detected_id <- detected_id$id
-                        }
-                        colnames(fallback)[1] <- detected_id
-                        return(fallback)
-                      })
-                    return(run_result)
-                  },
-                  future.seed = TRUE,
-                  future.packages =
-                  c("terra", "sf", "dplyr",
-                    "scomps", "future",
-                    "exactextractr"))
+            res
+          }
+          )
+        if (inherits(run_result, "try-error")) {
+          if (debug) {
+            message(attr(run_result, "condition")$message)
+          }
+          fallback <- data.frame(ID = NA)
+          if ("id" %in% names(formals(fun_dist))) {
+            detected_id <- list(...)
+            detected_id <- detected_id$id
+          }
+          colnames(fallback)[1] <- detected_id
+          run_result <- fallback
+        }
+        return(run_result)
+      },
+      future.seed = TRUE,
+      future.packages =
+      c("terra", "sf", "dplyr", "rlang",
+        "scomps", "future",
+        "exactextractr")
+    )
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)
@@ -2719,7 +2798,11 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
-  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+      ))
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(ncpath, layer = "county")
@@ -2727,14 +2810,14 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
     testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
-  tdir <- tempdir()
+  tdir <- tempdir(check = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
   terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
-  
-  testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
+
+  testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
   testthat::expect_no_error(
     res <- distribute_process_multirasters(
       filenames = testfiles,
@@ -2749,8 +2832,8 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
-  testthat::expect_warning(
-    res <- distribute_process_multirasters(
+  testthat::expect_condition(
+    resnas <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
       polys = nccnty,
@@ -2759,21 +2842,14 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     )
   )
-  testthat::expect_no_error(
-    suppressWarnings(resnas <- distribute_process_multirasters(
-      filenames = testfiles_corrupted,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = "GEOID",
-      func = "mean"
-    ))
-  )
+
   testthat::expect_s3_class(resnas, "data.frame")
   testthat::expect_true(anyNA(resnas))
 
-  testthat::expect_no_error(
-    suppressWarnings(resnasx <- distribute_process_multirasters(
+  # error case
+  future::plan(future::sequential)
+  testthat::expect_condition(
+    resnasx <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
       debug = TRUE,
       fun_dist = extract_with_polygons,
@@ -2781,9 +2857,8 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       surf = ncelev,
       id = "GEOID",
       func = "mean"
-    ))
+    )
   )
-
 
 })
 
@@ -2968,9 +3043,6 @@ if (dir.exists("../figure")) {
 pkgbuild::build(path = ".")
 
 # devtools::test()
-
-devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
-
 ```
 
 ```{r, include = FALSE}
@@ -3012,6 +3084,14 @@ system("rm -r ./scomps")
 # }
 # system("mv _pkgdown.yml ./docs")
 
+devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+
+
 devtools::test()
 covr::package_coverage()
+```
+
+```{r slurm-submission-template, eval = FALSE, include = FALSE}
+# slurm submission is here
+
 ```

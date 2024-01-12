@@ -1,6 +1,6 @@
 Package: scomps
 Title: Scalable R geospatial computation
-Version: 0.1.1.12192023
+Version: 0.1.2.01122024
 Authors@R: 
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
@@ -8,9 +8,12 @@ Description: A package for scalable geospatial computation for
     environmental health research
 License: MIT + file LICENSE
 Encoding: UTF-8
+LazyData: true
+LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
+    doFuture,
     dplyr,
     exactextractr,
     future,
@@ -22,7 +25,6 @@ Imports:
     terra
 Suggests: 
     covr,
-    doFuture,
     future.batchtools,
     igraph,
     knitr,
@@ -33,6 +35,8 @@ Suggests:
     withr
 URL: https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: cc31c83588710b5d1dccb4a47c85cd65
+LitrId: e6dd595a279459dd8e6950793a6f0dfb
