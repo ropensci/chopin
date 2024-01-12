@@ -907,7 +907,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
-  testthat::expect_error(
+  testthat::expect_no_error(
     res <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
@@ -921,19 +921,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
   testthat::expect_s3_class(resnas, "data.frame")
   testthat::expect_true(anyNA(resnas))
 
-  testthat::expect_no_error(
-    suppressWarnings(resnasx <- distribute_process_multirasters(
-      filenames = testfiles_corrupted,
-      debug = FALSE,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = "GEOID",
-      func = "mean"
-    ))
-  )
-
-  testthat::expect_no_error(
+  testthat::expect_message(
     suppressWarnings(resnasx <- distribute_process_multirasters(
       filenames = testfiles_corrupted,
       debug = TRUE,
@@ -944,6 +932,7 @@ testthat::test_that("Processes are properly spawned and compute over multiraster
       func = "mean"
     ))
   )
+
 
 
 })

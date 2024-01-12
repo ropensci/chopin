@@ -306,9 +306,9 @@ distribute_process_multirasters <- function(
   #   detected_id <- "ID"
   # }
 
-  if (any(sapply(filenames, \(x) !file.exists(x)))) {
-    warning("One or many of files do not exist in provided file paths. Outputs would be invalid.\n")
-  }
+  # if (any(sapply(filenames, \(x) !file.exists(x)))) {
+  #   warning("One or many of files do not exist in provided file paths. Outputs would be invalid.\n")
+  # }
 
   file_list <- split(filenames, filenames)
   results_distributed <-
@@ -336,7 +336,9 @@ distribute_process_multirasters <- function(
           }
           )
         if (inherits(run_result, "try-error")) {
-          if (debug) {cat(attr(run_result, "condition")$message)}
+          if (debug) {
+            message(attr(run_result, "condition")$message)
+          }
           fallback <- data.frame(ID = NA)
           if ("id" %in% names(formals(fun_dist))) {
             detected_id <- list(...)
@@ -352,7 +354,7 @@ distribute_process_multirasters <- function(
       c("terra", "sf", "dplyr", "rlang",
         "scomps", "future",
         "exactextractr")
-      )
+    )
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)

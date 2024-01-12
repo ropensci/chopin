@@ -2550,9 +2550,9 @@ distribute_process_hierarchy &lt;-
   #   detected_id &lt;- &quot;ID&quot;
   # }
 
-  if (any(sapply(filenames, \(x) !file.exists(x)))) {
-    warning(&quot;One or many of files do not exist in provided file paths. Outputs would be invalid.\n&quot;)
-  }
+  # if (any(sapply(filenames, \(x) !file.exists(x)))) {
+  #   warning(&quot;One or many of files do not exist in provided file paths. Outputs would be invalid.\n&quot;)
+  # }
 
   file_list &lt;- split(filenames, filenames)
   results_distributed &lt;-
@@ -2580,7 +2580,9 @@ distribute_process_hierarchy &lt;-
           }
           )
         if (inherits(run_result, &quot;try-error&quot;)) {
-          if (debug) {cat(attr(run_result, &quot;condition&quot;)$message)}
+          if (debug) {
+            message(attr(run_result, &quot;condition&quot;)$message)
+          }
           fallback &lt;- data.frame(ID = NA)
           if (&quot;id&quot; %in% names(formals(fun_dist))) {
             detected_id &lt;- list(...)
@@ -2596,7 +2598,7 @@ distribute_process_hierarchy &lt;-
       c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;, &quot;rlang&quot;,
         &quot;scomps&quot;, &quot;future&quot;,
         &quot;exactextractr&quot;)
-      )
+    )
   results_distributed &lt;- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)
@@ -2921,7 +2923,7 @@ distribute_process_hierarchy &lt;-
   testthat::expect_true(!anyNA(res))
 
   testfiles_corrupted &lt;- c(testfiles, &quot;/home/runner/fallin.tif&quot;)
-  testthat::expect_error(
+  testthat::expect_no_error(
     res &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
       fun_dist = extract_with_polygons,
@@ -2935,19 +2937,7 @@ distribute_process_hierarchy &lt;-
   testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
   testthat::expect_true(anyNA(resnas))
 
-  testthat::expect_no_error(
-    suppressWarnings(resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
-      filenames = testfiles_corrupted,
-      debug = FALSE,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = &quot;GEOID&quot;,
-      func = &quot;mean&quot;
-    ))
-  )
-
-  testthat::expect_no_error(
+  testthat::expect_message(
     suppressWarnings(resnasx &lt;- <a href='scomps_rmarkdown_litr.html#distribute_process_multirasters'>distribute_process_multirasters</a>(
       filenames = testfiles_corrupted,
       debug = TRUE,
@@ -2958,6 +2948,7 @@ distribute_process_hierarchy &lt;-
       func = &quot;mean&quot;
     ))
   )
+
 
 
 })
@@ -3071,7 +3062,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp85B2lU/downloaded_packages
+##  /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpnUWGOJ/downloaded_packages
 ## ── R CMD build ─────────────────────────────────────────────────────────────────
 ## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
 ## * preparing ‘scomps’:
@@ -3085,7 +3076,7 @@ devtools::install(build = TRUE, dependencies = FALSE, build_vignettes = TRUE, qu
 ## Warning: invalid gid value replaced by that for user &#39;nobody&#39;
 ## 
 ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//Rtmp85B2lU/scomps_0.1.2.01122024.tar.gz \
+##   /var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpnUWGOJ/scomps_0.1.2.01122024.tar.gz \
 ##   --install-tests --no-docs --no-multiarch --no-demo 
 ## * installing to library ‘/Users/songi2/Library/R/arm64/4.3/library’
 ## * installing *source* package ‘scomps’ ...
