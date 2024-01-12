@@ -9,6 +9,7 @@ Description: A package for scalable geospatial computation for
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
@@ -38,4 +39,4 @@ Depends:
     R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: aa92c0452e0d00d0ae2306e0de7d43b9
+LitrId: e6dd595a279459dd8e6950793a6f0dfb

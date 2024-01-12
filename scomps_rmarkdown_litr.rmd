@@ -31,7 +31,8 @@ usethis::create_package(
       role = c("aut", "cre"),
       comment = c(ORCID = "0000-0001-8732-3256")
     ),
-    LazyData = "true"
+    LazyData = "true",
+    LazyDataCompression = "xz"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
