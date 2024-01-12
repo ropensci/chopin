@@ -306,51 +306,53 @@ distribute_process_multirasters <- function(
   #   detected_id <- "ID"
   # }
 
-  # if (any(sapply(filenames, \(x) !file.exists(x)))) {
-  #   stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
-  # }
+  if (any(sapply(filenames, \(x) !file.exists(x)))) {
+    stop("One or many of files do not exist in provided file paths. Check the paths again.\n")
+  }
 
   file_list <- split(filenames, filenames)
   results_distributed <-
     future_lapply(
-                  file_list,
-                  \(path) {
-                    run_result <-
-                      tryCatch({
-                        args_input <- list(...)
-                        vect_target_tr <- detect_class(args_input, "SpatVector")
-                        vect_target_sf <- detect_class(args_input, "sf")
-                        vect_target <- (vect_target_tr | vect_target_sf)
-                        vect_ext <- args_input[vect_target]
-                        vect_ext <- terra::ext(vect_ext[[1]])
+      file_list,
+      function(path) {
+        run_result <-
+          try({
+            args_input <- list(...)
+            vect_target_tr <- detect_class(args_input, "SpatVector")
+            vect_target_sf <- detect_class(args_input, "sf")
+            vect_target <- (vect_target_tr | vect_target_sf)
+            vect_ext <- args_input[vect_target]
+            vect_ext <- terra::ext(vect_ext[[1]])
 
-                        rast_target <- which(detect_class(args_input, "SpatRaster"))
-                        args_input[[rast_target]] <- rast_short(rasterpath = path, win = vect_ext)
-                        if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
+            rast_target <- which(detect_class(args_input, "SpatRaster"))
+            args_input[[rast_target]] <- rast_short(rasterpath = path, win = vect_ext)
+            if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
 
-                        res <- rlang::inject(fun_dist(!!!args_input))
-                        if (!is.data.frame(res)) res <- as.data.frame(res)
-                        res$base_raster <- path
+            res <- rlang::inject(fun_dist(!!!args_input))
+            if (!is.data.frame(res)) res <- as.data.frame(res)
+            res$base_raster <- path
 
-                        return(res)
-                        },
-                      error = function(e) {
-                        if (debug) print(e)
-                        fallback <- data.frame(ID = NA)
-                        if ("id" %in% names(formals(fun_dist))) {
-                          detected_id <- list(...)
-                          detected_id <- detected_id$id
-                        }
-                        colnames(fallback)[1] <- detected_id
-                        return(fallback)
-                      })
-                    return(run_result)
-                  },
-                  future.seed = TRUE,
-                  future.packages =
-                  c("terra", "sf", "dplyr",
-                    "scomps", "future",
-                    "exactextractr"))
+            res
+          }
+          )
+        if (inherits(run_result, "try-error")) {
+          if (debug) {cat(attr(run_result, "condition")$message)}
+          fallback <- data.frame(ID = NA)
+          if ("id" %in% names(formals(fun_dist))) {
+            detected_id <- list(...)
+            detected_id <- detected_id$id
+          }
+          colnames(fallback)[1] <- detected_id
+          run_result <- fallback
+        }
+        return(run_result)
+      },
+      future.seed = TRUE,
+      future.packages =
+      c("terra", "sf", "dplyr", "rlang",
+        "scomps", "future",
+        "exactextractr")
+      )
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
   return(results_distributed)

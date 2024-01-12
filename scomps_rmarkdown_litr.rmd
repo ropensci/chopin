@@ -1,7 +1,7 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
 author: "Insang Song"
-date: "2023-12-18"
+date: "2024-01-12"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.1.1.12192023",
+    Version = "0.1.2.01122024",
     Title = "Scalable R geospatial computation",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = person(
@@ -139,6 +139,27 @@ litr::add_vignettes("../tools/vignettes-sources/v01_generate_computational_grid.
 litr::add_vignettes("../tools/vignettes-sources/v02_distribute_process.Rmd")
 ```
 
+
+### Add data
+```{r add-data}
+prediction_grid <- readRDS("../tools/testdata/prediction_grid.rds")
+usethis::use_data(prediction_grid, compress = "xz")
+```
+
+```{r doc-data}
+#' Regular grid points in the mainland United States at 1km spatial resolution
+#'
+#' @format A data frame with 8,092,995 rows and three variables:
+#' \describe{
+#' \item{site_id}{Unique point identifier. Arbitrarily generated.}
+#' \item{lon}{Longitude}
+#' \item{lat}{Latitude}
+#' }
+#' @note Coordinates are in EPSG:5070 (Conus Albers Equal Area)
+#' @source Mainland United States polygon was obtained from the US Census Bureau.
+"prediction_grid"
+
+```
 
 # Now to the package itself
 

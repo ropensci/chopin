@@ -1,0 +1,65 @@
+---
+title: "Benchmark: scaled vs non-scaled"
+date: "2024-01-12"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Benchmark: scaled vs non-scaled}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Benchmark
+
+```{r}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+```
+
+```{r config-paths, echo = FALSE, include = FALSE}
+path_nass <- "/ddn/gs1/home/songi2/rtest/nass2020/2020_30m_cdls.tif"
+```
+
+```{r}
+library(scomps)
+library(dplyr)
+library(sf)
+library(terra)
+library(future)
+library(future.apply)
+library(doFuture)
+library(tigris)
+options(sf_use_s2 = FALSE)
+set.seed(2023, kind = "L'Ecuyer-CMRG")
+```
+
+
+```{r data-import}
+data("prediction_grid", package = "scomps")
+pgsf <- sf::st_as_sf(prediction_grid, coords = 2:3, crs = "EPSG:5070")
+cropscape <- terra::rast(path_nass)
+```
+
+```{r main_run}
+grid_init <- scomps::get_computational_regions(
+  pgsf,
+  "grid",
+  nx = 60L,
+  ny = 40L,
+  padding = 1e4L
+)
+
+plan(multicore, workers = 50L)
+
+cropscape_extr_multi <-
+  scomps::distribute_process_grid(
+    grid_init,
+    fun_dist = scomps::extract_with_buffer,
+    points = pgsf,
+    surf = cropscape,
+    radius = 1e4L,
+    id = "site_id",
+    func = "frac"
+  )
+
+```
