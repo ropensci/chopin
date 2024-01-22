@@ -46,6 +46,8 @@ plot(sf::st_geometry(ncsf))
 
 ![](https://i.imgur.com/ImPfGXP.png)<!-- -->
 
+## Generate random points in NC
+- Ten thousands random point locations are generated inside the counties of North Carolina.
 ``` r
 ncpoints <- sf::st_sample(ncsf, 10000)
 plot(sf::st_geometry(ncpoints))
@@ -60,6 +62,8 @@ ncpoints <- st_as_sf(ncpoints)
 ncpoints$pid <- seq(1, nrow(ncpoints))
 ```
 
+## Target dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
+- We use an elevation dataset with and a moderate spatial resolution (approximately 400 meters or 0.25 miles).
 ``` r
 srtm <- terra::unwrap(readRDS("../../tests/testdata/nc_srtm15_otm.rds"))
 srtm
@@ -96,6 +100,8 @@ system.time(
 #>   6.271   0.210   6.484
 ```
 
+## Generate regular grid computational regions
+- `scomps::get_computational_regions` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 ``` r
 compregions <-
     scomps::get_computational_regions(
@@ -105,7 +111,10 @@ compregions <-
         ny = 5L,
         padding = 1e4L
     )
+```
 
+- `compregions` is an object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The figures below illustrate the grid polygons with and without overlaps.
+```r
 names(compregions)
 #> [1] "original" "padded"
 
@@ -113,14 +122,16 @@ oldpar <- par()
 par(mfcol = c(1, 2))
 plot(compregions$original, main = "Original grids")
 plot(compregions$padded, main = "Padded grids")
+par(oldpar)
 ```
 
 ![](https://i.imgur.com/c0xweeV.png)<!-- -->
 
-``` r
-par(oldpar)
-```
-
+## Parallel processing
+- Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `scomps::distribute_process_grid`
+- Users always need to **register** multiple CPU threads (logical cores) to enable them to be used by R processes.
+- `scomps::distribute_process_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
+    - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis arguments, like below:
 ``` r
 plan(multicore, workers = 4L)
 doFuture::registerDoFuture()
@@ -233,6 +244,10 @@ plot(ncpoints_m[, "mean"], main = "Multi-thread")
 
 ![](https://i.imgur.com/fgOvOff.png)<!-- -->
 
+## Parallelize geospatial computations using intrinsic data hierarchy: `scomps::distribute_process_hierarchy`
+- In real world datasets, we usually have nested/exhaustive hierarchies. For example, land is organized by administrative/jurisdictional borders where multiple levels exist. In the U.S. context, a state consists of several counties, counties are split into census tracts, and they have a group of block groups.
+- `scomps::distribute_process_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
+- A demonstration below shows that census tracts are grouped by their counties then each county will be processed in a CPU thread.
 ``` r
 nc_county <- file.path("../testdata/nc_hierarchy.gpkg")
 nc_county <- sf::st_read(nc_county, layer = "county")
@@ -292,6 +307,10 @@ system.time(
 #>   0.023   0.013   1.317
 ```
 
+
+## Multiple rasters
+- There is a common case of having a large group of raster files at which the same operation should be performed.
+- `scomps::distribute_process_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
 ``` r
 ncpath <- "../testdata/nc_hierarchy.gpkg"
 nccnty <- terra::vect(ncpath, layer = "county")
@@ -336,6 +355,10 @@ knitr::kable(head(res))
 | 37155 |  41.23463 |
 | 37109 | 270.96933 |
 
+
+## Parallelization of a generic geospatial operation
+- Other than `scomps` internal macros, `scomps::distribute_process_*` functions support generic geospatial operations.
+- An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `scomps::distribute_process_grid`.
 ``` r
 pnts <- readRDS("../testdata/nc_random_point.rds")
 pnts <- terra::vect(pnts)
@@ -416,5 +439,10 @@ system.time(
 #>   0.036   0.000   0.036
 ```
 
+## Why parallelization is slower than the ordinary function run?
+- Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead refers to the required amount of computational resources for transferring objects to multiple processes.
+- Since the demonstrations above use quite small datasets, the advantage of parallelization was not as dramatically as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be added to this vignette soon.
 
-<sup>Created on 2023-12-18 with [reprex v2.0.2](https://reprex.tidyverse.org)</sup>
+
+#### Last edited: January 22, 2024
+
