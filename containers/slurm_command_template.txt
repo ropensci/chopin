@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#SBATCH --job-name=mcd19_appt
+#SBATCH --error=mcd19_appt.error
+#SBATCH --mail-user=songi2@nih.gov
+#SBATCH --mail-type=END,FAIL
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=50
+#SBATCH --mem=600g
+#SBATCH --partition=highmem
+
+export DIR_DATA=$1
+export DIR_EXPORT=$2
+export APPT_IMG_PATH=$3
+export DIR_SCRIPT=$4
+
+# system environment variables
+# DIR_DATA, DIR_EXPORT, DIR_SCRIPT and APPT_IMG_PATH should be pre-defined
+apptainer exec \
+    --writable-tmpfs \
+    --mount='type=bind,source=/opt/data,destination=$DIR_DATA' \
+    --mount='type=bind,source=/opt/ext,destination=$DIR_EXPORT' \
+    $APPT_IMG_PATH \
+    Rscript $DIR_SCRIPT/calc_mcd19.r

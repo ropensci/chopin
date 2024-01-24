@@ -1,11 +1,11 @@
 ---
-title: "Creating the ``r params$package_name`` R package"
+title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-01-18"
+date: "2024-01-24"
 knit: litr::render
 output: litr::litr_html_document
 params:
-  package_name: "scomps" # <-- change this to your package name
+  package_name: "chopin" # <-- change this to your package name
   package_parent_dir: "." # <-- relative to this file's location
 ---
 
@@ -21,15 +21,23 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.1.2.01122024",
-    Title = "Scalable R geospatial computation",
+    Version = "0.2.0_01242024",
+    Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "A package for scalable geospatial computation for environmental health research",
-    `Authors@R` = person(
-      given = "Insang",
-      family = "Song",
-      email = "geoissong@gmail.com",
-      role = c("aut", "cre"),
-      comment = c(ORCID = "0000-0001-8732-3256")
+    `Authors@R` = c(
+      person(
+        given = "Insang",
+        family = "Song",
+        email = "geoissong@gmail.com",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0001-8732-3256")
+      ),
+      person(
+        given = "Kyle",
+        family = "Messier",
+        role = c("aut", "ctb"),
+        comment = c(ORCID = "0000-0001-9508-9623")
+      )
     ),
     LazyData = "true",
     LazyDataCompression = "xz"
@@ -3039,12 +3047,12 @@ if (dir.exists("../figure")) {
   if (!dir.exists("./vignettes/figure")) {
     dir.create("./vignettes/figure")
   }
-  file.copy(from = "../figure", to = "./vignettes/figure", recursive = TRUE)
+  file.copy(from = "../tools/vignettes-sources/figure", to = "./vignettes/figure", recursive = TRUE)
   # unlink("../figure", recursive = TRUE)
 }
 pkgbuild::build(path = ".")
 
-# devtools::test()
+
 ```
 
 ```{r, include = FALSE}
@@ -3063,7 +3071,7 @@ if (!dir.exists(getwd())) {
 }
 
 
-gitpath = gsub("/scomps", "", getwd())
+gitpath = gsub("/chopin", "", getwd())
 # packdir <- paste0(getwd(), "/scomps")
 
 # if (!dir.exists(paste0(getwd(), "/scomps"))) {
@@ -3079,8 +3087,8 @@ system(paste0("rm -r ", getwd()))
 ```
 
 ```{r post-hoc-manualrun, eval = FALSE}
-system(paste0("cp -r ./scomps/* ."))
-system("rm -r ./scomps")
+system(paste0("cp -r ./chopin/* ."))
+system("rm -r ./chopin")
 # if (!dir.exists("./docs")) {
 #   dir.create("./docs")
 # }
