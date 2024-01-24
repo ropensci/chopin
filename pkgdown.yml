@@ -1,0 +1,9 @@
+pandoc: 2.19.2
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  v00_good_practice_parallelization: v00_good_practice_parallelization.html
+  v01_generate_computational_grid: v01_generate_computational_grid.html
+  v02_distribute_process_ext: v02_distribute_process_ext.html
+last_built: 2024-01-24T21:36Z
+
