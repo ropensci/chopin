@@ -1,0 +1,45 @@
+---
+title: "Distribute across nodes on SLURM"
+date: "2024-01-16"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Benchmark: scaled vs non-scaled}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Benchmark
+
+```{r}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+```
+
+```{r config-paths, echo = FALSE, include = FALSE}
+path_nass <- "/ddn/gs1/home/songi2/rtest/nass2020/2020_30m_cdls.tif"
+```
+
+```{r}
+if (dir.exists("~/r-libs")) {
+  .libPaths("~/r-libs")
+}
+
+pkgs <-
+  c("scomps",
+    "dplyr", "sf", "terra",
+    "future", "future.apply", "future.batchtools"
+  )
+invisible(sapply(pkgs, library, quietly = TRUE, character.only = TRUE))
+
+options(sf_use_s2 = FALSE)
+set.seed(2023, kind = "L'Ecuyer-CMRG")
+```
+
+
+```{r}
+future.batchtools::BatchtoolsMultiprocessFuture()
+future.batchtools::batchtools_slurm()
+future.batchtools::BatchtoolsSlurmFuture()
+future.batchtools::batchtools_bash()
+```
