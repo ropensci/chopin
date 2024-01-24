@@ -54,6 +54,7 @@ ncpoints$pid <- seq(1, nrow(ncpoints))
 ## Visualize computational grids
 
 ```{r}
+ncpoints_tr <- terra::vect(ncpoints)
 compregions <-
     chopin::get_computational_regions(
         ncpoints_tr,
