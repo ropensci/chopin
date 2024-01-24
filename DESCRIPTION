@@ -43,4 +43,4 @@ Depends:
     R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 3ec7351fd872076df8a56865b6823cfa
+LitrId: a3b5422667979c2a0035cada548f8622

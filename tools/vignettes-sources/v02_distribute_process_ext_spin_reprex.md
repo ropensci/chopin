@@ -3,7 +3,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
 
 ``` r
-library(scomps)
+library(chopin)
 library(dplyr)
 library(sf)
 library(terra)
@@ -63,7 +63,7 @@ terra::crs(srtm) <- "EPSG:5070"
 ncpoints_tr <- terra::vect(ncpoints)
 system.time(
     ncpoints_srtm <-
-        scomps::extract_with(
+        chopin::extract_with(
             vector = ncpoints_tr,
             raster = srtm,
             id = "pid",
@@ -76,7 +76,7 @@ system.time(
 
 ``` r
 compregions <-
-    scomps::get_computational_regions(
+    chopin::get_computational_regions(
         ncpoints_tr,
         mode = "grid",
         nx = 8L,
@@ -105,7 +105,7 @@ doFuture::registerDoFuture()
 
 system.time(
     ncpoints_srtm_mthr <-
-        scomps::distribute_process_grid(
+        chopin::distribute_process_grid(
             grids = compregions,
             grid_target_id = NULL,
             fun_dist = scomps::extract_with,
@@ -242,7 +242,7 @@ nc_tracts$COUNTY <-
 
 ``` r
 system.time(
-    nc_elev_tr_single <- scomps::extract_with(
+    nc_elev_tr_single <- chopin::extract_with(
         vector = nc_tracts,
         raster = srtm,
         id = "GEOID",
@@ -256,7 +256,7 @@ system.time(
 ``` r
 system.time(
     nc_elev_tr_distr <-
-        scomps::distribute_process_hierarchy(
+        chopin::distribute_process_hierarchy(
             regions = nc_county, # higher level geometry
             split_level = "GEOID", # higher level unique id
             fun_dist = scomps::extract_with,
@@ -293,7 +293,7 @@ testfiles
 ```
 
 ``` r
-res <- distribute_process_multirasters(
+res <- chopin::distribute_process_multirasters(
       filenames = testfiles,
       fun_dist = extract_with_polygons,
       polys = nccnty,
