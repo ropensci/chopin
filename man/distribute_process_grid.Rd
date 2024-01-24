@@ -25,7 +25,7 @@ Default is NULL. If NULL, all grid_ids are used.
 \item{debug}{logical(1). Prints error messages
 if there were any errors during the calculation.}
 
-\item{fun_dist}{function supported in scomps.}
+\item{fun_dist}{sf, terra or chopin functions.}
 
 \item{...}{Arguments passed to the argument \code{fun_dist}.}
 }

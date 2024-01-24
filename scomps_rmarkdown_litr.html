@@ -11,9 +11,9 @@
 
 <meta name="author" content="Insang Song" />
 
-<meta name="date" content="2024-01-18" />
+<meta name="date" content="2024-01-24" />
 
-<title>Creating the scomps R package</title>
+<title>CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: chopin</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,10 +350,10 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Creating the <code>scomps</code> R
-package</h1>
+<h1 class="title toc-ignore">CHOPIN: Computation for Climate and Health
+research On Parallelized INfrastructure: <code>chopin</code></h1>
 <h4 class="author">Insang Song</h4>
-<h4 class="date">2024-01-18</h4>
+<h4 class="date">2024-01-24</h4>
 
 </div>
 
@@ -368,15 +368,23 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.1.2.01122024&quot;,
-    Title = &quot;Scalable R geospatial computation&quot;,
+    Version = &quot;0.2.0.01242024&quot;,
+    Title = &quot;CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
-    `Authors@R` = person(
-      given = &quot;Insang&quot;,
-      family = &quot;Song&quot;,
-      email = &quot;geoissong@gmail.com&quot;,
-      role = c(&quot;aut&quot;, &quot;cre&quot;),
-      comment = c(ORCID = &quot;0000-0001-8732-3256&quot;)
+    `Authors@R` = c(
+      person(
+        given = &quot;Insang&quot;,
+        family = &quot;Song&quot;,
+        email = &quot;geoissong@gmail.com&quot;,
+        role = c(&quot;aut&quot;, &quot;cre&quot;),
+        comment = c(ORCID = &quot;0000-0001-8732-3256&quot;)
+      ),
+      person(
+        given = &quot;Kyle&quot;,
+        family = &quot;Messier&quot;,
+        role = c(&quot;aut&quot;, &quot;ctb&quot;),
+        comment = c(ORCID = &quot;0000-0001-9508-9623&quot;)
+      )
     ),
     LazyData = &quot;true&quot;,
     LazyDataCompression = &quot;xz&quot;
@@ -415,24 +423,23 @@ usethis::use_pkgdown()
 usethis::use_roxygen_md()
 # usethis::use_pkgdown_github_pages()
 
-
-# usethis::use_vignette(&quot;scomps_1_setting_distribution.rmd&quot;)</code></pre>
+# usethis::use_vignette(&quot;1_setting_distribution.rmd&quot;)</code></pre>
 <!--
 -->
 <pre class="r"><code>desc::desc_set(
-  &quot;URL&quot;,
-  &quot;https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS&quot;
+  &quot;https&quot;,
+  &quot;//spatiotemporal-exposures-and-toxicology.github.io/chopin&quot;
   )</code></pre>
-<pre><code>## Package: scomps
-## Title: Scalable R geospatial computation
-## Version: 0.1.2.01122024
+<pre><code>## Package: chopin
+## Title: CHOPIN: Computation for Climate and Health research On Parallelized
+##     INfrastructure
+## Version: 0.2.0.01242024
 ## Authors@R (parsed):
 ##     * Insang Song &lt;geoissong@gmail.com&gt; [aut, cre] (&lt;https://orcid.org/0000-0001-8732-3256&gt;)
+##     * Kyle Messier [aut, ctb] (&lt;https://orcid.org/0000-0001-9508-9623&gt;)
 ## Description: A package for scalable geospatial computation for
 ##     environmental health research
 ## License: MIT + file LICENSE
-## URL:
-##     https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
 ## Imports:
 ##     doFuture,
 ##     dplyr,
@@ -453,6 +460,7 @@ usethis::use_roxygen_md()
 ##     units,
 ##     withr
 ## Encoding: UTF-8
+## https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
 ## LazyData: true
 ## LazyDataCompression: xz
 ## Roxygen: list(markdown = TRUE)
@@ -2327,7 +2335,7 @@ testthat::test_that(&quot;aw_covariates works as expected.&quot;, {
 #&#39;  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #&#39; @param debug logical(1). Prints error messages
 #&#39; if there were any errors during the calculation.
-#&#39; @param fun_dist function supported in scomps.
+#&#39; @param fun_dist sf, terra or chopin functions.
 #&#39; @param ... Arguments passed to the argument \code{fun_dist}.
 #&#39; @returns a data.frame object with computation results.
 #&#39;  For entries of the results, consult the function used in
@@ -2424,7 +2432,7 @@ distribute_process_grid &lt;-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;, &quot;scomps&quot;, &quot;exactextractr&quot;))
+        future.packages = c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;, &quot;chopin&quot;, &quot;exactextractr&quot;))
     results_distributed &lt;- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -2467,7 +2475,7 @@ distribute_process_grid &lt;-
 #&#39;  A field name with the higher level information is also accepted.
 #&#39; @param debug logical(1). Prints error messages
 #&#39; if there were any errors during the calculation.
-#&#39; @param fun_dist function supported in scomps.
+#&#39; @param fun_dist sf, terra, or chopin functions.
 #&#39; @param ... Arguments passed to the argument \code{fun_dist}.
 #&#39; @returns a data.frame object with computation results.
 #&#39;  For entries of the results, consult the function used in
@@ -2548,7 +2556,7 @@ distribute_process_hierarchy &lt;-
                     },
                     future.seed = TRUE,
                     future.packages = c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;,
-                                        &quot;scomps&quot;, &quot;future&quot;, &quot;exactextractr&quot;))
+                                        &quot;chopin&quot;, &quot;future&quot;, &quot;exactextractr&quot;))
     results_distributed &lt;- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -2576,7 +2584,7 @@ distribute_process_hierarchy &lt;-
 #&#39;  full file paths of raster files. n is the total number of raster files.
 #&#39; @param debug logical(1). Prints error messages
 #&#39; if there were any errors during the calculation.
-#&#39; @param fun_dist function supported in scomps.
+#&#39; @param fun_dist sf, terra, or chopin functions.
 #&#39; @param ... Arguments passed to the argument \code{fun_dist}.
 #&#39; @returns a data.frame object with computation results.
 #&#39;  For entries of the results,
@@ -2650,7 +2658,7 @@ distribute_process_hierarchy &lt;-
       future.seed = TRUE,
       future.packages =
       c(&quot;terra&quot;, &quot;sf&quot;, &quot;dplyr&quot;, &quot;rlang&quot;,
-        &quot;scomps&quot;, &quot;future&quot;,
+        &quot;chopin&quot;, &quot;future&quot;,
         &quot;exactextractr&quot;)
     )
   results_distributed &lt;- do.call(dplyr::bind_rows, results_distributed)
@@ -3039,8 +3047,8 @@ if (dir.exists(&quot;../figure&quot;)) {
 #   )
 # cat(getwd())
 # print(getwd())</code></pre>
-<pre><code>## ℹ Updating scomps documentation
-## ℹ Loading scomps
+<pre><code>## ℹ Updating chopin documentation
+## ℹ Loading chopin
 ## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;NAMESPACE&#39;
 ## Writing &#39;check_packbound.Rd&#39;
@@ -3079,7 +3087,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 line found on &#39;../tools/pkgdown-source/_pkgdown.yml&#39;</code></pre>
 <pre><code>destination: ../../docs/
 
-url: ~
+url: https://spatiotemporal-exposures-and-toxicology.github.io/CHOPIN
 template:
   bootstrap: 5
 
@@ -3089,39 +3097,27 @@ navbar:
     right: [github]</code></pre>
 <pre class="r"><code># here we return to the current working directory &quot;you see&quot;
 # for pre-built vignettes
-if (dir.exists(&quot;../figure&quot;)) {
-  if (!dir.exists(&quot;./vignettes/figure&quot;)) {
-    dir.create(&quot;./vignettes/figure&quot;)
-  }
-  file.copy(from = &quot;../figure&quot;, to = &quot;./vignettes/figure&quot;, recursive = TRUE)
+if (dir.exists(&quot;../tools/vignettes-sources/figure&quot;)) {
+  # if (!dir.exists(&quot;./vignettes/figure&quot;)) {
+  #   dir.create(&quot;./vignettes/figure&quot;)
+  # }
+  file.copy(from = &quot;../tools/vignettes-sources/figure&quot;, to = &quot;./vignettes&quot;, recursive = TRUE)
   # unlink(&quot;../figure&quot;, recursive = TRUE)
 }
-pkgbuild::build(path = &quot;.&quot;)
+# pkgbuild::build(path = &quot;.&quot;)
 
-# devtools::test()</code></pre>
+</code></pre>
 <pre><code>## [1] TRUE</code></pre>
-<pre><code>## ── R CMD build ─────────────────────────────────────────────────────────────────
-## * checking for file ‘/Users/songi2/Documents/GitHub/Scalable_GIS/scomps/DESCRIPTION’ ... OK
-## * preparing ‘scomps’:
-## * checking DESCRIPTION meta-information ... OK
-## * installing the package to build vignettes
-## * creating vignettes ... OK
-## * checking for LF line-endings in source and make files and shell scripts
-## * checking for empty or unneeded directories
-## * building ‘scomps_0.1.2.01122024.tar.gz’
-## Warning: invalid uid value replaced by that for user &#39;nobody&#39;
-## Warning: invalid gid value replaced by that for user &#39;nobody&#39;</code></pre>
-<pre><code>## [1] &quot;/Users/songi2/Documents/GitHub/Scalable_GIS/scomps_0.1.2.01122024.tar.gz&quot;</code></pre>
 <pre class="r"><code>if (!dir.exists(getwd())) {
   dir.create(getwd())
 }
 
 
-gitpath = gsub(&quot;/scomps&quot;, &quot;&quot;, getwd())
-# packdir &lt;- paste0(getwd(), &quot;/scomps&quot;)
+gitpath = gsub(&quot;/chopin&quot;, &quot;&quot;, getwd())
+# packdir &lt;- paste0(getwd(), &quot;/chopin&quot;)
 
-# if (!dir.exists(paste0(getwd(), &quot;/scomps&quot;))) {
-#   dir.create(paste0(getwd(), &quot;/scomps&quot;))
+# if (!dir.exists(paste0(getwd(), &quot;/chopin&quot;))) {
+#   dir.create(paste0(getwd(), &quot;/chopin&quot;))
 # }
 system(&quot;unalias cp&quot;)
 system(paste0(&quot;cp -r &quot;, getwd(), &quot;/* &quot;, gitpath))

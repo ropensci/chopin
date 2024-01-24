@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(scomps)
+library(chopin)
 
-test_check("scomps")
+test_check("chopin")
