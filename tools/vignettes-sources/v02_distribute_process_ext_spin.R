@@ -3,7 +3,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 
 ## -----------------------------------------------------------------------------
-library(scomps)
+library(chopin)
 library(dplyr)
 library(sf)
 library(terra)
@@ -44,7 +44,7 @@ terra::crs(srtm) <- "EPSG:5070"
 ncpoints_tr <- terra::vect(ncpoints)
 system.time(
     ncpoints_srtm <-
-        scomps::extract_with(
+        chopin::extract_with(
             vector = ncpoints_tr,
             raster = srtm,
             id = "pid",
@@ -55,7 +55,7 @@ system.time(
 
 ## ----generate-compregion------------------------------------------------------
 compregions <-
-    scomps::get_computational_regions(
+    chopin::get_computational_regions(
         ncpoints_tr,
         mode = "grid",
         nx = 8L,
@@ -78,10 +78,10 @@ doFuture::registerDoFuture()
 
 system.time(
     ncpoints_srtm_mthr <-
-        scomps::distribute_process_grid(
+        chopin::distribute_process_grid(
             grids = compregions,
             grid_target_id = NULL,
-            fun_dist = scomps::extract_with,
+            fun_dist = chopin::extract_with,
             vector = ncpoints_tr,
             raster = srtm,
             id = "pid",
@@ -137,10 +137,10 @@ system.time(
 ## -----------------------------------------------------------------------------
 system.time(
     nc_elev_tr_distr <-
-        scomps::distribute_process_hierarchy(
+        chopin::distribute_process_hierarchy(
             regions = nc_county, # higher level geometry
             split_level = "GEOID", # higher level unique id
-            fun_dist = scomps::extract_with,
+            fun_dist = chopin::extract_with,
             vector = nc_tracts, # lower level geometry
             raster = srtm,
             id = "GEOID", # lower level unique id
@@ -168,9 +168,9 @@ testfiles
 
 
 ## ----multirasters-processing--------------------------------------------------
-res <- distribute_process_multirasters(
+res <- chopin::distribute_process_multirasters(
       filenames = testfiles,
-      fun_dist = extract_with_polygons,
+      fun_dist = chopin::extract_with_polygons,
       polys = nccnty,
       surf = ncelev,
       id = "GEOID",
@@ -191,7 +191,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 
 nccompreg <-
-    get_computational_regions(
+    chopin::get_computational_regions(
                               input = pnts,
                               mode = "grid",
                               nx = 6L,
@@ -202,7 +202,7 @@ future::plan(future::multicore, workers = 6L)
 
 system.time(
 res <-
-  distribute_process_grid(
+  chopin::distribute_process_grid(
                           grids = nccompreg,
                           fun_dist = terra::nearest,
                           x = pnts,

@@ -30,7 +30,7 @@
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param fun_dist function supported in scomps.
+#' @param fun_dist sf, terra or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
@@ -127,7 +127,7 @@ distribute_process_grid <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
+        future.packages = c("terra", "sf", "dplyr", "chopin", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -170,7 +170,7 @@ distribute_process_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param fun_dist function supported in scomps.
+#' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
@@ -251,7 +251,7 @@ distribute_process_hierarchy <-
                     },
                     future.seed = TRUE,
                     future.packages = c("terra", "sf", "dplyr",
-                                        "scomps", "future", "exactextractr"))
+                                        "chopin", "future", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -279,7 +279,7 @@ distribute_process_hierarchy <-
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param fun_dist function supported in scomps.
+#' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results,
@@ -353,7 +353,7 @@ distribute_process_multirasters <- function(
       future.seed = TRUE,
       future.packages =
       c("terra", "sf", "dplyr", "rlang",
-        "scomps", "future",
+        "chopin", "future",
         "exactextractr")
     )
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)

@@ -1,9 +1,13 @@
-Package: scomps
-Title: Scalable R geospatial computation
-Version: 0.1.2.01122024
-Authors@R: 
+Package: chopin
+Title: CHOPIN: Computation for Climate and Health research On Parallelized
+    INfrastructure
+Version: 0.2.0.01242024
+Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0001-8732-3256"))
+           comment = c(ORCID = "0000-0001-8732-3256")),
+    person("Kyle", "Messier", role = c("aut", "ctb"),
+           comment = c(ORCID = "0000-0001-9508-9623"))
+  )
 Description: A package for scalable geospatial computation for
     environmental health research
 License: MIT + file LICENSE
@@ -33,10 +37,10 @@ Suggests:
     tigris,
     units,
     withr
-URL: https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS
+https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: e6dd595a279459dd8e6950793a6f0dfb
+LitrId: c2aa95a06272716f27218584d09642ad

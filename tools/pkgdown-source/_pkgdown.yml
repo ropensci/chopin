@@ -1,6 +1,6 @@
 destination: ../../docs/
 
-url: ~
+url: https://spatiotemporal-exposures-and-toxicology.github.io/CHOPIN
 template:
   bootstrap: 5
 

@@ -25,7 +25,7 @@ Scalable GIS methods for environmental and climate data analysis
 - Please refer to a small example below for extracting mean altitude values at circular point buffers and census tracts in North Carolina.
 
 ``` r
-library(scomps)
+library(chopin)
 library(dplyr)
 library(sf)
 library(terra)
@@ -89,7 +89,7 @@ terra::crs(srtm) <- "EPSG:5070"
 ncpoints_tr <- terra::vect(ncpoints)
 system.time(
     ncpoints_srtm <-
-        scomps::extract_with(
+        chopin::extract_with(
             vector = ncpoints_tr,
             raster = srtm,
             id = "pid",
@@ -101,10 +101,10 @@ system.time(
 ```
 
 ## Generate regular grid computational regions
-- `scomps::get_computational_regions` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
+- `chopin::get_computational_regions` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 ``` r
 compregions <-
-    scomps::get_computational_regions(
+    chopin::get_computational_regions(
         ncpoints_tr,
         mode = "grid",
         nx = 8L,
@@ -128,9 +128,9 @@ par(oldpar)
 ![](https://i.imgur.com/c0xweeV.png)<!-- -->
 
 ## Parallel processing
-- Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `scomps::distribute_process_grid`
+- Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `chopin::distribute_process_grid`
 - Users always need to **register** multiple CPU threads (logical cores) to enable them to be used by R processes.
-- `scomps::distribute_process_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
+- `chopin::distribute_process_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
     - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis arguments, like below:
 ``` r
 plan(multicore, workers = 4L)
@@ -138,10 +138,10 @@ doFuture::registerDoFuture()
 
 system.time(
     ncpoints_srtm_mthr <-
-        scomps::distribute_process_grid(
+        chopin::distribute_process_grid(
             grids = compregions,
             grid_target_id = NULL,
-            fun_dist = scomps::extract_with,
+            fun_dist = chopin::extract_with,
             vector = ncpoints_tr,
             raster = srtm,
             id = "pid",
@@ -244,9 +244,9 @@ plot(ncpoints_m[, "mean"], main = "Multi-thread")
 
 ![](https://i.imgur.com/fgOvOff.png)<!-- -->
 
-## Parallelize geospatial computations using intrinsic data hierarchy: `scomps::distribute_process_hierarchy`
+## Parallelize geospatial computations using intrinsic data hierarchy: `chopin::distribute_process_hierarchy`
 - In real world datasets, we usually have nested/exhaustive hierarchies. For example, land is organized by administrative/jurisdictional borders where multiple levels exist. In the U.S. context, a state consists of several counties, counties are split into census tracts, and they have a group of block groups.
-- `scomps::distribute_process_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
+- `chopin::distribute_process_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
 - A demonstration below shows that census tracts are grouped by their counties then each county will be processed in a CPU thread.
 ``` r
 nc_county <- file.path("../testdata/nc_hierarchy.gpkg")
@@ -279,7 +279,7 @@ nc_tracts$COUNTY <-
 
 ``` r
 system.time(
-    nc_elev_tr_single <- scomps::extract_with(
+    nc_elev_tr_single <- chopin::extract_with(
         vector = nc_tracts,
         raster = srtm,
         id = "GEOID",
@@ -293,10 +293,10 @@ system.time(
 ``` r
 system.time(
     nc_elev_tr_distr <-
-        scomps::distribute_process_hierarchy(
+        chopin::distribute_process_hierarchy(
             regions = nc_county, # higher level geometry
             split_level = "GEOID", # higher level unique id
-            fun_dist = scomps::extract_with,
+            fun_dist = chopin::extract_with,
             vector = nc_tracts, # lower level geometry
             raster = srtm,
             id = "GEOID", # lower level unique id
@@ -310,7 +310,7 @@ system.time(
 
 ## Multiple rasters
 - There is a common case of having a large group of raster files at which the same operation should be performed.
-- `scomps::distribute_process_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
+- `chopin::distribute_process_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
 ``` r
 ncpath <- "../testdata/nc_hierarchy.gpkg"
 nccnty <- terra::vect(ncpath, layer = "county")
@@ -357,8 +357,8 @@ knitr::kable(head(res))
 
 
 ## Parallelization of a generic geospatial operation
-- Other than `scomps` internal macros, `scomps::distribute_process_*` functions support generic geospatial operations.
-- An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `scomps::distribute_process_grid`.
+- Other than `chopin` internal macros, `chopin::distribute_process_*` functions support generic geospatial operations.
+- An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `chopin::distribute_process_grid`.
 ``` r
 pnts <- readRDS("../testdata/nc_random_point.rds")
 pnts <- terra::vect(pnts)

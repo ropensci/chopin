@@ -1,11 +1,11 @@
 ---
-title: "Creating the ``r params$package_name`` R package"
+title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-01-12"
+date: "2024-01-24"
 knit: litr::render
 output: litr::litr_html_document
 params:
-  package_name: "scomps" # <-- change this to your package name
+  package_name: "chopin" # <-- change this to your package name
   package_parent_dir: "." # <-- relative to this file's location
 ---
 
@@ -21,15 +21,23 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.1.2.01122024",
-    Title = "Scalable R geospatial computation",
+    Version = "0.2.0.01242024",
+    Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "A package for scalable geospatial computation for environmental health research",
-    `Authors@R` = person(
-      given = "Insang",
-      family = "Song",
-      email = "geoissong@gmail.com",
-      role = c("aut", "cre"),
-      comment = c(ORCID = "0000-0001-8732-3256")
+    `Authors@R` = c(
+      person(
+        given = "Insang",
+        family = "Song",
+        email = "geoissong@gmail.com",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0001-8732-3256")
+      ),
+      person(
+        given = "Kyle",
+        family = "Messier",
+        role = c("aut", "ctb"),
+        comment = c(ORCID = "0000-0001-9508-9623")
+      )
     ),
     LazyData = "true",
     LazyDataCompression = "xz"
@@ -64,18 +72,19 @@ usethis::use_mit_license(copyright_holder = "I. Song")
 
 usethis::use_pkgdown()
 
+# https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html#lists
+usethis::use_roxygen_md()
 # usethis::use_pkgdown_github_pages()
 
-
-# usethis::use_vignette("scomps_1_setting_distribution.rmd")
+# usethis::use_vignette("1_setting_distribution.rmd")
 ```
 <!--
 -->
 
 ```{r}
 desc::desc_set(
-  "URL",
-  "https://Spatiotemporal-Exposures-and-Toxicology.github.io/Scalable_GIS"
+  "https",
+  "//spatiotemporal-exposures-and-toxicology.github.io/chopin"
   )
 ```
 
@@ -2164,7 +2173,7 @@ testthat::test_that("classes are detected.", {
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param fun_dist function supported in scomps.
+#' @param fun_dist sf, terra or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
@@ -2261,7 +2270,7 @@ distribute_process_grid <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
+        future.packages = c("terra", "sf", "dplyr", "chopin", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -2304,7 +2313,7 @@ distribute_process_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param fun_dist function supported in scomps.
+#' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
@@ -2385,7 +2394,7 @@ distribute_process_hierarchy <-
                     },
                     future.seed = TRUE,
                     future.packages = c("terra", "sf", "dplyr",
-                                        "scomps", "future", "exactextractr"))
+                                        "chopin", "future", "exactextractr"))
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
     return(results_distributed)
@@ -2413,7 +2422,7 @@ distribute_process_hierarchy <-
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param fun_dist function supported in scomps.
+#' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results,
@@ -2487,7 +2496,7 @@ distribute_process_multirasters <- function(
       future.seed = TRUE,
       future.packages =
       c("terra", "sf", "dplyr", "rlang",
-        "scomps", "future",
+        "chopin", "future",
         "exactextractr")
     )
   results_distributed <- do.call(dplyr::bind_rows, results_distributed)
@@ -2872,7 +2881,7 @@ adhoc <- function() {
   library(future)
   library(future.apply)
   library(exactextractr)
-  library(scomps)
+  library(chopin)
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
@@ -2913,7 +2922,7 @@ adhoc2 <- function() {
   library(future)
   library(future.apply)
   library(exactextractr)
-  library(scomps)
+  library(chopin)
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
@@ -2958,7 +2967,7 @@ adhoc2 <- function() {
         return(run_result)
       },
       future.seed = TRUE,
-      future.packages = c("terra", "sf", "dplyr", "scomps", "exactextractr"))
+      future.packages = c("terra", "sf", "dplyr", "chopin", "exactextractr"))
 }
 adhoc2()
 
@@ -2975,7 +2984,7 @@ exactextractr::exact_extract(ncelev, sf::st_as_sf(terra::buffer(ncpnts, 5e3L)), 
   #     sf::sf_use_s2(FALSE)
       
   #     run_result <- tryCatch({
-  #       kk <- scomps::extract_with_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = x)
+  #       kk <- chopin::extract_with_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = x)
   #       #fun(...)
   #       #print(xx)
   #       cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
@@ -2986,9 +2995,9 @@ exactextractr::exact_extract(ncelev, sf::st_as_sf(terra::buffer(ncpnts, 5e3L)), 
   #     return(run_result)
   #   },
   #   future.seed = TRUE,
-  #   future.packages = c("terra", "sf", "dplyr", "scomps", "future"))
+  #   future.packages = c("terra", "sf", "dplyr", "chopin", "future"))
 
-  # scomps::extract_with_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = nccompreg %>% split(., .$CGRIDID) %>% .[[5]])
+  # chopin::extract_with_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = nccompreg %>% split(., .$CGRIDID) %>% .[[5]])
 ```
 
 ## Documenting the package and building
@@ -3033,16 +3042,16 @@ cat(readLines("../tools/pkgdown-source/_pkgdown.yml"), sep = '\n')
 ```{r copy-prebuilt-figures, eval = TRUE}
 # here we return to the current working directory "you see"
 # for pre-built vignettes
-if (dir.exists("../figure")) {
-  if (!dir.exists("./vignettes/figure")) {
-    dir.create("./vignettes/figure")
-  }
-  file.copy(from = "../figure", to = "./vignettes/figure", recursive = TRUE)
+if (dir.exists("../tools/vignettes-sources/figure")) {
+  # if (!dir.exists("./vignettes/figure")) {
+  #   dir.create("./vignettes/figure")
+  # }
+  file.copy(from = "../tools/vignettes-sources/figure", to = "./vignettes", recursive = TRUE)
   # unlink("../figure", recursive = TRUE)
 }
-pkgbuild::build(path = ".")
+# pkgbuild::build(path = ".")
 
-# devtools::test()
+
 ```
 
 ```{r, include = FALSE}
@@ -3061,11 +3070,11 @@ if (!dir.exists(getwd())) {
 }
 
 
-gitpath = gsub("/scomps", "", getwd())
-# packdir <- paste0(getwd(), "/scomps")
+gitpath = gsub("/chopin", "", getwd())
+# packdir <- paste0(getwd(), "/chopin")
 
-# if (!dir.exists(paste0(getwd(), "/scomps"))) {
-#   dir.create(paste0(getwd(), "/scomps"))
+# if (!dir.exists(paste0(getwd(), "/chopin"))) {
+#   dir.create(paste0(getwd(), "/chopin"))
 # }
 system("unalias cp")
 system(paste0("cp -r ", getwd(), "/* ", gitpath))
@@ -3077,8 +3086,8 @@ system(paste0("rm -r ", getwd()))
 ```
 
 ```{r post-hoc-manualrun, eval = FALSE}
-system(paste0("cp -r ./scomps/* ."))
-system("rm -r ./scomps")
+system(paste0("cp -r ./chopin/* ."))
+system("rm -r ./chopin")
 # if (!dir.exists("./docs")) {
 #   dir.create("./docs")
 # }
