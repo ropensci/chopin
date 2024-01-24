@@ -38,6 +38,7 @@ set.seed(2023, kind = "L'Ecuyer-CMRG")
 data("prediction_grid", package = "scomps")
 pgsf <- sf::st_as_sf(prediction_grid, coords = 2:3, crs = "EPSG:5070")
 cropscape <- terra::rast(path_nass)
+pgsf1e <- pgsf |> dplyr::sample_n(4e5)
 ```
 
 ```{r main_run}
@@ -61,5 +62,134 @@ cropscape_extr_multi <-
     id = "site_id",
     func = "frac"
   )
+
+```
+
+
+```{r main_run}
+grid_init1e <- scomps::get_computational_regions(
+  pgsf1e,
+  "grid",
+  nx = 60L,
+  ny = 40L,
+  padding = 1e4L
+)
+
+plan(multicore, workers = 16L)
+
+cropscape_extr_multi <-
+  scomps::distribute_process_grid(
+    grid_init1e,
+    fun_dist = scomps::extract_with_buffer,
+    points = pgsf1e,
+    surf = cropscape,
+    radius = 1e4L,
+    id = "site_id",
+    func = "frac"
+  )
+# 15:30
+```
+
+
+## Illustrations
+```{r, include=F}
+.libPaths("~/r-libs")
+library(terra)
+library(tigris)
+library(scomps)
+# ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+# nc <- terra::vect(nc)
+nctr <- tigris::tracts(year = 2020, state = "NC")
+ncct <- tigris::counties(year = 2020, state = "NC")
+
+nctr <- terra::vect(nctr)
+ncct <- terra::vect(ncct)
+
+nctr0 <- terra::project(nctr, "EPSG:5070")
+ncct0 <- terra::project(ncct, "EPSG:5070")
+
+ncgrid <- get_computational_regions(
+  input = ncct0, "grid", nx = 8L, ny = 4L, padding = 20000L
+)
+
+oldpar <- par()
+
+# png("~/scomps_example.png", width = 5, height = 5, units = "in", res = 508)
+par(mfrow = c(2, 1), mai = c(0.0, 0, 0, 0), mar = rep(0, 4))
+plot(ncgrid$padded, axes = FALSE, border = "red", lwd = 2, mar = rep(0, 4))
+plot(terra::spatSample(ncgrid$padded, 1500L), add = TRUE, col = "dark grey", cex = 0.3)
+# plot(nctr0, axes = FALSE, lwd = 0.42, border = "dark grey", add = TRUE)
+
+plot(nctr0, axes = FALSE, lwd = 0.42, border = "dark grey", mar = rep(0, 4))
+plot(ncct0, lwd = 2, border = "red", add = TRUE)
+# dev.off()
+# par(oldpar)
+
+# png("~/scomps_example2.png", width = 5, height = 2.5, units = "in", res = 508)
+plot(terra::spatSample(ncgrid$padded, 1500L), col = "black", cex = 0.3)
+# dev.off()
+
+
+rr <- terra::rast(ncol = 125, nrow = 70)
+rr$x1 <- rgamma(70 * 125, 3, 1)
+rr$x2 <- runif(70 * 125, -10, 12)
+
+# png("~/scomps_example3.png", width = 10, height = 5, units = "in", res = 508)
+plot(rr, axes = FALSE, main = "", legend = FALSE, mar = rep(1, 4))
+# dev.off()
+```
+
+```{r perf-plot, include = FALSE}
+library(ggplot2)
+library(ggrepel)
+library(dplyr)
+
+perfdf <-
+  tribble(
+    ~Case,  ~setting, ~Duration,
+    "Case 1", "Plain",  198755.35,
+    "Case 1", "Parallel", 3183.25,
+    "Case 2", "Plain",  148142.74,
+    "Case 2", "Parallel", 389.99,
+    "Case 3", "Plain",  172.88,
+    "Case 3", "Parallel", 401.42
+  ) |>
+  mutate(setting = factor(setting, levels = c("Plain", "Parallel")))
+
+perfgg <-
+  ggplot(
+    data = perfdf,
+    mapping = aes(x = setting, y = Duration)) +
+  geom_hline(yintercept = 3600, color = "orange", linewidth = 0.5) +
+  geom_hline(yintercept = 86400, color = "red", linewidth = 0.5) +
+  # geom_text(aes(x = setting, y = Duration, label = lab),
+  #           data = data.frame(setting = "Parallel", Duration = 5000, lab = "1 hour")) +
+  # geom_text(aes(x = setting, y = Duration, label = lab),
+  #           data = data.frame(setting = "Parallel", Duration = 125000, lab = "1 day")) +
+  geom_point(cex = 2.0) +
+  geom_label(aes(label = Duration)) +
+  scale_y_log10(
+    limits = c(100, 400000),
+    breaks = 10^seq(2, 6),
+    minor_breaks = c(seq(100, 900, 100),
+                     seq(1000, 9000, 1000),
+                     seq(10000, 90000, 10000),
+                     seq(100000, 900000, 100000))) +
+  facet_wrap(~Case) +
+  ylab("Duration (seconds)") +
+  theme_bw() +
+  theme(axis.title.x = element_blank())
+
+ggsave(
+  "~/perf_comparison.png",
+  plot = perfgg,
+  scale = 0.75,
+  units = "in",
+  width = 8,
+  height = 4,
+  dpi = 508
+)
+
+
 
 ```
