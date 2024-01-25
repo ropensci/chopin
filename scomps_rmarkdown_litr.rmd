@@ -60,6 +60,7 @@ usethis::use_package("exactextractr")
 usethis::use_package("future")
 usethis::use_package("future.apply")
 usethis::use_package("covr", "Suggests")
+usethis::use_package("lobstr", "Suggests")
 usethis::use_package("testthat", "Suggests")
 usethis::use_package("units", "Suggests")
 usethis::use_package("tigris", "Suggests")
@@ -67,8 +68,7 @@ usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
-# usethis::use_gpl3_license()
-usethis::use_mit_license(copyright_holder = "I. Song")
+usethis::use_mit_license()
 
 usethis::use_pkgdown()
 
@@ -167,7 +167,10 @@ usethis::use_data(prediction_grid, compress = "xz")
 #' \item{lat}{Latitude}
 #' }
 #' @note Coordinates are in EPSG:5070 (Conus Albers Equal Area)
-#' @source Mainland United States polygon was obtained from the US Census Bureau.
+#' @source Mainland United States polygon was obtained from
+#' the US Census Bureau.
+#' @examples
+#' data("prediction_grid", package = "chopin")
 "prediction_grid"
 
 ```
@@ -193,10 +196,22 @@ bench::mark(
 ```{r, send_to = "R/processing.R"}
 #' Kernel functions
 #' @param kernel Kernel type. One of
-#' 'uniform', 'quartic', 'triweight', and 'epanechnikov'
+#' `"uniform"`, `"quartic"`, `"triweight"`, and `"epanechnikov"`
 #' @param d Distance
 #' @param bw Bandwidth of a kernel
 #' @references \href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}
+#' @examples
+#' v_dist <- c(1, 10, 100, 25, 50, 0.1)
+#' bw_dist1 <- 1
+#' bw_dist2 <- 10
+#' kernelfunction(v_dist, bw_dist1, "uniform")
+#' kernelfunction(v_dist, bw_dist1, "quartic")
+#' kernelfunction(v_dist, bw_dist1, "triweight")
+#' kernelfunction(v_dist, bw_dist1, "epanechnikov")
+#' kernelfunction(v_dist, bw_dist2, "uniform")
+#' kernelfunction(v_dist, bw_dist2, "quartic")
+#' kernelfunction(v_dist, bw_dist2, "triweight")
+#' kernelfunction(v_dist, bw_dist2, "epanechnikov")
 #' @export
 kernelfunction <-
   function(
@@ -207,9 +222,9 @@ kernelfunction <-
     kernel <- match.arg(kernel)
     switch(kernel,
       uniform = 1,
-      quartic = (15/16) * (1 - (1 - ((d/bw)^2))^2),
-      triweight = 1 - ((d/bw)^3),
-      epanechnikov = (3/4) * (1 - (d/bw)^2)
+      quartic = (15 / 16) * (1 - (1 - ((d / bw)^2))^2),
+      triweight = 1 - ((d / bw)^3),
+      epanechnikov = (3 / 4) * (1 - (d / bw)^2)
     )
 
   }
@@ -233,11 +248,23 @@ testthat::test_that("Kernel functions work okay", {
 #' @description Detect whether the input object is sf or Spat* object.
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
-#' @return A character object; one of 'terra' and 'sf'
+#' @returns A character object; one of 'terra' and 'sf'
+#' @examples
+#' library(sf)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc_sf <- sf::st_read(nc_path)
+#' check_packbound(nc_sf)
+#' nc_vect <- terra::vect(nc_sf)
+#' check_packbound(nc_vect)
+#' ## END OF EXAMPLE
 #' @export
 check_packbound <- function(input) {
-  # cl_inobj = class(input)[1]
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
+  if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
+    stop("Input should be one of sf or Spat* object.\n")
+  }
   if (methods::is(input, "SpatVector") || methods::is(input, "SpatRaster")) {
     return("terra")
   }
@@ -246,17 +273,32 @@ check_packbound <- function(input) {
 
 
 #' Return the data type
-#' @description This function returns one of 'vector' or 'raster' depending on the input class.
+#' @description This function returns one of 'vector' or 'raster'
+#' depending on the input class.
 #' @param input Spat*/sf/stars object.
-#' @note \code{stars} object is tricky a little whether to classify vector or raster. In this package, \code{stars} object will be considered raster.
-#' @author Insang song
-#' @return character(1). One of 'vector' or 'raster'.
+#' @note Although \code{stars} object is a little ambiguous
+#' whether to classify vector or raster,
+#' it will be considered raster in this package.
+#' @author Insang Song
+#' @returns character(1). One of 'vector' or 'raster'.
+#' @examples
+#' library(sf)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc_sf <- sf::st_read(nc_path)
+#' check_packbound(nc_sf)
+#' nc_vect <- terra::vect(nc_sf)
+#' check_packbound(nc_vect)
 #' @importFrom methods is
 #' @importFrom terra vect
 #' @importFrom terra rast
 #' @export
 check_datatype <- function(input) {
-  stopifnot("Input should be one of sf or Spat* object.\n" = any(methods::is(input, "sf"), methods::is(input, "stars"), methods::is(input, "SpatVector"), methods::is(input, "SpatRaster")))
+  if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
+    stop("Input should be one of sf or Spat* object.\n")
+  }
   if (any(methods::is(input, "SpatVector"), methods::is(input, "sf"))) {
     return("vector")
   }
@@ -268,65 +310,88 @@ check_datatype <- function(input) {
 
 ```{r test-packbound}
 testthat::test_that("What package does the input object belong?",
-{
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-  bcsd_stars <- stars::read_stars(bcsd_path)
+  {
+    withr::local_package("stars")
+    withr::local_package("terra")
+    withr::local_options(list(sf_use_s2 = FALSE))
+    bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+    bcsd_stars <- stars::read_stars(bcsd_path)
 
-  packbound_stars <- check_packbound(bcsd_stars)
-  sprast_bcsd <- terra::rast(bcsd_path)
-  packbound_terra <- check_packbound(sprast_bcsd)
+    packbound_stars <- check_packbound(bcsd_stars)
+    sprast_bcsd <- terra::rast(bcsd_path)
+    packbound_terra <- check_packbound(sprast_bcsd)
 
-  testthat::expect_equal(packbound_stars, "sf")
-  testthat::expect_equal(packbound_terra, "terra")
-})
+    testthat::expect_equal(packbound_stars, "sf")
+    testthat::expect_equal(packbound_terra, "terra")
+  }
+)
 
 
 testthat::test_that("What package does the input object belong?",
-{
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-  bcsd_stars <- stars::read_stars(bcsd_path)
+  {
+    withr::local_package("stars")
+    withr::local_package("terra")
+    withr::local_options(list(sf_use_s2 = FALSE))
+    bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+    bcsd_stars <- stars::read_stars(bcsd_path)
 
-  nc <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::read_sf(nc)
+    nc <- system.file(package = "sf", "shape/nc.shp")
+    nc <- sf::read_sf(nc)
 
-  datatype_stars <- check_datatype(bcsd_stars)
-  datatype_sf <- check_datatype(nc)
+    datatype_stars <- check_datatype(bcsd_stars)
+    datatype_sf <- check_datatype(nc)
 
-  testthat::expect_equal(datatype_stars, "raster")
-  testthat::expect_equal(datatype_sf, "vector")
-})
+    testthat::expect_equal(datatype_stars, "raster")
+    testthat::expect_equal(datatype_sf, "vector")
+  }
+)
 ```
 
 ```{r, send_to = "R/switch_format.R"}
 #' @title Switch spatial data class
-#' @description Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
+#' @description Convert class between `sf`/`stars`-`terra`
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
-#' @return Data converted to the other package class (if sf, terra; if terra, sf)
+#' @returns Data converted to the other package class
+#' (if sf, terra; if terra, sf)
+#' @examples
+#' library(sf)
+#' library(stars)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' ## generate a random raster
+#' ras_rand <- terra::rast(nrow = 30, ncol = 30)
+#' terra::values(ras_rand) <- runif(900)
+#' stars_rand <- switch_packbound(ras_rand)
+#' stars_rand
+#' # should return stars object
+#'
+#' vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
+#' sf_rand <- switch_packbound(vec_rand)
+#' sf_rand
+#' # should return sf object
 #' @export
 switch_packbound <- function(input) {
-  stopifnot("Input should be one of sf or Spat* object.\n" =
-    any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster")))
+  if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
+    stop("Input should be one of sf or Spat* object.\n")
+  }
   cls_input <- check_packbound(input)
   type_input <- check_datatype(input)
 
   switched <-
-  switch(cls_input,
-    sf = switch(type_input,
-      vector = terra::vect(input),
-      raster = terra::rast(input)
-    ),
-    terra = switch(type_input,
-      vector = sf::st_as_sf(input),
-      raster = stars::st_as_stars(input)))
+    switch(cls_input,
+      sf = switch(type_input,
+        vector = terra::vect(input),
+        raster = terra::rast(input)
+      ),
+      terra = switch(type_input,
+        vector = sf::st_as_sf(input),
+        raster = stars::st_as_stars(input)
+      )
+    )
 
-  invisible(switched)
+  return(switched)
 }
 ```
 
@@ -334,30 +399,30 @@ switch_packbound <- function(input) {
 ```{r test-format}
 
 testthat::test_that("Format is well converted",
-{
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
+  {
+    withr::local_package("stars")
+    withr::local_package("terra")
+    withr::local_options(list(sf_use_s2 = FALSE))
 
-  # starts from sf/stars
-  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-  bcsd_stars <- stars::read_stars(bcsd_path)
-  nc <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::read_sf(nc)
+    # starts from sf/stars
+    bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+    bcsd_stars <- stars::read_stars(bcsd_path)
+    nc <- system.file(package = "sf", "shape/nc.shp")
+    nc <- sf::read_sf(nc)
 
-  stars_bcsd_tr <- switch_packbound(bcsd_stars)
-  sf_nc_tr <- switch_packbound(nc)
+    stars_bcsd_tr <- switch_packbound(bcsd_stars)
+    sf_nc_tr <- switch_packbound(nc)
 
-  testthat::expect_equal(check_packbound(stars_bcsd_tr), "terra")
-  testthat::expect_equal(check_packbound(sf_nc_tr), "terra")
+    testthat::expect_equal(check_packbound(stars_bcsd_tr), "terra")
+    testthat::expect_equal(check_packbound(sf_nc_tr), "terra")
 
-  stars_bcsd_trb <- switch_packbound(stars_bcsd_tr)
-  sf_nc_trb <- switch_packbound(sf_nc_tr)
+    stars_bcsd_trb <- switch_packbound(stars_bcsd_tr)
+    sf_nc_trb <- switch_packbound(sf_nc_tr)
 
-  testthat::expect_equal(check_packbound(stars_bcsd_trb), "sf")
-  testthat::expect_equal(check_packbound(sf_nc_trb), "sf")
-
-})
+    testthat::expect_equal(check_packbound(stars_bcsd_trb), "sf")
+    testthat::expect_equal(check_packbound(sf_nc_trb), "sf")
+  }
+)
 
 
 ```
@@ -371,46 +436,56 @@ testthat::test_that("Format is well converted",
 #' @param crs_standard character(1). A standard definition of
 #'  coordinate reference system. Default is "EPSG:4326"
 #'  Consult [epsg.io](https://epsg.io) for details of other CRS.
-#' @return A (reprojected) sf or SpatVector object.
+#' @returns A (reprojected) sf or SpatVector object.
+#' @author Insang Song
+#' @examples
+#' library(sf)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' base_crs <- "OGC:CRS84"
+#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc_sf <- sf::st_read(nc_path)
+#' check_crs_align(nc_sf, base_crs)
+#'
+#' nc_vect <- terra::vect(nc_sf)
+#' check_crs_align(nc_vect, base_crs)
+#' @importFrom sf st_crs
+#' @importFrom sf st_transform
+#' @importFrom terra crs
+#' @importFrom terra project
 #' @export
 check_crs_align <-
   function(
     input,
-    crs_standard = "EPSG:4326") {
-  
-  if (!is.character(crs_standard)) {
-    stop("crs_standard seems to be in invalid format.
-      It should be '[authority]:[code]' format.
-      Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
-  }
-  check_crs_sf <- function(input, crs_standard) {
-    invisible(check_crs(input))
-    input_crs <- sf::st_crs(input)$epsg
-    standard_crs <- sf::st_crs(crs_standard)$epsg
-    if (input_crs == standard_crs) {
-      return(input)
-    } 
-    input_transformed <-
-      sf::st_transform(input, sf::st_crs(crs_standard))
-    return(input_transformed)
-  }
+    crs_standard = "EPSG:4326"
+  ) {
+    if (!grepl("[[:alpha:]]+{3,4}\\:[0-9]{4,7}", crs_standard)) {
+      stop("crs_standard seems to be in invalid format.
+        It should be '[authority]:[code]' format.
+        Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
+    }
 
-  check_crs_terra <- function(input, crs_standard) {
-    invisible(check_crs(input))
-    input_crs <- terra::crs(input, describe = TRUE)$code
-    standard_crs <- terra::crs(crs_standard, describe = TRUE)$code
+    bound_package <- check_packbound(input)
+    input_crs <- switch(
+      bound_package,
+      sf = sf::st_crs(input)$epsg,
+      terra = terra::crs(input, describe = TRUE)$code
+    )
+    standard_crs <- switch(
+      bound_package,
+      sf = sf::st_crs(crs_standard)$epsg,
+      terra = terra::crs(crs_standard, describe = TRUE)$code
+    )
     if (input_crs == standard_crs) {
       return(input)
     }
-    input_transformed <-
-      terra::project(x = input, y = crs_standard)
+    input_transformed <- switch(
+      bound_package,
+      sf = sf::st_transform(input, sf::st_crs(crs_standard)),
+      terra = terra::project(x = input, y = crs_standard)
+    )
     return(input_transformed)
-  }
-
-  detected <- check_packbound(input)
-  switch(detected,
-    terra = check_crs_terra(input = input, crs_standard = crs_standard),
-    sf = check_crs_sf(input = input, crs_standard = crs_standard))
 }
 ```
 
@@ -472,14 +547,15 @@ testthat::test_that("CRS is transformed when it is not standard", {
 #' @author Insang Song
 #' @param input_vector One of sf or vect class. Target points of computation.
 #' @returns A repaired sf or SpatVector object depending on
-#'  the class of input_vector.
+#' the class of input_vector.
 #' @export
 validate_and_repair_vectors <- function(input_vector) {
   detected <- check_packbound(input_vector)
 
   validated <- switch(detected,
     terra = terra::makeValid(input_vector),
-    sf = sf::st_make_valid(input_vector))
+    sf = sf::st_make_valid(input_vector)
+  )
 
   return(validated)
 }
@@ -512,12 +588,26 @@ testthat::test_that("vector validity check is cleared", {
 #'  It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
 #' @param pnts One of sf or vect class. Target points of computation.
-#' @param buffer_r numeric(1). Buffer radius. It is assumed in metres 
-#' @return A terra::ext or sfc_POLYGON object of the computation extent.
+#' @param buffer_r numeric(1). Buffer radius. It is assumed to be in meters
+#' @returns A terra::ext or sfc_POLYGON object of the computation extent.
+#' @examples
+#' library(sf)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc_sf <- sf::st_read(nc_path)
+#' set_clip_extent(nc_sf)
+#' nc_vect <- terra::vect(nc_sf)
+#' set_clip_extent(nc_vect)
+#' @importFrom terra ext
+#' @importFrom sf st_bbox
+#' @importFrom sf st_as_sfc
 #' @export
 set_clip_extent <- function(
   pnts,
-  buffer_r) {
+  buffer_r
+  ) {
   detected <- check_packbound(pnts)
   if (detected == "terra") {
     ext_input <- terra::ext(pnts)
@@ -526,7 +616,7 @@ set_clip_extent <- function(
     ext_input <- ext_input + (1.1 * buffer_r)
   }
   if (detected == "sf") {
-    ext_input <- pnts |> sf::st_bbox()
+    ext_input <- sf::st_bbox(pnts)
     # Note that `+` operation on st_bbox output
     # simply adds the number; we add a vector here.
     ext_input <- ext_input + ((1.1 * c(-1, -1, 1, 1) * buffer_r))
@@ -544,10 +634,11 @@ testthat::test_that("Clip extent is set properly", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
-  suppressWarnings(
+  suppressWarnings({
     nc <- sf::read_sf(ncpath) |>
       sf::st_transform("EPSG:5070") |>
-      sf::st_centroid())
+      sf::st_centroid()
+  })
 
   radius <- 1e4L
 
@@ -575,18 +666,32 @@ testthat::test_that("Clip extent is set properly", {
 ```{r, send_to = "R/processing.R"}
 #' Extent clipping
 #' @description Clip input vector by
-#'  the expected maximum extent of computation. 
+#'  the expected maximum extent of computation.
 #' @author Insang Song
-#' @param pnts sf or SpatVector object
-#' @param buffer_r numeric(1). buffer radius.
-#'  this value will be automatically multiplied by 1.25
-#' @param target_input sf or SpatVector object to be clipped
-#' @return A clipped sf or SpatVector object.
+#' @param pnts `sf` or `SpatVector` object
+#' @param buffer_r `numeric(1)`. Circular buffer radius.
+#'  this value will be automatically multiplied by 1.1
+#' @param target_input `sf` or `SpatVector` object to be clipped
+#' @returns A clipped `sf` or `SpatVector` object.
+#' @examples
+#' library(sf)
+#' library(stars)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+#' bcsd <- stars::read_stars(bcsd_path)
+#' bcsd_rpnt <- sf::st_sample(bcsd, 4L)
+#' bcsd_rpntm <- sf::st_sample(bcsd, 1000L)
+#' clip_as_extent(bcsd_rpntm, 1000, bcsd_rpnt)
+#' @importFrom sf st_intersection
+#' @importFrom terra intersect
 #' @export
 clip_as_extent <- function(
   pnts,
   buffer_r,
-  target_input) {
+  target_input
+) {
   if (any(sapply(list(pnts, buffer_r, target_input), is.null))) {
     stop("One or more required arguments are NULL. Please check.\n")
   }
@@ -619,8 +724,10 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
-  nccnty <- terra::vect(ncpath, layer = "county",
-    query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)")
+  nccnty <- terra::vect(
+    ncpath, layer = "county",
+    query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)"
+  )
   nctrct <- terra::vect(ncpath, layer = "tracts")
 
   ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
@@ -664,20 +771,36 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
 
 ```{r, send_to = "R/processing.R"}
 #' @title clip_as_extent_ras: Clip input raster.
-#' @description Clip input raster by the expected maximum extent of computation. 
-#' @author Insang Song
-#' @param pnts sf or SpatVector object
+#' @description Clip input raster by the expected maximum extent of
+#' computation.
+#' @param pnts `sf` or `SpatVector` object
 #' @param buffer_r numeric(1). buffer radius.
 #' This value will be automatically multiplied by 1.25
-#' @param ras SpatRaster object to be clipped
-#' @param nqsegs integer(1). the number of points per a quarter circle
+#' @param ras `SpatRaster` object to be clipped
+#' @param nqsegs `integer(1)`. the number of points per a quarter circle
+#' @author Insang Song
+#' @examples
+#' library(terra)
+#'
+#' ras_rand <- terra::rast(nrow = 20, ncol = 20)
+#' terra::values(ras_rand) <- runif(400L)
+#' ras_rand_p <-
+#'   data.frame(
+#'     x = c(3, 5, 3.2, 8),
+#'     y = c(12, 10, 15, 12),
+#'     z = c(0, 1, 2, 3)
+#'   )
+#' ras_rand_p <- terra::vect(ras_rand_p, geom = c("x", "y"))
+#' clip_as_extent_ras(ras_rand_p, 1.5, ras_rand)
+#' @importFrom terra vect
+#' @importFrom terra crop
 #' @export
 clip_as_extent_ras <- function(
   pnts,
   buffer_r,
   ras,
   nqsegs = 180L
-  ) {
+) {
   if (any(sapply(list(pnts, buffer_r, ras), is.null))) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
@@ -716,15 +839,22 @@ testthat::test_that("Clip by extent works without errors", {
 
 ```{r, send_to = "R/preprocessing.R"}
 #' Quick call for SpatRaster with a window
-#' 
 #' @param rasterpath character(1). Path to the raster file.
 #' @param win Named integer vector (4) or terra::ext() results.
-#' @return SpatRaster object.
+#' @returns SpatRaster object.
 #' @author Insang Song
-#' @export 
+#' @examples
+#' library(terra)
+#' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+#' ext_small <- terra::ext(
+#'   c(xmin = -80, xmax = -76, ymin = 35, ymax = 36)
+#' )
+#' rast_short(bcsd_path, ext_small)
+#' @importFrom methods is
+#' @export
 rast_short <- function(rasterpath, win) {
   if (!(all(is.numeric(win), !is.null(attr(win, "names")), length(win) == 4) ||
-        is(win, "SpatExtent"))) {
+        methods::is(win, "SpatExtent"))) {
     stop("Argument win should be one of named numeric vector or SpatExtent object.\n")
   }
   if (
@@ -768,13 +898,12 @@ testthat::test_that("Raster is read properly with a window.", {
 
 ```{r}
 #' Estimate computational demands from inputs (to be written)
-#' 
 #' @param inputs character vector of file paths
 #' @param nx integer(1).
 #' @param ny integer(1).
 #' @param padding numeric(1). Extrusion factor
 #' @author Insang Song
-#' @export 
+#' @export
 estimate_demands <- function(
   inputs,
   nx, ny,
