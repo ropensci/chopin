@@ -7,15 +7,18 @@
 reproject_b2r(vector, raster)
 }
 \arguments{
-\item{vector}{sf/stars/SpatVector/SpatRaster object}
+\item{vector}{\code{sf}/\code{stars}/\code{SpatVector}/\code{SpatRaster} object}
 
-\item{raster}{SpatRaster object}
+\item{raster}{\code{SpatRaster} object}
 }
 \value{
 Reprojected object in the same class as \code{vector}
 }
 \description{
 Reproject vectors to raster's CRS
+}
+\examples{
+# NOT TO RUN
 }
 \author{
 Insang Song

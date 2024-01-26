@@ -25,7 +25,7 @@ Default is NULL. If NULL, all grid_ids are used.
 \item{debug}{logical(1). Prints error messages
 if there were any errors during the calculation.}
 
-\item{fun_dist}{sf, terra or chopin functions.}
+\item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.}
 
 \item{...}{Arguments passed to the argument \code{fun_dist}.}
 }
@@ -40,8 +40,8 @@ Currently only accepting \link[future]{multicore} setting
 For details of the terminology in \code{future} package,
 refer to \link[future]{plan}. This function assumes that
 users have one raster file and a sizable and spatially distributed
-target locations. Each thread will process ceiling(|Ng|/|Nt|) grids
-where |Ng| denotes the number of grids and |Nt| denotes
+target locations. Each thread will process ceiling($|N_g|/|N_t|$) grids
+where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 the number of threads.
 }
 \note{

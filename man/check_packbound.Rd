@@ -15,6 +15,18 @@ A character object; one of 'terra' and 'sf'
 \description{
 Detect whether the input object is sf or Spat* object.
 }
+\examples{
+library(sf)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+nc_sf <- sf::st_read(nc_path)
+check_packbound(nc_sf)
+nc_vect <- terra::vect(nc_sf)
+check_packbound(nc_vect)
+## END OF EXAMPLE
+}
 \author{
 Insang Song
 }

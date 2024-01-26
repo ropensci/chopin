@@ -10,10 +10,29 @@ switch_packbound(input)
 \item{input}{Spat* in terra or sf object.}
 }
 \value{
-Data converted to the other package class (if sf, terra; if terra, sf)
+Data converted to the other package class
+(if sf, terra; if terra, sf)
 }
 \description{
-Convert stars into SpatRaster and vice versa; sf into SpatVector and vice versa.
+Convert class between \code{sf}/\code{stars}-\code{terra}
+}
+\examples{
+library(sf)
+library(stars)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+## generate a random raster
+ras_rand <- terra::rast(nrow = 30, ncol = 30)
+terra::values(ras_rand) <- runif(900)
+stars_rand <- switch_packbound(ras_rand)
+stars_rand
+# should return stars object
+
+vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
+sf_rand <- switch_packbound(vec_rand)
+sf_rand
+# should return sf object
 }
 \author{
 Insang Song

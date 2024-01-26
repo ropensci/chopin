@@ -4,12 +4,12 @@
 \alias{extract_with_polygons}
 \title{Extract summarized values from raster with generic polygons}
 \usage{
-extract_with_polygons(polys, surf, id, func = "mean")
+extract_with_polygons(polys = NULL, surf = NULL, id = NULL, func = "mean")
 }
 \arguments{
-\item{polys}{sf/SpatVector object. Polygons.}
+\item{polys}{\code{sf}/\code{SpatVector} object. Polygons.}
 
-\item{surf}{SpatRaster object.
+\item{surf}{\code{SpatRaster} object.
 A raster from which a summary will be calculated}
 
 \item{id}{character(1). Unique identifier of each point.}
@@ -17,7 +17,7 @@ A raster from which a summary will be calculated}
 \item{func}{a generic function name in string or
 a function taking two arguments that are
 compatible with \code{\link[exactextractr]{exact_extract}}.
-For example, "mean" or or \code{\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
+For example, \code{"mean"} or \verb{\\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
 }
 \value{
 a data.frame object with function value
@@ -26,6 +26,19 @@ a data.frame object with function value
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
 Kernel function is not yet implemented.
+}
+\examples{
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+nc <- terra::vect(ncpath)
+nc <- terra::project(nc, "EPSG:5070")
+rrast <- terra::rast(nc, nrow = 100, ncol = 220)
+ncr <- terra::rasterize(nc, rrast)
+terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
+rpnt$pid <- sprintf("ID-\%02d", seq(1, 16))
+rpoly <-
+  terra::buffer(rpnt, 5, capstyle = "square", joinstyle = "bevel")
+extract_with_polygons(rpoly, rrast, "pid")
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

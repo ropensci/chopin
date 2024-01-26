@@ -9,6 +9,9 @@
 #' \item{lat}{Latitude}
 #' }
 #' @note Coordinates are in EPSG:5070 (Conus Albers Equal Area)
-#' @source Mainland United States polygon was obtained from the US Census Bureau.
+#' @source Mainland United States polygon was obtained from
+#' the US Census Bureau.
+#' @examples
+#' data("prediction_grid", package = "chopin")
 "prediction_grid"
 

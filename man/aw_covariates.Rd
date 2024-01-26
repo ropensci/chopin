@@ -4,7 +4,7 @@
 \alias{aw_covariates}
 \title{Computing area weighted covariates using two polygon sf or SpatVector objects}
 \usage{
-aw_covariates(poly_in, poly_weight, id_poly_in = "ID")
+aw_covariates(poly_in = NULL, poly_weight = NULL, id_poly_in = "ID")
 }
 \arguments{
 \item{poly_in}{A sf/SpatVector object at weighted means will be calculated.}

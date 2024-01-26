@@ -21,3 +21,19 @@ The input is checked whether its coordinate system is
 present. If not, it is reprojected to the CRS specified in
 \code{crs_standard}.
 }
+\examples{
+library(sf)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+base_crs <- "OGC:CRS84"
+nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+nc_sf <- sf::st_read(nc_path)
+check_crs_align(nc_sf, base_crs)
+
+nc_vect <- terra::vect(nc_sf)
+check_crs_align(nc_vect, base_crs)
+}
+\author{
+Insang Song
+}

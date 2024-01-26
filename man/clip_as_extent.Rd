@@ -7,19 +7,31 @@
 clip_as_extent(pnts, buffer_r, target_input)
 }
 \arguments{
-\item{pnts}{sf or SpatVector object}
+\item{pnts}{\code{sf} or \code{SpatVector} object}
 
-\item{buffer_r}{numeric(1). buffer radius.
-this value will be automatically multiplied by 1.25}
+\item{buffer_r}{\code{numeric(1)}. Circular buffer radius.
+this value will be automatically multiplied by 1.1}
 
-\item{target_input}{sf or SpatVector object to be clipped}
+\item{target_input}{\code{sf} or \code{SpatVector} object to be clipped}
 }
 \value{
-A clipped sf or SpatVector object.
+A clipped \code{sf} or \code{SpatVector} object.
 }
 \description{
 Clip input vector by
 the expected maximum extent of computation.
+}
+\examples{
+library(sf)
+library(stars)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+bcsd <- stars::read_stars(bcsd_path)
+bcsd_rpnt <- sf::st_sample(bcsd, 4L)
+bcsd_rpntm <- sf::st_sample(bcsd, 1000L)
+clip_as_extent(bcsd_rpntm, 1000, bcsd_rpnt)
 }
 \author{
 Insang Song

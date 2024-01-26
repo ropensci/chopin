@@ -13,11 +13,25 @@ check_datatype(input)
 character(1). One of 'vector' or 'raster'.
 }
 \description{
-This function returns one of 'vector' or 'raster' depending on the input class.
+This function returns one of 'vector' or 'raster'
+depending on the input class.
 }
 \note{
-\code{stars} object is tricky a little whether to classify vector or raster. In this package, \code{stars} object will be considered raster.
+Although \code{stars} object is a little ambiguous
+whether to classify vector or raster,
+it will be considered raster in this package.
+}
+\examples{
+library(sf)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+nc_sf <- sf::st_read(nc_path)
+check_packbound(nc_sf)
+nc_vect <- terra::vect(nc_sf)
+check_packbound(nc_vect)
 }
 \author{
-Insang song
+Insang Song
 }

@@ -13,7 +13,8 @@ A data frame with 8,092,995 rows and three variables:
 }
 }
 \source{
-Mainland United States polygon was obtained from the US Census Bureau.
+Mainland United States polygon was obtained from
+the US Census Bureau.
 }
 \usage{
 prediction_grid
@@ -23,5 +24,8 @@ Regular grid points in the mainland United States at 1km spatial resolution
 }
 \note{
 Coordinates are in EPSG:5070 (Conus Albers Equal Area)
+}
+\examples{
+data("prediction_grid", package = "chopin")
 }
 \keyword{datasets}

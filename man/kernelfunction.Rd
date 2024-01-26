@@ -16,10 +16,23 @@ kernelfunction(
 \item{bw}{Bandwidth of a kernel}
 
 \item{kernel}{Kernel type. One of
-'uniform', 'quartic', 'triweight', and 'epanechnikov'}
+\code{"uniform"}, \code{"quartic"}, \code{"triweight"}, and \code{"epanechnikov"}}
 }
 \description{
 Kernel functions
+}
+\examples{
+v_dist <- c(1, 10, 100, 25, 50, 0.1)
+bw_dist1 <- 1
+bw_dist2 <- 10
+kernelfunction(v_dist, bw_dist1, "uniform")
+kernelfunction(v_dist, bw_dist1, "quartic")
+kernelfunction(v_dist, bw_dist1, "triweight")
+kernelfunction(v_dist, bw_dist1, "epanechnikov")
+kernelfunction(v_dist, bw_dist2, "uniform")
+kernelfunction(v_dist, bw_dist2, "quartic")
+kernelfunction(v_dist, bw_dist2, "triweight")
+kernelfunction(v_dist, bw_dist2, "epanechnikov")
 }
 \references{
 \href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}

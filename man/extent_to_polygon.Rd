@@ -4,7 +4,11 @@
 \alias{extent_to_polygon}
 \title{Generate a rectangular polygon from extent}
 \usage{
-extent_to_polygon(extent, output_class = "terra", crs = "EPSG:4326")
+extent_to_polygon(
+  extent = NULL,
+  output_class = c("sf", "terra"),
+  crs = "EPSG:4326"
+)
 }
 \arguments{
 \item{extent}{input extent.
@@ -16,8 +20,19 @@ Class of the output polygon. One of "sf" or "terra"}
 
 \item{crs}{character(1). Coordinate reference system definition.}
 }
+\value{
+\code{sf} or \code{SpatVector} object of a rectangular polygon.
+}
 \description{
 Generate a rectangular polygon from extent
+}
+\examples{
+library(sf)
+library(terra)
+numext1 <- c(-100, -70, 30, 40)
+names(numext1) <- c("xmin", "xmax", "ymin", "ymax")
+extent_to_polygon(numext1, "sf")
+extent_to_polygon(numext1, "terra")
 }
 \author{
 Insang Song

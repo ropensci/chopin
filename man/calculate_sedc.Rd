@@ -5,12 +5,12 @@
 \title{Calculate SEDC covariates}
 \usage{
 calculate_sedc(
-  point_from,
-  point_to,
-  id,
-  sedc_bandwidth,
-  threshold,
-  target_fields
+  point_from = NULL,
+  point_to = NULL,
+  id = NULL,
+  sedc_bandwidth = NULL,
+  threshold = NULL,
+  target_fields = NULL
 )
 }
 \arguments{

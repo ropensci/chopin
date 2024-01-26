@@ -9,7 +9,7 @@ set_clip_extent(pnts, buffer_r)
 \arguments{
 \item{pnts}{One of sf or vect class. Target points of computation.}
 
-\item{buffer_r}{numeric(1). Buffer radius. It is assumed in metres}
+\item{buffer_r}{numeric(1). Buffer radius. It is assumed to be in meters}
 }
 \value{
 A terra::ext or sfc_POLYGON object of the computation extent.
@@ -17,6 +17,17 @@ A terra::ext or sfc_POLYGON object of the computation extent.
 \description{
 Return clipping extent with buffer radius.
 It assumes the input CRS is projected and linear unit is meters.
+}
+\examples{
+library(sf)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+nc_sf <- sf::st_read(nc_path)
+set_clip_extent(nc_sf)
+nc_vect <- terra::vect(nc_sf)
+set_clip_extent(nc_vect)
 }
 \author{
 Insang Song

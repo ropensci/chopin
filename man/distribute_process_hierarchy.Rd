@@ -44,8 +44,8 @@ For details of the terminology in \code{future} package,
 refer to \link[future]{plan}.
 This function assumes that users have one raster file and
 a sizable and spatially distributed target locations.
-Each thread will process ceiling(|Ng|/|Nt|) grids where
-|Ng| denotes the number of grids and |Nt| denotes
+Each thread will process ceiling($|N_{g}|/|N_{t}|$) grids where
+$|N_{g}|$ denotes the number of grids and $|N_{t}|$ denotes
 the number of threads. Please be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
@@ -53,7 +53,7 @@ multiple processes may result in errors.
 \note{
 In dynamic dots (\code{...}), the first and second
 arguments should be the \code{fun_dist} arguments where
-sf/SpatVector objects are accepted.
+\code{sf}/\code{SpatVector} objects are accepted.
 Virtually any sf/terra functions that accept two arguments
 can be put in \code{fun_dist}, but please be advised that
 some spatial operations do not necessarily give the
@@ -65,8 +65,9 @@ are spatially sparsely distributed.
 }
 \examples{
 library(future)
-plan(multicore, workers = 4)
+plan(multicore, workers = 4L)
 # Does not run ...
+# library(tigris)
 # distribute_process_hierarchy()
 }
 \author{

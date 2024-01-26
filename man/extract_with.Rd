@@ -5,26 +5,26 @@
 \title{Extract raster values with point buffers or polygons}
 \usage{
 extract_with(
-  vector,
-  raster,
-  id,
+  vector = NULL,
+  raster = NULL,
+  id = NULL,
   func = "mean",
   mode = c("polygon", "buffer"),
   ...
 )
 }
 \arguments{
-\item{vector}{sf/SpatVector object.}
+\item{vector}{\code{sf}/\code{SpatVector} object.}
 
-\item{raster}{SpatRaster object.}
+\item{raster}{\code{SpatRaster} object.}
 
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{func}{function taking one numeric vector argument.}
 
-\item{mode}{one of "polygon"
+\item{mode}{one of \code{"polygon"}
 (generic polygons to extract raster values with) or
-"buffer" (point with buffer radius)}
+\code{"buffer"} (point with buffer radius)}
 
 \item{...}{various. Passed to extract_with_buffer.
 See \code{?extract_with_buffer} for details.}
@@ -35,6 +35,9 @@ respect to the mode (polygon or buffer) and the function.
 }
 \description{
 Extract raster values with point buffers or polygons
+}
+\examples{
+## See ?extract_with_polygons and ?extract_with_buffers
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

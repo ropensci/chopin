@@ -60,8 +60,10 @@ ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:5070")
 # run
-# nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
-
+nc_comp_region <- get_computational_regions(nc, nx = 12, ny = 8)
+par(mfcol = c(1, 2))
+plot(nc_comp_region$original)
+plot(nc_comp_region$padded)
 }
 \author{
 Insang Song

@@ -2,37 +2,61 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{extract_with_buffer}
 \alias{extract_with_buffer}
-\title{Extract summarized values from raster with points and
-a buffer radius (to be written)}
+\alias{extract_with_buffer_flat}
+\alias{extract_with_buffer_kernel}
+\title{Extract summarized values from raster with points and a buffer radius}
 \usage{
 extract_with_buffer(
-  points,
-  surf,
-  radius,
-  id,
+  points = NULL,
+  surf = NULL,
+  radius = NULL,
+  id = NULL,
   qsegs = 90L,
   func = "mean",
   kernel = NULL,
   bandwidth = NULL
 )
+
+extract_with_buffer_flat(
+  points = NULL,
+  surf = NULL,
+  radius = NULL,
+  id = NULL,
+  qsegs = NULL,
+  func = "mean",
+  kernel = NULL,
+  bandwidth = NULL
+)
+
+extract_with_buffer_kernel(
+  points = NULL,
+  surf = NULL,
+  radius = NULL,
+  id = NULL,
+  qsegs = NULL,
+  func = stats::weighted.mean,
+  kernel = NULL,
+  bandwidth = NULL
+)
 }
 \arguments{
-\item{points}{sf/SpatVector object. Coordinates where buffers will be generated}
+\item{points}{\code{sf}/\code{SpatVector} object.
+Coordinates where buffers will be generated.}
 
-\item{surf}{SpatRaster object.
-A raster of whatnot a summary will be calculated}
+\item{surf}{\code{SpatRaster} object.
+A raster at which summary will be calculated}
 
 \item{radius}{numeric(1). Buffer radius. here we assume circular buffers only}
 
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{qsegs}{integer(1). Number of vertices at a quarter of a circle.
-Default is 90.}
+Default is 90L.}
 
 \item{func}{a function taking a numeric vector argument.}
 
 \item{kernel}{character(1). Name of a kernel function
-One of 'uniform', 'triweight', 'quartic', and 'epanechnikov'}
+One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 }
@@ -42,6 +66,15 @@ a data.frame object with mean value
 \description{
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
+}
+\examples{
+library(terra)
+rrast <- terra::rast(nrow = 100, ncol = 100)
+terra::crs(rrast) <- ""
+terra::values(rrast) <- rgamma(1e4, 4, 2)
+rpnt <- terra::spatSample(rrast, 100L, as.points = TRUE)
+rpnt$pid <- sprintf("id_\%03d", seq(1, 100))
+extract_with_buffer(rpnt, rrast, 4, "pid")
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

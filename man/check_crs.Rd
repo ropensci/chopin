@@ -7,13 +7,13 @@
 check_crs(x)
 }
 \arguments{
-\item{x}{sf/stars/SpatVector/SpatRaster object.}
+\item{x}{\code{sf}/\code{stars}/\code{SpatVector}/\code{SpatRaster} object.}
 }
 \value{
 A st_crs or crs object.
 }
 \description{
-It returns st_crs object from sf/Spat* objects.
+It returns st_crs object from \code{sf}/Spat* objects.
 }
 \examples{
 # data
