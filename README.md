@@ -3,11 +3,10 @@
 [![R-CMD-check](https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/check-standard.yaml)
 
     
-# Scalable_GIS
-Scalable GIS methods for environmental and climate data analysis 
+# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure
 
 
-# Basic design
+## Basic design
 - Processing functions accept sf/terra classes for spatial data. Raster-vector overlay is done with `exactextractr`.
 - As of version 0.1.0, this package supports three basic functions that are readily parallelized over multithread environments:
     - `extract_at`: extract raster values with point buffers or polygons.
@@ -22,7 +21,7 @@ Scalable GIS methods for environmental and climate data analysis
     - `par_multirasters`
 
 
-# Use case
+## Use case
 - Please refer to a small example below for extracting mean altitude values at circular point buffers and census tracts in North Carolina.
 
 ``` r
@@ -47,7 +46,7 @@ plot(sf::st_geometry(ncsf))
 
 ![](https://i.imgur.com/ImPfGXP.png)<!-- -->
 
-## Generate random points in NC
+### Generate random points in NC
 - Ten thousands random point locations are generated inside the counties of North Carolina.
 ``` r
 ncpoints <- sf::st_sample(ncsf, 10000)
@@ -63,7 +62,7 @@ ncpoints <- st_as_sf(ncpoints)
 ncpoints$pid <- seq(1, nrow(ncpoints))
 ```
 
-## Target dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
+### Target dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
 - We use an elevation dataset with and a moderate spatial resolution (approximately 400 meters or 0.25 miles).
 ``` r
 srtm <- terra::unwrap(readRDS("../../tests/testdata/nc_srtm15_otm.rds"))
@@ -101,7 +100,7 @@ system.time(
 #>   6.271   0.210   6.484
 ```
 
-## Generate regular grid computational regions
+### Generate regular grid computational regions
 - `chopin::par_make_gridset` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 ``` r
 compregions <-
@@ -128,7 +127,7 @@ par(oldpar)
 
 ![](https://i.imgur.com/c0xweeV.png)<!-- -->
 
-## Parallel processing
+### Parallel processing
 - Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `chopin::par_grid`
 - Users always need to **register** multiple CPU threads (logical cores) to enable them to be used by R processes.
 - `chopin::par_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
@@ -245,7 +244,7 @@ plot(ncpoints_m[, "mean"], main = "Multi-thread")
 
 ![](https://i.imgur.com/fgOvOff.png)<!-- -->
 
-## Parallelize geospatial computations using intrinsic data hierarchy: `chopin::par_hierarchy`
+### Parallelize geospatial computations using intrinsic data hierarchy: `chopin::par_hierarchy`
 - In real world datasets, we usually have nested/exhaustive hierarchies. For example, land is organized by administrative/jurisdictional borders where multiple levels exist. In the U.S. context, a state consists of several counties, counties are split into census tracts, and they have a group of block groups.
 - `chopin::par_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
 - A demonstration below shows that census tracts are grouped by their counties then each county will be processed in a CPU thread.
@@ -309,7 +308,7 @@ system.time(
 ```
 
 
-## Multiple rasters
+### Multiple rasters
 - There is a common case of having a large group of raster files at which the same operation should be performed.
 - `chopin::distribute_process_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
 ``` r
@@ -357,7 +356,7 @@ knitr::kable(head(res))
 | 37109 | 270.96933 |
 
 
-## Parallelization of a generic geospatial operation
+### Parallelization of a generic geospatial operation
 - Other than `chopin` internal macros, `chopin::distribute_process_*` functions support generic geospatial operations.
 - An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `chopin::distribute_process_grid`.
 ``` r
@@ -442,7 +441,7 @@ system.time(
 #>   0.036   0.000   0.036
 ```
 
-## Why parallelization is slower than the ordinary function run?
+### Why parallelization is slower than the ordinary function run?
 - Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead refers to the required amount of computational resources for transferring objects to multiple processes.
 - Since the demonstrations above use quite small datasets, the advantage of parallelization was not as dramatically as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be added to this vignette soon.
 
