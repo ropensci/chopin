@@ -542,11 +542,16 @@ kernelfunction &lt;-
     kernel = c(&quot;uniform&quot;, &quot;quartic&quot;, &quot;triweight&quot;, &quot;epanechnikov&quot;)
   ) {
     kernel &lt;- match.arg(kernel)
+    if (kernel == &quot;uniform&quot;) {
+      d &lt;- ifelse(d &gt; bw, 0, 0.5)
+    } else {
+      d &lt;- ifelse(d &gt; bw, bw, d)
+    }
     switch(kernel,
-      uniform = 1,
-      quartic = (15 / 16) * (1 - (1 - ((d / bw)^2))^2),
-      triweight = 1 - ((d / bw)^3),
-      epanechnikov = (3 / 4) * (1 - (d / bw)^2)
+      uniform = d,
+      quartic = (15 / 16) * (1 - ((d / bw)^2))^2,
+      triweight = 1 - ((d / bw) ^ 3),
+      epanechnikov = (3 / 4) * (1 - ((d / bw)^2))
     )
 
   }</code></pre>

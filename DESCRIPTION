@@ -42,4 +42,4 @@ Depends:
     R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: e278c42258dd245a30b5ba1b979c71ea
+LitrId: d2301ea1373a20b987681e3857037810

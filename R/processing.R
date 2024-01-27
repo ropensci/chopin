@@ -26,11 +26,16 @@ kernelfunction <-
     kernel = c("uniform", "quartic", "triweight", "epanechnikov")
   ) {
     kernel <- match.arg(kernel)
+    if (kernel == "uniform") {
+      d <- ifelse(d > bw, 0, 0.5)
+    } else {
+      d <- ifelse(d > bw, bw, d)
+    }
     switch(kernel,
-      uniform = 1,
-      quartic = (15 / 16) * (1 - (1 - ((d / bw)^2))^2),
-      triweight = 1 - ((d / bw)^3),
-      epanechnikov = (3 / 4) * (1 - (d / bw)^2)
+      uniform = d,
+      quartic = (15 / 16) * (1 - ((d / bw)^2))^2,
+      triweight = 1 - ((d / bw) ^ 3),
+      epanechnikov = (3 / 4) * (1 - ((d / bw)^2))
     )
 
   }
