@@ -32,7 +32,7 @@ testthat::test_that("SEDC are well calculated.", {
 
   testthat::expect_no_error(
     sedc_calc <-
-      calculate_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames)
+      summarize_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames)
   )
   testthat::expect_s3_class(sedc_calc, "data.frame")
 
@@ -49,13 +49,13 @@ testthat::test_that("SEDC are well calculated.", {
   ncrandsf <- sf::st_as_sf(ncrand)
 
   testthat::expect_no_error(
-    calculate_sedc(ncpnts, ncrandsf, "pid", 3e4L, 5e4L, polnames)
+    summarize_sedc(ncpnts, ncrandsf, "pid", 3e4L, 5e4L, polnames)
   )
 
   ncpnts2 <- ncpnts
   ncpnts2$FIPS <- rpois(nrow(ncpnts2), 20)
   testthat::expect_warning(
-    calculate_sedc(ncpnts2, ncrandsf, "pid", 3e4L, 5e4L, polnames)
+    summarize_sedc(ncpnts2, ncrandsf, "pid", 3e4L, 5e4L, polnames)
   )
 })
 

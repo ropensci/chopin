@@ -4,7 +4,7 @@
 #' @description Detect whether the input object is sf or Spat* object.
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
-#' @returns A character object; one of 'terra' and 'sf'
+#' @returns A character object; one of `"terra"` and `"sf"`
 #' @examples
 #' library(sf)
 #' library(terra)
@@ -12,12 +12,12 @@
 #'
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
-#' check_packbound(nc_sf)
+#' dep_check(nc_sf)
 #' nc_vect <- terra::vect(nc_sf)
-#' check_packbound(nc_vect)
+#' dep_check(nc_vect)
 #' ## END OF EXAMPLE
 #' @export
-check_packbound <- function(input) {
+dep_check <- function(input) {
   if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
     stop("Input should be one of sf or Spat* object.\n")
   }
@@ -28,7 +28,7 @@ check_packbound <- function(input) {
 }
 
 
-#' Return the data type
+#' Return the input's GIS data model type
 #' @description This function returns one of 'vector' or 'raster'
 #' depending on the input class.
 #' @param input Spat*/sf/stars object.
@@ -36,7 +36,7 @@ check_packbound <- function(input) {
 #' whether to classify vector or raster,
 #' it will be considered raster in this package.
 #' @author Insang Song
-#' @returns character(1). One of 'vector' or 'raster'.
+#' @returns character(1). One of `"vector"` or `"raster"`.
 #' @examples
 #' library(sf)
 #' library(terra)
@@ -44,16 +44,14 @@ check_packbound <- function(input) {
 #'
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
-#' check_datatype(nc_sf)
+#' datamod(nc_sf)
 #'
 #' ra_path <- system.file("ex/elev.tif", package = "terra")
 #' ra <- terra::rast(ra_path)
-#' check_datatype(ra)
+#' datamod(ra)
 #' @importFrom methods is
-#' @importFrom terra vect
-#' @importFrom terra rast
 #' @export
-check_datatype <- function(input) {
+datamod <- function(input) {
   if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
     stop("Input should be one of sf or Spat* object.\n")
   }
@@ -84,27 +82,30 @@ check_datatype <- function(input) {
 #' base_crs <- "EPSG:5070"
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
-#' check_crs_align(nc_sf, base_crs)
+#' reproject_std(nc_sf, base_crs)
 #'
 #' nc_vect <- terra::vect(nc_sf)
-#' check_crs_align(nc_vect, base_crs)
+#' reproject_std(nc_vect, base_crs)
 #' @importFrom sf st_crs
 #' @importFrom sf st_transform
 #' @importFrom terra crs
 #' @importFrom terra project
 #' @export
-check_crs_align <-
+reproject_std <-
   function(
     input,
     crs_standard = "EPSG:4326"
   ) {
-    if (!grepl("[[:alpha:]]+{3,4}\\:([[:alpha:]]{2,4}[0-9]{2,2}|[0-9]{4,7})", crs_standard)) {
+    if (
+      !grepl("[[:alpha:]]+{3,4}\\:([[:alpha:]]{2,4}[0-9]{2,2}|[0-9]{4,7})",
+             crs_standard)
+    ) {
       stop("crs_standard seems to be in invalid format.
         It should be '[authority]:[code]' format.
         Please refer to https://epsg.io, ?sf::st_crs or ?terra::crs.\n")
     }
 
-    bound_package <- check_packbound(input)
+    bound_package <- dep_check(input)
     input_crs <- switch(
       bound_package,
       sf = sf::st_crs(input)$epsg,
@@ -145,13 +146,13 @@ check_crs_align <-
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #'
-#' nc_valid <- validate_and_repair_vectors(nc)
+#' nc_valid <- vect_valid_repair(nc)
 #' }
 #' @importFrom terra makeValid
 #' @importFrom sf st_make_valid
 #' @export
-validate_and_repair_vectors <- function(input_vector) {
-  detected <- check_packbound(input_vector)
+vect_valid_repair <- function(input_vector) {
+  detected <- dep_check(input_vector)
 
   validated <- switch(detected,
     terra = terra::makeValid(input_vector),
@@ -176,8 +177,8 @@ validate_and_repair_vectors <- function(input_vector) {
 #' library(terra)
 #' numext1 <- c(-100, -70, 30, 40)
 #' names(numext1) <- c("xmin", "xmax", "ymin", "ymax")
-#' extent_to_polygon(numext1, "sf")
-#' extent_to_polygon(numext1, "terra")
+#' ext2poly(numext1, "sf")
+#' ext2poly(numext1, "terra")
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_bbox
 #' @importFrom sf st_set_crs
@@ -185,7 +186,7 @@ validate_and_repair_vectors <- function(input_vector) {
 #' @importFrom terra ext
 #' @importFrom terra set.crs
 #' @export
-extent_to_polygon <- function(
+ext2poly <- function(
     extent = NULL,
     output_class = c("sf", "terra"),
     crs = "EPSG:4326") {
@@ -240,15 +241,15 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n")
 #'
 #' refextnum <- c(-100, -60, 20, 40)
 #' names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
-#' refext <- extent_to_polygon(refextnum)
-#' check_bbox(nc, refext)
+#' refext <- ext2poly(refextnum)
+#' is_bbox_within_reference(nc, refext)
 #' @importFrom sf st_as_sfc
 #' @importFrom sf st_crs
 #' @importFrom sf st_bbox
 #' @importFrom sf st_transform
 #' @importFrom sf st_within
 #' @export
-check_bbox <- function(
+is_bbox_within_reference <- function(
   data_query = NULL,
   reference = NULL
 ) {
@@ -268,7 +269,7 @@ check_bbox <- function(
 
 #' Check Coordinate Reference System
 #' @param x `sf`/`stars`/`SpatVector`/`SpatRaster` object.
-#' @return A st_crs or crs object.
+#' @returns A st_crs or crs object.
 #' @description It returns st_crs object from `sf`/Spat* objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -276,19 +277,19 @@ check_bbox <- function(
 #' library(sf)
 #' ncpath = system.file("shape/nc.shp", package = "sf")
 #' nc = read_sf(ncpath)
-#' check_crs(nc)
+#' crs_check(nc)
 #' @importFrom sf st_crs
 #' @importFrom terra crs
 #' @importFrom methods is
 #' @export
-check_crs <- function(x) {
+crs_check <- function(x) {
   ref_class <- c("sf", "stars", "SpatVector",
                  "SpatRaster", "SpatRasterDataset")
 
   if (!any(ref_class %in% class(x))) {
     stop("Input is invalid.\n")
   }
-  class_type <- check_packbound(x)
+  class_type <- dep_check(x)
   if (class_type == "sf" && is.na(sf::st_crs(x))) {
     stop("No CRS is defined in the input.
     Please consult the metadata or the data source.\n")
@@ -319,15 +320,15 @@ check_crs <- function(x) {
 #' nc <- sf::read_sf(ncpath)
 #' nc <- sf::st_transform(nc, "EPSG:4326")
 #' mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-#' mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
-#' within_res <- check_within_reference(nc, mainland_box)
+#' mainland_box <- ext2poly(mainland_vec, output_class = "sf")
+#' within_res <- is_within_ref(nc, mainland_box)
 #' within_res
 #' @importFrom methods is
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc
 #' @importFrom sf st_covered_by
 #' @export
-check_within_reference <- function(input_object, reference) {
+is_within_ref <- function(input_object, reference) {
   if (!any(
     methods::is(input_object, "sf"),
     methods::is(input_object, "stars"),
@@ -376,9 +377,9 @@ check_within_reference <- function(input_object, reference) {
 #' a loosely defined function.
 #' @examples
 #' df <- data.frame(a = 1, b = 3)
-#' detect_class(list(df), "data.frame")
+#' any_class_args(list(df), "data.frame")
 #' @export
-detect_class <- function(
+any_class_args <- function(
   args = NULL,
   search = NULL
 ) {

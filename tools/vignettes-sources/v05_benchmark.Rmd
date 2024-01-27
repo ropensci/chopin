@@ -42,7 +42,7 @@ pgsf1e <- pgsf |> dplyr::sample_n(4e5)
 ```
 
 ```{r main_run}
-grid_init <- chopin::get_computational_regions(
+grid_init <- chopin::par_make_gridset(
   pgsf,
   "grid",
   nx = 60L,
@@ -53,9 +53,9 @@ grid_init <- chopin::get_computational_regions(
 plan(multicore, workers = 50L)
 
 cropscape_extr_multi <-
-  chopin::distribute_process_grid(
+  chopin::par_grid(
     grid_init,
-    fun_dist = chopin::extract_with_buffer,
+    fun_dist = chopin::extract_at_buffer,
     points = pgsf,
     surf = cropscape,
     radius = 1e4L,
@@ -67,7 +67,7 @@ cropscape_extr_multi <-
 
 
 ```{r main_run}
-grid_init1e <- chopin::get_computational_regions(
+grid_init1e <- chopin::par_make_gridset(
   pgsf1e,
   "grid",
   nx = 60L,
@@ -78,9 +78,9 @@ grid_init1e <- chopin::get_computational_regions(
 plan(multicore, workers = 16L)
 
 cropscape_extr_multi <-
-  chopin::distribute_process_grid(
+  chopin::par_grid(
     grid_init1e,
-    fun_dist = chopin::extract_with_buffer,
+    fun_dist = chopin::extract_at_buffer,
     points = pgsf1e,
     surf = cropscape,
     radius = 1e4L,

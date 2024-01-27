@@ -26,7 +26,7 @@ if (dir.exists("~/r-libs")) {
 }
 
 pkgs <-
-  c("scomps",
+  c("chopin",
     "dplyr", "sf", "terra",
     "future", "future.apply", "future.batchtools"
   )

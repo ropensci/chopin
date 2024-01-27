@@ -1,6 +1,6 @@
 Package: chopin
 Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
-Version: 0.2.2.01262024
+Version: 0.3.0.01272024
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -42,4 +42,4 @@ https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: e54792ab73242cf0984fa67122b51e20
+LitrId: 61720ba38eb7d99f2e257db5054ff830

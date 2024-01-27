@@ -18,6 +18,9 @@ kernelfunction(
 \item{kernel}{Kernel type. One of
 \code{"uniform"}, \code{"quartic"}, \code{"triweight"}, and \code{"epanechnikov"}}
 }
+\value{
+numeric. Kernel weights.
+}
 \description{
 Kernel functions
 }

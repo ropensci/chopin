@@ -2,7 +2,7 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{reproject_b2r}
 \alias{reproject_b2r}
-\title{Reproject vectors to raster's CRS}
+\title{Align vector CRS to raster's}
 \usage{
 reproject_b2r(vector, raster)
 }
@@ -15,7 +15,7 @@ reproject_b2r(vector, raster)
 Reprojected object in the same class as \code{vector}
 }
 \description{
-Reproject vectors to raster's CRS
+Align vector CRS to raster's
 }
 \examples{
 # NOT TO RUN

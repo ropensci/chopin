@@ -33,7 +33,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 
   nccompreg <-
-    get_computational_regions(
+    par_make_gridset(
       input = ncpnts,
       mode = "grid",
       nx = 6L,
@@ -42,10 +42,10 @@ testthat::test_that("Processes are properly spawned and compute", {
     )
   res <-
     suppressWarnings(
-      distribute_process_grid(
+      par_grid(
         grids = nccompreg,
         grid_target_id = NULL,
-        fun_dist = extract_with_buffer,
+        fun_dist = extract_at_buffer,
         points = ncpnts,
         surf = ncelev,
         qsegs = 90L,
@@ -56,10 +56,10 @@ testthat::test_that("Processes are properly spawned and compute", {
 
   testthat::expect_error(
     suppressWarnings(
-      distribute_process_grid(
+      par_grid(
         grids = nccompreg,
         grid_target_id = "1/10",
-        fun_dist = extract_with_buffer,
+        fun_dist = extract_at_buffer,
         points = ncpnts,
         surf = ncelev,
         qsegs = 90L,
@@ -71,10 +71,10 @@ testthat::test_that("Processes are properly spawned and compute", {
 
   testthat::expect_error(
     suppressWarnings(
-      distribute_process_grid(
+      par_grid(
         grids = nccompreg,
         grid_target_id = c(1, 100, 125),
-        fun_dist = extract_with_buffer,
+        fun_dist = extract_at_buffer,
         points = ncpnts,
         surf = ncelev,
         qsegs = 90L,
@@ -87,10 +87,10 @@ testthat::test_that("Processes are properly spawned and compute", {
 
   testthat::expect_no_error(
     suppressWarnings(
-      distribute_process_grid(
+      par_grid(
         grids = nccompreg,
         grid_target_id = "1:10",
-        fun_dist = extract_with_buffer,
+        fun_dist = extract_at_buffer,
         points = ncpnts,
         surf = ncelev,
         qsegs = 90L,
@@ -103,10 +103,10 @@ testthat::test_that("Processes are properly spawned and compute", {
 
   testthat::expect_no_error(
     suppressWarnings(
-      distribute_process_grid(
+      par_grid(
         grids = nccompreg,
         grid_target_id = c(1, 3),
-        fun_dist = extract_with_buffer,
+        fun_dist = extract_at_buffer,
         points = ncpnts,
         surf = ncelev,
         qsegs = 90L,
@@ -124,10 +124,10 @@ testthat::test_that("Processes are properly spawned and compute", {
   testthat::expect_no_error(
     suppressWarnings(
       resnas <-
-        distribute_process_grid(
+        par_grid(
           grids = nccompreg,
           grid_target_id = "1:10",
-          fun_dist = extract_with_buffer,
+          fun_dist = extract_at_buffer,
           points = ncpnts,
           surf = ncelev,
           qsegs = 90L,
@@ -143,7 +143,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   testthat::expect_no_error(
     suppressWarnings(
       resnas0 <-
-        distribute_process_grid(
+        par_grid(
           grids = nccompreg,
           grid_target_id = "1:10",
           fun_dist = terra::nearest,
@@ -192,10 +192,10 @@ testthat::test_that(
     testthat::expect_no_error(
       res <-
         suppressWarnings(
-          distribute_process_hierarchy(
+          par_hierarchy(
             regions = nccnty,
             split_level = "GEOID",
-            fun_dist = extract_with_polygons,
+            fun_dist = extract_at_poly,
             polys = nctrct,
             surf = ncelev,
             id = "GEOID",
@@ -206,10 +206,10 @@ testthat::test_that(
 
     testthat::expect_error(
       suppressWarnings(
-        distribute_process_hierarchy(
+        par_hierarchy(
           regions = nccnty,
           split_level = c(1, 2, 3),
-          fun_dist = extract_with_polygons,
+          fun_dist = extract_at_poly,
           polys = nctrct,
           surf = ncelev,
           id = "GEOID",
@@ -224,7 +224,7 @@ testthat::test_that(
     testthat::expect_no_error(
       suppressWarnings(
         resnas <-
-          distribute_process_hierarchy(
+          par_hierarchy(
             regions = nccnty,
             split_level = "GEOID",
             fun_dist = terra::nearest,
@@ -240,11 +240,11 @@ testthat::test_that(
     testthat::expect_no_error(
       suppressWarnings(
         resnasx <-
-          distribute_process_hierarchy(
+          par_hierarchy(
             regions = nccnty,
             debug = TRUE,
             split_level = "GEOID",
-            fun_dist = extract_with_buffer,
+            fun_dist = extract_at_buffer,
             points = terra::centroids(nctrct),
             surf = ncelev,
             id = "GEOID",
@@ -256,7 +256,7 @@ testthat::test_that(
     testthat::expect_no_error(
       suppressWarnings(
         resnasz <-
-          distribute_process_hierarchy(
+          par_hierarchy(
             regions = nccnty,
             debug = TRUE,
             split_level = "GEOID",
@@ -291,7 +291,7 @@ testthat::test_that("generic function should be parallelized properly", {
   # expect
 
   nccompreg <-
-    get_computational_regions(
+    par_make_gridset(
       input = pnts,
       mode = "grid",
       nx = 6L,
@@ -302,7 +302,7 @@ testthat::test_that("generic function should be parallelized properly", {
   testthat::expect_no_error(
     res <-
       suppressWarnings(
-        distribute_process_grid(
+        par_grid(
           grids = nccompreg,
           fun_dist = terra::nearest,
           x = pnts,
@@ -350,9 +350,9 @@ testthat::test_that(
 
     testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
     testthat::expect_no_error(
-      res <- distribute_process_multirasters(
+      res <- par_multirasters(
         filenames = testfiles,
-        fun_dist = extract_with_polygons,
+        fun_dist = extract_at_poly,
         polys = nccnty,
         surf = ncelev,
         id = "GEOID",
@@ -364,9 +364,9 @@ testthat::test_that(
 
     testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
     testthat::expect_condition(
-      resnas <- distribute_process_multirasters(
+      resnas <- par_multirasters(
         filenames = testfiles_corrupted,
-        fun_dist = extract_with_polygons,
+        fun_dist = extract_at_poly,
         polys = nccnty,
         surf = ncelev,
         id = "GEOID",
@@ -380,10 +380,10 @@ testthat::test_that(
     # error case
     future::plan(future::sequential)
     testthat::expect_condition(
-      resnasx <- distribute_process_multirasters(
+      resnasx <- par_multirasters(
         filenames = testfiles_corrupted,
         debug = TRUE,
-        fun_dist = extract_with_polygons,
+        fun_dist = extract_at_poly,
         polys = nccnty,
         surf = ncelev,
         id = "GEOID",

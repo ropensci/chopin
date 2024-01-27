@@ -8,9 +8,9 @@ testthat::test_that("classes are detected.", {
                     func = mean,
                     pipi = pi,
                     zodiac = "Horse")
-  set_detected <- detect_class(test_args, "SpatVector")
+  set_detected <- any_class_args(test_args, "SpatVector")
   # test partial match
-  set_detectedp <- detect_class(test_args, "Spat")
+  set_detectedp <- any_class_args(test_args, "Spat")
 
   testthat::expect_true(is.logical(set_detected))
   testthat::expect_true(is.logical(set_detectedp))
@@ -23,7 +23,7 @@ testthat::test_that("classes are detected.", {
   # does it well in a function as designed?
   downy <- function(...) {
     largs <- list(...)
-    detect_class(largs, "SpatVector")
+    any_class_args(largs, "SpatVector")
   }
   bear <- downy(v = random_tv, f = mean, pipi = pi)
 

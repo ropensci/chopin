@@ -1,6 +1,6 @@
 # Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
 
-testthat::test_that("Vector inputs are clipped by clip_as_extent", {
+testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -22,9 +22,9 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
   testthat::expect_no_error(
     suppressWarnings(
       cl_terra <-
-        clip_as_extent(
+        clip_vec_ext(
           pnts = ncpt,
-          buffer_r = 3e4L,
+          radius = 3e4L,
           target_input = nctrct
         )
     )
@@ -38,9 +38,9 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
   testthat::expect_no_error(
     suppressWarnings(
       cl_sf <-
-        clip_as_extent(
+        clip_vec_ext(
           pnts = ncp,
-          buffer_r = 3e4L,
+          radius = 3e4L,
           target_input = nctrct
         )
     )
@@ -50,17 +50,17 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
   # sf-terra
   testthat::expect_no_error(
     suppressWarnings(
-      clip_as_extent(
+      clip_vec_ext(
         pnts = ncpt,
-        buffer_r = 3e4L,
+        radius = 3e4L,
         target_input = sf::st_as_sf(nctrct)
       )
     )
   )
 
   testthat::expect_error(
-    clip_as_extent(
-      pnts = NULL, buffer_r = 3e4L, target_input = nctrct
+    clip_vec_ext(
+      pnts = NULL, radius = 3e4L, target_input = nctrct
     )
   )
 
@@ -81,15 +81,15 @@ testthat::test_that("Clip by extent works without errors", {
   ncp <- readRDS("../testdata/nc_random_point.rds")
   ncp_terra <- terra::vect(ncp)
 
-  testthat::expect_no_error(clip_as_extent_ras(ncp, 30000L, ncelev))
-  testthat::expect_no_error(clip_as_extent_ras(ncp_terra, 30000L, ncelev))
-  testthat::expect_error(clip_as_extent_ras(ncp_terra, NULL, ncelev))
+  testthat::expect_no_error(clip_ras_ext(ncp, 30000L, ncelev))
+  testthat::expect_no_error(clip_ras_ext(ncp_terra, 30000L, ncelev))
+  testthat::expect_error(clip_ras_ext(ncp_terra, NULL, ncelev))
 })
 
 
 
 
-testthat::test_that("extract_with runs well", {
+testthat::test_that("extract_at runs well", {
   withr::local_package("sf")
   withr::local_package("stars")
   withr::local_package("terra")
@@ -114,7 +114,7 @@ testthat::test_that("extract_with runs well", {
   # test two modes
   testthat::expect_no_error(
     ncexpoly <-
-      extract_with(
+      extract_at(
         nccntytr,
         ncelev,
         "FIPS",
@@ -123,7 +123,7 @@ testthat::test_that("extract_with runs well", {
   )
   testthat::expect_no_error(
     ncexbuff <-
-      extract_with(ncp,
+      extract_at(ncp,
         ncelev,
         "pid",
         mode = "buffer",
@@ -133,7 +133,7 @@ testthat::test_that("extract_with runs well", {
 
   testthat::expect_no_error(
     ncexbuffkern <-
-      extract_with_buffer(
+      extract_at_buffer(
         ncp,
         ncelev,
         "pid",
@@ -146,7 +146,7 @@ testthat::test_that("extract_with runs well", {
 
   testthat::expect_no_error(
     ncexbuffkern <-
-      extract_with(ncp,
+      extract_at(ncp,
         ncelev,
         "pid",
         mode = "buffer",
@@ -160,54 +160,54 @@ testthat::test_that("extract_with runs well", {
 
   # errors
   testthat::expect_error(
-    extract_with(nccntytr,
+    extract_at(nccntytr,
                  ncelev,
                  "GEOID",
                  mode = "whatnot")
   )
   testthat::expect_error(
-    extract_with(nccntytr,
+    extract_at(nccntytr,
                  ncelev,
                  "GEOID",
                  mode = "polygon")
   )
   testthat::expect_error(
-    extract_with(nccntytr,
+    extract_at(nccntytr,
                  ncelev,
                  1,
                  mode = "buffer",
                  radius = 1e4L)
   )
   testthat::expect_error(
-    extract_with(as.list(ncp),
+    extract_at(as.list(ncp),
                  ncelev,
                  "GEOID",
                  mode = "buffer",
                  radius = 1e4L)
   )
   testthat::expect_error(
-    extract_with(sf::st_as_sf(ncp),
+    extract_at(sf::st_as_sf(ncp),
                  ncelev,
                  "GEOID",
                  mode = "buffer",
                  radius = 1e4L)
   )
   testthat::expect_error(
-    extract_with(sf::st_as_sf(ncp),
+    extract_at(sf::st_as_sf(ncp),
                  ncelev,
                  1,
                  mode = "buffer",
                  radius = "Ibidem")
   )
   testthat::expect_error(
-    extract_with_buffer(ncp,
-                        ncelev,
-                        "pid",
-                        kernel = "epanechnikov",
-                        func = stats::weighted.mean,
-                        bandwidth = 1.25e4L,
-                        radius = 1e4L,
-                        qsegs = 3 + 2i)
+    extract_at_buffer(ncp,
+                      ncelev,
+                      "pid",
+                      kernel = "epanechnikov",
+                      func = stats::weighted.mean,
+                      bandwidth = 1.25e4L,
+                      radius = 1e4L,
+                      qsegs = 3 + 2i)
   )
 
 })
@@ -215,7 +215,7 @@ testthat::test_that("extract_with runs well", {
 
 
 
-testthat::test_that("aw_covariates works as expected.", {
+testthat::test_that("summarize_aw works as expected.", {
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_package("units")
@@ -232,7 +232,7 @@ testthat::test_that("aw_covariates works as expected.", {
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- aw_covariates(ppb, nc, "id")})
+    system.time({ppb_nc_aw <- summarize_aw(ppb, nc, "id")})
   )
   expect_s3_class(ppb_nc_aw, "sf")
 
@@ -240,18 +240,18 @@ testthat::test_that("aw_covariates works as expected.", {
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc_t, "id")})
+    system.time({ppb_nc_aw <- summarize_aw(ppb_t, nc_t, "id")})
   )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- aw_covariates(ppb_t, nc, "id")})
+    system.time({ppb_nc_aw <- summarize_aw(ppb_t, nc, "id")})
   )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # error case
-  testthat::expect_error(aw_covariates(as.list(ppb_t), nc, "id"))
+  testthat::expect_error(summarize_aw(as.list(ppb_t), nc, "id"))
 })
 
 

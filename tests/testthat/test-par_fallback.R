@@ -11,7 +11,7 @@ testthat::test_that(
       c(xmin = 10, xmax = 20, ymin = 0, ymax = 10)
     terra::values(rdd) <- runif(100L)
 
-    foo1 <- extract_with
+    foo1 <- extract_at
     foo2 <- mean
     testthat::expect_no_error(
       par_fallback(

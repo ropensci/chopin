@@ -13,17 +13,17 @@ testthat::test_that("Format is well converted",
     nc <- system.file(package = "sf", "shape/nc.shp")
     nc <- sf::read_sf(nc)
 
-    stars_bcsd_tr <- switch_packbound(bcsd_stars)
-    sf_nc_tr <- switch_packbound(nc)
+    stars_bcsd_tr <- dep_switch(bcsd_stars)
+    sf_nc_tr <- dep_switch(nc)
 
-    testthat::expect_equal(check_packbound(stars_bcsd_tr), "terra")
-    testthat::expect_equal(check_packbound(sf_nc_tr), "terra")
+    testthat::expect_equal(dep_check(stars_bcsd_tr), "terra")
+    testthat::expect_equal(dep_check(sf_nc_tr), "terra")
 
-    stars_bcsd_trb <- switch_packbound(stars_bcsd_tr)
-    sf_nc_trb <- switch_packbound(sf_nc_tr)
+    stars_bcsd_trb <- dep_switch(stars_bcsd_tr)
+    sf_nc_trb <- dep_switch(sf_nc_tr)
 
-    testthat::expect_equal(check_packbound(stars_bcsd_trb), "sf")
-    testthat::expect_equal(check_packbound(sf_nc_trb), "sf")
+    testthat::expect_equal(dep_check(stars_bcsd_trb), "sf")
+    testthat::expect_equal(dep_check(sf_nc_trb), "sf")
   }
 )
 
@@ -43,10 +43,10 @@ testthat::test_that("Clip extent is set properly", {
 
   radius <- 1e4L
 
-  (nc_ext_sf <- set_clip_extent(nc, radius))
+  (nc_ext_sf <- get_clip_ext(nc, radius))
 
   nct <- terra::vect(nc)
-  (nc_ext_terra <- set_clip_extent(nct, radius))
+  (nc_ext_terra <- get_clip_ext(nct, radius))
 
   (proper_xmin <- sf::st_bbox(nc)[1] - (1.1 * radius))
 

@@ -57,7 +57,7 @@ par_fallback <-
 #' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of \code{get_computational_regions}
+#'  an output of \code{par_make_gridset}
 #' @param grid_target_id character(1) or numeric(2).
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
@@ -76,14 +76,14 @@ par_fallback <-
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
-#' # distribute_process_grid()
+#' # par_grid()
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
 #' @export
-distribute_process_grid <-
+par_grid <-
   function(
     grids,
     grid_target_id = NULL,
@@ -196,7 +196,7 @@ distribute_process_grid <-
 #' @note In dynamic dots (\code{...}), the first and second
 #' arguments should be the \code{fun_dist} arguments where
 #' `sf`/`SpatVector` objects are accepted.
-#' Virtually any sf/terra functions that accept two arguments
+#' Virtually any `sf`/`terra` functions that accept two arguments
 #' can be put in \code{fun_dist}, but please be advised that
 #' some spatial operations do not necessarily give the
 #' exact result from what would have been done single-thread.
@@ -224,14 +224,14 @@ distribute_process_grid <-
 #' plan(multicore, workers = 4L)
 #' # Does not run ...
 #' # library(tigris)
-#' # distribute_process_hierarchy()
+#' # par_hierarchy()
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
 #' @export
-distribute_process_hierarchy <-
+par_hierarchy <-
   function(
     regions,
     split_level = NULL,
@@ -310,7 +310,7 @@ distribute_process_hierarchy <-
 #' @description Large raster files usually exceed the memory capacity in size.
 #'  Cropping a large raster into a small subset even consumes
 #'  a lot of memory and adds processing time.
-#'  This function leverages terra SpatRaster proxy
+#'  This function leverages `terra` `SpatRaster` proxy
 #'  to distribute computation jobs over multiple cores.
 #'  It is assumed that users have multiple large raster files
 #'  in their disk, then each file path is assigned to a thread.
@@ -336,13 +336,13 @@ distribute_process_hierarchy <-
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
-#' # distribute_process_multirasters()
+#' # par_multirasters()
 #' }
 #' @import future
 #' @import future.apply
 #' @import doFuture
 #' @export
-distribute_process_multirasters <-
+par_multirasters <-
   function(
     filenames,
     debug = FALSE,

@@ -15,12 +15,12 @@
 #' ## generate a random raster
 #' ras_rand <- terra::rast(nrow = 30, ncol = 30)
 #' terra::values(ras_rand) <- runif(900)
-#' stars_rand <- switch_packbound(ras_rand)
+#' stars_rand <- dep_switch(ras_rand)
 #' stars_rand
 #' # should return stars object
 #'
 #' vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
-#' sf_rand <- switch_packbound(vec_rand)
+#' sf_rand <- dep_switch(vec_rand)
 #' sf_rand
 #' # should return sf object
 #' @importFrom terra vect
@@ -28,12 +28,12 @@
 #' @importFrom sf st_as_sf
 #' @importFrom stars st_as_stars
 #' @export
-switch_packbound <- function(input) {
+dep_switch <- function(input) {
   if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
     stop("Input should be one of sf or Spat* object.\n")
   }
-  cls_input <- check_packbound(input)
-  type_input <- check_datatype(input)
+  cls_input <- dep_check(input)
+  type_input <- datamod(input)
 
   switched <-
     switch(cls_input,
@@ -55,7 +55,7 @@ switch_packbound <- function(input) {
 #'  It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
 #' @param pnts One of sf or SpatVector object. Target points of computation.
-#' @param buffer_r numeric(1). Buffer radius. It is assumed to be in meters
+#' @param radius numeric(1). Buffer radius. It is assumed to be in meters
 #' @returns A terra::ext or sfc_POLYGON object of the computation extent.
 #' @examples
 #' library(sf)
@@ -64,29 +64,29 @@ switch_packbound <- function(input) {
 #'
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
-#' set_clip_extent(nc_sf)
+#' get_clip_ext(nc_sf)
 #' nc_vect <- terra::vect(nc_sf)
-#' set_clip_extent(nc_vect)
+#' get_clip_ext(nc_vect)
 #' @importFrom terra ext
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc
 #' @export
-set_clip_extent <- function(
+get_clip_ext <- function(
   pnts,
-  buffer_r
+  radius
 ) {
-  detected <- check_packbound(pnts)
+  detected <- dep_check(pnts)
   if (detected == "terra") {
     ext_input <- terra::ext(pnts)
     # Note that `+` operation on
     # terra::ext output accounts for the operand as it is.
-    ext_input <- ext_input + (1.1 * buffer_r)
+    ext_input <- ext_input + (1.1 * radius)
   }
   if (detected == "sf") {
     ext_input <- sf::st_bbox(pnts)
     # Note that `+` operation on st_bbox output
     # simply adds the number; we add a vector here.
-    ext_input <- ext_input + ((1.1 * c(-1, -1, 1, 1) * buffer_r))
+    ext_input <- ext_input + ((1.1 * c(-1, -1, 1, 1) * radius))
     ext_input <- sf::st_as_sfc(ext_input)
   }
   return(ext_input)
