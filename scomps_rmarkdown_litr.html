@@ -610,9 +610,11 @@ kernelfunction &lt;-
 #&#39;
 #&#39; nc_path &lt;- system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;)
 #&#39; nc_sf &lt;- sf::st_read(nc_path)
-#&#39; <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(nc_sf)
-#&#39; nc_vect &lt;- terra::vect(nc_sf)
-#&#39; <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(nc_vect)
+#&#39; <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(nc_sf)
+#&#39;
+#&#39; ra_path &lt;- system.file(&quot;ex/elev.tif&quot;, package = &quot;terra&quot;)
+#&#39; ra &lt;- terra::rast(ra_path)
+#&#39; <a href='scomps_rmarkdown_litr.html#check_datatype'>check_datatype</a>(ra)
 #&#39; @importFrom methods is
 #&#39; @importFrom terra vect
 #&#39; @importFrom terra rast
@@ -755,6 +757,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; @param crs_standard character(1). A standard definition of
 #&#39;  coordinate reference system. Default is `&quot;EPSG:4326&quot;`
 #&#39;  Consult [epsg.io](https://epsg.io) for details of other CRS.
+#&#39; @note This function works well with EPSG codes.
 #&#39; @returns A (reprojected) `sf` or `SpatVector` object.
 #&#39; @author Insang Song
 #&#39; @examples
@@ -762,7 +765,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 #&#39; library(terra)
 #&#39; options(sf_use_s2 = FALSE)
 #&#39;
-#&#39; base_crs &lt;- &quot;OGC:CRS84&quot;
+#&#39; base_crs &lt;- &quot;EPSG:5070&quot;
 #&#39; nc_path &lt;- system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;)
 #&#39; nc_sf &lt;- sf::st_read(nc_path)
 #&#39; check_crs_align(nc_sf, base_crs)

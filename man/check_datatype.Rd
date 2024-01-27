@@ -28,9 +28,11 @@ options(sf_use_s2 = FALSE)
 
 nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 nc_sf <- sf::st_read(nc_path)
-check_packbound(nc_sf)
-nc_vect <- terra::vect(nc_sf)
-check_packbound(nc_vect)
+check_datatype(nc_sf)
+
+ra_path <- system.file("ex/elev.tif", package = "terra")
+ra <- terra::rast(ra_path)
+check_datatype(ra)
 }
 \author{
 Insang Song

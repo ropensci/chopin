@@ -44,9 +44,11 @@ check_packbound <- function(input) {
 #'
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
-#' check_packbound(nc_sf)
-#' nc_vect <- terra::vect(nc_sf)
-#' check_packbound(nc_vect)
+#' check_datatype(nc_sf)
+#'
+#' ra_path <- system.file("ex/elev.tif", package = "terra")
+#' ra <- terra::rast(ra_path)
+#' check_datatype(ra)
 #' @importFrom methods is
 #' @importFrom terra vect
 #' @importFrom terra rast
@@ -71,6 +73,7 @@ check_datatype <- function(input) {
 #' @param crs_standard character(1). A standard definition of
 #'  coordinate reference system. Default is `"EPSG:4326"`
 #'  Consult [epsg.io](https://epsg.io) for details of other CRS.
+#' @note This function works well with EPSG codes.
 #' @returns A (reprojected) `sf` or `SpatVector` object.
 #' @author Insang Song
 #' @examples
@@ -78,7 +81,7 @@ check_datatype <- function(input) {
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
 #'
-#' base_crs <- "OGC:CRS84"
+#' base_crs <- "EPSG:5070"
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
 #' check_crs_align(nc_sf, base_crs)
