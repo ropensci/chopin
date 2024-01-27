@@ -95,10 +95,10 @@ check_crs_align <-
     input,
     crs_standard = "EPSG:4326"
   ) {
-    if (!grepl("[[:alpha:]]+{3,4}\\:[0-9]{4,7}", crs_standard)) {
+    if (!grepl("[[:alpha:]]+{3,4}\\:([[:alpha:]]{2,4}[0-9]{2,2}|[0-9]{4,7})", crs_standard)) {
       stop("crs_standard seems to be in invalid format.
         It should be '[authority]:[code]' format.
-        Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n")
+        Please refer to https://epsg.io, ?sf::st_crs or ?terra::crs.\n")
     }
 
     bound_package <- check_packbound(input)

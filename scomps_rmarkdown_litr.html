@@ -374,7 +374,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.2.1.01262024&quot;,
+    Version = &quot;0.2.2.01262024&quot;,
     Title = &quot;CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure&quot;,
     Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
     `Authors@R` = c(
@@ -441,7 +441,7 @@ usethis::use_roxygen_md()
 <pre><code>## Package: chopin
 ## Title: CHOPIN: Computation for Climate and Health research On Parallelized
 ##     INfrastructure
-## Version: 0.2.1.01262024
+## Version: 0.2.2.01262024
 ## Authors@R (parsed):
 ##     * Insang Song &lt;geoissong@gmail.com&gt; [aut, cre] (&lt;https://orcid.org/0000-0001-8732-3256&gt;)
 ##     * Kyle Messier [aut, ctb] (&lt;https://orcid.org/0000-0001-9508-9623&gt;)
@@ -779,10 +779,10 @@ check_crs_align &lt;-
     input,
     crs_standard = &quot;EPSG:4326&quot;
   ) {
-    if (!grepl(&quot;[[:alpha:]]+{3,4}\\:[0-9]{4,7}&quot;, crs_standard)) {
+    if (!grepl(&quot;[[:alpha:]]+{3,4}\\:([[:alpha:]]{2,4}[0-9]{2,2}|[0-9]{4,7})&quot;, crs_standard)) {
       stop(&quot;crs_standard seems to be in invalid format.
         It should be &#39;[authority]:[code]&#39; format.
-        Please refer to epsg.io and ?sf::st_crs or ?terra::crs.\n&quot;)
+        Please refer to https://epsg.io, ?sf::st_crs or ?terra::crs.\n&quot;)
     }
 
     bound_package &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input)
