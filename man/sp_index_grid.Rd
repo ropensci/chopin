@@ -28,8 +28,7 @@ then exhaustive grids will be filtered by the intersection between
 these and \code{points_in}. Thus, the number of generated grids may be
 smaller than \code{ncutsx * ncutsy}.
 }
-\author{
-Insang Song
+\examples{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -41,4 +40,7 @@ nc_gr <- sp_index_grid(nc_rp, 10L, 6L)
 
 plot(nc_rp)
 plot(nc_gr, add = TRUE)
+}
+\author{
+Insang Song
 }

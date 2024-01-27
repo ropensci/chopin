@@ -28,7 +28,7 @@ completely contains your data's extent and \code{FALSE} otherwise.
 library(sf)
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 nc <- sf::st_read(ncpath)
-nc <- sf::st_transform("EPSG:4326")
+nc <- sf::st_transform(nc, "EPSG:4326")
 
 refextnum <- c(-100, -60, 20, 40)
 names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")

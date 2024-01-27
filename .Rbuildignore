@@ -1,4 +1,5 @@
 /tools/*
+/tests
 /.github
 scomps*.html$
 ^LICENSE\.md$

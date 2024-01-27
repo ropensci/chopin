@@ -233,7 +233,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n")
 #' library(sf)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- sf::st_read(ncpath)
-#' nc <- sf::st_transform("EPSG:4326")
+#' nc <- sf::st_transform(nc, "EPSG:4326")
 #'
 #' refextnum <- c(-100, -60, 20, 40)
 #' names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
@@ -309,6 +309,16 @@ check_crs <- function(x) {
 #' @param reference sf/stars/SpatVector/SpatRaster object.
 #' @returns logical
 #' @author Insang Song \email{geoissong@@gmail.com}
+#' @examples
+#' library(sf)
+#' sf_use_s2(FALSE)
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' nc <- sf::read_sf(ncpath)
+#' nc <- sf::st_transform(nc, "EPSG:4326")
+#' mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
+#' mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
+#' within_res <- check_within_reference(nc, mainland_box)
+#' within_res
 #' @importFrom methods is
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc

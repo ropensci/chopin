@@ -25,7 +25,7 @@ When \code{poly_in} and \code{poly_weight} are different classes,
 \examples{
 # package
 library(sf)
-
+sf_use_s2(FALSE)
 # run
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 nc <- sf::st_transform(nc, 5070)

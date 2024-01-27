@@ -398,6 +398,7 @@ of the R package.</p>
   )
 )
 #usethis::use_build_ignore(&quot;rds$&quot;, escape = FALSE)
+usethis::use_build_ignore(c(&quot;/tests&quot;), escape = FALSE)
 usethis::use_build_ignore(c(&quot;/tools&quot;), escape = FALSE)
 usethis::use_build_ignore(c(&quot;/figure&quot;), escape = FALSE)
 usethis::use_build_ignore(c(&quot;/containers&quot;), escape = FALSE)
@@ -1320,6 +1321,7 @@ We try converting padding to numeric...\n&quot;)
 #&#39; these and `points_in`. Thus, the number of generated grids may be
 #&#39; smaller than `ncutsx * ncutsy`.
 #&#39; @author Insang Song
+#&#39; @examples
 #&#39; library(sf)
 #&#39; library(terra)
 #&#39; options(sf_use_s2 = FALSE)
@@ -1642,7 +1644,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 #&#39; library(sf)
 #&#39; ncpath &lt;- system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;)
 #&#39; nc &lt;- sf::st_read(ncpath)
-#&#39; nc &lt;- sf::st_transform(&quot;EPSG:4326&quot;)
+#&#39; nc &lt;- sf::st_transform(nc, &quot;EPSG:4326&quot;)
 #&#39;
 #&#39; refextnum &lt;- c(-100, -60, 20, 40)
 #&#39; names(refextnum) &lt;- c(&quot;xmin&quot;, &quot;xmax&quot;, &quot;ymin&quot;, &quot;ymax&quot;)
@@ -2224,6 +2226,16 @@ reproject_b2r &lt;-
 #&#39; @param reference sf/stars/SpatVector/SpatRaster object.
 #&#39; @returns logical
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
+#&#39; @examples
+#&#39; library(sf)
+#&#39; sf_use_s2(FALSE)
+#&#39; ncpath &lt;- system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
+#&#39; nc &lt;- sf::read_sf(ncpath)
+#&#39; nc &lt;- sf::st_transform(nc, &quot;EPSG:4326&quot;)
+#&#39; mainland_vec &lt;- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
+#&#39; mainland_box &lt;- <a href='scomps_rmarkdown_litr.html#extent_to_polygon'>extent_to_polygon</a>(mainland_vec, output_class = &quot;sf&quot;)
+#&#39; within_res &lt;- <a href='scomps_rmarkdown_litr.html#check_within_reference'>check_within_reference</a>(nc, mainland_box)
+#&#39; within_res
 #&#39; @importFrom methods is
 #&#39; @importFrom sf st_bbox
 #&#39; @importFrom sf st_as_sfc
@@ -2480,7 +2492,7 @@ The result may not be accurate.\n&quot;,
 #&#39; @examples
 #&#39; # package
 #&#39; library(sf)
-#&#39;
+#&#39; sf_use_s2(FALSE)
 #&#39; # run
 #&#39; nc &lt;- sf::st_read(system.file(&quot;shape/nc.shp&quot;, package=&quot;sf&quot;))
 #&#39; nc &lt;- sf::st_transform(nc, 5070)

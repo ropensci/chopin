@@ -45,6 +45,7 @@ usethis::create_package(
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
+usethis::use_build_ignore(c("/tests"), escape = FALSE)
 usethis::use_build_ignore(c("/tools"), escape = FALSE)
 usethis::use_build_ignore(c("/figure"), escape = FALSE)
 usethis::use_build_ignore(c("/containers"), escape = FALSE)
@@ -1088,6 +1089,7 @@ We try converting padding to numeric...\n")
 #' these and `points_in`. Thus, the number of generated grids may be
 #' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
+#' @examples
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -1429,7 +1431,7 @@ testthat::test_that("input extent is converted to a polygon", {
 #' library(sf)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- sf::st_read(ncpath)
-#' nc <- sf::st_transform("EPSG:4326")
+#' nc <- sf::st_transform(nc, "EPSG:4326")
 #'
 #' refextnum <- c(-100, -60, 20, 40)
 #' names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
@@ -2100,6 +2102,16 @@ testthat::test_that("check_crs is working as expected", {
 #' @param reference sf/stars/SpatVector/SpatRaster object.
 #' @returns logical
 #' @author Insang Song \email{geoissong@@gmail.com}
+#' @examples
+#' library(sf)
+#' sf_use_s2(FALSE)
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' nc <- sf::read_sf(ncpath)
+#' nc <- sf::st_transform(nc, "EPSG:4326")
+#' mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
+#' mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
+#' within_res <- check_within_reference(nc, mainland_box)
+#' within_res
 #' @importFrom methods is
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc
@@ -2386,7 +2398,7 @@ testthat::test_that("SEDC are well calculated.", {
 #' @examples
 #' # package
 #' library(sf)
-#'
+#' sf_use_s2(FALSE)
 #' # run
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 #' nc <- sf::st_transform(nc, 5070)

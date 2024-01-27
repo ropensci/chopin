@@ -113,6 +113,7 @@ We try converting padding to numeric...\n")
 #' these and `points_in`. Thus, the number of generated grids may be
 #' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
+#' @examples
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)

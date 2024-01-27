@@ -17,6 +17,17 @@ logical
 \description{
 Check if the boundary of the vector/raster object is inside the reference
 }
+\examples{
+library(sf)
+sf_use_s2(FALSE)
+ncpath <- system.file("shape/nc.shp", package = "sf")
+nc <- sf::read_sf(ncpath)
+nc <- sf::st_transform(nc, "EPSG:4326")
+mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
+mainland_box <- extent_to_polygon(mainland_vec, output_class = "sf")
+within_res <- check_within_reference(nc, mainland_box)
+within_res
+}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
