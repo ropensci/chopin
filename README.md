@@ -10,15 +10,16 @@ Scalable GIS methods for environmental and climate data analysis
 # Basic design
 - Processing functions accept sf/terra classes for spatial data. Raster-vector overlay is done with `exactextractr`.
 - As of version 0.1.0, this package supports three basic functions that are readily parallelized over multithread environments:
-    - `extract_with`: extract raster values with point buffers or polygons.
-        - `extract_with_polygons`
-        - `extract_with_buffer`
-    - `calculate_sedc`: calculate sums of exponentially decaying contributions
-    - `aw_covariates`: area-weighted covariates based on target and reference polygons
+    - `extract_at`: extract raster values with point buffers or polygons.
+        - `extract_at_poly`
+        - `extract_at_buffer`
+    - `summarize_sedc`: calculate sums of exponentially decaying contributions
+    - `summarize_aw`: area-weighted covariates based on target and reference polygons
 
 - When processing points/polygons in parallel, the entire study area will be divided into partly overlapped grids or processed through its own hierarchy.
-    - `distribute_process_grid`
-    - `distribute_process_hierarchy`
+    - `par_grid`
+    - `par_hierarchy`
+    - `par_multirasters`
 
 
 # Use case
@@ -88,29 +89,29 @@ terra::crs(srtm) <- "EPSG:5070"
 ``` r
 ncpoints_tr <- terra::vect(ncpoints)
 system.time(
-    ncpoints_srtm <-
-        chopin::extract_with(
-            vector = ncpoints_tr,
-            raster = srtm,
-            id = "pid",
-            mode = "buffer",
-            radius = 1e4L) # 10,000 meters (10 km)
+  ncpoints_srtm <-
+    chopin::extract_at(
+      vector = ncpoints_tr,
+      raster = srtm,
+      id = "pid",
+      mode = "buffer",
+      radius = 1e4L) # 10,000 meters (10 km)
 )
 #>    user  system elapsed 
 #>   6.271   0.210   6.484
 ```
 
 ## Generate regular grid computational regions
-- `chopin::get_computational_regions` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
+- `chopin::par_make_gridset` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 ``` r
 compregions <-
-    chopin::get_computational_regions(
-        ncpoints_tr,
-        mode = "grid",
-        nx = 8L,
-        ny = 5L,
-        padding = 1e4L
-    )
+  chopin::par_make_gridset(
+    ncpoints_tr,
+    mode = "grid",
+    nx = 8L,
+    ny = 5L,
+    padding = 1e4L
+  )
 ```
 
 - `compregions` is an object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The figures below illustrate the grid polygons with and without overlaps.
@@ -128,26 +129,26 @@ par(oldpar)
 ![](https://i.imgur.com/c0xweeV.png)<!-- -->
 
 ## Parallel processing
-- Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `chopin::distribute_process_grid`
+- Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `chopin::par_grid`
 - Users always need to **register** multiple CPU threads (logical cores) to enable them to be used by R processes.
-- `chopin::distribute_process_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
+- `chopin::par_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
     - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis arguments, like below:
 ``` r
 plan(multicore, workers = 4L)
 doFuture::registerDoFuture()
 
 system.time(
-    ncpoints_srtm_mthr <-
-        chopin::distribute_process_grid(
-            grids = compregions,
-            grid_target_id = NULL,
-            fun_dist = chopin::extract_with,
-            vector = ncpoints_tr,
-            raster = srtm,
-            id = "pid",
-            mode = "buffer",
-            radius = 1e4L
-        )
+  ncpoints_srtm_mthr <-
+    chopin::distribute_process_grid(
+      grids = compregions,
+      grid_target_id = NULL,
+      fun_dist = chopin::extract_at,
+      vector = ncpoints_tr,
+      raster = srtm,
+      id = "pid",
+      mode = "buffer",
+      radius = 1e4L
+    )
 )
 #> Your input function was 
 #>             successfully run at CGRIDID: 1
@@ -221,7 +222,7 @@ system.time(
 
 ``` r
 ncpoints_srtm_mthr <-
-    ncpoints_srtm_mthr[order(ncpoints_srtm_mthr$pid),]
+  ncpoints_srtm_mthr[order(ncpoints_srtm_mthr$pid),]
 all.equal(ncpoints_srtm, ncpoints_srtm_mthr)
 #> [1] "Attributes: < Component \"row.names\": Mean relative difference: 0.6567904 >"
 #> [2] "Component \"mean\": Mean relative difference: 8.712634e-05"
@@ -244,9 +245,9 @@ plot(ncpoints_m[, "mean"], main = "Multi-thread")
 
 ![](https://i.imgur.com/fgOvOff.png)<!-- -->
 
-## Parallelize geospatial computations using intrinsic data hierarchy: `chopin::distribute_process_hierarchy`
+## Parallelize geospatial computations using intrinsic data hierarchy: `chopin::par_hierarchy`
 - In real world datasets, we usually have nested/exhaustive hierarchies. For example, land is organized by administrative/jurisdictional borders where multiple levels exist. In the U.S. context, a state consists of several counties, counties are split into census tracts, and they have a group of block groups.
-- `chopin::distribute_process_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
+- `chopin::par_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
 - A demonstration below shows that census tracts are grouped by their counties then each county will be processed in a CPU thread.
 ``` r
 nc_county <- file.path("../testdata/nc_hierarchy.gpkg")
@@ -274,17 +275,17 @@ nc_tracts <- sf::st_read(nc_tracts, layer = "tracts")
 nc_county <- sf::st_transform(nc_county, "EPSG:5070")
 nc_tracts <- sf::st_transform(nc_tracts, "EPSG:5070")
 nc_tracts$COUNTY <-
-    substr(nc_tracts$GEOID, 1, 5)
+  substr(nc_tracts$GEOID, 1, 5)
 ```
 
 ``` r
 system.time(
-    nc_elev_tr_single <- chopin::extract_with(
-        vector = nc_tracts,
-        raster = srtm,
-        id = "GEOID",
-        mode = "polygon"
-    )
+  nc_elev_tr_single <- chopin::extract_at(
+    vector = nc_tracts,
+    raster = srtm,
+    id = "GEOID",
+    mode = "polygon"
+  )
 )
 #>    user  system elapsed 
 #>   1.082   0.021   1.102
@@ -292,16 +293,16 @@ system.time(
 
 ``` r
 system.time(
-    nc_elev_tr_distr <-
-        chopin::distribute_process_hierarchy(
-            regions = nc_county, # higher level geometry
-            split_level = "GEOID", # higher level unique id
-            fun_dist = chopin::extract_with,
-            vector = nc_tracts, # lower level geometry
-            raster = srtm,
-            id = "GEOID", # lower level unique id
-            func = "mean"
-        )
+  nc_elev_tr_distr <-
+    chopin::par_hierarchy(
+      regions = nc_county, # higher level geometry
+      split_level = "GEOID", # higher level unique id
+      fun_dist = chopin::extract_at,
+      vector = nc_tracts, # lower level geometry
+      raster = srtm,
+      id = "GEOID", # lower level unique id
+      func = "mean"
+    )
 )
 #>    user  system elapsed 
 #>   0.023   0.013   1.317
@@ -334,9 +335,9 @@ testfiles
 ```
 
 ``` r
-res <- distribute_process_multirasters(
+res <- par_multirasters(
       filenames = testfiles,
-      fun_dist = extract_with_polygons,
+      fun_dist = extract_at_poly,
       polys = nccnty,
       surf = ncelev,
       id = "GEOID",
@@ -370,22 +371,24 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 
 nccompreg <-
-    get_computational_regions(
-                              input = pnts,
-                              mode = "grid",
-                              nx = 6L,
-                              ny = 4L,
-                              padding = 3e4L)
+  par_make_gridset(
+    input = pnts,
+    mode = "grid",
+    nx = 6L,
+    ny = 4L,
+    padding = 3e4L
+  )
   
 future::plan(future::multicore, workers = 6L)
 
 system.time(
 res <-
   distribute_process_grid(
-                          grids = nccompreg,
-                          fun_dist = terra::nearest,
-                          x = pnts,
-                          y = rd1)
+    grids = nccompreg,
+    fun_dist = terra::nearest,
+    x = pnts,
+    y = rd1
+  )
 )
 #> Your input function was 
 #>             successfully run at CGRIDID: 1
@@ -444,5 +447,5 @@ system.time(
 - Since the demonstrations above use quite small datasets, the advantage of parallelization was not as dramatically as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be added to this vignette soon.
 
 
-#### Last edited: January 22, 2024
+#### Last edited: January 27, 2024
 
