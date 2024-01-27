@@ -35,13 +35,14 @@ For entries of the results, consult the function used in
 \code{fun_dist} argument.
 }
 \description{
-Currently only accepting \link[future]{multicore} setting
-(single node, single process, and multiple threads).
-For details of the terminology in \code{future} package,
+\link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
+with \link[doParallel:registerDoParallel]{doParallel::registerDoParallel} will parallelize the work
+in each grid. For details of the terminology in \code{future} package,
 refer to \link[future]{plan}. This function assumes that
 users have one raster file and a sizable and spatially distributed
-target locations. Each thread will process ceiling($|N_g|/|N_t|$) grids
-where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
+target locations. Each thread will process
+\verb{ceiling(\eqn{|N_g|/|N_t|})} grids
+where \eqn{|N_g|} denotes the number of grids and \eqn{|N_t|} denotes
 the number of threads.
 }
 \note{

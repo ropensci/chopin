@@ -10,7 +10,7 @@ validate_and_repair_vectors(input_vector)
 \item{input_vector}{One of sf or vect class. Target points of computation.}
 }
 \value{
-A repaired sf or SpatVector object depending on
+A repaired \code{sf} or \code{SpatVector} object depending on
 the class of input_vector.
 }
 \description{
@@ -18,8 +18,8 @@ It tries repairing input vector data.
 Vector validity violation usually appears in polygon data with
 self-crossing or
 hole orders. This function will pass the input_vector object to
-sf::st_make_valid() (if input_vector is sf) or
-terra::makeValid() (if input_vector is SpatVector).
+\code{\link[sf:valid]{sf::st_make_valid}} (if input_vector is sf) or
+\code{\link[terra:is.valid]{terra::makeValid}} (if input_vector is SpatVector).
 May take some time depending on the geometry complexity.
 }
 \author{

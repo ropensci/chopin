@@ -2,7 +2,7 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{check_crs_align}
 \alias{check_crs_align}
-\title{check_crs_align: Check coordinate system then reproject}
+\title{Check coordinate system then reproject}
 \usage{
 check_crs_align(input, crs_standard = "EPSG:4326")
 }
@@ -10,11 +10,11 @@ check_crs_align(input, crs_standard = "EPSG:4326")
 \item{input}{Input object one of sf or terra::Spat* object}
 
 \item{crs_standard}{character(1). A standard definition of
-coordinate reference system. Default is "EPSG:4326"
+coordinate reference system. Default is \code{"EPSG:4326"}
 Consult \href{https://epsg.io}{epsg.io} for details of other CRS.}
 }
 \value{
-A (reprojected) sf or SpatVector object.
+A (reprojected) \code{sf} or \code{SpatVector} object.
 }
 \description{
 The input is checked whether its coordinate system is

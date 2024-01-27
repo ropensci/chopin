@@ -13,14 +13,14 @@ aw_covariates(poly_in = NULL, poly_weight = NULL, id_poly_in = "ID")
 which weighted means will be calculated.}
 
 \item{id_poly_in}{character(1).
-The unique identifier of each polygon in poly_in}
+The unique identifier of each polygon in \code{poly_in}}
 }
 \value{
 A data.frame with all numeric fields of area-weighted means.
 }
 \description{
-When poly_in and poly_weight are different classes,
-poly_weight will be converted to the class of poly_in.
+When \code{poly_in} and \code{poly_weight} are different classes,
+\code{poly_weight} will be converted to the class of \code{poly_in}.
 }
 \examples{
 # package

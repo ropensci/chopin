@@ -38,14 +38,14 @@ For entries of the results, consult the function used in
 which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
 (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
-Currently only accepting \link[future]{multicore} setting
-(single node, single process, and multiple threads).
-For details of the terminology in \code{future} package,
+\link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
+with \link[doParallel:registerDoParallel]{doParallel::registerDoParallel} will parallelize the work
+in each grid. For details of the terminology in \code{future} package,
 refer to \link[future]{plan}.
 This function assumes that users have one raster file and
 a sizable and spatially distributed target locations.
-Each thread will process ceiling($|N_{g}|/|N_{t}|$) grids where
-$|N_{g}|$ denotes the number of grids and $|N_{t}|$ denotes
+Each thread will process \verb{ceiling(\eqn{|N_{g}|/|N_{t}|})} grids where
+\eqn{|N_{g}|} denotes the number of grids and \eqn{|N_{t}|} denotes
 the number of threads. Please be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.

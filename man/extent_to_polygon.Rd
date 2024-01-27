@@ -13,10 +13,10 @@ extent_to_polygon(
 \arguments{
 \item{extent}{input extent.
 A numeric vector with xmin/xmax/ymin/ymax,
-sf::st_bbox() or terra::ext() outputs.}
+\link[sf:st_bbox]{sf::st_bbox} or \link[terra:ext]{terra::ext} outputs.}
 
 \item{output_class}{character(1).
-Class of the output polygon. One of "sf" or "terra"}
+Class of the output polygon. One of \code{"sf"} or \code{"terra"}}
 
 \item{crs}{character(1). Coordinate reference system definition.}
 }

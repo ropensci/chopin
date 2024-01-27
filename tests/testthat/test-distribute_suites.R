@@ -317,78 +317,79 @@ testthat::test_that("generic function should be parallelized properly", {
 
 
 testthat::test_that(
-  "Processes are properly spawned and compute over multirasters", {
-  withr::local_package("terra")
-  withr::local_package("sf")
-  withr::local_package("future")
-  withr::local_package("future.apply")
-  withr::local_package("dplyr")
-  withr::local_options(
-    list(
-      sf_use_s2 = FALSE,
-      future.resolve.recursive = 2L
-    )
-  )
-
-  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
-  nccnty <- terra::vect(ncpath, layer = "county")
-  ncelev <-
-    terra::unwrap(
-      readRDS(
-        testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+  "Processes are properly spawned and compute over multirasters",
+  {
+    withr::local_package("terra")
+    withr::local_package("sf")
+    withr::local_package("future")
+    withr::local_package("future.apply")
+    withr::local_package("dplyr")
+    withr::local_options(
+      list(
+        sf_use_s2 = FALSE,
+        future.resolve.recursive = 2L
       )
     )
-  terra::crs(ncelev) <- "EPSG:5070"
-  names(ncelev) <- c("srtm15")
-  tdir <- tempdir(check = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 
-  testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
-  testthat::expect_no_error(
-    res <- distribute_process_multirasters(
-      filenames = testfiles,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = "GEOID",
-      func = "mean"
+    ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+    nccnty <- terra::vect(ncpath, layer = "county")
+    ncelev <-
+      terra::unwrap(
+        readRDS(
+          testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+        )
+      )
+    terra::crs(ncelev) <- "EPSG:5070"
+    names(ncelev) <- c("srtm15")
+    tdir <- tempdir(check = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+    testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+    testthat::expect_no_error(
+      res <- distribute_process_multirasters(
+        filenames = testfiles,
+        fun_dist = extract_with_polygons,
+        polys = nccnty,
+        surf = ncelev,
+        id = "GEOID",
+        func = "mean"
+      )
     )
-  )
-  testthat::expect_s3_class(res, "data.frame")
-  testthat::expect_true(!anyNA(res))
+    testthat::expect_s3_class(res, "data.frame")
+    testthat::expect_true(!anyNA(res))
 
-  testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
-  testthat::expect_condition(
-    resnas <- distribute_process_multirasters(
-      filenames = testfiles_corrupted,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = "GEOID",
-      func = "mean"
+    testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
+    testthat::expect_condition(
+      resnas <- distribute_process_multirasters(
+        filenames = testfiles_corrupted,
+        fun_dist = extract_with_polygons,
+        polys = nccnty,
+        surf = ncelev,
+        id = "GEOID",
+        func = "mean"
+      )
     )
-  )
 
-  testthat::expect_s3_class(resnas, "data.frame")
-  testthat::expect_true(anyNA(resnas))
+    testthat::expect_s3_class(resnas, "data.frame")
+    testthat::expect_true(anyNA(resnas))
 
-  # error case
-  future::plan(future::sequential)
-  testthat::expect_condition(
-    resnasx <- distribute_process_multirasters(
-      filenames = testfiles_corrupted,
-      debug = TRUE,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = "GEOID",
-      func = "mean"
+    # error case
+    future::plan(future::sequential)
+    testthat::expect_condition(
+      resnasx <- distribute_process_multirasters(
+        filenames = testfiles_corrupted,
+        debug = TRUE,
+        fun_dist = extract_with_polygons,
+        polys = nccnty,
+        surf = ncelev,
+        id = "GEOID",
+        func = "mean"
+      )
     )
-  )
-
-})
+  }
+)
 

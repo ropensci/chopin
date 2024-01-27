@@ -35,7 +35,7 @@ kernelfunction <-
 
   }
 
-#' Extent clipping
+#' Clip to the buffered extent of input vector
 #' @description Clip input vector by
 #'  the expected maximum extent of computation.
 #' @author Insang Song
@@ -138,7 +138,7 @@ clip_as_extent_ras <- function(
 #' @param radius numeric(1). Buffer radius. here we assume circular buffers only
 #' @param id character(1). Unique identifier of each point.
 #' @param qsegs integer(1). Number of vertices at a quarter of a circle.
-#'  Default is 90L.
+#'  Default is `90L`.
 #' @param func a function taking a numeric vector argument.
 #' @param kernel character(1). Name of a kernel function
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
@@ -148,7 +148,7 @@ clip_as_extent_ras <- function(
 #' @examples
 #' library(terra)
 #' rrast <- terra::rast(nrow = 100, ncol = 100)
-#' terra::crs(rrast) <- ""
+#' terra::crs(rrast) <- "EPSG:5070"
 #' terra::values(rrast) <- rgamma(1e4, 4, 2)
 #' rpnt <- terra::spatSample(rrast, 100L, as.points = TRUE)
 #' rpnt$pid <- sprintf("id_%03d", seq(1, 100))
@@ -194,23 +194,26 @@ extract_with_buffer <- function(
   if (!is.null(kernel)) {
     extracted <-
       extract_with_buffer_kernel(points = points,
-                                 surf = surf,
-                                 radius = radius,
-                                 id = id,
-                                 func = func,
-                                 qsegs = qsegs,
-                                 kernel = kernel,
-                                 bandwidth = bandwidth)
+        surf = surf,
+        radius = radius,
+        id = id,
+        func = func,
+        qsegs = qsegs,
+        kernel = kernel,
+        bandwidth = bandwidth
+      )
     return(extracted)
   }
 
   extracted <-
-    extract_with_buffer_flat(points = points,
-                             surf = surf,
-                             radius = radius,
-                             id = id,
-                             func = func,
-                             qsegs = qsegs)
+    extract_with_buffer_flat(
+      points = points,
+      surf = surf,
+      radius = radius,
+      id = id,
+      func = func,
+      qsegs = qsegs
+    )
   return(extracted)
 
 }
@@ -468,14 +471,14 @@ reproject_b2r <-
   }
 
 
-#' Calculate SEDC covariates
-#' @param point_from SpatVector object. Locations where
+#' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
+#' @param point_from `SpatVector` object. Locations where
 #'  the sum of SEDCs are calculated.
-#' @param point_to SpatVector object. Locations where each SEDC is calculated.
-#' @param id character(1). Name of the unique id field in point_to.
+#' @param point_to `SpatVector` object. Locations where each SEDC is calculated.
+#' @param id character(1). Name of the unique id field in `point_to`.
 #' @param sedc_bandwidth numeric(1).
 #' Distance at which the source concentration is reduced to
-#'  exp(-3) (approximately -95 %)
+#'  `exp(-3)` (approximately -95 %)
 #' @param threshold numeric(1). For computational efficiency,
 #'  the nearest points in threshold will be selected.
 #'  Default is \code{2 * sedc_bandwidth}.
@@ -490,7 +493,7 @@ reproject_b2r <-
 #' @note Distance calculation is done with terra functions internally.
 #'  Thus, the function internally converts sf objects in
 #'  \code{point_*} arguments to terra.
-#'  The optimal EDC should be carefully chosen by users.
+#'  The threshold should be carefully chosen by users.
 #' @author Insang Song
 #' @importFrom dplyr as_tibble
 #' @importFrom dplyr left_join
@@ -579,10 +582,10 @@ calculate_sedc <-
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.
 #' @param id_poly_in character(1).
-#'  The unique identifier of each polygon in poly_in
+#'  The unique identifier of each polygon in `poly_in`
 #' @return A data.frame with all numeric fields of area-weighted means.
-#' @description When poly_in and poly_weight are different classes,
-#'  poly_weight will be converted to the class of poly_in.
+#' @description When `poly_in` and `poly_weight` are different classes,
+#'  `poly_weight` will be converted to the class of `poly_in`.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' # package
@@ -635,19 +638,19 @@ aw_covariates <-
         poly_weight = NULL,
         id_poly_in = id_poly_in
       ) {
-          poly_intersected <- terra::intersect(poly_in, poly_weight)
-          poly_intersected[["area_segment_"]] <-
-            terra::expanse(poly_intersected)
-          poly_intersected <- data.frame(poly_intersected) |>
-            dplyr::group_by(!!rlang::sym(id_poly_in)) |>
-            dplyr::summarize(
-              dplyr::across(
-                dplyr::where(is.numeric),
-                ~stats::weighted.mean(., w = area_segment_)
-              )
-            ) |>
-            dplyr::ungroup()
-          return(poly_intersected)
+        poly_intersected <- terra::intersect(poly_in, poly_weight)
+        poly_intersected[["area_segment_"]] <-
+          terra::expanse(poly_intersected)
+        poly_intersected <- data.frame(poly_intersected) |>
+          dplyr::group_by(!!rlang::sym(id_poly_in)) |>
+          dplyr::summarize(
+            dplyr::across(
+              dplyr::where(is.numeric),
+              ~stats::weighted.mean(., w = area_segment_)
+            )
+          ) |>
+          dplyr::ungroup()
+        return(poly_intersected)
       }
 
     class_poly_in <- check_packbound(poly_in)
@@ -659,17 +662,17 @@ aw_covariates <-
 
     switch(class_poly_in,
       sf =
-      suppressWarnings(
-        sf::st_interpolate_aw(
-          poly_weight[, index_numeric],
-          poly_in, extensive = FALSE
-        )
-      ),
+        suppressWarnings(
+          sf::st_interpolate_aw(
+            poly_weight[, index_numeric],
+            poly_in, extensive = FALSE
+          )
+        ),
       terra =
-      aw_covariates_terra(
-        poly_in, poly_weight[, index_numeric],
-        id_poly_in = id_poly_in
-      )
+        aw_covariates_terra(
+          poly_in, poly_weight[, index_numeric],
+          id_poly_in = id_poly_in
+        )
     )
 
   }

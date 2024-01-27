@@ -7,7 +7,7 @@
 set_clip_extent(pnts, buffer_r)
 }
 \arguments{
-\item{pnts}{One of sf or vect class. Target points of computation.}
+\item{pnts}{One of sf or SpatVector object. Target points of computation.}
 
 \item{buffer_r}{numeric(1). Buffer radius. It is assumed to be in meters}
 }

@@ -51,7 +51,7 @@ A raster at which summary will be calculated}
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{qsegs}{integer(1). Number of vertices at a quarter of a circle.
-Default is 90L.}
+Default is \code{90L}.}
 
 \item{func}{a function taking a numeric vector argument.}
 
@@ -70,7 +70,7 @@ the points and the raster are the same.
 \examples{
 library(terra)
 rrast <- terra::rast(nrow = 100, ncol = 100)
-terra::crs(rrast) <- ""
+terra::crs(rrast) <- "EPSG:5070"
 terra::values(rrast) <- rgamma(1e4, 4, 2)
 rpnt <- terra::spatSample(rrast, 100L, as.points = TRUE)
 rpnt$pid <- sprintf("id_\%03d", seq(1, 100))

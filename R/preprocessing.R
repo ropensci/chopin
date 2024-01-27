@@ -54,7 +54,7 @@ switch_packbound <- function(input) {
 #' @description Return clipping extent with buffer radius.
 #'  It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
-#' @param pnts One of sf or vect class. Target points of computation.
+#' @param pnts One of sf or SpatVector object. Target points of computation.
 #' @param buffer_r numeric(1). Buffer radius. It is assumed to be in meters
 #' @returns A terra::ext or sfc_POLYGON object of the computation extent.
 #' @examples
@@ -74,7 +74,7 @@ switch_packbound <- function(input) {
 set_clip_extent <- function(
   pnts,
   buffer_r
-  ) {
+) {
   detected <- check_packbound(pnts)
   if (detected == "terra") {
     ext_input <- terra::ext(pnts)
@@ -125,6 +125,7 @@ rast_short <- function(rasterpath = NULL, win = NULL) {
 Set valid names for all win elements.\n"
     )
   }
-  invisible(terra::rast(rasterpath, win = win))
+  rast_sub <- terra::rast(rasterpath, win = win)
+  return(rast_sub)
 }
 

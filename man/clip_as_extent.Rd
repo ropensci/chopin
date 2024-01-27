@@ -2,7 +2,7 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{clip_as_extent}
 \alias{clip_as_extent}
-\title{Extent clipping}
+\title{Clip to the buffered extent of input vector}
 \usage{
 clip_as_extent(pnts, buffer_r, target_input)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{sp_index_grid}
 \alias{sp_index_grid}
-\title{sp_index_grid: Generate grid polygons}
+\title{Generate grid polygons}
 \usage{
 sp_index_grid(points_in, ncutsx, ncutsy)
 }
@@ -14,7 +14,7 @@ sp_index_grid(points_in, ncutsx, ncutsy)
 \item{ncutsy}{integer(1). The number of splits along y-axis.}
 }
 \value{
-A sf or SpatVector object of computation grids with
+A \code{sf} or \code{SpatVector} object of computation grids with
 unique grid id (CGRIDID).
 }
 \description{

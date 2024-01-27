@@ -2,7 +2,7 @@
 % Please edit documentation in scomps_rmarkdown_litr.rmd.
 \name{calculate_sedc}
 \alias{calculate_sedc}
-\title{Calculate SEDC covariates}
+\title{Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates}
 \usage{
 calculate_sedc(
   point_from = NULL,
@@ -14,16 +14,16 @@ calculate_sedc(
 )
 }
 \arguments{
-\item{point_from}{SpatVector object. Locations where
+\item{point_from}{\code{SpatVector} object. Locations where
 the sum of SEDCs are calculated.}
 
-\item{point_to}{SpatVector object. Locations where each SEDC is calculated.}
+\item{point_to}{\code{SpatVector} object. Locations where each SEDC is calculated.}
 
-\item{id}{character(1). Name of the unique id field in point_to.}
+\item{id}{character(1). Name of the unique id field in \code{point_to}.}
 
 \item{sedc_bandwidth}{numeric(1).
 Distance at which the source concentration is reduced to
-exp(-3) (approximately -95 \%)}
+\code{exp(-3)} (approximately -95 \%)}
 
 \item{threshold}{numeric(1). For computational efficiency,
 the nearest points in threshold will be selected.
@@ -43,13 +43,13 @@ at which emission source points are excluded beyond that
 }
 }
 \description{
-Calculate SEDC covariates
+Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 }
 \note{
 Distance calculation is done with terra functions internally.
 Thus, the function internally converts sf objects in
 \code{point_*} arguments to terra.
-The optimal EDC should be carefully chosen by users.
+The threshold should be carefully chosen by users.
 }
 \author{
 Insang Song

@@ -63,15 +63,15 @@ check_datatype <- function(input) {
   }
 }
 
-#' @title check_crs_align: Check coordinate system then reproject
+#' @title Check coordinate system then reproject
 #' @description The input is checked whether its coordinate system is
 #'  present. If not, it is reprojected to the CRS specified in
 #' \code{crs_standard}.
 #' @param input Input object one of sf or terra::Spat* object
 #' @param crs_standard character(1). A standard definition of
-#'  coordinate reference system. Default is "EPSG:4326"
+#'  coordinate reference system. Default is `"EPSG:4326"`
 #'  Consult [epsg.io](https://epsg.io) for details of other CRS.
-#' @returns A (reprojected) sf or SpatVector object.
+#' @returns A (reprojected) `sf` or `SpatVector` object.
 #' @author Insang Song
 #' @examples
 #' library(sf)
@@ -128,12 +128,12 @@ check_crs_align <-
 #' Vector validity violation usually appears in polygon data with
 #' self-crossing or
 #' hole orders. This function will pass the input_vector object to
-#' sf::st_make_valid() (if input_vector is sf) or
-#' terra::makeValid() (if input_vector is SpatVector).
+#' [`sf::st_make_valid`] (if input_vector is sf) or
+#' [`terra::makeValid`] (if input_vector is SpatVector).
 #' May take some time depending on the geometry complexity.
 #' @author Insang Song
 #' @param input_vector One of sf or vect class. Target points of computation.
-#' @returns A repaired sf or SpatVector object depending on
+#' @returns A repaired `sf` or `SpatVector` object depending on
 #' the class of input_vector.
 #' @export
 validate_and_repair_vectors <- function(input_vector) {
@@ -151,9 +151,9 @@ validate_and_repair_vectors <- function(input_vector) {
 #' Generate a rectangular polygon from extent
 #' @param extent input extent.
 #'  A numeric vector with xmin/xmax/ymin/ymax,
-#'  sf::st_bbox() or terra::ext() outputs.
+#'  [sf::st_bbox] or [terra::ext] outputs.
 #' @param output_class character(1).
-#'  Class of the output polygon. One of "sf" or "terra"
+#'  Class of the output polygon. One of `"sf"` or `"terra"`
 #' @param crs character(1). Coordinate reference system definition.
 #' @returns `sf` or `SpatVector` object of a rectangular polygon.
 #' @author Insang Song

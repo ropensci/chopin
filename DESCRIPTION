@@ -1,6 +1,5 @@
 Package: chopin
-Title: CHOPIN: Computation for Climate and Health research On Parallelized
-    INfrastructure
+Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
 Version: 0.2.1.01262024
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
@@ -32,7 +31,6 @@ Suggests:
     future.batchtools,
     igraph,
     knitr,
-    lobstr,
     rmarkdown,
     testthat (>= 3.0.0),
     tigris,
@@ -44,4 +42,4 @@ Depends:
     R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 643e27eae0a2f17fdc9a4841d7efc58d
+LitrId: e278c42258dd245a30b5ba1b979c71ea

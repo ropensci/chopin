@@ -20,32 +20,49 @@ testthat::test_that("Vector inputs are clipped by clip_as_extent", {
 
   # terra-terra
   testthat::expect_no_error(
-    suppressWarnings(cl_terra <- clip_as_extent(
-    pnts = ncpt, buffer_r = 3e4L, target_input = nctrct
-  )))
+    suppressWarnings(
+      cl_terra <-
+        clip_as_extent(
+          pnts = ncpt,
+          buffer_r = 3e4L,
+          target_input = nctrct
+        )
+    )
+  )
   testthat::expect_s4_class(cl_terra, "SpatVector")
-  
+
   # sf-sf
   ncp <- sf::st_as_sf(ncpt)
   nccntysf <- sf::st_as_sf(nccnty)
   nctrct <- sf::st_as_sf(nctrct)
   testthat::expect_no_error(
-    suppressWarnings(cl_sf <- clip_as_extent(
-    pnts = ncp, buffer_r = 3e4L, target_input = nctrct
-  )))
+    suppressWarnings(
+      cl_sf <-
+        clip_as_extent(
+          pnts = ncp,
+          buffer_r = 3e4L,
+          target_input = nctrct
+        )
+    )
+  )
   testthat::expect_s3_class(cl_sf, "sf")
 
   # sf-terra
   testthat::expect_no_error(
-    suppressWarnings(clip_as_extent(
-      pnts = ncpt, buffer_r = 3e4L,
-      target_input = sf::st_as_sf(nctrct))
-  ))
+    suppressWarnings(
+      clip_as_extent(
+        pnts = ncpt,
+        buffer_r = 3e4L,
+        target_input = sf::st_as_sf(nctrct)
+      )
+    )
+  )
 
   testthat::expect_error(
     clip_as_extent(
       pnts = NULL, buffer_r = 3e4L, target_input = nctrct
-  ))
+    )
+  )
 
 })
 
@@ -96,39 +113,48 @@ testthat::test_that("extract_with runs well", {
 
   # test two modes
   testthat::expect_no_error(
-    ncexpoly <- extract_with(
-                             nccntytr,
-                             ncelev,
-                             "FIPS",
-                             mode = "polygon")
+    ncexpoly <-
+      extract_with(
+        nccntytr,
+        ncelev,
+        "FIPS",
+        mode = "polygon"
+      )
   )
   testthat::expect_no_error(
-    ncexbuff <- extract_with(ncp,
-                             ncelev,
-                             "pid",
-                             mode = "buffer",
-                             radius = 1e4L)
-  )
-
-  testthat::expect_no_error(
-    ncexbuffkern <- extract_with_buffer(ncp,
-                             ncelev,
-                             "pid",
-                             kernel = "epanechnikov",
-                             func = stats::weighted.mean,
-                             bandwidth = 1.25e4L,
-                             radius = 1e4L)
+    ncexbuff <-
+      extract_with(ncp,
+        ncelev,
+        "pid",
+        mode = "buffer",
+        radius = 1e4L
+      )
   )
 
   testthat::expect_no_error(
-    ncexbuffkern <- extract_with(ncp,
-                             ncelev,
-                             "pid",
-                             mode = "buffer",
-                             kernel = "epanechnikov",
-                             func = stats::weighted.mean,
-                             bandwidth = 1.25e4L,
-                             radius = 1e4L)
+    ncexbuffkern <-
+      extract_with_buffer(
+        ncp,
+        ncelev,
+        "pid",
+        kernel = "epanechnikov",
+        func = stats::weighted.mean,
+        bandwidth = 1.25e4L,
+        radius = 1e4L
+      )
+  )
+
+  testthat::expect_no_error(
+    ncexbuffkern <-
+      extract_with(ncp,
+        ncelev,
+        "pid",
+        mode = "buffer",
+        kernel = "epanechnikov",
+        func = stats::weighted.mean,
+        bandwidth = 1.25e4L,
+        radius = 1e4L
+      )
   )
 
 

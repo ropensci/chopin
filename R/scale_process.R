@@ -32,14 +32,16 @@ par_fallback <-
 
 
 #' @title Process a given function in the entire or partial computational grids
-#' @description Currently only accepting \link[future]{multicore} setting
-#'  (single node, single process, and multiple threads).
-#'  For details of the terminology in \code{future} package,
-#'  refer to \link[future]{plan}. This function assumes that
-#'  users have one raster file and a sizable and spatially distributed
-#'  target locations. Each thread will process ceiling($|N_g|/|N_t|$) grids
-#'  where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
-#'  the number of threads.
+#' @description 
+#' [future::multicore], [future::multisession], [future::cluster]
+#' with [doParallel::registerDoParallel] will parallelize the work
+#' in each grid. For details of the terminology in \code{future} package,
+#' refer to \link[future]{plan}. This function assumes that
+#' users have one raster file and a sizable and spatially distributed
+#' target locations. Each thread will process
+#' `ceiling(\eqn{|N_g|/|N_t|})` grids
+#' where \eqn{|N_g|} denotes the number of grids and \eqn{|N_t|} denotes
+#' the number of threads.
 #' @note In dynamic dots (\code{...}), the first and second
 #' arguments should be the \code{fun_dist} arguments where
 #' sf/SpatVector objects are accepted.
@@ -176,14 +178,14 @@ distribute_process_grid <-
 #'  which divides the entire study region into multiple subregions.
 #'  It is oftentimes reflected in an area code system
 #'  (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
-#'  Currently only accepting \link[future]{multicore} setting
-#'  (single node, single process, and multiple threads).
-#'  For details of the terminology in \code{future} package,
+#' [future::multicore], [future::multisession], [future::cluster]
+#' with [doParallel::registerDoParallel] will parallelize the work
+#' in each grid. For details of the terminology in \code{future} package,
 #'  refer to \link[future]{plan}.
 #'  This function assumes that users have one raster file and
 #'  a sizable and spatially distributed target locations.
-#'  Each thread will process ceiling($|N_{g}|/|N_{t}|$) grids where
-#'  $|N_{g}|$ denotes the number of grids and $|N_{t}|$ denotes
+#'  Each thread will process `ceiling(\eqn{|N_{g}|/|N_{t}|})` grids where
+#'  \eqn{|N_{g}|} denotes the number of grids and \eqn{|N_{t}|} denotes
 #'  the number of threads. Please be advised that
 #'  accessing the same file simultaneously with
 #'  multiple processes may result in errors.

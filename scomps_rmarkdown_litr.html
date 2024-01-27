@@ -11,7 +11,7 @@
 
 <meta name="author" content="Insang Song" />
 
-<meta name="date" content="2024-01-24" />
+<meta name="date" content="2024-01-26" />
 
 <title>CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: chopin</title>
 
@@ -359,7 +359,7 @@ pre code {
 <h1 class="title toc-ignore">CHOPIN: Computation for Climate and Health
 research On Parallelized INfrastructure: <code>chopin</code></h1>
 <h4 class="author">Insang Song</h4>
-<h4 class="date">2024-01-24</h4>
+<h4 class="date">2024-01-26</h4>
 
 </div>
 
@@ -413,7 +413,7 @@ usethis::use_package(&quot;exactextractr&quot;)
 usethis::use_package(&quot;future&quot;)
 usethis::use_package(&quot;future.apply&quot;)
 usethis::use_package(&quot;covr&quot;, &quot;Suggests&quot;)
-usethis::use_package(&quot;lobstr&quot;, &quot;Suggests&quot;)
+# usethis::use_package(&quot;lobstr&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;testthat&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;units&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;tigris&quot;, &quot;Suggests&quot;)
@@ -461,7 +461,6 @@ usethis::use_roxygen_md()
 ##     covr,
 ##     future.batchtools,
 ##     igraph,
-##     lobstr,
 ##     testthat,
 ##     tigris,
 ##     units,
@@ -740,15 +739,15 @@ testthat::test_that(&quot;Format is well converted&quot;,
 </code></pre>
 <pre><code>## pr, tas, 
 ## Test passed</code></pre>
-<pre class="r"><code>#&#39; @title check_crs_align: Check coordinate system then reproject
+<pre class="r"><code>#&#39; @title Check coordinate system then reproject
 #&#39; @description The input is checked whether its coordinate system is
 #&#39;  present. If not, it is reprojected to the CRS specified in
 #&#39; \code{crs_standard}.
 #&#39; @param input Input object one of sf or terra::Spat* object
 #&#39; @param crs_standard character(1). A standard definition of
-#&#39;  coordinate reference system. Default is &quot;EPSG:4326&quot;
+#&#39;  coordinate reference system. Default is `&quot;EPSG:4326&quot;`
 #&#39;  Consult [epsg.io](https://epsg.io) for details of other CRS.
-#&#39; @returns A (reprojected) sf or SpatVector object.
+#&#39; @returns A (reprojected) `sf` or `SpatVector` object.
 #&#39; @author Insang Song
 #&#39; @examples
 #&#39; library(sf)
@@ -845,12 +844,12 @@ check_crs_align &lt;-
 #&#39; Vector validity violation usually appears in polygon data with
 #&#39; self-crossing or
 #&#39; hole orders. This function will pass the input_vector object to
-#&#39; sf::st_make_valid() (if input_vector is sf) or
-#&#39; terra::makeValid() (if input_vector is SpatVector).
+#&#39; [`sf::st_make_valid`] (if input_vector is sf) or
+#&#39; [`terra::makeValid`] (if input_vector is SpatVector).
 #&#39; May take some time depending on the geometry complexity.
 #&#39; @author Insang Song
 #&#39; @param input_vector One of sf or vect class. Target points of computation.
-#&#39; @returns A repaired sf or SpatVector object depending on
+#&#39; @returns A repaired `sf` or `SpatVector` object depending on
 #&#39; the class of input_vector.
 #&#39; @export
 <span id='validate_and_repair_vectors'>validate_and_repair_vectors</span> &lt;- function(input_vector) {
@@ -882,7 +881,7 @@ check_crs_align &lt;-
 #&#39; @description Return clipping extent with buffer radius.
 #&#39;  It assumes the input CRS is projected and linear unit is meters.
 #&#39; @author Insang Song
-#&#39; @param pnts One of sf or vect class. Target points of computation.
+#&#39; @param pnts One of sf or SpatVector object. Target points of computation.
 #&#39; @param buffer_r numeric(1). Buffer radius. It is assumed to be in meters
 #&#39; @returns A terra::ext or sfc_POLYGON object of the computation extent.
 #&#39; @examples
@@ -902,7 +901,7 @@ check_crs_align &lt;-
 <span id='set_clip_extent'>set_clip_extent</span> &lt;- function(
   pnts,
   buffer_r
-  ) {
+) {
   detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(pnts)
   if (detected == &quot;terra&quot;) {
     ext_input &lt;- terra::ext(pnts)
@@ -952,7 +951,7 @@ check_crs_align &lt;-
 })
 </code></pre>
 <pre><code>## Test passed</code></pre>
-<pre class="r"><code>#&#39; Extent clipping
+<pre class="r"><code>#&#39; Clip to the buffered extent of input vector
 #&#39; @description Clip input vector by
 #&#39;  the expected maximum extent of computation.
 #&#39; @author Insang Song
@@ -1023,32 +1022,49 @@ check_crs_align &lt;-
 
   # terra-terra
   testthat::expect_no_error(
-    suppressWarnings(cl_terra &lt;- <a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
-    pnts = ncpt, buffer_r = 3e4L, target_input = nctrct
-  )))
+    suppressWarnings(
+      cl_terra &lt;-
+        <a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
+          pnts = ncpt,
+          buffer_r = 3e4L,
+          target_input = nctrct
+        )
+    )
+  )
   testthat::expect_s4_class(cl_terra, &quot;SpatVector&quot;)
-  
+
   # sf-sf
   ncp &lt;- sf::st_as_sf(ncpt)
   nccntysf &lt;- sf::st_as_sf(nccnty)
   nctrct &lt;- sf::st_as_sf(nctrct)
   testthat::expect_no_error(
-    suppressWarnings(cl_sf &lt;- <a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
-    pnts = ncp, buffer_r = 3e4L, target_input = nctrct
-  )))
+    suppressWarnings(
+      cl_sf &lt;-
+        <a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
+          pnts = ncp,
+          buffer_r = 3e4L,
+          target_input = nctrct
+        )
+    )
+  )
   testthat::expect_s3_class(cl_sf, &quot;sf&quot;)
 
   # sf-terra
   testthat::expect_no_error(
-    suppressWarnings(<a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
-      pnts = ncpt, buffer_r = 3e4L,
-      target_input = sf::st_as_sf(nctrct))
-  ))
+    suppressWarnings(
+      <a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
+        pnts = ncpt,
+        buffer_r = 3e4L,
+        target_input = sf::st_as_sf(nctrct)
+      )
+    )
+  )
 
   testthat::expect_error(
     <a href='scomps_rmarkdown_litr.html#clip_as_extent'>clip_as_extent</a>(
       pnts = NULL, buffer_r = 3e4L, target_input = nctrct
-  ))
+    )
+  )
 
 })
 </code></pre>
@@ -1146,7 +1162,8 @@ check_crs_align &lt;-
 Set valid names for all win elements.\n&quot;
     )
   }
-  invisible(terra::rast(rasterpath, win = win))
+  rast_sub &lt;- terra::rast(rasterpath, win = win)
+  return(rast_sub)
 }
 </code></pre>
 <pre class="r"><code>testthat::test_that(&quot;Raster is read properly with a window.&quot;, {
@@ -1171,27 +1188,6 @@ Set valid names for all win elements.\n&quot;
 
 </code></pre>
 <pre><code>## Test passed</code></pre>
-<pre class="r"><code>#&#39; Estimate computational demands from inputs (to be written)
-#&#39; @param inputs character vector of file paths
-#&#39; @param nx integer(1).
-#&#39; @param ny integer(1).
-#&#39; @param padding numeric(1). Extrusion factor
-#&#39; @author Insang Song
-#&#39; @export
-<span id='estimate_demands'>estimate_demands</span> &lt;- function(
-  inputs,
-  nx, ny,
-  padding
-) {
-  ## cpu
-  ## memory
-  ## estimate maximum coverage
-  ## clipped data size
-  ## total distributed memory
-  ## return a list of total demands
-  ## print summary of results
-}
-</code></pre>
 <pre class="r"><code>#&#39; Get a set of computational regions
 #&#39; @param input sf or Spat* object.
 #&#39; @param mode character(1). Mode of region construction.
@@ -1291,15 +1287,15 @@ We try converting padding to numeric...\n&quot;)
 
   }
 
-#&#39; @title sp_index_grid: Generate grid polygons
+#&#39; @title Generate grid polygons
 #&#39; @description Returns a sf object that includes x- and y- index
-#&#39;  by using two inputs ncutsx and ncutsy, which are x- and
-#&#39;  y-directional splits, respectively.
+#&#39; by using two inputs ncutsx and ncutsy, which are x- and
+#&#39; y-directional splits, respectively.
 #&#39; @param points_in sf or SpatVector object. Target points of computation.
 #&#39; @param ncutsx integer(1). The number of splits along x-axis.
 #&#39; @param ncutsy integer(1). The number of splits along y-axis.
-#&#39; @returns A sf or SpatVector object of computation grids with
-#&#39;  unique grid id (CGRIDID).
+#&#39; @returns A `sf` or `SpatVector` object of computation grids with
+#&#39; unique grid id (CGRIDID).
 #&#39; @author Insang Song
 #&#39; @importFrom terra rast
 #&#39; @importFrom terra as.polygons
@@ -1327,20 +1323,21 @@ sp_index_grid &lt;-
 
     grid_out$CGRIDID &lt;- seq(1, nrow(x = grid_out))
     return(grid_out)
-}
+  }
 
 
-#&#39; @title grid_merge: Merge grid polygons with given rules
+#&#39; @title Merge adjacent grid polygons with given rules
 #&#39; @description Merge boundary-sharing (in &quot;Rook&quot; contiguity) grids with
 #&#39;  fewer target features than the threshold.
 #&#39;  This function strongly assumes that the input
 #&#39;  is returned from the sp_index_grid,
 #&#39;  which has &#39;CGRIDID&#39; as the unique id field.
 #&#39; @author Insang Song
-#&#39; @param points_in sf or SpatVector object. Target points of computation.
-#&#39; @param grid_in sf or SpatVector object. The grid generated by sp_index_grid
+#&#39; @param points_in `sf` or `SpatVector` object. Target points of computation.
+#&#39; @param grid_in `sf` or `SpatVector` object.
+#&#39; The grid generated by [`sp_index_grid`].
 #&#39; @param grid_min_features integer(1). Threshold to merge adjacent grids.
-#&#39; @return A sf or SpatVector object of computation grids.
+#&#39; @return A `sf` or `SpatVector` object of computation grids.
 #&#39; @examples
 #&#39; # library(sf)
 #&#39; # library(igraph)
@@ -1419,7 +1416,7 @@ sp_index_grid &lt;-
     dplyr::ungroup()
 
   ## polsby-popper test for shape compactness
-  grid_merged &lt;- grid_out[which(grid_out$n_merged &gt; 1),]
+  grid_merged &lt;- grid_out[which(grid_out$n_merged &gt; 1), ]
   grid_merged_area &lt;- as.numeric(sf::st_area(grid_merged))
   grid_merged_perimeter &lt;-
     as.numeric(sf::st_length(sf::st_cast(grid_merged, &quot;LINESTRING&quot;)))
@@ -1438,22 +1435,20 @@ sp_index_grid &lt;-
   return(grid_out)
 
 }
-
-
 </code></pre>
-<pre class="r"><code>    <span id='sp_index_grid_sf'>sp_index_grid_sf</span> &lt;- function(points_in, ncutsx, ncutsy) {
-      grid1 &lt;- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |&gt;
-        as.data.frame() |&gt;
-        sf::st_as_sf()
-      grid1 &lt;- grid1[points_in, ]
-      return(grid1)
-    }
-    <span id='sp_index_grid_terra'>sp_index_grid_terra</span> &lt;- function(points_in, ncutsx, ncutsy) {
-      grid1 &lt;- terra::rast(points_in, nrows = ncutsy, ncols = ncutsx)
-      grid1 &lt;- terra::as.polygons(grid1)
-      grid1 &lt;- grid1[points_in, ]
-      return(grid1)
-    }</code></pre>
+<pre class="r"><code><span id='sp_index_grid_sf'>sp_index_grid_sf</span> &lt;- function(points_in, ncutsx, ncutsy) {
+  grid1 &lt;- sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |&gt;
+    as.data.frame() |&gt;
+    sf::st_as_sf()
+  grid1 &lt;- grid1[points_in, ]
+  return(grid1)
+}
+<span id='sp_index_grid_terra'>sp_index_grid_terra</span> &lt;- function(points_in, ncutsx, ncutsy) {
+  grid1 &lt;- terra::rast(points_in, nrows = ncutsy, ncols = ncutsx)
+  grid1 &lt;- terra::as.polygons(grid1)
+  grid1 &lt;- grid1[points_in, ]
+  return(grid1)
+}</code></pre>
 <pre><code>## Test passed</code></pre>
 <pre class="r"><code>testthat::test_that(&quot;Grid split is well done.&quot;, {
   withr::local_package(&quot;sf&quot;)
@@ -1518,9 +1513,9 @@ sp_index_grid &lt;-
 <pre class="r"><code>#&#39; Generate a rectangular polygon from extent
 #&#39; @param extent input extent.
 #&#39;  A numeric vector with xmin/xmax/ymin/ymax,
-#&#39;  sf::st_bbox() or terra::ext() outputs.
+#&#39;  [sf::st_bbox] or [terra::ext] outputs.
 #&#39; @param output_class character(1).
-#&#39;  Class of the output polygon. One of &quot;sf&quot; or &quot;terra&quot;
+#&#39;  Class of the output polygon. One of `&quot;sf&quot;` or `&quot;terra&quot;`
 #&#39; @param crs character(1). Coordinate reference system definition.
 #&#39; @returns `sf` or `SpatVector` object of a rectangular polygon.
 #&#39; @author Insang Song
@@ -1671,7 +1666,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 #&#39; @param radius numeric(1). Buffer radius. here we assume circular buffers only
 #&#39; @param id character(1). Unique identifier of each point.
 #&#39; @param qsegs integer(1). Number of vertices at a quarter of a circle.
-#&#39;  Default is 90L.
+#&#39;  Default is `90L`.
 #&#39; @param func a function taking a numeric vector argument.
 #&#39; @param kernel character(1). Name of a kernel function
 #&#39; One of `&quot;uniform&quot;`, `&quot;triweight&quot;`, `&quot;quartic&quot;`, and `&quot;epanechnikov&quot;`
@@ -1681,7 +1676,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 #&#39; @examples
 #&#39; library(terra)
 #&#39; rrast &lt;- terra::rast(nrow = 100, ncol = 100)
-#&#39; terra::crs(rrast) &lt;- &quot;&quot;
+#&#39; terra::crs(rrast) &lt;- &quot;EPSG:5070&quot;
 #&#39; terra::values(rrast) &lt;- rgamma(1e4, 4, 2)
 #&#39; rpnt &lt;- terra::spatSample(rrast, 100L, as.points = TRUE)
 #&#39; rpnt$pid &lt;- sprintf(&quot;id_%03d&quot;, seq(1, 100))
@@ -1727,23 +1722,26 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
   if (!is.null(kernel)) {
     extracted &lt;-
       <a href='scomps_rmarkdown_litr.html#extract_with_buffer_kernel'>extract_with_buffer_kernel</a>(points = points,
-                                 surf = surf,
-                                 radius = radius,
-                                 id = id,
-                                 func = func,
-                                 qsegs = qsegs,
-                                 kernel = kernel,
-                                 bandwidth = bandwidth)
+        surf = surf,
+        radius = radius,
+        id = id,
+        func = func,
+        qsegs = qsegs,
+        kernel = kernel,
+        bandwidth = bandwidth
+      )
     return(extracted)
   }
 
   extracted &lt;-
-    <a href='scomps_rmarkdown_litr.html#extract_with_buffer_flat'>extract_with_buffer_flat</a>(points = points,
-                             surf = surf,
-                             radius = radius,
-                             id = id,
-                             func = func,
-                             qsegs = qsegs)
+    <a href='scomps_rmarkdown_litr.html#extract_with_buffer_flat'>extract_with_buffer_flat</a>(
+      points = points,
+      surf = surf,
+      radius = radius,
+      id = id,
+      func = func,
+      qsegs = qsegs
+    )
   return(extracted)
 
 }
@@ -2022,39 +2020,48 @@ reproject_b2r &lt;-
 
   # test two modes
   testthat::expect_no_error(
-    ncexpoly &lt;- <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(
-                             nccntytr,
-                             ncelev,
-                             &quot;FIPS&quot;,
-                             mode = &quot;polygon&quot;)
+    ncexpoly &lt;-
+      <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(
+        nccntytr,
+        ncelev,
+        &quot;FIPS&quot;,
+        mode = &quot;polygon&quot;
+      )
   )
   testthat::expect_no_error(
-    ncexbuff &lt;- <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(ncp,
-                             ncelev,
-                             &quot;pid&quot;,
-                             mode = &quot;buffer&quot;,
-                             radius = 1e4L)
-  )
-
-  testthat::expect_no_error(
-    ncexbuffkern &lt;- <a href='scomps_rmarkdown_litr.html#extract_with_buffer'>extract_with_buffer</a>(ncp,
-                             ncelev,
-                             &quot;pid&quot;,
-                             kernel = &quot;epanechnikov&quot;,
-                             func = stats::weighted.mean,
-                             bandwidth = 1.25e4L,
-                             radius = 1e4L)
+    ncexbuff &lt;-
+      <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(ncp,
+        ncelev,
+        &quot;pid&quot;,
+        mode = &quot;buffer&quot;,
+        radius = 1e4L
+      )
   )
 
   testthat::expect_no_error(
-    ncexbuffkern &lt;- <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(ncp,
-                             ncelev,
-                             &quot;pid&quot;,
-                             mode = &quot;buffer&quot;,
-                             kernel = &quot;epanechnikov&quot;,
-                             func = stats::weighted.mean,
-                             bandwidth = 1.25e4L,
-                             radius = 1e4L)
+    ncexbuffkern &lt;-
+      <a href='scomps_rmarkdown_litr.html#extract_with_buffer'>extract_with_buffer</a>(
+        ncp,
+        ncelev,
+        &quot;pid&quot;,
+        kernel = &quot;epanechnikov&quot;,
+        func = stats::weighted.mean,
+        bandwidth = 1.25e4L,
+        radius = 1e4L
+      )
+  )
+
+  testthat::expect_no_error(
+    ncexbuffkern &lt;-
+      <a href='scomps_rmarkdown_litr.html#extract_with'>extract_with</a>(ncp,
+        ncelev,
+        &quot;pid&quot;,
+        mode = &quot;buffer&quot;,
+        kernel = &quot;epanechnikov&quot;,
+        func = stats::weighted.mean,
+        bandwidth = 1.25e4L,
+        radius = 1e4L
+      )
   )
 
 
@@ -2238,14 +2245,14 @@ reproject_b2r &lt;-
 
 })
 </code></pre>
-<pre class="r"><code>#&#39; Calculate SEDC covariates
-#&#39; @param point_from SpatVector object. Locations where
+<pre class="r"><code>#&#39; Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
+#&#39; @param point_from `SpatVector` object. Locations where
 #&#39;  the sum of SEDCs are calculated.
-#&#39; @param point_to SpatVector object. Locations where each SEDC is calculated.
-#&#39; @param id character(1). Name of the unique id field in point_to.
+#&#39; @param point_to `SpatVector` object. Locations where each SEDC is calculated.
+#&#39; @param id character(1). Name of the unique id field in `point_to`.
 #&#39; @param sedc_bandwidth numeric(1).
 #&#39; Distance at which the source concentration is reduced to
-#&#39;  exp(-3) (approximately -95 %)
+#&#39;  `exp(-3)` (approximately -95 %)
 #&#39; @param threshold numeric(1). For computational efficiency,
 #&#39;  the nearest points in threshold will be selected.
 #&#39;  Default is \code{2 * sedc_bandwidth}.
@@ -2260,7 +2267,7 @@ reproject_b2r &lt;-
 #&#39; @note Distance calculation is done with terra functions internally.
 #&#39;  Thus, the function internally converts sf objects in
 #&#39;  \code{point_*} arguments to terra.
-#&#39;  The optimal EDC should be carefully chosen by users.
+#&#39;  The threshold should be carefully chosen by users.
 #&#39; @author Insang Song
 #&#39; @importFrom dplyr as_tibble
 #&#39; @importFrom dplyr left_join
@@ -2393,10 +2400,10 @@ calculate_sedc &lt;-
 #&#39; @param poly_weight A sf/SpatVector object from
 #&#39;  which weighted means will be calculated.
 #&#39; @param id_poly_in character(1).
-#&#39;  The unique identifier of each polygon in poly_in
+#&#39;  The unique identifier of each polygon in `poly_in`
 #&#39; @return A data.frame with all numeric fields of area-weighted means.
-#&#39; @description When poly_in and poly_weight are different classes,
-#&#39;  poly_weight will be converted to the class of poly_in.
+#&#39; @description When `poly_in` and `poly_weight` are different classes,
+#&#39;  `poly_weight` will be converted to the class of `poly_in`.
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; @examples
 #&#39; # package
@@ -2449,19 +2456,19 @@ aw_covariates &lt;-
         poly_weight = NULL,
         id_poly_in = id_poly_in
       ) {
-          poly_intersected &lt;- terra::intersect(poly_in, poly_weight)
-          poly_intersected[[&quot;area_segment_&quot;]] &lt;-
-            terra::expanse(poly_intersected)
-          poly_intersected &lt;- data.frame(poly_intersected) |&gt;
-            dplyr::group_by(!!rlang::sym(id_poly_in)) |&gt;
-            dplyr::summarize(
-              dplyr::across(
-                dplyr::where(is.numeric),
-                ~stats::weighted.mean(., w = area_segment_)
-              )
-            ) |&gt;
-            dplyr::ungroup()
-          return(poly_intersected)
+        poly_intersected &lt;- terra::intersect(poly_in, poly_weight)
+        poly_intersected[[&quot;area_segment_&quot;]] &lt;-
+          terra::expanse(poly_intersected)
+        poly_intersected &lt;- data.frame(poly_intersected) |&gt;
+          dplyr::group_by(!!rlang::sym(id_poly_in)) |&gt;
+          dplyr::summarize(
+            dplyr::across(
+              dplyr::where(is.numeric),
+              ~stats::weighted.mean(., w = area_segment_)
+            )
+          ) |&gt;
+          dplyr::ungroup()
+        return(poly_intersected)
       }
 
     class_poly_in &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(poly_in)
@@ -2473,17 +2480,17 @@ aw_covariates &lt;-
 
     switch(class_poly_in,
       sf =
-      suppressWarnings(
-        sf::st_interpolate_aw(
-          poly_weight[, index_numeric],
-          poly_in, extensive = FALSE
-        )
-      ),
+        suppressWarnings(
+          sf::st_interpolate_aw(
+            poly_weight[, index_numeric],
+            poly_in, extensive = FALSE
+          )
+        ),
       terra =
-      aw_covariates_terra(
-        poly_in, poly_weight[, index_numeric],
-        id_poly_in = id_poly_in
-      )
+        aw_covariates_terra(
+          poly_in, poly_weight[, index_numeric],
+          id_poly_in = id_poly_in
+        )
     )
 
   }
@@ -2649,14 +2656,16 @@ par_fallback &lt;-
 
 </code></pre>
 <pre class="r"><code>#&#39; @title Process a given function in the entire or partial computational grids
-#&#39; @description Currently only accepting \link[future]{multicore} setting
-#&#39;  (single node, single process, and multiple threads).
-#&#39;  For details of the terminology in \code{future} package,
-#&#39;  refer to \link[future]{plan}. This function assumes that
-#&#39;  users have one raster file and a sizable and spatially distributed
-#&#39;  target locations. Each thread will process ceiling($|N_g|/|N_t|$) grids
-#&#39;  where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
-#&#39;  the number of threads.
+#&#39; @description 
+#&#39; [future::multicore], [future::multisession], [future::cluster]
+#&#39; with [doParallel::registerDoParallel] will parallelize the work
+#&#39; in each grid. For details of the terminology in \code{future} package,
+#&#39; refer to \link[future]{plan}. This function assumes that
+#&#39; users have one raster file and a sizable and spatially distributed
+#&#39; target locations. Each thread will process
+#&#39; `ceiling(\eqn{|N_g|/|N_t|})` grids
+#&#39; where \eqn{|N_g|} denotes the number of grids and \eqn{|N_t|} denotes
+#&#39; the number of threads.
 #&#39; @note In dynamic dots (\code{...}), the first and second
 #&#39; arguments should be the \code{fun_dist} arguments where
 #&#39; sf/SpatVector objects are accepted.
@@ -2793,14 +2802,14 @@ distribute_process_grid &lt;-
 #&#39;  which divides the entire study region into multiple subregions.
 #&#39;  It is oftentimes reflected in an area code system
 #&#39;  (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
-#&#39;  Currently only accepting \link[future]{multicore} setting
-#&#39;  (single node, single process, and multiple threads).
-#&#39;  For details of the terminology in \code{future} package,
+#&#39; [future::multicore], [future::multisession], [future::cluster]
+#&#39; with [doParallel::registerDoParallel] will parallelize the work
+#&#39; in each grid. For details of the terminology in \code{future} package,
 #&#39;  refer to \link[future]{plan}.
 #&#39;  This function assumes that users have one raster file and
 #&#39;  a sizable and spatially distributed target locations.
-#&#39;  Each thread will process ceiling($|N_{g}|/|N_{t}|$) grids where
-#&#39;  $|N_{g}|$ denotes the number of grids and $|N_{t}|$ denotes
+#&#39;  Each thread will process `ceiling(\eqn{|N_{g}|/|N_{t}|})` grids where
+#&#39;  \eqn{|N_{g}|} denotes the number of grids and \eqn{|N_{t}|} denotes
 #&#39;  the number of threads. Please be advised that
 #&#39;  accessing the same file simultaneously with
 #&#39;  multiple processes may result in errors.
@@ -3331,80 +3340,81 @@ distribute_process_multirasters &lt;-
 the package. It may also be a good idea to check the package from within
 this file.</p>
 <pre class="r"><code>testthat::test_that(
-  &quot;Processes are properly spawned and compute over multirasters&quot;, {
-  withr::local_package(&quot;terra&quot;)
-  withr::local_package(&quot;sf&quot;)
-  withr::local_package(&quot;future&quot;)
-  withr::local_package(&quot;future.apply&quot;)
-  withr::local_package(&quot;dplyr&quot;)
-  withr::local_options(
-    list(
-      sf_use_s2 = FALSE,
-      future.resolve.recursive = 2L
-    )
-  )
-
-  ncpath &lt;- testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
-  nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
-  ncelev &lt;-
-    terra::unwrap(
-      readRDS(
-        testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_srtm15_otm.rds&quot;)
+  &quot;Processes are properly spawned and compute over multirasters&quot;,
+  {
+    withr::local_package(&quot;terra&quot;)
+    withr::local_package(&quot;sf&quot;)
+    withr::local_package(&quot;future&quot;)
+    withr::local_package(&quot;future.apply&quot;)
+    withr::local_package(&quot;dplyr&quot;)
+    withr::local_options(
+      list(
+        sf_use_s2 = FALSE,
+        future.resolve.recursive = 2L
       )
     )
-  terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
-  names(ncelev) &lt;- c(&quot;srtm15&quot;)
-  tdir &lt;- tempdir(check = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, &quot;test1.tif&quot;), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, &quot;test2.tif&quot;), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, &quot;test3.tif&quot;), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, &quot;test4.tif&quot;), overwrite = TRUE)
-  terra::writeRaster(ncelev, file.path(tdir, &quot;test5.tif&quot;), overwrite = TRUE)
 
-  testfiles &lt;- list.files(tdir, pattern = &quot;tif$&quot;, full.names = TRUE)
-  testthat::expect_no_error(
-    res &lt;- distribute_process_multirasters(
-      filenames = testfiles,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = &quot;GEOID&quot;,
-      func = &quot;mean&quot;
+    ncpath &lt;- testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
+    nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
+    ncelev &lt;-
+      terra::unwrap(
+        readRDS(
+          testthat::test_path(&quot;..&quot;, &quot;testdata&quot;, &quot;nc_srtm15_otm.rds&quot;)
+        )
+      )
+    terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
+    names(ncelev) &lt;- c(&quot;srtm15&quot;)
+    tdir &lt;- tempdir(check = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, &quot;test1.tif&quot;), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, &quot;test2.tif&quot;), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, &quot;test3.tif&quot;), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, &quot;test4.tif&quot;), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, &quot;test5.tif&quot;), overwrite = TRUE)
+
+    testfiles &lt;- list.files(tdir, pattern = &quot;tif$&quot;, full.names = TRUE)
+    testthat::expect_no_error(
+      res &lt;- distribute_process_multirasters(
+        filenames = testfiles,
+        fun_dist = extract_with_polygons,
+        polys = nccnty,
+        surf = ncelev,
+        id = &quot;GEOID&quot;,
+        func = &quot;mean&quot;
+      )
     )
-  )
-  testthat::expect_s3_class(res, &quot;data.frame&quot;)
-  testthat::expect_true(!anyNA(res))
+    testthat::expect_s3_class(res, &quot;data.frame&quot;)
+    testthat::expect_true(!anyNA(res))
 
-  testfiles_corrupted &lt;- c(testfiles, &quot;/home/runner/fallin.tif&quot;)
-  testthat::expect_condition(
-    resnas &lt;- distribute_process_multirasters(
-      filenames = testfiles_corrupted,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = &quot;GEOID&quot;,
-      func = &quot;mean&quot;
+    testfiles_corrupted &lt;- c(testfiles, &quot;/home/runner/fallin.tif&quot;)
+    testthat::expect_condition(
+      resnas &lt;- distribute_process_multirasters(
+        filenames = testfiles_corrupted,
+        fun_dist = extract_with_polygons,
+        polys = nccnty,
+        surf = ncelev,
+        id = &quot;GEOID&quot;,
+        func = &quot;mean&quot;
+      )
     )
-  )
 
-  testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
-  testthat::expect_true(anyNA(resnas))
+    testthat::expect_s3_class(resnas, &quot;data.frame&quot;)
+    testthat::expect_true(anyNA(resnas))
 
-  # error case
-  future::plan(future::sequential)
-  testthat::expect_condition(
-    resnasx &lt;- distribute_process_multirasters(
-      filenames = testfiles_corrupted,
-      debug = TRUE,
-      fun_dist = extract_with_polygons,
-      polys = nccnty,
-      surf = ncelev,
-      id = &quot;GEOID&quot;,
-      func = &quot;mean&quot;
+    # error case
+    future::plan(future::sequential)
+    testthat::expect_condition(
+      resnasx &lt;- distribute_process_multirasters(
+        filenames = testfiles_corrupted,
+        debug = TRUE,
+        fun_dist = extract_with_polygons,
+        polys = nccnty,
+        surf = ncelev,
+        id = &quot;GEOID&quot;,
+        func = &quot;mean&quot;
+      )
     )
-  )
-
-})
+  }
+)
 </code></pre>
 <pre><code>## ℹ Updating chopin documentation
 ## Writing &#39;NAMESPACE&#39;
@@ -3419,7 +3429,6 @@ this file.</p>
 ## Writing &#39;check_crs.Rd&#39;
 ## Writing &#39;check_within_reference.Rd&#39;
 ## Writing &#39;detect_class.Rd&#39;
-## Writing &#39;estimate_demands.Rd&#39;
 ## Writing &#39;get_computational_regions.Rd&#39;
 ## Writing &#39;sp_index_grid.Rd&#39;
 ## Writing &#39;grid_merge.Rd&#39;
