@@ -39,7 +39,7 @@ Suggests:
 https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
 VignetteBuilder: knitr
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: d2301ea1373a20b987681e3857037810
+LitrId: 72298e0d71fe411c6a683ab05e135ad6

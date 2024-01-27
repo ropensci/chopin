@@ -488,7 +488,7 @@ reproject_b2r <-
 #'  the nearest points in threshold will be selected.
 #'  Default is \code{2 * sedc_bandwidth}.
 #' @param target_fields character(varying). Field names in characters.
-#' @return data.frame (tibble) object with input field names with
+#' @returns data.frame (tibble) object with input field names with
 #'  a suffix \code{"_sedc"} where the sums of EDC are stored.
 #'  Additional attributes are attached for the EDC information.
 #'    - attr(result, "sedc_bandwidth"): the bandwidth where
@@ -500,6 +500,23 @@ reproject_b2r <-
 #'  \code{point_*} arguments to terra.
 #'  The threshold should be carefully chosen by users.
 #' @author Insang Song
+#' @examples
+#' library(terra)
+#' library(sf)
+#' set.seed(101)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc <- terra::vect(ncpath)
+#' nc <- terra::project(nc, "EPSG:5070")
+#' pnt_from <- terra::centroids(nc, inside = TRUE)
+#' pnt_from <- pnt_from[, "NAME"]
+#' pnt_to <- terra::spatSample(nc, 100L)
+#' pnt_to$pid <- seq(1, 100)
+#' pnt_to <- pnt_to[, "pid"]
+#' pnt_to$val1 <- rgamma(100L, 1, 0.05)
+#' pnt_to$val2 <- rgamma(100L, 2, 1)
+#'
+#' vals <- c("val1", "val2")
+#' calculate_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 #' @importFrom dplyr as_tibble
 #' @importFrom dplyr left_join
 #' @importFrom dplyr summarize
@@ -533,27 +550,40 @@ calculate_sedc <-
       point_from <- switch_packbound(point_from)
       point_to <- switch_packbound(point_to)
     }
+
+    cn_overlap <- intersect(names(point_from), names(point_to))
+    if (length(cn_overlap) > 0) {
+      warning(
+        sprintf(
+          "There are %d fields with the same name.
+The result may not be accurate.\n",
+          length(cn_overlap)
+        )
+      )
+    }
     point_from$from_id <- len_point_from
     # select egrid_v only if closer than 3e5 meters from each aqs
     point_from_buf <-
       terra::buffer(
         point_from,
         width = threshold,
-         quadsegs = 90
+        quadsegs = 90
       )
     point_to <- point_to[point_from_buf, ]
     point_to$to_id <- len_point_to
 
     # near features with distance argument: only returns integer indices
-    near_from_to <- terra::nearby(point_from, point_to, distance = threshold)
+    near_from_to <-
+      terra::nearby(point_from, point_to, distance = threshold)
     # attaching actual distance
     dist_near_to <- terra::distance(point_from, point_to)
     dist_near_to_df <- as.vector(dist_near_to)
     # adding integer indices
     dist_near_to_tdf <-
       expand.grid(
-                  from_id = len_point_from,
-                  to_id = len_point_to)
+        from_id = len_point_from,
+        to_id = len_point_to
+      )
     dist_near_to_df <- cbind(dist_near_to_tdf, dist = dist_near_to_df)
 
     # summary

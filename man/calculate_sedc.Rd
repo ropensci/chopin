@@ -51,6 +51,24 @@ Thus, the function internally converts sf objects in
 \code{point_*} arguments to terra.
 The threshold should be carefully chosen by users.
 }
+\examples{
+library(terra)
+library(sf)
+set.seed(101)
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+nc <- terra::vect(ncpath)
+nc <- terra::project(nc, "EPSG:5070")
+pnt_from <- terra::centroids(nc, inside = TRUE)
+pnt_from <- pnt_from[, "NAME"]
+pnt_to <- terra::spatSample(nc, 100L)
+pnt_to$pid <- seq(1, 100)
+pnt_to <- pnt_to[, "pid"]
+pnt_to$val1 <- rgamma(100L, 1, 0.05)
+pnt_to$val2 <- rgamma(100L, 2, 1)
+
+vals <- c("val1", "val2")
+calculate_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+}
 \author{
 Insang Song
 }
