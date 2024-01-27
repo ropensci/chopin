@@ -59,10 +59,12 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
+\dontrun{
 library(future)
 plan(multicore, workers = 4)
 # Does not run ...
 # distribute_process_grid()
+}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

@@ -7,7 +7,7 @@
 sp_index_grid(points_in, ncutsx, ncutsy)
 }
 \arguments{
-\item{points_in}{sf or SpatVector object. Target points of computation.}
+\item{points_in}{\code{sf} or \code{SpatVector} object. Target points of computation.}
 
 \item{ncutsx}{integer(1). The number of splits along x-axis.}
 
@@ -22,6 +22,23 @@ Returns a sf object that includes x- and y- index
 by using two inputs ncutsx and ncutsy, which are x- and
 y-directional splits, respectively.
 }
+\note{
+Grids are generated based on the extent of \code{points_in} first,
+then exhaustive grids will be filtered by the intersection between
+these and \code{points_in}. Thus, the number of generated grids may be
+smaller than \code{ncutsx * ncutsy}.
+}
 \author{
 Insang Song
+library(sf)
+library(terra)
+options(sf_use_s2 = FALSE)
+
+nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+nc <- terra::vect(nc_path)
+nc_rp <- terra::spatSample(nc, 1000)
+nc_gr <- sp_index_grid(nc_rp, 10L, 6L)
+
+plot(nc_rp)
+plot(nc_gr, add = TRUE)
 }

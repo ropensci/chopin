@@ -22,6 +22,16 @@ hole orders. This function will pass the input_vector object to
 \code{\link[terra:is.valid]{terra::makeValid}} (if input_vector is SpatVector).
 May take some time depending on the geometry complexity.
 }
+\examples{
+\dontrun{
+library(terra)
+library(sf)
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+nc <- terra::vect(ncpath)
+
+nc_valid <- validate_and_repair_vectors(nc)
+}
+}
 \author{
 Insang Song
 }

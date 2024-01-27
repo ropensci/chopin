@@ -43,10 +43,12 @@ for the list of acceptable unit forms.}
 }
 \value{
 A list of two,
-\code{original}: exhaustive and non-overlapping
+\itemize{
+\item \code{original}: exhaustive and non-overlapping
 grid polygons in the class of input
-\code{padded}: a square buffer of each polygon in
+\item \code{padded}: a square buffer of each polygon in
 \code{original}. Used for computation.
+}
 }
 \description{
 Using input points, the bounding box is split to

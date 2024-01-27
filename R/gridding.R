@@ -18,10 +18,10 @@
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
-#' @return A list of two,
-#'   \code{original}: exhaustive and non-overlapping
+#' @returns A list of two,
+#'  * \code{original}: exhaustive and non-overlapping
 #'  grid polygons in the class of input
-#'   \code{padded}: a square buffer of each polygon in
+#'  * \code{padded}: a square buffer of each polygon in
 #'  \code{original}. Used for computation.
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
@@ -103,12 +103,27 @@ We try converting padding to numeric...\n")
 #' @description Returns a sf object that includes x- and y- index
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
-#' @param points_in sf or SpatVector object. Target points of computation.
+#' @param points_in `sf` or `SpatVector` object. Target points of computation.
 #' @param ncutsx integer(1). The number of splits along x-axis.
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @returns A `sf` or `SpatVector` object of computation grids with
 #' unique grid id (CGRIDID).
+#' @note Grids are generated based on the extent of `points_in` first,
+#' then exhaustive grids will be filtered by the intersection between
+#' these and `points_in`. Thus, the number of generated grids may be
+#' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
+#' library(sf)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc <- terra::vect(nc_path)
+#' nc_rp <- terra::spatSample(nc, 1000)
+#' nc_gr <- sp_index_grid(nc_rp, 10L, 6L)
+#'
+#' plot(nc_rp)
+#' plot(nc_gr, add = TRUE)
 #' @importFrom terra rast
 #' @importFrom terra as.polygons
 #' @importFrom sf st_as_sf

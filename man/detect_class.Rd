@@ -23,6 +23,10 @@ name is the same as the generic function name(s).
 This function supports detecting classes of arguments in
 a loosely defined function.
 }
+\examples{
+df <- data.frame(a = 1, b = 3)
+detect_class(list(df), "data.frame")
+}
 \author{
 Insang Song
 }

@@ -23,6 +23,9 @@ Parallelization error fallback
 This function assumes that the \code{fun} has an argument named
 \code{"id"}.
 }
+\examples{
+## NO EXAMPLE
+}
 \author{
 Insang Song
 }

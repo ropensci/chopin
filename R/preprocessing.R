@@ -105,6 +105,7 @@ set_clip_extent <- function(
 #' )
 #' rast_short(bcsd_path, ext_small)
 #' @importFrom methods is
+#' @importFrom terra rast
 #' @export
 rast_short <- function(rasterpath = NULL, win = NULL) {
   if (!(all(is.numeric(win), !is.null(attr(win, "names")), length(win) == 4) ||

@@ -38,10 +38,12 @@ out-of-memory error. For this, users may need
 to make subsets of input vector objects in advance.
 }
 \examples{
+\dontrun{
 library(future)
 plan(multicore, workers = 4)
 # Does not run ...
 # distribute_process_multirasters()
+}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

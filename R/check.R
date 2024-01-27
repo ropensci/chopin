@@ -135,6 +135,17 @@ check_crs_align <-
 #' @param input_vector One of sf or vect class. Target points of computation.
 #' @returns A repaired `sf` or `SpatVector` object depending on
 #' the class of input_vector.
+#' @examples
+#' \dontrun{
+#' library(terra)
+#' library(sf)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc <- terra::vect(ncpath)
+#'
+#' nc_valid <- validate_and_repair_vectors(nc)
+#' }
+#' @importFrom terra makeValid
+#' @importFrom sf st_make_valid
 #' @export
 validate_and_repair_vectors <- function(input_vector) {
   detected <- check_packbound(input_vector)
@@ -350,6 +361,9 @@ check_within_reference <- function(input_object, reference) {
 #' name is the same as the generic function name(s).
 #' This function supports detecting classes of arguments in
 #' a loosely defined function.
+#' @examples
+#' df <- data.frame(a = 1, b = 3)
+#' detect_class(list(df), "data.frame")
 #' @export
 detect_class <- function(
   args = NULL,

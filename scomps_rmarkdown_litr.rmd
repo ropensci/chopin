@@ -40,7 +40,8 @@ usethis::create_package(
       )
     ),
     LazyData = "true",
-    LazyDataCompression = "xz"
+    LazyDataCompression = "xz",
+    Depends = "R (>= 4.1)"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
@@ -557,6 +558,17 @@ testthat::test_that("CRS is transformed when it is not standard", {
 #' @param input_vector One of sf or vect class. Target points of computation.
 #' @returns A repaired `sf` or `SpatVector` object depending on
 #' the class of input_vector.
+#' @examples
+#' \dontrun{
+#' library(terra)
+#' library(sf)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc <- terra::vect(ncpath)
+#'
+#' nc_valid <- validate_and_repair_vectors(nc)
+#' }
+#' @importFrom terra makeValid
+#' @importFrom sf st_make_valid
 #' @export
 validate_and_repair_vectors <- function(input_vector) {
   detected <- check_packbound(input_vector)
@@ -877,6 +889,7 @@ testthat::test_that("Clip by extent works without errors", {
 #' )
 #' rast_short(bcsd_path, ext_small)
 #' @importFrom methods is
+#' @importFrom terra rast
 #' @export
 rast_short <- function(rasterpath = NULL, win = NULL) {
   if (!(all(is.numeric(win), !is.null(attr(win, "names")), length(win) == 4) ||
@@ -957,6 +970,7 @@ estimate_demands <- function(
   ## print summary of results
 }
 
+nc_valid <- validate_and_repair_vectors(nc)
 ```
 
 
@@ -979,10 +993,10 @@ estimate_demands <- function(
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
 #' @param ... arguments passed to the internal function
-#' @return A list of two,
-#'   \code{original}: exhaustive and non-overlapping
+#' @returns A list of two,
+#'  * \code{original}: exhaustive and non-overlapping
 #'  grid polygons in the class of input
-#'   \code{padded}: a square buffer of each polygon in
+#'  * \code{padded}: a square buffer of each polygon in
 #'  \code{original}. Used for computation.
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
@@ -1064,12 +1078,27 @@ We try converting padding to numeric...\n")
 #' @description Returns a sf object that includes x- and y- index
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
-#' @param points_in sf or SpatVector object. Target points of computation.
+#' @param points_in `sf` or `SpatVector` object. Target points of computation.
 #' @param ncutsx integer(1). The number of splits along x-axis.
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @returns A `sf` or `SpatVector` object of computation grids with
 #' unique grid id (CGRIDID).
+#' @note Grids are generated based on the extent of `points_in` first,
+#' then exhaustive grids will be filtered by the intersection between
+#' these and `points_in`. Thus, the number of generated grids may be
+#' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
+#' library(sf)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc <- terra::vect(nc_path)
+#' nc_rp <- terra::spatSample(nc, 1000)
+#' nc_gr <- sp_index_grid(nc_rp, 10L, 6L)
+#'
+#' plot(nc_rp)
+#' plot(nc_gr, add = TRUE)
 #' @importFrom terra rast
 #' @importFrom terra as.polygons
 #' @importFrom sf st_as_sf
@@ -2507,6 +2536,9 @@ testthat::test_that("aw_covariates works as expected.", {
 #' name is the same as the generic function name(s).
 #' This function supports detecting classes of arguments in
 #' a loosely defined function.
+#' @examples
+#' df <- data.frame(a = 1, b = 3)
+#' detect_class(list(df), "data.frame")
 #' @export
 detect_class <- function(
   args = NULL,
@@ -2567,6 +2599,8 @@ testthat::test_that("classes are detected.", {
 #' @note This function assumes that the `fun` has an argument named
 #' `"id"`.
 #' @author Insang Song
+#' @examples
+#' ## NO EXAMPLE
 #' @export
 par_fallback <-
   function(
@@ -2627,7 +2661,7 @@ testthat::test_that(
 
 ```{r, send_to = "R/scale_process.R"}
 #' @title Process a given function in the entire or partial computational grids
-#' @description 
+#' @description
 #' [future::multicore], [future::multisession], [future::cluster]
 #' with [doParallel::registerDoParallel] will parallelize the work
 #' in each grid. For details of the terminology in \code{future} package,
@@ -2665,10 +2699,12 @@ testthat::test_that(
 #' @author Insang Song \email{geoissong@@gmail.com}
 #'
 #' @examples
+#' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
 #' # distribute_process_grid()
+#' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
@@ -2810,11 +2846,13 @@ distribute_process_grid <-
 #'  \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4L)
 #' # Does not run ...
 #' # library(tigris)
 #' # distribute_process_hierarchy()
+#' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
@@ -2921,10 +2959,12 @@ distribute_process_hierarchy <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #'
 #' @examples
+#' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
 #' # distribute_process_multirasters()
+#' }
 #' @import future
 #' @import future.apply
 #' @import doFuture

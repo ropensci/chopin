@@ -393,7 +393,8 @@ of the R package.</p>
       )
     ),
     LazyData = &quot;true&quot;,
-    LazyDataCompression = &quot;xz&quot;
+    LazyDataCompression = &quot;xz&quot;,
+    Depends = &quot;R (&gt;= 4.1)&quot;
   )
 )
 #usethis::use_build_ignore(&quot;rds$&quot;, escape = FALSE)
@@ -446,6 +447,8 @@ usethis::use_roxygen_md()
 ## Description: A package for scalable geospatial computation for
 ##     environmental health research
 ## License: MIT + file LICENSE
+## Depends:
+##     R (&gt;= 4.1)
 ## Imports:
 ##     doFuture,
 ##     dplyr,
@@ -490,8 +493,7 @@ usethis::use_roxygen_md()
 <h3>Add data</h3>
 <pre class="r"><code>prediction_grid &lt;- readRDS(&quot;../tools/testdata/prediction_grid.rds&quot;)
 usethis::use_data(prediction_grid, compress = &quot;xz&quot;)</code></pre>
-<pre><code>## ✔ Adding &#39;R&#39; to Depends field in DESCRIPTION
-## ✔ Creating &#39;data/&#39;
+<pre><code>## ✔ Creating &#39;data/&#39;
 ## ✔ Saving &#39;prediction_grid&#39; to &#39;data/prediction_grid.rda&#39;
 ## • Document your data (see &#39;https://r-pkgs.org/data.html&#39;)</code></pre>
 <pre class="r"><code>#&#39; Regular grid points in the mainland United States at 1km spatial resolution
@@ -856,6 +858,17 @@ check_crs_align &lt;-
 #&#39; @param input_vector One of sf or vect class. Target points of computation.
 #&#39; @returns A repaired `sf` or `SpatVector` object depending on
 #&#39; the class of input_vector.
+#&#39; @examples
+#&#39; \dontrun{
+#&#39; library(terra)
+#&#39; library(sf)
+#&#39; ncpath &lt;- system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;)
+#&#39; nc &lt;- terra::vect(ncpath)
+#&#39;
+#&#39; nc_valid &lt;- <a href='scomps_rmarkdown_litr.html#validate_and_repair_vectors'>validate_and_repair_vectors</a>(nc)
+#&#39; }
+#&#39; @importFrom terra makeValid
+#&#39; @importFrom sf st_make_valid
 #&#39; @export
 <span id='validate_and_repair_vectors'>validate_and_repair_vectors</span> &lt;- function(input_vector) {
   detected &lt;- <a href='scomps_rmarkdown_litr.html#check_packbound'>check_packbound</a>(input_vector)
@@ -1147,6 +1160,7 @@ check_crs_align &lt;-
 #&#39; )
 #&#39; <a href='scomps_rmarkdown_litr.html#rast_short'>rast_short</a>(bcsd_path, ext_small)
 #&#39; @importFrom methods is
+#&#39; @importFrom terra rast
 #&#39; @export
 <span id='rast_short'>rast_short</span> &lt;- function(rasterpath = NULL, win = NULL) {
   if (!(all(is.numeric(win), !is.null(attr(win, &quot;names&quot;)), length(win) == 4) ||
@@ -1211,10 +1225,10 @@ Set valid names for all win elements.\n&quot;
 #&#39;  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #&#39;  for the list of acceptable unit forms.
 #&#39; @param ... arguments passed to the internal function
-#&#39; @return A list of two,
-#&#39;   \code{original}: exhaustive and non-overlapping
+#&#39; @returns A list of two,
+#&#39;  * \code{original}: exhaustive and non-overlapping
 #&#39;  grid polygons in the class of input
-#&#39;   \code{padded}: a square buffer of each polygon in
+#&#39;  * \code{padded}: a square buffer of each polygon in
 #&#39;  \code{original}. Used for computation.
 #&#39; @description Using input points, the bounding box is split to
 #&#39;  the predefined numbers of columns and rows.
@@ -1296,12 +1310,27 @@ We try converting padding to numeric...\n&quot;)
 #&#39; @description Returns a sf object that includes x- and y- index
 #&#39; by using two inputs ncutsx and ncutsy, which are x- and
 #&#39; y-directional splits, respectively.
-#&#39; @param points_in sf or SpatVector object. Target points of computation.
+#&#39; @param points_in `sf` or `SpatVector` object. Target points of computation.
 #&#39; @param ncutsx integer(1). The number of splits along x-axis.
 #&#39; @param ncutsy integer(1). The number of splits along y-axis.
 #&#39; @returns A `sf` or `SpatVector` object of computation grids with
 #&#39; unique grid id (CGRIDID).
+#&#39; @note Grids are generated based on the extent of `points_in` first,
+#&#39; then exhaustive grids will be filtered by the intersection between
+#&#39; these and `points_in`. Thus, the number of generated grids may be
+#&#39; smaller than `ncutsx * ncutsy`.
 #&#39; @author Insang Song
+#&#39; library(sf)
+#&#39; library(terra)
+#&#39; options(sf_use_s2 = FALSE)
+#&#39;
+#&#39; nc_path &lt;- system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;)
+#&#39; nc &lt;- terra::vect(nc_path)
+#&#39; nc_rp &lt;- terra::spatSample(nc, 1000)
+#&#39; nc_gr &lt;- sp_index_grid(nc_rp, 10L, 6L)
+#&#39;
+#&#39; plot(nc_rp)
+#&#39; plot(nc_gr, add = TRUE)
 #&#39; @importFrom terra rast
 #&#39; @importFrom terra as.polygons
 #&#39; @importFrom sf st_as_sf
@@ -2593,6 +2622,9 @@ testthat::test_that(&quot;aw_covariates works as expected.&quot;, {
 #&#39; name is the same as the generic function name(s).
 #&#39; This function supports detecting classes of arguments in
 #&#39; a loosely defined function.
+#&#39; @examples
+#&#39; df &lt;- data.frame(a = 1, b = 3)
+#&#39; <a href='scomps_rmarkdown_litr.html#detect_class'>detect_class</a>(list(df), &quot;data.frame&quot;)
 #&#39; @export
 <span id='detect_class'>detect_class</span> &lt;- function(
   args = NULL,
@@ -2645,6 +2677,8 @@ testthat::test_that(&quot;aw_covariates works as expected.&quot;, {
 #&#39; @note This function assumes that the `fun` has an argument named
 #&#39; `&quot;id&quot;`.
 #&#39; @author Insang Song
+#&#39; @examples
+#&#39; ## NO EXAMPLE
 #&#39; @export
 par_fallback &lt;-
   function(
@@ -2699,7 +2733,7 @@ par_fallback &lt;-
 
 </code></pre>
 <pre class="r"><code>#&#39; @title Process a given function in the entire or partial computational grids
-#&#39; @description 
+#&#39; @description
 #&#39; [future::multicore], [future::multisession], [future::cluster]
 #&#39; with [doParallel::registerDoParallel] will parallelize the work
 #&#39; in each grid. For details of the terminology in \code{future} package,
@@ -2737,10 +2771,12 @@ par_fallback &lt;-
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39;
 #&#39; @examples
+#&#39; \dontrun{
 #&#39; library(future)
 #&#39; plan(multicore, workers = 4)
 #&#39; # Does not run ...
 #&#39; # distribute_process_grid()
+#&#39; }
 #&#39; @import future
 #&#39; @importFrom future.apply future_lapply
 #&#39; @importFrom rlang inject
@@ -2882,11 +2918,13 @@ distribute_process_grid &lt;-
 #&#39;  \code{fun_dist} argument.
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39; @examples
+#&#39; \dontrun{
 #&#39; library(future)
 #&#39; plan(multicore, workers = 4L)
 #&#39; # Does not run ...
 #&#39; # library(tigris)
 #&#39; # distribute_process_hierarchy()
+#&#39; }
 #&#39; @import future
 #&#39; @importFrom future.apply future_lapply
 #&#39; @importFrom rlang inject
@@ -2993,10 +3031,12 @@ distribute_process_hierarchy &lt;-
 #&#39; @author Insang Song \email{geoissong@@gmail.com}
 #&#39;
 #&#39; @examples
+#&#39; \dontrun{
 #&#39; library(future)
 #&#39; plan(multicore, workers = 4)
 #&#39; # Does not run ...
 #&#39; # distribute_process_multirasters()
+#&#39; }
 #&#39; @import future
 #&#39; @import future.apply
 #&#39; @import doFuture

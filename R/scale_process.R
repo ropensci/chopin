@@ -8,6 +8,8 @@
 #' @note This function assumes that the `fun` has an argument named
 #' `"id"`.
 #' @author Insang Song
+#' @examples
+#' ## NO EXAMPLE
 #' @export
 par_fallback <-
   function(
@@ -32,7 +34,7 @@ par_fallback <-
 
 
 #' @title Process a given function in the entire or partial computational grids
-#' @description 
+#' @description
 #' [future::multicore], [future::multisession], [future::cluster]
 #' with [doParallel::registerDoParallel] will parallelize the work
 #' in each grid. For details of the terminology in \code{future} package,
@@ -70,10 +72,12 @@ par_fallback <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #'
 #' @examples
+#' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
 #' # distribute_process_grid()
+#' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
@@ -215,11 +219,13 @@ distribute_process_grid <-
 #'  \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4L)
 #' # Does not run ...
 #' # library(tigris)
 #' # distribute_process_hierarchy()
+#' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
@@ -326,10 +332,12 @@ distribute_process_hierarchy <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #'
 #' @examples
+#' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4)
 #' # Does not run ...
 #' # distribute_process_multirasters()
+#' }
 #' @import future
 #' @import future.apply
 #' @import doFuture
