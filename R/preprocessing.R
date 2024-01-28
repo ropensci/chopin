@@ -1,4 +1,4 @@
-# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
+# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' @title Switch spatial data class
 #' @description Convert class between `sf`/`stars`-`terra`

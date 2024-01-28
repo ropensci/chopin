@@ -1,4 +1,4 @@
-# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
+# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' Get a set of computational regions
 #' @param input sf or Spat* object.

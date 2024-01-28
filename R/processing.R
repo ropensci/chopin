@@ -1,4 +1,4 @@
-# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
+# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' Kernel functions
 #' @param kernel Kernel type. One of

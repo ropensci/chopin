@@ -1,4 +1,4 @@
-# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand  
+# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand  
 testthat::test_that("Kernel functions work okay", {
   testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
   testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
@@ -53,7 +53,7 @@ testthat::test_that("SEDC are well calculated.", {
   )
 
   ncpnts2 <- ncpnts
-  ncpnts2$FIPS <- rpois(nrow(ncpnts2), 20)
+  ncpnts2$FIPS <- as.character(rpois(nrow(ncpnts2), 20))
   testthat::expect_warning(
     summarize_sedc(ncpnts2, ncrandsf, "pid", 3e4L, 5e4L, polnames)
   )

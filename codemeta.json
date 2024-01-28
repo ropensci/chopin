@@ -3,9 +3,9 @@
   "@type": "SoftwareSourceCode",
   "identifier": "chopin",
   "description": "A package for scalable geospatial computation for environmental health research",
-  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
+  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized\n    INfrastructure",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.3.0.1272024",
+  "version": "0.3.0.20240127",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -277,7 +277,7 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "2190.563KB",
+  "fileSize": "2190.567KB",
   "codeRepository": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS",
   "readme": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/blob/main/README.md",
   "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/check-standard.yaml"]

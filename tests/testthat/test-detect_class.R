@@ -1,4 +1,4 @@
-# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
+# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 testthat::test_that("classes are detected.", {
   withr::local_package("terra")

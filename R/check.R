@@ -1,4 +1,4 @@
-# Generated from scomps_rmarkdown_litr.rmd: do not edit by hand
+# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' @title Return the package the input object is based on
 #' @description Detect whether the input object is sf or Spat* object.
