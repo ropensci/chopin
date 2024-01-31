@@ -295,6 +295,8 @@ extract_at_buffer_kernel <- function(
   x <- y <- NULL
   pairdist <- NULL
   w_kernel <- NULL
+  coverage_fraction <- NULL
+
   # extract raster values
   surf_at_bufs <-
     exactextractr::exact_extract(
@@ -500,7 +502,7 @@ reproject_b2r <-
 #'  The threshold should be carefully chosen by users.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \& Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
+#' * [Messier KP, Akita Y, \& Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \& Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
 #' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #' @examples
 #' library(terra)
@@ -573,6 +575,7 @@ The result may not be accurate.\n",
       )
     point_to <- point_to[point_from_buf, ]
     point_to$to_id <- len_point_to
+    dist <- NULL
 
     # near features with distance argument: only returns integer indices
     near_from_to <-

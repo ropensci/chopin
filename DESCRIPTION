@@ -51,4 +51,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: d2628dd139b1228f601f627046ce6b49
+LitrId: f02e3acff8bf59198cea1af174b9c7f5

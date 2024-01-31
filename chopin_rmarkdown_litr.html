@@ -881,9 +881,10 @@ reproject_std &lt;-
 #&#39;
 #&#39; nc_path &lt;- system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;)
 #&#39; nc_sf &lt;- sf::st_read(nc_path)
-#&#39; <a href='chopin_rmarkdown_litr.html#get_clip_ext'>get_clip_ext</a>(nc_sf)
+#&#39; nc_sf &lt;- sf::st_transform(nc_sf, &quot;EPSG:5070&quot;)
+#&#39; <a href='chopin_rmarkdown_litr.html#get_clip_ext'>get_clip_ext</a>(nc_sf, 2.5e4)
 #&#39; nc_vect &lt;- terra::vect(nc_sf)
-#&#39; <a href='chopin_rmarkdown_litr.html#get_clip_ext'>get_clip_ext</a>(nc_vect)
+#&#39; <a href='chopin_rmarkdown_litr.html#get_clip_ext'>get_clip_ext</a>(nc_vect, 2.5e4)
 #&#39; @importFrom terra ext
 #&#39; @importFrom sf st_bbox
 #&#39; @importFrom sf st_as_sfc
@@ -1836,6 +1837,8 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
   x &lt;- y &lt;- NULL
   pairdist &lt;- NULL
   w_kernel &lt;- NULL
+  coverage_fraction &lt;- NULL
+
   # extract raster values
   surf_at_bufs &lt;-
     exactextractr::exact_extract(
@@ -2450,7 +2453,7 @@ dd &lt;- autoexpand(poly1, 2, 3)
 #&#39;  The threshold should be carefully chosen by users.
 #&#39; @author Insang Song
 #&#39; @references
-#&#39; * [Messier KP, Akita Y, &amp; Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \&amp; Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
+#&#39; * [Messier KP, Akita Y, \&amp; Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \&amp; Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
 #&#39; * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #&#39; @examples
 #&#39; library(terra)
@@ -2523,6 +2526,7 @@ The result may not be accurate.\n&quot;,
       )
     point_to &lt;- point_to[point_from_buf, ]
     point_to$to_id &lt;- len_point_to
+    dist &lt;- NULL
 
     # near features with distance argument: only returns integer indices
     near_from_to &lt;-

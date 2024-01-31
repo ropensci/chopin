@@ -64,9 +64,10 @@ dep_switch <- function(input) {
 #'
 #' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc_sf <- sf::st_read(nc_path)
-#' get_clip_ext(nc_sf)
+#' nc_sf <- sf::st_transform(nc_sf, "EPSG:5070")
+#' get_clip_ext(nc_sf, 2.5e4)
 #' nc_vect <- terra::vect(nc_sf)
-#' get_clip_ext(nc_vect)
+#' get_clip_ext(nc_vect, 2.5e4)
 #' @importFrom terra ext
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc
