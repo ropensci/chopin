@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.01242024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240131</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,14 +25,23 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of scomps with HPC</a>
-    <a class="dropdown-item" href="../articles/v01_generate_computational_grid.html">Generate computational grids</a>
-    <a class="dropdown-item" href="../articles/v02_distribute_process_ext.html">Distribute computational workloads over multiple threads</a>
+    <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_par_function_example.html">How to use par_* functions</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -50,7 +59,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rast_short</span><span class="op">(</span><span class="va">rasterpath</span>, <span class="va">win</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rast_short</span><span class="op">(</span>rasterpath <span class="op">=</span> <span class="cn">NULL</span>, win <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -74,6 +83,28 @@
     <p>Insang Song</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">bcsd_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"stars"</span>, <span class="st">"nc/bcsd_obs_1999.nc"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ext_small</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/ext.html" class="external-link">ext</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="op">-</span><span class="fl">80</span>, xmax <span class="op">=</span> <span class="op">-</span><span class="fl">76</span>, ymin <span class="op">=</span> <span class="fl">35</span>, ymax <span class="op">=</span> <span class="fl">36</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rast_short</span><span class="op">(</span><span class="va">bcsd_path</span>, <span class="va">ext_small</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> class       : SpatRaster </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dimensions  : 8, 32, 24  (nrow, ncol, nlyr)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> resolution  : 0.125, 0.125  (x, y)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> window      : -80, -76, 35, 36  (xmin, xmax, ymin, ymax)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> coord. ref. : lon/lat WGS 84 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sources     : bcsd_obs_1999.nc:pr  (12 layers) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               bcsd_obs_1999.nc:tas  (12 layers) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> varnames    : pr (monthly_sum_pr) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               tas (monthly_avg_tas) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> names       : pr_1, pr_2, pr_3, pr_4, pr_5, pr_6, ... </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> unit        : mm/m, mm/m, mm/m, mm/m, mm/m, mm/m, ... </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> time (days) : 1999-01-31 to 1999-12-31 </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

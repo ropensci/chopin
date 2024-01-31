@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.01242024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240131</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,14 +25,23 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of scomps with HPC</a>
-    <a class="dropdown-item" href="../articles/v01_generate_computational_grid.html">Generate computational grids</a>
-    <a class="dropdown-item" href="../articles/v02_distribute_process_ext.html">Distribute computational workloads over multiple threads</a>
+    <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_par_function_example.html">How to use par_* functions</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -55,115 +64,114 @@
 
       <dl><dt>
           
-          <code><a href="aw_covariates.html">aw_covariates()</a></code> 
-        </dt>
-        <dd>Computing area weighted covariates using two polygon sf or SpatVector objects</dd>
-      </dl><dl><dt>
-          
-          <code><a href="calculate_sedc.html">calculate_sedc()</a></code> 
-        </dt>
-        <dd>Calculate SEDC covariates</dd>
-      </dl><dl><dt>
-          
-          <code><a href="check_bbox.html">check_bbox()</a></code> 
-        </dt>
-        <dd>Check if the data extent is inside the reference bounding box</dd>
-      </dl><dl><dt>
-          
-          <code><a href="check_crs.html">check_crs()</a></code> 
-        </dt>
-        <dd>Check Coordinate Reference System</dd>
-      </dl><dl><dt>
-          
-          <code><a href="check_crs_align.html">check_crs_align()</a></code> 
-        </dt>
-        <dd>check_crs_align: Check coordinate system then reproject</dd>
-      </dl><dl><dt>
-          
-          <code><a href="check_datatype.html">check_datatype()</a></code> 
-        </dt>
-        <dd>Return the data type</dd>
-      </dl><dl><dt>
-          
-          <code><a href="check_packbound.html">check_packbound()</a></code> 
-        </dt>
-        <dd>Return the package the input object is based on</dd>
-      </dl><dl><dt>
-          
-          <code><a href="check_within_reference.html">check_within_reference()</a></code> 
-        </dt>
-        <dd>Check if the boundary of the vector/raster object is inside the reference</dd>
-      </dl><dl><dt>
-          
-          <code><a href="clip_as_extent.html">clip_as_extent()</a></code> 
-        </dt>
-        <dd>Extent clipping</dd>
-      </dl><dl><dt>
-          
-          <code><a href="clip_as_extent_ras.html">clip_as_extent_ras()</a></code> 
-        </dt>
-        <dd>clip_as_extent_ras: Clip input raster.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="detect_class.html">detect_class()</a></code> 
+          <code><a href="any_class_args.html">any_class_args()</a></code> 
         </dt>
         <dd>Detect classes in function arguments</dd>
       </dl><dl><dt>
           
-          <code><a href="distribute_process_grid.html">distribute_process_grid()</a></code> 
+          <code><a href="clip_ras_ext.html">clip_ras_ext()</a></code> 
         </dt>
-        <dd>Process a given function in the entire or partial computational grids</dd>
+        <dd>Clip input raster with a buffered vector extent.</dd>
       </dl><dl><dt>
           
-          <code><a href="distribute_process_hierarchy.html">distribute_process_hierarchy()</a></code> 
+          <code><a href="clip_vec_ext.html">clip_vec_ext()</a></code> 
         </dt>
-        <dd>Process a given function using a hierarchy in input data</dd>
+        <dd>Clip to the buffered extent of input vector</dd>
       </dl><dl><dt>
           
-          <code><a href="distribute_process_multirasters.html">distribute_process_multirasters()</a></code> 
+          <code><a href="crs_check.html">crs_check()</a></code> 
         </dt>
-        <dd>Process a given function over multiple large rasters</dd>
+        <dd>Check Coordinate Reference System</dd>
       </dl><dl><dt>
           
-          <code><a href="estimate_demands.html">estimate_demands()</a></code> 
+          <code><a href="datamod.html">datamod()</a></code> 
         </dt>
-        <dd>Estimate computational demands from inputs (to be written)</dd>
+        <dd>Return the input's GIS data model type</dd>
       </dl><dl><dt>
           
-          <code><a href="extent_to_polygon.html">extent_to_polygon()</a></code> 
+          <code><a href="dep_check.html">dep_check()</a></code> 
+        </dt>
+        <dd>Return the package the input object is based on</dd>
+      </dl><dl><dt>
+          
+          <code><a href="dep_switch.html">dep_switch()</a></code> 
+        </dt>
+        <dd>Switch spatial data class</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ext2poly.html">ext2poly()</a></code> 
         </dt>
         <dd>Generate a rectangular polygon from extent</dd>
       </dl><dl><dt>
           
-          <code><a href="extract_with.html">extract_with()</a></code> 
+          <code><a href="extract_at.html">extract_at()</a></code> 
         </dt>
         <dd>Extract raster values with point buffers or polygons</dd>
       </dl><dl><dt>
           
-          <code><a href="extract_with_buffer.html">extract_with_buffer()</a></code> 
+          <code><a href="extract_at_buffer.html">extract_at_buffer()</a></code> <code><a href="extract_at_buffer.html">extract_at_buffer_flat()</a></code> <code><a href="extract_at_buffer.html">extract_at_buffer_kernel()</a></code> 
         </dt>
-        <dd>Extract summarized values from raster with points and
-a buffer radius (to be written)</dd>
+        <dd>Extract summarized values from raster with points and a buffer radius</dd>
       </dl><dl><dt>
           
-          <code><a href="extract_with_polygons.html">extract_with_polygons()</a></code> 
+          <code><a href="extract_at_poly.html">extract_at_poly()</a></code> 
         </dt>
         <dd>Extract summarized values from raster with generic polygons</dd>
       </dl><dl><dt>
           
-          <code><a href="get_computational_regions.html">get_computational_regions()</a></code> 
+          <code><a href="get_clip_ext.html">get_clip_ext()</a></code> 
         </dt>
-        <dd>Get a set of computational regions</dd>
+        <dd>Setting the clipping extent</dd>
       </dl><dl><dt>
           
-          <code><a href="grid_merge.html">grid_merge()</a></code> 
+          <code><a href="is_bbox_within_reference.html">is_bbox_within_reference()</a></code> 
         </dt>
-        <dd>grid_merge: Merge grid polygons with given rules</dd>
+        <dd>Check if the data extent is inside the reference bounding box</dd>
+      </dl><dl><dt>
+          
+          <code><a href="is_within_ref.html">is_within_ref()</a></code> 
+        </dt>
+        <dd>Check if the boundary of the vector/raster object is inside the reference</dd>
       </dl><dl><dt>
           
           <code><a href="kernelfunction.html">kernelfunction()</a></code> 
         </dt>
         <dd>Kernel functions</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_fallback.html">par_fallback()</a></code> 
+        </dt>
+        <dd>Parallelization error fallback</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_grid.html">par_grid()</a></code> 
+        </dt>
+        <dd>Process a given function in the entire or partial computational grids</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_hierarchy.html">par_hierarchy()</a></code> 
+        </dt>
+        <dd>Process a given function using a hierarchy in input data</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_make_grid.html">par_make_grid()</a></code> 
+        </dt>
+        <dd>Generate grid polygons</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_make_gridset.html">par_make_gridset()</a></code> 
+        </dt>
+        <dd>Get a set of computational regions</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_merge_grid.html">par_merge_grid()</a></code> 
+        </dt>
+        <dd>Merge adjacent grid polygons with given rules</dd>
+      </dl><dl><dt>
+          
+          <code><a href="par_multirasters.html">par_multirasters()</a></code> 
+        </dt>
+        <dd>Process a given function over multiple large rasters</dd>
       </dl><dl><dt>
           
           <code><a href="prediction_grid.html">prediction_grid</a></code> 
@@ -178,25 +186,25 @@ a buffer radius (to be written)</dd>
           
           <code><a href="reproject_b2r.html">reproject_b2r()</a></code> 
         </dt>
-        <dd>Reproject vectors to raster's CRS</dd>
+        <dd>Align vector CRS to raster's</dd>
       </dl><dl><dt>
           
-          <code><a href="set_clip_extent.html">set_clip_extent()</a></code> 
+          <code><a href="reproject_std.html">reproject_std()</a></code> 
         </dt>
-        <dd>Setting the clipping extent</dd>
+        <dd>Check coordinate system then reproject</dd>
       </dl><dl><dt>
           
-          <code><a href="sp_index_grid.html">sp_index_grid()</a></code> 
+          <code><a href="summarize_aw.html">summarize_aw()</a></code> 
         </dt>
-        <dd>sp_index_grid: Generate grid polygons</dd>
+        <dd>Area weighted summary using two polygon sf or SpatVector objects</dd>
       </dl><dl><dt>
           
-          <code><a href="switch_packbound.html">switch_packbound()</a></code> 
+          <code><a href="summarize_sedc.html">summarize_sedc()</a></code> 
         </dt>
-        <dd>Switch spatial data class</dd>
+        <dd>Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates</dd>
       </dl><dl><dt>
           
-          <code><a href="validate_and_repair_vectors.html">validate_and_repair_vectors()</a></code> 
+          <code><a href="vect_valid_repair.html">vect_valid_repair()</a></code> 
         </dt>
         <dd>Validate and repair input vector data</dd>
       </dl></div>

@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.01242024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240131</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,16 +42,26 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of scomps with HPC</a>
-    <a class="dropdown-item" href="../articles/v01_generate_computational_grid.html">Generate computational grids</a>
-    <a class="dropdown-item" href="../articles/v02_distribute_process_ext.html">Distribute computational workloads over multiple threads</a>
+    <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_par_function_example.html">How to use par_* functions</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -65,9 +75,9 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Good practice of scomps with HPC</h1>
             
-            <h4 data-toc-skip class="date">2024-01-24</h4>
+            <h4 data-toc-skip class="date">2024-01-31</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/blob/HEAD/vignettes/v00_good_practice_parallelization.Rmd" class="external-link"><code>vignettes/v00_good_practice_parallelization.Rmd</code></a></small>
       <div class="d-none name"><code>v00_good_practice_parallelization.Rmd</code></div>
     </div>
 
@@ -103,7 +113,7 @@ a tiny error will halt all the work without any results
 <h3 id="raster-vector-overlay">Raster-Vector overlay<a class="anchor" aria-label="anchor" href="#raster-vector-overlay"></a>
 </h3>
 <ul>
-<li>Make <code><a href="../reference/sp_index_grid.html">sp_index_grid()</a></code> to get padded grid objects</li>
+<li>Make <code>sp_index_grid()</code> to get padded grid objects</li>
 <li>Convert sf/SpatVector objects into <code><a href="https://rdrr.io/pkg/terra/man/ext.html" class="external-link">terra::ext()</a></code>
 compatible named numeric vector
 <ul>
