@@ -24,6 +24,8 @@ testthat::test_that("Format is well converted",
 
     testthat::expect_equal(dep_check(stars_bcsd_trb), "sf")
     testthat::expect_equal(dep_check(sf_nc_trb), "sf")
+
+    testthat::expect_error(dep_check(list(1, 2)))
   }
 )
 

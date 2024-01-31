@@ -376,7 +376,7 @@ of the R package.</p>
     Package = params$package_name,
     Version = &quot;0.3.0.20240131&quot;,
     Title = &quot;CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure&quot;,
-    Description = &quot;A package for scalable geospatial computation for environmental health research&quot;,
+    Description = &quot;It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data&#39;s own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.&quot;,
     `Authors@R` = c(
       person(
         given = &quot;Insang&quot;,
@@ -421,6 +421,7 @@ usethis::use_package(&quot;covr&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;testthat&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;units&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;tigris&quot;, &quot;Suggests&quot;)
+usethis::use_package(&quot;doParallel&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;doFuture&quot;)
 usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;igraph&quot;, &quot;Suggests&quot;)
@@ -447,8 +448,13 @@ usethis::use_roxygen_md()
 ## Authors@R (parsed):
 ##     * Insang Song &lt;geoissong@gmail.com&gt; [aut, cre] (&lt;https://orcid.org/0000-0001-8732-3256&gt;)
 ##     * Kyle Messier [aut, ctb] (&lt;https://orcid.org/0000-0001-9508-9623&gt;)
-## Description: A package for scalable geospatial computation for
-##     environmental health research
+## Description: It enables users with basic understanding on geospatial data
+##     and sf and terra functions to parallelize geospatial operations for
+##     geospatial exposure assessment modeling and covariate computation.
+##     Parallelization is done by dividing large datasets into sub-regions
+##     with regular grids and data&#39;s own hierarchy. A computation over the
+##     large number of raster files can be parallelized with a chopin
+##     function as well.
 ## License: MIT + file LICENSE
 ## URL:
 ##     https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS
@@ -469,6 +475,7 @@ usethis::use_roxygen_md()
 ##     terra (&gt;= 1.7-18)
 ## Suggests:
 ##     covr,
+##     doParallel,
 ##     future.batchtools,
 ##     igraph,
 ##     testthat,
@@ -669,6 +676,8 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
 
     testthat::expect_equal(datatype_stars, &quot;raster&quot;)
     testthat::expect_equal(datatype_sf, &quot;vector&quot;)
+
+    testthat::expect_error(<a href='chopin_rmarkdown_litr.html#datamod'>datamod</a>(list(1, 2)))
   }
 )</code></pre>
 <pre><code>## pr, tas, 
@@ -748,6 +757,8 @@ testthat::test_that(&quot;Format is well converted&quot;,
 
     testthat::expect_equal(<a href='chopin_rmarkdown_litr.html#dep_check'>dep_check</a>(stars_bcsd_trb), &quot;sf&quot;)
     testthat::expect_equal(<a href='chopin_rmarkdown_litr.html#dep_check'>dep_check</a>(sf_nc_trb), &quot;sf&quot;)
+
+    testthat::expect_error(<a href='chopin_rmarkdown_litr.html#dep_check'>dep_check</a>(list(1, 2)))
   }
 )
 
@@ -998,8 +1009,9 @@ reproject_std &lt;-
 #&#39;
 #&#39; bcsd_path &lt;- system.file(package = &quot;stars&quot;, &quot;nc/bcsd_obs_1999.nc&quot;)
 #&#39; bcsd &lt;- stars::read_stars(bcsd_path)
-#&#39; bcsd_rpnt &lt;- sf::st_sample(bcsd, 4L)
-#&#39; bcsd_rpntm &lt;- sf::st_sample(bcsd, 1000L)
+#&#39; bcsd &lt;- sf::st_as_sf(bcsd)
+#&#39; bcsd_rpnt &lt;- sf::st_as_sf(sf::st_sample(bcsd, 4L))
+#&#39; bcsd_rpntm &lt;- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 #&#39; <a href='chopin_rmarkdown_litr.html#clip_vec_ext'>clip_vec_ext</a>(bcsd_rpntm, 1000, bcsd_rpnt)
 #&#39; @importFrom sf st_intersection
 #&#39; @importFrom terra intersect
@@ -1182,17 +1194,6 @@ reproject_std &lt;-
       \n&quot;
     )
   }
-  if (
-    all(
-      is.numeric(win),
-      !all(grepl(&quot;(xmax|xmin|ymax|ymin)&quot;, names(win))) || is.null(names(win))
-    )
-  ) {
-    stop(
-      &quot;Numeric win without names is detected.
-Set valid names for all win elements.\n&quot;
-    )
-  }
   rast_sub &lt;- terra::rast(rasterpath, win = win)
   return(rast_sub)
 }
@@ -1281,9 +1282,9 @@ par_make_gridset &lt;-
     if (!is.numeric(padding)) {
       message(&quot;padding should be numeric.
 We try converting padding to numeric...\n&quot;)
-      padding &lt;- try(as.numeric(padding))
-      if (inherits(padding, &quot;try-error&quot;)) {
-        stop(&quot;padding is not convertible to numeric.\n&quot;)
+      padding &lt;- as.numeric(padding)
+      if (any(inherits(padding, &quot;try-error&quot;), is.na(padding))) {
+        stop(&quot;padding is not convertible to numeric or converted to NA.\n&quot;)
       }
     }
 
@@ -1291,10 +1292,11 @@ We try converting padding to numeric...\n&quot;)
     grid_reg &lt;-
       switch(mode,
         grid = par_make_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-        grid_advanced = <a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(
-                                   points_in = input,
-                                   par_make_grid(input, nx, ny),
-                                   grid_min_features = grid_min_features),
+        grid_advanced =
+        <a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(
+          points_in = input,
+          par_make_grid(input, nx, ny),
+          grid_min_features = grid_min_features),
         density = simpleError(&quot;density method is under development.\n&quot;)
       )
 
@@ -1504,7 +1506,19 @@ par_make_grid &lt;-
   grid1 &lt;- grid1[points_in, ]
   return(grid1)
 }</code></pre>
-<pre><code>## Test passed</code></pre>
+<pre><code>## padding should be numeric.
+## We try converting padding to numeric...</code></pre>
+<pre><code>## -- Warning: Grid split is well done. -------------------------------------------
+## NAs introduced by coercion
+## Backtrace:
+##     x
+##  1. +-testthat::expect_error(...)
+##  2. | \-testthat:::expect_condition_matching(...)
+##  3. |   \-testthat:::quasi_capture(...)
+##  4. |     +-testthat (local) .capture(...)
+##  5. |     | \-base::withCallingHandlers(...)
+##  6. |     \-rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+##  7. \-litr (local) par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 4L, ny = 10L, padding = &quot;july&quot;)</code></pre>
 <pre class="r"><code>testthat::test_that(&quot;Grid split is well done.&quot;, {
   withr::local_package(&quot;sf&quot;)
   withr::local_package(&quot;stars&quot;)
@@ -1528,6 +1542,13 @@ par_make_grid &lt;-
   )
   ncgridtr &lt;- par_make_gridset(nctr, mode = &quot;grid&quot;, padding = 3e4L)
   testthat::expect_s4_class(ncgridtr$original, &quot;SpatVector&quot;)
+
+  testthat::expect_error(
+    par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 3.6, ny = 10L, padding = 3e4L)
+  )
+  testthat::expect_error(
+    par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 4L, ny = 10L, padding = &quot;july&quot;)
+  )
 
 })
 </code></pre>
@@ -1554,6 +1575,7 @@ par_make_grid &lt;-
                               padding = 1e4L)
   # suppress warnings for &quot;all sub-geometries for which ...&quot;
   testthat::expect_warning(<a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(ncrp, gridded$original, 25L))
+  testthat::expect_error(<a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(ncrp, gridded$original, 2L))
 
   ncptr &lt;- terra::vect(ncrp)
   griddedtr &lt;-
@@ -1962,10 +1984,6 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
   cls_polys &lt;- <a href='chopin_rmarkdown_litr.html#dep_check'>dep_check</a>(polys)
   cls_surf &lt;- <a href='chopin_rmarkdown_litr.html#dep_check'>dep_check</a>(surf)
 
-  if (cls_polys != cls_surf) {
-    polys &lt;- <a href='chopin_rmarkdown_litr.html#dep_switch'>dep_switch</a>(polys)
-  }
-
   polys &lt;- reproject_b2r(polys, surf)
 
   extracted_poly &lt;-
@@ -2095,6 +2113,22 @@ reproject_b2r &lt;-
         radius = 1e4L
       )
   )
+  testthat::expect_no_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(st_as_sf(ncp),
+      ncelev,
+      &quot;pid&quot;,
+      mode = &quot;buffer&quot;,
+      radius = 1e4L
+    )
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(matrix(runif(2e6, 3e6, 100), 50, 2, TRUE),
+      ncelev,
+      &quot;pid&quot;,
+      mode = &quot;buffer&quot;,
+      radius = 1e4L
+    )
+  )
 
   testthat::expect_no_error(
     ncexbuffkern &lt;-
@@ -2138,30 +2172,34 @@ reproject_b2r &lt;-
   )
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(nccntytr,
+               ncelev,
+               1,
+               mode = &quot;buffer&quot;,
+               radius = 1e4L)
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_buffer'>extract_at_buffer</a>(as.list(ncp),
+                      ncelev,
+                      id = &quot;GEOID&quot;,
+                      radius = 1e4L)
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_buffer'>extract_at_buffer</a>(sf::st_as_sf(ncp),
                  ncelev,
-                 1,
-                 mode = &quot;buffer&quot;,
+                 id = 1,
                  radius = 1e4L)
   )
   testthat::expect_error(
-    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(as.list(ncp),
+    <a href='chopin_rmarkdown_litr.html#extract_at_buffer'>extract_at_buffer</a>(sf::st_as_sf(ncp),
+                 ncelev,
+                 id = &quot;GEOID&quot;,
+                 mode = &quot;buffer&quot;,
+                 radius = &quot;Ibidem&quot;)
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_buffer'>extract_at_buffer</a>(sf::st_as_sf(ncp),
                  ncelev,
                  &quot;GEOID&quot;,
-                 mode = &quot;buffer&quot;,
-                 radius = 1e4L)
-  )
-  testthat::expect_error(
-    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(sf::st_as_sf(ncp),
-                 ncelev,
-                 &quot;GEOID&quot;,
-                 mode = &quot;buffer&quot;,
-                 radius = 1e4L)
-  )
-  testthat::expect_error(
-    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(sf::st_as_sf(ncp),
-                 ncelev,
-                 1,
-                 mode = &quot;buffer&quot;,
                  radius = &quot;Ibidem&quot;)
   )
   testthat::expect_error(
@@ -2173,6 +2211,28 @@ reproject_b2r &lt;-
                       bandwidth = 1.25e4L,
                       radius = 1e4L,
                       qsegs = 3 + 2i)
+  )
+
+
+  testthat::expect_no_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(sf::st_as_sf(nccntytr),
+                    ncelev,
+                    id = &quot;GEOID&quot;)
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(as.list(nccntytr),
+                    ncelev,
+                    id = &quot;GEOID&quot;)
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(nccntytr,
+                    matrix(rnorm(100), 10, 10),
+                    id = &quot;GEOID&quot;)
+  )
+  testthat::expect_error(
+    <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(nccntytr,
+                    ncelev,
+                    id = 2)
   )
 
 })
@@ -2658,12 +2718,18 @@ summarize_aw &lt;-
   ) {
     if (!any(
       methods::is(poly_in, &quot;sf&quot;),
+      methods::is(poly_in, &quot;SpatVector&quot;)
+    )) {
+      stop(&quot;poly_in is in invalid class.\n&quot;)
+    }
+    if (!any(
       methods::is(poly_weight, &quot;sf&quot;),
-      methods::is(poly_in, &quot;SpatVector&quot;),
       methods::is(poly_weight, &quot;SpatVector&quot;)
     )) {
-      stop(&quot;Inputs have invalid classes.\n&quot;)
+      stop(&quot;poly_weight is in invalid class.\n&quot;)
     }
+
+
     ## distinguish numeric and nonnumeric columns
     index_numeric &lt;-
       grep(&quot;(integer|numeric)&quot;, unlist(sapply(poly_weight, class)))
@@ -2752,6 +2818,7 @@ testthat::test_that(&quot;summarize_aw works as expected.&quot;, {
 
   # error case
   testthat::expect_error(summarize_aw(as.list(ppb_t), nc, &quot;id&quot;))
+  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), &quot;id&quot;))
 })
 
 

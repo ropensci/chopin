@@ -24,6 +24,13 @@ testthat::test_that("Grid split is well done.", {
   ncgridtr <- par_make_gridset(nctr, mode = "grid", padding = 3e4L)
   testthat::expect_s4_class(ncgridtr$original, "SpatVector")
 
+  testthat::expect_error(
+    par_make_gridset(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
+  )
+  testthat::expect_error(
+    par_make_gridset(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
+  )
+
 })
 
 
@@ -50,6 +57,7 @@ testthat::test_that("Grid merge is well done.", {
                               padding = 1e4L)
   # suppress warnings for "all sub-geometries for which ..."
   testthat::expect_warning(par_merge_grid(ncrp, gridded$original, 25L))
+  testthat::expect_error(par_merge_grid(ncrp, gridded$original, 2L))
 
   ncptr <- terra::vect(ncrp)
   griddedtr <-

@@ -23,7 +23,7 @@ usethis::create_package(
     Package = params$package_name,
     Version = "0.3.0.20240131",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
-    Description = "A package for scalable geospatial computation for environmental health research",
+    Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
       person(
         given = "Insang",
@@ -68,6 +68,7 @@ usethis::use_package("covr", "Suggests")
 usethis::use_package("testthat", "Suggests")
 usethis::use_package("units", "Suggests")
 usethis::use_package("tigris", "Suggests")
+usethis::use_package("doParallel", "Suggests")
 usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
@@ -356,6 +357,8 @@ testthat::test_that("What package does the input object belong?",
 
     testthat::expect_equal(datatype_stars, "raster")
     testthat::expect_equal(datatype_sf, "vector")
+
+    testthat::expect_error(datamod(list(1, 2)))
   }
 )
 ```
@@ -438,6 +441,8 @@ testthat::test_that("Format is well converted",
 
     testthat::expect_equal(dep_check(stars_bcsd_trb), "sf")
     testthat::expect_equal(dep_check(sf_nc_trb), "sf")
+
+    testthat::expect_error(dep_check(list(1, 2)))
   }
 )
 
@@ -713,8 +718,9 @@ testthat::test_that("Clip extent is set properly", {
 #'
 #' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
 #' bcsd <- stars::read_stars(bcsd_path)
-#' bcsd_rpnt <- sf::st_sample(bcsd, 4L)
-#' bcsd_rpntm <- sf::st_sample(bcsd, 1000L)
+#' bcsd <- sf::st_as_sf(bcsd)
+#' bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
+#' bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 #' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
 #' @importFrom sf st_intersection
 #' @importFrom terra intersect
@@ -910,17 +916,6 @@ rast_short <- function(rasterpath = NULL, win = NULL) {
       \n"
     )
   }
-  if (
-    all(
-      is.numeric(win),
-      !all(grepl("(xmax|xmin|ymax|ymin)", names(win))) || is.null(names(win))
-    )
-  ) {
-    stop(
-      "Numeric win without names is detected.
-Set valid names for all win elements.\n"
-    )
-  }
   rast_sub <- terra::rast(rasterpath, win = win)
   return(rast_sub)
 }
@@ -1048,9 +1043,9 @@ par_make_gridset <-
     if (!is.numeric(padding)) {
       message("padding should be numeric.
 We try converting padding to numeric...\n")
-      padding <- try(as.numeric(padding))
-      if (inherits(padding, "try-error")) {
-        stop("padding is not convertible to numeric.\n")
+      padding <- as.numeric(padding)
+      if (any(inherits(padding, "try-error"), is.na(padding))) {
+        stop("padding is not convertible to numeric or converted to NA.\n")
       }
     }
 
@@ -1058,10 +1053,11 @@ We try converting padding to numeric...\n")
     grid_reg <-
       switch(mode,
         grid = par_make_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-        grid_advanced = par_merge_grid(
-                                   points_in = input,
-                                   par_make_grid(input, nx, ny),
-                                   grid_min_features = grid_min_features),
+        grid_advanced =
+        par_merge_grid(
+          points_in = input,
+          par_make_grid(input, nx, ny),
+          grid_min_features = grid_min_features),
         density = simpleError("density method is under development.\n")
       )
 
@@ -1301,6 +1297,13 @@ testthat::test_that("Grid split is well done.", {
   ncgridtr <- par_make_gridset(nctr, mode = "grid", padding = 3e4L)
   testthat::expect_s4_class(ncgridtr$original, "SpatVector")
 
+  testthat::expect_error(
+    par_make_gridset(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
+  )
+  testthat::expect_error(
+    par_make_gridset(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
+  )
+
 })
 
 ```
@@ -1329,6 +1332,7 @@ testthat::test_that("Grid merge is well done.", {
                               padding = 1e4L)
   # suppress warnings for "all sub-geometries for which ..."
   testthat::expect_warning(par_merge_grid(ncrp, gridded$original, 25L))
+  testthat::expect_error(par_merge_grid(ncrp, gridded$original, 2L))
 
   ncptr <- terra::vect(ncrp)
   griddedtr <-
@@ -1819,10 +1823,6 @@ extract_at_poly <- function(
   cls_polys <- dep_check(polys)
   cls_surf <- dep_check(surf)
 
-  if (cls_polys != cls_surf) {
-    polys <- dep_switch(polys)
-  }
-
   polys <- reproject_b2r(polys, surf)
 
   extracted_poly <-
@@ -1959,6 +1959,22 @@ testthat::test_that("extract_at runs well", {
         radius = 1e4L
       )
   )
+  testthat::expect_no_error(
+    extract_at(st_as_sf(ncp),
+      ncelev,
+      "pid",
+      mode = "buffer",
+      radius = 1e4L
+    )
+  )
+  testthat::expect_error(
+    extract_at(matrix(runif(2e6, 3e6, 100), 50, 2, TRUE),
+      ncelev,
+      "pid",
+      mode = "buffer",
+      radius = 1e4L
+    )
+  )
 
   testthat::expect_no_error(
     ncexbuffkern <-
@@ -2002,30 +2018,34 @@ testthat::test_that("extract_at runs well", {
   )
   testthat::expect_error(
     extract_at(nccntytr,
+               ncelev,
+               1,
+               mode = "buffer",
+               radius = 1e4L)
+  )
+  testthat::expect_error(
+    extract_at_buffer(as.list(ncp),
+                      ncelev,
+                      id = "GEOID",
+                      radius = 1e4L)
+  )
+  testthat::expect_error(
+    extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
-                 1,
-                 mode = "buffer",
+                 id = 1,
                  radius = 1e4L)
   )
   testthat::expect_error(
-    extract_at(as.list(ncp),
+    extract_at_buffer(sf::st_as_sf(ncp),
+                 ncelev,
+                 id = "GEOID",
+                 mode = "buffer",
+                 radius = "Ibidem")
+  )
+  testthat::expect_error(
+    extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
                  "GEOID",
-                 mode = "buffer",
-                 radius = 1e4L)
-  )
-  testthat::expect_error(
-    extract_at(sf::st_as_sf(ncp),
-                 ncelev,
-                 "GEOID",
-                 mode = "buffer",
-                 radius = 1e4L)
-  )
-  testthat::expect_error(
-    extract_at(sf::st_as_sf(ncp),
-                 ncelev,
-                 1,
-                 mode = "buffer",
                  radius = "Ibidem")
   )
   testthat::expect_error(
@@ -2037,6 +2057,28 @@ testthat::test_that("extract_at runs well", {
                       bandwidth = 1.25e4L,
                       radius = 1e4L,
                       qsegs = 3 + 2i)
+  )
+
+
+  testthat::expect_no_error(
+    extract_at_poly(sf::st_as_sf(nccntytr),
+                    ncelev,
+                    id = "GEOID")
+  )
+  testthat::expect_error(
+    extract_at_poly(as.list(nccntytr),
+                    ncelev,
+                    id = "GEOID")
+  )
+  testthat::expect_error(
+    extract_at_poly(nccntytr,
+                    matrix(rnorm(100), 10, 10),
+                    id = "GEOID")
+  )
+  testthat::expect_error(
+    extract_at_poly(nccntytr,
+                    ncelev,
+                    id = 2)
   )
 
 })
@@ -2597,12 +2639,18 @@ summarize_aw <-
   ) {
     if (!any(
       methods::is(poly_in, "sf"),
+      methods::is(poly_in, "SpatVector")
+    )) {
+      stop("poly_in is in invalid class.\n")
+    }
+    if (!any(
       methods::is(poly_weight, "sf"),
-      methods::is(poly_in, "SpatVector"),
       methods::is(poly_weight, "SpatVector")
     )) {
-      stop("Inputs have invalid classes.\n")
+      stop("poly_weight is in invalid class.\n")
     }
+
+
     ## distinguish numeric and nonnumeric columns
     index_numeric <-
       grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
@@ -2695,6 +2743,7 @@ testthat::test_that("summarize_aw works as expected.", {
 
   # error case
   testthat::expect_error(summarize_aw(as.list(ppb_t), nc, "id"))
+  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), "id"))
 })
 
 

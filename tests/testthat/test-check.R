@@ -34,6 +34,8 @@ testthat::test_that("What package does the input object belong?",
 
     testthat::expect_equal(datatype_stars, "raster")
     testthat::expect_equal(datatype_sf, "vector")
+
+    testthat::expect_error(datamod(list(1, 2)))
   }
 )
 

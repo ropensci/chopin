@@ -29,8 +29,9 @@ options(sf_use_s2 = FALSE)
 
 bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
 bcsd <- stars::read_stars(bcsd_path)
-bcsd_rpnt <- sf::st_sample(bcsd, 4L)
-bcsd_rpntm <- sf::st_sample(bcsd, 1000L)
+bcsd <- sf::st_as_sf(bcsd)
+bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
+bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
 }
 \author{

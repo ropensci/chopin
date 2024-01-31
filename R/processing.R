@@ -58,8 +58,9 @@ kernelfunction <-
 #'
 #' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
 #' bcsd <- stars::read_stars(bcsd_path)
-#' bcsd_rpnt <- sf::st_sample(bcsd, 4L)
-#' bcsd_rpntm <- sf::st_sample(bcsd, 1000L)
+#' bcsd <- sf::st_as_sf(bcsd)
+#' bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
+#' bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 #' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
 #' @importFrom sf st_intersection
 #' @importFrom terra intersect
@@ -384,10 +385,6 @@ extract_at_poly <- function(
   cls_polys <- dep_check(polys)
   cls_surf <- dep_check(surf)
 
-  if (cls_polys != cls_surf) {
-    polys <- dep_switch(polys)
-  }
-
   polys <- reproject_b2r(polys, surf)
 
   extracted_poly <-
@@ -662,12 +659,18 @@ summarize_aw <-
   ) {
     if (!any(
       methods::is(poly_in, "sf"),
+      methods::is(poly_in, "SpatVector")
+    )) {
+      stop("poly_in is in invalid class.\n")
+    }
+    if (!any(
       methods::is(poly_weight, "sf"),
-      methods::is(poly_in, "SpatVector"),
       methods::is(poly_weight, "SpatVector")
     )) {
-      stop("Inputs have invalid classes.\n")
+      stop("poly_weight is in invalid class.\n")
     }
+
+
     ## distinguish numeric and nonnumeric columns
     index_numeric <-
       grep("(integer|numeric)", unlist(sapply(poly_weight, class)))

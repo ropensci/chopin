@@ -115,17 +115,6 @@ rast_short <- function(rasterpath = NULL, win = NULL) {
       \n"
     )
   }
-  if (
-    all(
-      is.numeric(win),
-      !all(grepl("(xmax|xmin|ymax|ymin)", names(win))) || is.null(names(win))
-    )
-  ) {
-    stop(
-      "Numeric win without names is detected.
-Set valid names for all win elements.\n"
-    )
-  }
   rast_sub <- terra::rast(rasterpath, win = win)
   return(rast_sub)
 }

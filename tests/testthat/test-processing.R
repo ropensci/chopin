@@ -130,6 +130,22 @@ testthat::test_that("extract_at runs well", {
         radius = 1e4L
       )
   )
+  testthat::expect_no_error(
+    extract_at(st_as_sf(ncp),
+      ncelev,
+      "pid",
+      mode = "buffer",
+      radius = 1e4L
+    )
+  )
+  testthat::expect_error(
+    extract_at(matrix(runif(2e6, 3e6, 100), 50, 2, TRUE),
+      ncelev,
+      "pid",
+      mode = "buffer",
+      radius = 1e4L
+    )
+  )
 
   testthat::expect_no_error(
     ncexbuffkern <-
@@ -173,30 +189,34 @@ testthat::test_that("extract_at runs well", {
   )
   testthat::expect_error(
     extract_at(nccntytr,
+               ncelev,
+               1,
+               mode = "buffer",
+               radius = 1e4L)
+  )
+  testthat::expect_error(
+    extract_at_buffer(as.list(ncp),
+                      ncelev,
+                      id = "GEOID",
+                      radius = 1e4L)
+  )
+  testthat::expect_error(
+    extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
-                 1,
-                 mode = "buffer",
+                 id = 1,
                  radius = 1e4L)
   )
   testthat::expect_error(
-    extract_at(as.list(ncp),
+    extract_at_buffer(sf::st_as_sf(ncp),
+                 ncelev,
+                 id = "GEOID",
+                 mode = "buffer",
+                 radius = "Ibidem")
+  )
+  testthat::expect_error(
+    extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
                  "GEOID",
-                 mode = "buffer",
-                 radius = 1e4L)
-  )
-  testthat::expect_error(
-    extract_at(sf::st_as_sf(ncp),
-                 ncelev,
-                 "GEOID",
-                 mode = "buffer",
-                 radius = 1e4L)
-  )
-  testthat::expect_error(
-    extract_at(sf::st_as_sf(ncp),
-                 ncelev,
-                 1,
-                 mode = "buffer",
                  radius = "Ibidem")
   )
   testthat::expect_error(
@@ -208,6 +228,28 @@ testthat::test_that("extract_at runs well", {
                       bandwidth = 1.25e4L,
                       radius = 1e4L,
                       qsegs = 3 + 2i)
+  )
+
+
+  testthat::expect_no_error(
+    extract_at_poly(sf::st_as_sf(nccntytr),
+                    ncelev,
+                    id = "GEOID")
+  )
+  testthat::expect_error(
+    extract_at_poly(as.list(nccntytr),
+                    ncelev,
+                    id = "GEOID")
+  )
+  testthat::expect_error(
+    extract_at_poly(nccntytr,
+                    matrix(rnorm(100), 10, 10),
+                    id = "GEOID")
+  )
+  testthat::expect_error(
+    extract_at_poly(nccntytr,
+                    ncelev,
+                    id = 2)
   )
 
 })
@@ -252,6 +294,7 @@ testthat::test_that("summarize_aw works as expected.", {
 
   # error case
   testthat::expect_error(summarize_aw(as.list(ppb_t), nc, "id"))
+  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), "id"))
 })
 
 

@@ -62,9 +62,9 @@ par_make_gridset <-
     if (!is.numeric(padding)) {
       message("padding should be numeric.
 We try converting padding to numeric...\n")
-      padding <- try(as.numeric(padding))
-      if (inherits(padding, "try-error")) {
-        stop("padding is not convertible to numeric.\n")
+      padding <- as.numeric(padding)
+      if (any(inherits(padding, "try-error"), is.na(padding))) {
+        stop("padding is not convertible to numeric or converted to NA.\n")
       }
     }
 
@@ -72,10 +72,11 @@ We try converting padding to numeric...\n")
     grid_reg <-
       switch(mode,
         grid = par_make_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-        grid_advanced = par_merge_grid(
-                                   points_in = input,
-                                   par_make_grid(input, nx, ny),
-                                   grid_min_features = grid_min_features),
+        grid_advanced =
+        par_merge_grid(
+          points_in = input,
+          par_make_grid(input, nx, ny),
+          grid_min_features = grid_min_features),
         density = simpleError("density method is under development.\n")
       )
 
