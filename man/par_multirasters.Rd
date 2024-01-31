@@ -15,7 +15,10 @@ if there were any errors during the calculation.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 
-\item{...}{Arguments passed to the argument \code{fun_dist}.}
+\item{...}{Arguments passed to the argument \code{fun_dist}.
+The \strong{second} place should get a vector or raster dataset from which
+you want to extract or calculate values. For example, a raster dataset
+when vector-raster overlay is performed.}
 }
 \value{
 a data.frame object with computation results.
@@ -40,9 +43,8 @@ to make subsets of input vector objects in advance.
 \examples{
 \dontrun{
 library(future)
-plan(multicore, workers = 4)
-# Does not run ...
-# par_multirasters()
+plan(multisession, workers = 4L)
+# See vignette for details.
 }
 }
 \author{

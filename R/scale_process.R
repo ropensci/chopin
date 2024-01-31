@@ -66,6 +66,9 @@ par_fallback <-
 #' if there were any errors during the calculation.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
@@ -75,8 +78,7 @@ par_fallback <-
 #' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4)
-#' # Does not run ...
-#' # par_grid()
+#' # See vignette for details.
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
@@ -153,16 +155,7 @@ par_grid <-
           },
           error = function(e) {
             par_fallback(e, fun_dist, debug)
-            # if (debug) print(e)
-            # fallback <- data.frame(ID = NA)
-            # if ("id" %in% names(formals(fun_dist))) {
-            #   detected_id <- list(...)
-            #   detected_id <- detected_id$id
-            # } else {
-            #   detected_id <- "id"
-            # }
-            # colnames(fallback)[1] <- detected_id
-            # return(fallback)
+
           })
 
           return(run_result)
@@ -214,6 +207,9 @@ par_grid <-
 #' if there were any errors during the calculation.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
@@ -222,9 +218,7 @@ par_grid <-
 #' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4L)
-#' # Does not run ...
-#' # library(tigris)
-#' # par_hierarchy()
+#' # See vignette for details.
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
@@ -280,22 +274,12 @@ par_hierarchy <-
               error =
               function(e) {
                 par_fallback(e, fun_dist, debug)
-                # if (debug) print(e)
-                # fallback <- data.frame(ID = NA)
-                # if ("id" %in% names(formals(fun_dist))) {
-                #   detected_id <- list(...)
-                #   detected_id <- detected_id$id
-                # } else {
-                #   detected_id <- "id"
-                # }
-                # colnames(fallback)[1] <- detected_id
-                # return(fallback)
               }
             )
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr",
+        future.packages = c("terra", "sf", "dplyr", "rlang",
                             "chopin", "future", "exactextractr")
       )
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
@@ -326,6 +310,9 @@ par_hierarchy <-
 #' if there were any errors during the calculation.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results,
 #'  consult the function used in \code{fun_dist} argument.
@@ -334,9 +321,8 @@ par_hierarchy <-
 #' @examples
 #' \dontrun{
 #' library(future)
-#' plan(multicore, workers = 4)
-#' # Does not run ...
-#' # par_multirasters()
+#' plan(multisession, workers = 4L)
+#' # See vignette for details.
 #' }
 #' @import future
 #' @import future.apply
@@ -378,18 +364,6 @@ par_multirasters <-
           if (inherits(run_result, "try-error")) {
             par_fallback(run_result, fun_dist, debug)
           }
-          #   if (debug) {
-          #     message(attr(run_result, "condition")$message)
-          #   }
-          #   fallback <- data.frame(ID = NA)
-          #   if ("id" %in% names(formals(fun_dist))) {
-          #     detected_id <- list(...)
-          #     detected_id <- detected_id$id
-          #   }
-          #   colnames(fallback)[1] <- detected_id
-          #   run_result <- fallback
-          # }
-          # return(run_result)
         },
         future.seed = TRUE,
         future.packages =

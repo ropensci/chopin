@@ -1,0 +1,435 @@
+---
+title: "How to use par_* functions"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to use par_* functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+## `par_*` functions for automatic parallelization for geospatial operations
+- Please refer to a small example below for extracting mean altitude values at circular point buffers and census tracts in North Carolina.
+
+``` r
+library(chopin)
+library(dplyr)
+library(sf)
+library(terra)
+library(future)
+library(future.apply)
+library(doFuture)
+library(tigris)
+options(sf_use_s2 = FALSE)
+set.seed(2023, kind = "L'Ecuyer-CMRG")
+```
+
+``` r
+ncpoly <- system.file("shape/nc.shp", package = "sf")
+ncsf <- sf::read_sf(ncpoly)
+ncsf <- sf::st_transform(ncsf, "EPSG:5070")
+plot(sf::st_geometry(ncsf))
+```
+
+![](https://i.imgur.com/ImPfGXP.png)<!-- -->
+
+### Generate random points in NC
+- Ten thousands random point locations are generated inside the counties of North Carolina.
+``` r
+ncpoints <- sf::st_sample(ncsf, 10000)
+plot(sf::st_geometry(ncpoints))
+```
+
+![](https://i.imgur.com/3ZQ4uoH.png)<!-- -->
+
+``` r
+
+# st_sample output is st_sfc. We should convert it to sf
+ncpoints <- st_as_sf(ncpoints)
+ncpoints$pid <- seq(1, nrow(ncpoints))
+```
+
+### Target dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
+- We use an elevation dataset with and a moderate spatial resolution (approximately 400 meters or 0.25 miles).
+``` r
+srtm <- terra::unwrap(readRDS("../../tests/testdata/nc_srtm15_otm.rds"))
+srtm
+#> class       : SpatRaster 
+#> dimensions  : 1534, 2281, 1  (nrow, ncol, nlyr)
+#> resolution  : 391.5026, 391.5026  (x, y)
+#> extent      : 1012872, 1905890, 1219961, 1820526  (xmin, xmax, ymin, ymax)
+#> coord. ref. : +proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs 
+#> source(s)   : memory
+#> name        : file928c3830468b 
+#> min value   :        -3589.291 
+#> max value   :         1946.400
+plot(srtm)
+```
+
+![](https://i.imgur.com/l08bz4j.png)<!-- -->
+
+``` r
+terra::crs(srtm) <- "EPSG:5070"
+```
+
+``` r
+ncpoints_tr <- terra::vect(ncpoints)
+system.time(
+  ncpoints_srtm <-
+    chopin::extract_at(
+      vector = ncpoints_tr,
+      raster = srtm,
+      id = "pid",
+      mode = "buffer",
+      radius = 1e4L) # 10,000 meters (10 km)
+)
+#>    user  system elapsed 
+#>   6.271   0.210   6.484
+```
+
+### Generate regular grid computational regions
+- `chopin::par_make_gridset` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
+``` r
+compregions <-
+  chopin::par_make_gridset(
+    ncpoints_tr,
+    mode = "grid",
+    nx = 8L,
+    ny = 5L,
+    padding = 1e4L
+  )
+```
+
+- `compregions` is an object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The figures below illustrate the grid polygons with and without overlaps.
+```r
+names(compregions)
+#> [1] "original" "padded"
+
+oldpar <- par()
+par(mfcol = c(1, 2))
+plot(compregions$original, main = "Original grids")
+plot(compregions$padded, main = "Padded grids")
+par(oldpar)
+```
+
+![](https://i.imgur.com/c0xweeV.png)<!-- -->
+
+### Parallel processing
+- Using the grid polygons, we distribute the task of averaging elevations at 10,000 circular buffer polygons, which are generated from the random locations, with 10 kilometers radius with `chopin::par_grid`
+- Users always need to **register** multiple CPU threads (logical cores) to enable them to be used by R processes.
+- `chopin::par_*` functions are flexible in terms of supporting generic spatial operations in widely used geospatial R packages such as `sf` and `terra`, especially where two datasets involved.
+    - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis arguments, like below:
+``` r
+plan(multicore, workers = 4L)
+doFuture::registerDoFuture()
+
+system.time(
+  ncpoints_srtm_mthr <-
+    chopin::distribute_process_grid(
+      grids = compregions,
+      grid_target_id = NULL,
+      fun_dist = chopin::extract_at,
+      vector = ncpoints_tr,
+      raster = srtm,
+      id = "pid",
+      mode = "buffer",
+      radius = 1e4L
+    )
+)
+#> Your input function was 
+#>             successfully run at CGRIDID: 1
+#> Your input function was 
+#>             successfully run at CGRIDID: 2
+#> Your input function was 
+#>             successfully run at CGRIDID: 3
+#> Your input function was 
+#>             successfully run at CGRIDID: 4
+#> Your input function was 
+#>             successfully run at CGRIDID: 5
+#> Your input function was 
+#>             successfully run at CGRIDID: 6
+#> Your input function was 
+#>             successfully run at CGRIDID: 7
+#> Your input function was 
+#>             successfully run at CGRIDID: 8
+#> Your input function was 
+#>             successfully run at CGRIDID: 9
+#> Your input function was 
+#>             successfully run at CGRIDID: 10
+#> Your input function was 
+#>             successfully run at CGRIDID: 11
+#> Your input function was 
+#>             successfully run at CGRIDID: 12
+#> Your input function was 
+#>             successfully run at CGRIDID: 13
+#> Your input function was 
+#>             successfully run at CGRIDID: 14
+#> Your input function was 
+#>             successfully run at CGRIDID: 15
+#> Your input function was 
+#>             successfully run at CGRIDID: 16
+#> Your input function was 
+#>             successfully run at CGRIDID: 17
+#> Your input function was 
+#>             successfully run at CGRIDID: 18
+#> Your input function was 
+#>             successfully run at CGRIDID: 19
+#> Your input function was 
+#>             successfully run at CGRIDID: 20
+#> Your input function was 
+#>             successfully run at CGRIDID: 21
+#> Your input function was 
+#>             successfully run at CGRIDID: 22
+#> Your input function was 
+#>             successfully run at CGRIDID: 23
+#> Your input function was 
+#>             successfully run at CGRIDID: 24
+#> Your input function was 
+#>             successfully run at CGRIDID: 25
+#> Your input function was 
+#>             successfully run at CGRIDID: 26
+#> Your input function was 
+#>             successfully run at CGRIDID: 27
+#> Your input function was 
+#>             successfully run at CGRIDID: 28
+#> Your input function was 
+#>             successfully run at CGRIDID: 29
+#> Your input function was 
+#>             successfully run at CGRIDID: 30
+#> Your input function was 
+#>             successfully run at CGRIDID: 31
+#> Your input function was 
+#>             successfully run at CGRIDID: 32
+#> Your input function was 
+#>             successfully run at CGRIDID: 33
+#>    user  system elapsed 
+#>   4.407   0.351   2.438
+```
+
+``` r
+ncpoints_srtm_mthr <-
+  ncpoints_srtm_mthr[order(ncpoints_srtm_mthr$pid),]
+all.equal(ncpoints_srtm, ncpoints_srtm_mthr)
+#> [1] "Attributes: < Component \"row.names\": Mean relative difference: 0.6567904 >"
+#> [2] "Component \"mean\": Mean relative difference: 8.712634e-05"
+```
+
+``` r
+ncpoints_s <-
+    merge(ncpoints, ncpoints_srtm)
+ncpoints_m <-
+    merge(ncpoints, ncpoints_srtm_mthr)
+
+plot(ncpoints_s[, "mean"], main = "Single-thread")
+```
+
+![](https://i.imgur.com/iaQHWBL.png)<!-- -->
+
+``` r
+plot(ncpoints_m[, "mean"], main = "Multi-thread")
+```
+
+![](https://i.imgur.com/fgOvOff.png)<!-- -->
+
+### Parallelize geospatial computations using intrinsic data hierarchy: `chopin::par_hierarchy`
+- In real world datasets, we usually have nested/exhaustive hierarchies. For example, land is organized by administrative/jurisdictional borders where multiple levels exist. In the U.S. context, a state consists of several counties, counties are split into census tracts, and they have a group of block groups.
+- `chopin::par_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
+- A demonstration below shows that census tracts are grouped by their counties then each county will be processed in a CPU thread.
+``` r
+nc_county <- file.path("../testdata/nc_hierarchy.gpkg")
+nc_county <- sf::st_read(nc_county, layer = "county")
+#> Reading layer `county' from data source 
+#>   `/Users/songi2/Documents/GitHub/Scalable_GIS/tools/testdata/nc_hierarchy.gpkg' 
+#>   using driver `GPKG'
+#> Simple feature collection with 100 features and 1 field
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
+#> Projected CRS: NAD83 / Conus Albers
+
+nc_tracts <- file.path("../testdata/nc_hierarchy.gpkg")
+nc_tracts <- sf::st_read(nc_tracts, layer = "tracts")
+#> Reading layer `tracts' from data source 
+#>   `/Users/songi2/Documents/GitHub/Scalable_GIS/tools/testdata/nc_hierarchy.gpkg' 
+#>   using driver `GPKG'
+#> Simple feature collection with 2672 features and 1 field
+#> Geometry type: MULTIPOLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
+#> Projected CRS: NAD83 / Conus Albers
+
+nc_county <- sf::st_transform(nc_county, "EPSG:5070")
+nc_tracts <- sf::st_transform(nc_tracts, "EPSG:5070")
+nc_tracts$COUNTY <-
+  substr(nc_tracts$GEOID, 1, 5)
+```
+
+``` r
+system.time(
+  nc_elev_tr_single <- chopin::extract_at(
+    vector = nc_tracts,
+    raster = srtm,
+    id = "GEOID",
+    mode = "polygon"
+  )
+)
+#>    user  system elapsed 
+#>   1.082   0.021   1.102
+```
+
+``` r
+system.time(
+  nc_elev_tr_distr <-
+    chopin::par_hierarchy(
+      regions = nc_county, # higher level geometry
+      split_level = "GEOID", # higher level unique id
+      fun_dist = chopin::extract_at,
+      vector = nc_tracts, # lower level geometry
+      raster = srtm,
+      id = "GEOID", # lower level unique id
+      func = "mean"
+    )
+)
+#>    user  system elapsed 
+#>   0.023   0.013   1.317
+```
+
+
+### Multiple rasters
+- There is a common case of having a large group of raster files at which the same operation should be performed.
+- `chopin::distribute_process_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
+``` r
+ncpath <- "../testdata/nc_hierarchy.gpkg"
+nccnty <- terra::vect(ncpath, layer = "county")
+ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+terra::crs(ncelev) <- "EPSG:5070"
+names(ncelev) <- c("srtm15")
+tdir <- tempdir()
+terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+testfiles <- list.files(tempdir(), pattern = "*.tif$", full.names = TRUE)
+testfiles
+#> [1] "/var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpUJwWlN/test1.tif"
+#> [2] "/var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpUJwWlN/test2.tif"
+#> [3] "/var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpUJwWlN/test3.tif"
+#> [4] "/var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpUJwWlN/test4.tif"
+#> [5] "/var/folders/58/7rn_bn5d6k3_cxwnzdhswpz4n0z2n9/T//RtmpUJwWlN/test5.tif"
+```
+
+``` r
+res <- par_multirasters(
+      filenames = testfiles,
+      fun_dist = extract_at_poly,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+
+knitr::kable(head(res))
+```
+
+| GEOID |      mean |
+|:------|----------:|
+| 37037 | 136.80203 |
+| 37001 | 189.76170 |
+| 37057 | 231.16968 |
+| 37069 |  98.03845 |
+| 37155 |  41.23463 |
+| 37109 | 270.96933 |
+
+
+### Parallelization of a generic geospatial operation
+- Other than `chopin` internal macros, `chopin::distribute_process_*` functions support generic geospatial operations.
+- An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `chopin::distribute_process_grid`.
+``` r
+pnts <- readRDS("../testdata/nc_random_point.rds")
+pnts <- terra::vect(pnts)
+rd1 <- terra::vect(
+    file.path("../testdata/ncroads_first.gpkg"))
+
+pnts <- terra::project(pnts, "EPSG:5070")
+rd1 <- terra::project(rd1, "EPSG:5070")
+
+
+nccompreg <-
+  par_make_gridset(
+    input = pnts,
+    mode = "grid",
+    nx = 6L,
+    ny = 4L,
+    padding = 3e4L
+  )
+  
+future::plan(future::multicore, workers = 6L)
+
+system.time(
+res <-
+  distribute_process_grid(
+    grids = nccompreg,
+    fun_dist = terra::nearest,
+    x = pnts,
+    y = rd1
+  )
+)
+#> Your input function was 
+#>             successfully run at CGRIDID: 1
+#> Your input function was 
+#>             successfully run at CGRIDID: 2
+#> Your input function was 
+#>             successfully run at CGRIDID: 3
+#> Your input function was 
+#>             successfully run at CGRIDID: 4
+#> Your input function was 
+#>             successfully run at CGRIDID: 5
+#> Your input function was 
+#>             successfully run at CGRIDID: 6
+#> Your input function was 
+#>             successfully run at CGRIDID: 7
+#> Your input function was 
+#>             successfully run at CGRIDID: 8
+#> Your input function was 
+#>             successfully run at CGRIDID: 9
+#> Your input function was 
+#>             successfully run at CGRIDID: 10
+#> Your input function was 
+#>             successfully run at CGRIDID: 11
+#> Your input function was 
+#>             successfully run at CGRIDID: 12
+#> Your input function was 
+#>             successfully run at CGRIDID: 13
+#> Your input function was 
+#>             successfully run at CGRIDID: 14
+#> Your input function was 
+#>             successfully run at CGRIDID: 15
+#> Your input function was 
+#>             successfully run at CGRIDID: 16
+#> Your input function was 
+#>             successfully run at CGRIDID: 17
+#> Your input function was 
+#>             successfully run at CGRIDID: 18
+#> Your input function was 
+#>             successfully run at CGRIDID: 19
+#> Your input function was 
+#>             successfully run at CGRIDID: 20
+#>    user  system elapsed 
+#>   0.366   0.265   0.173
+
+
+
+system.time(
+  restr <- terra::nearest(x = pnts, y = rd1)
+)
+#>    user  system elapsed 
+#>   0.036   0.000   0.036
+```
+
+### Why parallelization is slower than the ordinary function run?
+- Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead refers to the required amount of computational resources for transferring objects to multiple processes.
+- Since the demonstrations above use quite small datasets, the advantage of parallelization was not as dramatically as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be added to this vignette soon.
+

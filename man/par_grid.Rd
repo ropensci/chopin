@@ -21,7 +21,10 @@ if there were any errors during the calculation.}
 
 \item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.}
 
-\item{...}{Arguments passed to the argument \code{fun_dist}.}
+\item{...}{Arguments passed to the argument \code{fun_dist}.
+The \strong{second} place should get a vector or raster dataset from which
+you want to extract or calculate values. For example, a raster dataset
+when vector-raster overlay is performed.}
 }
 \value{
 a data.frame object with computation results.
@@ -56,8 +59,7 @@ are spatially sparsely distributed.
 \dontrun{
 library(future)
 plan(multicore, workers = 4)
-# Does not run ...
-# par_grid()
+# See vignette for details.
 }
 }
 \author{

@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-01-27"
+date: "2024-01-31"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.3.0.20240127",
+    Version = "0.3.0.20240131",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "A package for scalable geospatial computation for environmental health research",
     `Authors@R` = c(
@@ -41,7 +41,9 @@ usethis::create_package(
     ),
     LazyData = "true",
     LazyDataCompression = "xz",
-    Depends = "R (>= 4.1)"
+    Depends = "R (>= 4.1)",
+    URL = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS",
+    BugReports = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/issues"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
@@ -52,13 +54,13 @@ usethis::use_build_ignore(c("/containers"), escape = FALSE)
 usethis::use_build_ignore(c("\\*.Rmd"), escape = FALSE)
 usethis::use_build_ignore(c("\\*.rmd"), escape = FALSE)
 
-usethis::use_package("dplyr")
-usethis::use_package("sf")
-usethis::use_package("terra")
-usethis::use_package("stars")
+usethis::use_package("dplyr", min_version = "1.1.0")
+usethis::use_package("sf", min_version = "1.0-10")
+usethis::use_package("terra", min_version = "1.7-18")
+usethis::use_package("stars", min_version = "0.6-0")
 usethis::use_package("rlang")
 usethis::use_package("methods")
-usethis::use_package("exactextractr")
+usethis::use_package("exactextractr", min_version = "0.8.2")
 usethis::use_package("future")
 usethis::use_package("future.apply")
 usethis::use_package("covr", "Suggests")
@@ -71,9 +73,9 @@ usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
 usethis::use_mit_license()
+usethis::use_code_of_conduct("geoissong@gmail.com")
 
 usethis::use_pkgdown()
-
 # https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html#lists
 usethis::use_roxygen_md()
 # usethis::use_pkgdown_github_pages()
@@ -128,8 +130,11 @@ ecors <- list.files(path = "/Users/songi2/Documents/Ecoregions/",
 
 huc08sadd <- left_join(huc08s, ecors, by = c("huc8" = "Hydrologic Unit Code 8-Digit (HUC8)")) %>%
   select(-1:-12, -globalid)
+
 huc08sadd
 saveRDS(huc08sadd, "./tests/testdata/huc08_nc.rds", compress = "xz")
+
+usethis::use_news_md()
 ```
 
 
@@ -148,8 +153,8 @@ litr::add_vignettes("../tools/vignettes-sources/v01_par_make_gridset.Rmd")
 
 ### Vignettes 3
 
-```{r vig3, eval = FALSE}
-litr::add_vignettes("../tools/vignettes-sources/v02_par_functions.Rmd")
+```{r vig3, eval = TRUE}
+litr::add_vignettes("../tools/vignettes-sources/v02_par_function_example.Rmd")
 ```
 
 
@@ -2188,6 +2193,151 @@ testthat::test_that("nc data is within the mainland US", {
 
 ```
 
+```{r, eval=F, include=F}
+# under construction
+#' Detect and fix possible edge cases of nonminimum distance
+#' @param 
+#' @param 
+#' @returns logical(1).
+#' @author Insang Song
+#' @description 
+#' @importFrom 
+#' @examples
+#' library(terra)
+#'
+#' grid0 <-
+#'   terra::vect("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))")
+#' # shift polygon
+#' grid0d <- terra::shift(grid0, dx = -5, dy = -5)
+#' grid0dl <- terra::as.lines(grid0d)
+#' grid0dl <- terra::disagg(grid0dl, segments = TRUE)
+#'
+#' rp <-
+#'   terra::spatSample(
+#'     terra::ext(grid0) - 4L, 200L,
+#'     lonlat = FALSE,
+#'     as.points = TRUE
+#'   )
+#' # distance
+#' grid0dl_rpd <- terra::nearest(rp, grid0dl)
+#' is_dist_edge(grid0dl_rpd, y = rp, grid_in = grid0)
+#' @export
+is_dist_edge <- function(
+  x,
+  y,
+  distance = NULL,
+  grid_in,
+  max_iter = 10
+) {
+    # 1. identify outermost points using convex hull
+    xch <- terra::convHull(x)
+    ycrop <- terra::crop(y, grid_in)
+    xpbord <- terra::intersect(x, xch)
+
+    # 2. grid polygon to lines
+    grid_inb <- terra::as.lines(grid_in)
+    grid_inb <- terra::disagg(grid_inb, segments = TRUE)
+
+    if (!is.null(ycrop) || terra::is.empty(ycrop)) {
+      extrusion <- terra::perim(grid_in)[1]
+      dc <- rep(0, nrow(xpbord))
+    } else {
+      dc <- terra::nearest(xpbord, ycrop)$distance
+      # this value must be positive in all cases
+      extrusion <- abs(max(dc) - min(dg))
+    }
+
+    # grid_in_ext <-
+    #  terra::buffer(
+    #     grid_in,
+    #     width = inc_grid_d,
+    #     capstyle = "square",
+    #     joinstyle = "bevel"
+    #  )
+    # ycropre <- terra::crop(y, grid_in_ext)
+          
+  recur <- 1
+  nearest_before <- dc
+  while (recur <= max_iter) {
+    extrusion <- extrusion * recur
+    grid_extr <-
+      terra::buffer(
+        grid_in,
+        extrusion,
+        capstyle = "square",
+        joinstyle = "mitre")
+    y_extr <- terra::intersect(y, grid_extr)
+    nearest_this <- terra::nearest(xpbord, y_extr)
+
+    if (any(nearest_before == nearest_this)) {
+      remainder[recur] <- xpbord[nearest_this < nearest_before]
+    }
+    recur <- recur + 1
+  }
+  
+
+
+poly1 <- vect("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))")
+
+dd <- autoexpand(poly1, 2, 3)
+
+    # 3. get dg
+    dg <- terra::nearest(xpbord, grid_inb)$distance
+
+    # 4. case 1. y is null
+
+    # let dc is the minimum observed distance to the target
+    # dg is the distance to the closest grid boundary
+    # da is the actual minimum distance to the target
+    # if no da in this instance: increment by grid edge size
+    # if da present: increment by max(dc-dg)
+    # compare runtime of getting max(dc-dg) [MN] vs max(dc)-min(dg) [M+N]
+    d_xpbord_inb <- terra::nearest(xpbord, grid_inb)
+    d_xpbord_y <- terra::nearest(xpbord, ycrop)
+    # max(Dg)
+    max(d_xpbord_inb)
+    res <- any(d_xpbord_inb$distance > d_xpbord_y$distance)
+
+    return(res)
+}
+
+
+
+
+
+```
+
+
+
+```{r, eval = FALSE, include = FALSE}
+grid0 <-
+  terra::vect("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))")
+# shift polygon
+buf0 <- terra::vect("POINT (-5 -5)")
+buf0 <- terra::buffer(buf0, 10)
+buf0l <- terra::as.lines(buf0)
+
+grid0d <- terra::shift(grid0, dx = -5, dy = -5)
+grid0dl <- terra::as.lines(grid0d)
+grid0dl <- terra::disagg(grid0dl, segments = TRUE)
+# clip displaced borders
+grid0dl_c <- terra::crop(grid0dl, grid0)
+
+terra::nearest(grid0, grid0dl)
+rp <-
+  terra::spatSample(
+    terra::ext(grid0) - 1L,
+    200L, lonlat = FALSE, as.points = TRUE
+  )
+# distance
+grid0dl_rpd <- terra::nearest(rp, buf0l)
+is_dist_edge(x = rp, y = grid0dl, grid_in = grid0)
+
+plot(grid0)
+plot(rp, col = "blue", add = TRUE)
+plot(buf0l, border = "red", add = TRUE)
+```
+
 ```{r, send_to = "R/processing.R"}
 #' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 #' @param point_from `SpatVector` object. Locations where
@@ -2213,6 +2363,9 @@ testthat::test_that("nc data is within the mainland US", {
 #'  \code{point_*} arguments to terra.
 #'  The threshold should be carefully chosen by users.
 #' @author Insang Song
+#' @references
+#' * [Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \& Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
+#' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #' @examples
 #' library(terra)
 #' library(sf)
@@ -2719,6 +2872,9 @@ testthat::test_that(
 #' if there were any errors during the calculation.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
@@ -2728,8 +2884,7 @@ testthat::test_that(
 #' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4)
-#' # Does not run ...
-#' # par_grid()
+#' # See vignette for details.
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
@@ -2806,16 +2961,7 @@ par_grid <-
           },
           error = function(e) {
             par_fallback(e, fun_dist, debug)
-            # if (debug) print(e)
-            # fallback <- data.frame(ID = NA)
-            # if ("id" %in% names(formals(fun_dist))) {
-            #   detected_id <- list(...)
-            #   detected_id <- detected_id$id
-            # } else {
-            #   detected_id <- "id"
-            # }
-            # colnames(fallback)[1] <- detected_id
-            # return(fallback)
+
           })
 
           return(run_result)
@@ -2867,6 +3013,9 @@ par_grid <-
 #' if there were any errors during the calculation.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
@@ -2875,9 +3024,7 @@ par_grid <-
 #' \dontrun{
 #' library(future)
 #' plan(multicore, workers = 4L)
-#' # Does not run ...
-#' # library(tigris)
-#' # par_hierarchy()
+#' # See vignette for details.
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
@@ -2933,22 +3080,12 @@ par_hierarchy <-
               error =
               function(e) {
                 par_fallback(e, fun_dist, debug)
-                # if (debug) print(e)
-                # fallback <- data.frame(ID = NA)
-                # if ("id" %in% names(formals(fun_dist))) {
-                #   detected_id <- list(...)
-                #   detected_id <- detected_id$id
-                # } else {
-                #   detected_id <- "id"
-                # }
-                # colnames(fallback)[1] <- detected_id
-                # return(fallback)
               }
             )
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr",
+        future.packages = c("terra", "sf", "dplyr", "rlang",
                             "chopin", "future", "exactextractr")
       )
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
@@ -2979,6 +3116,9 @@ par_hierarchy <-
 #' if there were any errors during the calculation.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
 #' @returns a data.frame object with computation results.
 #'  For entries of the results,
 #'  consult the function used in \code{fun_dist} argument.
@@ -2987,9 +3127,8 @@ par_hierarchy <-
 #' @examples
 #' \dontrun{
 #' library(future)
-#' plan(multicore, workers = 4)
-#' # Does not run ...
-#' # par_multirasters()
+#' plan(multisession, workers = 4L)
+#' # See vignette for details.
 #' }
 #' @import future
 #' @import future.apply
@@ -3031,18 +3170,6 @@ par_multirasters <-
           if (inherits(run_result, "try-error")) {
             par_fallback(run_result, fun_dist, debug)
           }
-          #   if (debug) {
-          #     message(attr(run_result, "condition")$message)
-          #   }
-          #   fallback <- data.frame(ID = NA)
-          #   if ("id" %in% names(formals(fun_dist))) {
-          #     detected_id <- list(...)
-          #     detected_id <- detected_id$id
-          #   }
-          #   colnames(fallback)[1] <- detected_id
-          #   run_result <- fallback
-          # }
-          # return(run_result)
         },
         future.seed = TRUE,
         future.packages =
@@ -3574,26 +3701,8 @@ exactextractr::exact_extract(ncelev, sf::st_as_sf(terra::buffer(ncpnts, 5e3L)), 
 
 
 ```{r, eval = FALSE, include = FALSE}
-  # future.apply::future_lapply(
-  #   nccompreg %>% split(., .$CGRIDID),
-  #   \(x) {
-  #     sf::sf_use_s2(FALSE)
-      
-  #     run_result <- tryCatch({
-  #       kk <- chopin::extract_at_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = x)
-  #       #fun(...)
-  #       #print(xx)
-  #       cat(sprintf("Your input function %s was successfully run at CGRIDID: %s\n",
-  #         paste0(quote(fun)), as.character(unlist(x[["CGRIDID"]]))))
-  #       return(kk)
-  #     },
-  #     error = function(e) return(data.frame(ID = NA)))
-  #     return(run_result)
-  #   },
-  #   future.seed = TRUE,
-  #   future.packages = c("terra", "sf", "dplyr", "chopin", "future"))
-
-  # chopin::extract_at_buffer(ncpnts, ncelev, 30000L, "pid", grid_ref = nccompreg %>% split(., .$CGRIDID) %>% .[[5]])
+bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+bcsd_stars <- stars::read_stars(bcsd_path)
 ```
 
 ## Documenting the package and building
