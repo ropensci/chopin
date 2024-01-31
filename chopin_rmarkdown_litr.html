@@ -1203,8 +1203,9 @@ reproject_std &lt;-
 #&#39; ncpath &lt;- system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
 #&#39; nc &lt;- read_sf(ncpath)
 #&#39; nc &lt;- st_transform(nc, &quot;EPSG:5070&quot;)
-#&#39; # run
-#&#39; nc_comp_region &lt;- par_make_gridset(nc, nx = 12, ny = 8)
+#&#39; # run: nx and ny should strictly be integers
+#&#39; # In the example below, nx is 12L, not 12.
+#&#39; nc_comp_region &lt;- par_make_gridset(nc, nx = 12L, ny = 8L)
 #&#39; par(mfcol = c(1, 2))
 #&#39; plot(nc_comp_region$original)
 #&#39; plot(nc_comp_region$padded)

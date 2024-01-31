@@ -33,8 +33,9 @@
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' nc <- read_sf(ncpath)
 #' nc <- st_transform(nc, "EPSG:5070")
-#' # run
-#' nc_comp_region <- par_make_gridset(nc, nx = 12, ny = 8)
+#' # run: nx and ny should strictly be integers
+#' # In the example below, nx is 12L, not 12.
+#' nc_comp_region <- par_make_gridset(nc, nx = 12L, ny = 8L)
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original)
 #' plot(nc_comp_region$padded)
