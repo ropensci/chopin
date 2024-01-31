@@ -5,7 +5,6 @@
     
 # `chopin`: Computation for Climate and Health research On Parallelized INfrastructure
 
-
 ## Basic design
 - Processing functions accept sf/terra classes for spatial data. Raster-vector overlay is done with `exactextractr`.
 - As of version 0.1.0, this package supports three basic functions that are readily parallelized over multithread environments:
@@ -19,6 +18,16 @@
     - `par_grid`
     - `par_hierarchy`
     - `par_multirasters`
+
+
+## Installation
+- You can install `chopin` using `pak::pak` or `remotes::install_github`
+``` r
+pak::pak("Spatiotemporal-Exposures-and-Toxicology/Scalable-GIS")
+```
+``` r
+remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/Scalable-GIS")
+```
 
 
 ## Use case

@@ -494,7 +494,7 @@ usethis::use_roxygen_md()
 </div>
 <div id="vignettes-3" class="section level3">
 <h3>Vignettes 3</h3>
-<pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/v02_par_functions.Rmd&quot;)</code></pre>
+<pre class="r"><code>litr::add_vignettes(&quot;../tools/vignettes-sources/v02_par_function_example.Rmd&quot;)</code></pre>
 </div>
 <div id="add-data" class="section level3">
 <h3>Add data</h3>
@@ -3189,13 +3189,13 @@ par_multirasters &lt;-
           run_result &lt;-
             try({
               args_input &lt;- list(...)
-              vect_target_tr &lt;- detect_class(args_input, &quot;SpatVector&quot;)
-              vect_target_sf &lt;- detect_class(args_input, &quot;sf&quot;)
+              vect_target_tr &lt;- <a href='chopin_rmarkdown_litr.html#any_class_args'>any_class_args</a>(args_input, &quot;SpatVector&quot;)
+              vect_target_sf &lt;- <a href='chopin_rmarkdown_litr.html#any_class_args'>any_class_args</a>(args_input, &quot;sf&quot;)
               vect_target &lt;- (vect_target_tr | vect_target_sf)
               vect_ext &lt;- args_input[vect_target]
               vect_ext &lt;- terra::ext(vect_ext[[1]])
 
-              rast_target &lt;- which(detect_class(args_input, &quot;SpatRaster&quot;))
+              rast_target &lt;- which(<a href='chopin_rmarkdown_litr.html#any_class_args'>any_class_args</a>(args_input, &quot;SpatRaster&quot;))
               args_input[[rast_target]] &lt;-
                 <a href='chopin_rmarkdown_litr.html#rast_short'>rast_short</a>(rasterpath = path, win = vect_ext)
               if (!&quot;id&quot; %in% names(formals(fun_dist))) args_input$id &lt;- NULL

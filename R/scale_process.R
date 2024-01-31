@@ -344,13 +344,13 @@ par_multirasters <-
           run_result <-
             try({
               args_input <- list(...)
-              vect_target_tr <- detect_class(args_input, "SpatVector")
-              vect_target_sf <- detect_class(args_input, "sf")
+              vect_target_tr <- any_class_args(args_input, "SpatVector")
+              vect_target_sf <- any_class_args(args_input, "sf")
               vect_target <- (vect_target_tr | vect_target_sf)
               vect_ext <- args_input[vect_target]
               vect_ext <- terra::ext(vect_ext[[1]])
 
-              rast_target <- which(detect_class(args_input, "SpatRaster"))
+              rast_target <- which(any_class_args(args_input, "SpatRaster"))
               args_input[[rast_target]] <-
                 rast_short(rasterpath = path, win = vect_ext)
               if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
