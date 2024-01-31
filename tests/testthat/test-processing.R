@@ -139,7 +139,7 @@ testthat::test_that("extract_at runs well", {
     )
   )
   testthat::expect_error(
-    extract_at(matrix(runif(2e6, 3e6, 100), 50, 2, TRUE),
+    extract_at(matrix(runif(100, 2e6, 3e6), 50, 2, TRUE),
       ncelev,
       "pid",
       mode = "buffer",
@@ -178,7 +178,7 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_error(
     extract_at(nccntytr,
                  ncelev,
-                 "GEOID",
+                 "FIPS",
                  mode = "whatnot")
   )
   testthat::expect_error(
@@ -209,14 +209,14 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_error(
     extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
-                 id = "GEOID",
+                 id = "FIPS",
                  mode = "buffer",
                  radius = "Ibidem")
   )
   testthat::expect_error(
     extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
-                 "GEOID",
+                 "FIPS",
                  radius = "Ibidem")
   )
   testthat::expect_error(
@@ -234,17 +234,17 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_no_error(
     extract_at_poly(sf::st_as_sf(nccntytr),
                     ncelev,
-                    id = "GEOID")
+                    id = "FIPS")
   )
   testthat::expect_error(
     extract_at_poly(as.list(nccntytr),
                     ncelev,
-                    id = "GEOID")
+                    id = "FIPS")
   )
   testthat::expect_error(
     extract_at_poly(nccntytr,
                     matrix(rnorm(100), 10, 10),
-                    id = "GEOID")
+                    id = "FIPS")
   )
   testthat::expect_error(
     extract_at_poly(nccntytr,

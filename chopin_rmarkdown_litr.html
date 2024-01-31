@@ -437,57 +437,6 @@ usethis::use_roxygen_md()
 # usethis::use_vignette(&quot;1_setting_distribution.rmd&quot;)</code></pre>
 <!--
 -->
-<pre class="r"><code>desc::desc_set(
-  &quot;https&quot;,
-  &quot;//spatiotemporal-exposures-and-toxicology.github.io/chopin&quot;
-  )</code></pre>
-<pre><code>## Package: chopin
-## Title: CHOPIN: Computation for Climate and Health research On Parallelized
-##     INfrastructure
-## Version: 0.3.0.20240131
-## Authors@R (parsed):
-##     * Insang Song &lt;geoissong@gmail.com&gt; [aut, cre] (&lt;https://orcid.org/0000-0001-8732-3256&gt;)
-##     * Kyle Messier [aut, ctb] (&lt;https://orcid.org/0000-0001-9508-9623&gt;)
-## Description: It enables users with basic understanding on geospatial data
-##     and sf and terra functions to parallelize geospatial operations for
-##     geospatial exposure assessment modeling and covariate computation.
-##     Parallelization is done by dividing large datasets into sub-regions
-##     with regular grids and data&#39;s own hierarchy. A computation over the
-##     large number of raster files can be parallelized with a chopin
-##     function as well.
-## License: MIT + file LICENSE
-## URL:
-##     https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS
-## BugReports:
-##     https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/issues
-## Depends:
-##     R (&gt;= 4.1)
-## Imports:
-##     doFuture,
-##     dplyr (&gt;= 1.1.0),
-##     exactextractr (&gt;= 0.8.2),
-##     future,
-##     future.apply,
-##     methods,
-##     rlang,
-##     sf (&gt;= 1.0-10),
-##     stars (&gt;= 0.6-0),
-##     terra (&gt;= 1.7-18)
-## Suggests:
-##     covr,
-##     doParallel,
-##     future.batchtools,
-##     igraph,
-##     testthat,
-##     tigris,
-##     units,
-##     withr
-## Encoding: UTF-8
-## https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
-## LazyData: true
-## LazyDataCompression: xz
-## Roxygen: list(markdown = TRUE)
-## RoxygenNote: 7.3.0</code></pre>
 <div id="test-data-generation" class="section level3">
 <h3>Test data generation</h3>
 </div>
@@ -1508,17 +1457,7 @@ par_make_grid &lt;-
 }</code></pre>
 <pre><code>## padding should be numeric.
 ## We try converting padding to numeric...</code></pre>
-<pre><code>## -- Warning: Grid split is well done. -------------------------------------------
-## NAs introduced by coercion
-## Backtrace:
-##     x
-##  1. +-testthat::expect_error(...)
-##  2. | \-testthat:::expect_condition_matching(...)
-##  3. |   \-testthat:::quasi_capture(...)
-##  4. |     +-testthat (local) .capture(...)
-##  5. |     | \-base::withCallingHandlers(...)
-##  6. |     \-rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
-##  7. \-litr (local) par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 4L, ny = 10L, padding = &quot;july&quot;)</code></pre>
+<pre><code>## Test passed</code></pre>
 <pre class="r"><code>testthat::test_that(&quot;Grid split is well done.&quot;, {
   withr::local_package(&quot;sf&quot;)
   withr::local_package(&quot;stars&quot;)
@@ -1547,7 +1486,9 @@ par_make_grid &lt;-
     par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 3.6, ny = 10L, padding = 3e4L)
   )
   testthat::expect_error(
-    par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 4L, ny = 10L, padding = &quot;july&quot;)
+    suppressWarnings(
+      par_make_gridset(nctr, mode = &quot;grid&quot;, nx = 4L, ny = 10L, padding = &quot;july&quot;)
+    )
   )
 
 })
@@ -1570,9 +1511,9 @@ par_make_grid &lt;-
 
   gridded &lt;-
     par_make_gridset(ncrp,
-                              mode = &quot;grid&quot;,
-                              nx = 8L, ny = 5L,
-                              padding = 1e4L)
+                     mode = &quot;grid&quot;,
+                     nx = 8L, ny = 5L,
+                     padding = 1e4L)
   # suppress warnings for &quot;all sub-geometries for which ...&quot;
   testthat::expect_warning(<a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(ncrp, gridded$original, 25L))
   testthat::expect_error(<a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(ncrp, gridded$original, 2L))
@@ -1580,9 +1521,9 @@ par_make_grid &lt;-
   ncptr &lt;- terra::vect(ncrp)
   griddedtr &lt;-
     par_make_gridset(ncptr,
-                              mode = &quot;grid&quot;,
-                              nx = 8L, ny = 5L,
-                              padding = 1e4L)
+                     mode = &quot;grid&quot;,
+                     nx = 8L, ny = 5L,
+                     padding = 1e4L)
   testthat::expect_warning(<a href='chopin_rmarkdown_litr.html#par_merge_grid'>par_merge_grid</a>(ncptr, griddedtr$original, 25L))
 
 })
@@ -2122,7 +2063,7 @@ reproject_b2r &lt;-
     )
   )
   testthat::expect_error(
-    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(matrix(runif(2e6, 3e6, 100), 50, 2, TRUE),
+    <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(matrix(runif(100, 2e6, 3e6), 50, 2, TRUE),
       ncelev,
       &quot;pid&quot;,
       mode = &quot;buffer&quot;,
@@ -2161,7 +2102,7 @@ reproject_b2r &lt;-
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at'>extract_at</a>(nccntytr,
                  ncelev,
-                 &quot;GEOID&quot;,
+                 &quot;FIPS&quot;,
                  mode = &quot;whatnot&quot;)
   )
   testthat::expect_error(
@@ -2192,14 +2133,14 @@ reproject_b2r &lt;-
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at_buffer'>extract_at_buffer</a>(sf::st_as_sf(ncp),
                  ncelev,
-                 id = &quot;GEOID&quot;,
+                 id = &quot;FIPS&quot;,
                  mode = &quot;buffer&quot;,
                  radius = &quot;Ibidem&quot;)
   )
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at_buffer'>extract_at_buffer</a>(sf::st_as_sf(ncp),
                  ncelev,
-                 &quot;GEOID&quot;,
+                 &quot;FIPS&quot;,
                  radius = &quot;Ibidem&quot;)
   )
   testthat::expect_error(
@@ -2217,17 +2158,17 @@ reproject_b2r &lt;-
   testthat::expect_no_error(
     <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(sf::st_as_sf(nccntytr),
                     ncelev,
-                    id = &quot;GEOID&quot;)
+                    id = &quot;FIPS&quot;)
   )
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(as.list(nccntytr),
                     ncelev,
-                    id = &quot;GEOID&quot;)
+                    id = &quot;FIPS&quot;)
   )
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(nccntytr,
                     matrix(rnorm(100), 10, 10),
-                    id = &quot;GEOID&quot;)
+                    id = &quot;FIPS&quot;)
   )
   testthat::expect_error(
     <a href='chopin_rmarkdown_litr.html#extract_at_poly'>extract_at_poly</a>(nccntytr,

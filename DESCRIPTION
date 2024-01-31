@@ -1,6 +1,5 @@
 Package: chopin
-Title: CHOPIN: Computation for Climate and Health research On Parallelized
-    INfrastructure
+Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
 Version: 0.3.0.20240131
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
@@ -49,8 +48,7 @@ Suggests:
     tigris,
     units,
     withr
-https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: be0c210078085fabc3e38fcdba7d5c00
+LitrId: d2628dd139b1228f601f627046ce6b49

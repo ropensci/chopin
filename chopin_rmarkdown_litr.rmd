@@ -86,7 +86,7 @@ usethis::use_roxygen_md()
 <!--
 -->
 
-```{r}
+```{r, include = FALSE, eval = FALSE}
 desc::desc_set(
   "https",
   "//spatiotemporal-exposures-and-toxicology.github.io/chopin"
@@ -1301,7 +1301,9 @@ testthat::test_that("Grid split is well done.", {
     par_make_gridset(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
   )
   testthat::expect_error(
-    par_make_gridset(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
+    suppressWarnings(
+      par_make_gridset(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
+    )
   )
 
 })
@@ -1327,9 +1329,9 @@ testthat::test_that("Grid merge is well done.", {
 
   gridded <-
     par_make_gridset(ncrp,
-                              mode = "grid",
-                              nx = 8L, ny = 5L,
-                              padding = 1e4L)
+                     mode = "grid",
+                     nx = 8L, ny = 5L,
+                     padding = 1e4L)
   # suppress warnings for "all sub-geometries for which ..."
   testthat::expect_warning(par_merge_grid(ncrp, gridded$original, 25L))
   testthat::expect_error(par_merge_grid(ncrp, gridded$original, 2L))
@@ -1337,9 +1339,9 @@ testthat::test_that("Grid merge is well done.", {
   ncptr <- terra::vect(ncrp)
   griddedtr <-
     par_make_gridset(ncptr,
-                              mode = "grid",
-                              nx = 8L, ny = 5L,
-                              padding = 1e4L)
+                     mode = "grid",
+                     nx = 8L, ny = 5L,
+                     padding = 1e4L)
   testthat::expect_warning(par_merge_grid(ncptr, griddedtr$original, 25L))
 
 })
@@ -1968,7 +1970,7 @@ testthat::test_that("extract_at runs well", {
     )
   )
   testthat::expect_error(
-    extract_at(matrix(runif(2e6, 3e6, 100), 50, 2, TRUE),
+    extract_at(matrix(runif(100, 2e6, 3e6), 50, 2, TRUE),
       ncelev,
       "pid",
       mode = "buffer",
@@ -2007,7 +2009,7 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_error(
     extract_at(nccntytr,
                  ncelev,
-                 "GEOID",
+                 "FIPS",
                  mode = "whatnot")
   )
   testthat::expect_error(
@@ -2038,14 +2040,14 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_error(
     extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
-                 id = "GEOID",
+                 id = "FIPS",
                  mode = "buffer",
                  radius = "Ibidem")
   )
   testthat::expect_error(
     extract_at_buffer(sf::st_as_sf(ncp),
                  ncelev,
-                 "GEOID",
+                 "FIPS",
                  radius = "Ibidem")
   )
   testthat::expect_error(
@@ -2063,17 +2065,17 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_no_error(
     extract_at_poly(sf::st_as_sf(nccntytr),
                     ncelev,
-                    id = "GEOID")
+                    id = "FIPS")
   )
   testthat::expect_error(
     extract_at_poly(as.list(nccntytr),
                     ncelev,
-                    id = "GEOID")
+                    id = "FIPS")
   )
   testthat::expect_error(
     extract_at_poly(nccntytr,
                     matrix(rnorm(100), 10, 10),
-                    id = "GEOID")
+                    id = "FIPS")
   )
   testthat::expect_error(
     extract_at_poly(nccntytr,
