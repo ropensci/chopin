@@ -63,7 +63,12 @@ nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:5070")
 # run: nx and ny should strictly be integers
 # In the example below, nx is 12L, not 12.
-nc_comp_region <- par_make_gridset(nc, nx = 12L, ny = 8L)
+nc_comp_region <-
+  par_make_gridset(
+    nc,
+    mode = "grid",
+    nx = 12L, ny = 8L,
+    padding = 10000)
 par(mfcol = c(1, 2))
 plot(nc_comp_region$original)
 plot(nc_comp_region$padded)

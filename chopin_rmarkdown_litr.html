@@ -1205,7 +1205,12 @@ reproject_std &lt;-
 #&#39; nc &lt;- st_transform(nc, &quot;EPSG:5070&quot;)
 #&#39; # run: nx and ny should strictly be integers
 #&#39; # In the example below, nx is 12L, not 12.
-#&#39; nc_comp_region &lt;- par_make_gridset(nc, nx = 12L, ny = 8L)
+#&#39; nc_comp_region &lt;-
+#&#39;   par_make_gridset(
+#&#39;     nc,
+#&#39;     mode = &quot;grid&quot;,
+#&#39;     nx = 12L, ny = 8L,
+#&#39;     padding = 10000)
 #&#39; par(mfcol = c(1, 2))
 #&#39; plot(nc_comp_region$original)
 #&#39; plot(nc_comp_region$padded)
