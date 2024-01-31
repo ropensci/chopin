@@ -18,7 +18,7 @@ export DIR_SCRIPT=$4
 # DIR_DATA, DIR_EXPORT, DIR_SCRIPT and APPT_IMG_PATH should be pre-defined
 apptainer exec \
     --writable-tmpfs \
-    --mount='type=bind,source=/opt/data,destination=$DIR_DATA' \
-    --mount='type=bind,source=/opt/ext,destination=$DIR_EXPORT' \
+    --mount='type=bind,dst=/opt/data,src=$DIR_DATA' \
+    --mount='type=bind,dst=/opt/ext,src=$DIR_EXPORT' \
     $APPT_IMG_PATH \
     Rscript $DIR_SCRIPT/calc_mcd19.r

@@ -1,34 +1,45 @@
 Package: chopin
-Title: CHOPIN: Computation for Climate and Health research On Parallelized
-    INfrastructure
-Version: 0.2.0.01242024
+Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
+Version: 0.3.0.20240131
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
     person("Kyle", "Messier", role = c("aut", "ctb"),
            comment = c(ORCID = "0000-0001-9508-9623"))
   )
-Description: A package for scalable geospatial computation for
-    environmental health research
+Description: It enables users with basic understanding on geospatial data
+    and sf and terra functions to parallelize geospatial operations for
+    geospatial exposure assessment modeling and covariate computation.
+    Parallelization is done by dividing large datasets into sub-regions
+    with regular grids and data's own hierarchy. A computation over the
+    large number of raster files can be parallelized with a chopin
+    function as well.
 License: MIT + file LICENSE
+URL: 
+    https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS
+BugReports: 
+    https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/issues
+Depends: 
+    R (>= 4.1)
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 Imports: 
     doFuture,
-    dplyr,
-    exactextractr,
+    dplyr (>= 1.1.0),
+    exactextractr (>= 0.8.2),
     future,
     future.apply,
     methods,
     rlang,
-    sf,
-    stars,
-    terra
+    sf (>= 1.0-10),
+    stars (>= 0.6-0),
+    terra (>= 1.7-18)
 Suggests: 
     covr,
+    doParallel,
     future.batchtools,
     igraph,
     knitr,
@@ -37,10 +48,7 @@ Suggests:
     tigris,
     units,
     withr
-https: //spatiotemporal-exposures-and-toxicology.github.io/chopin
 VignetteBuilder: knitr
-Depends: 
-    R (>= 2.10)
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: c2aa95a06272716f27218584d09642ad
+LitrId: 7bd85b2c45b3d547b59b947c1437b711

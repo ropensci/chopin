@@ -1,6 +1,12 @@
-/tools/*
-/.github
-scomps*.html$
+tools
+tests
+.github
+.html$
+.rmd$
+.gitignore
 ^LICENSE\.md$
-/figure
-/containers
+figure
+docs
+slurm_test
+containers
+^codemeta\.json$
