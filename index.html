@@ -337,7 +337,7 @@ all.equal(ncpoints_srtm, ncpoints_srtm_mthr)
 <ul>
 <li>There is a common case of having a large group of raster files at which the same operation should be performed.</li>
 <li>
-<code>chopin::distribute_process_multirasters</code> is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.</li>
+<code><a href="reference/par_multirasters.html">chopin::par_multirasters</a></code> is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.</li>
 </ul>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpath</span> <span class="op">&lt;-</span> <span class="st">"../testdata/nc_hierarchy.gpkg"</span></span>
@@ -407,8 +407,8 @@ all.equal(ncpoints_srtm, ncpoints_srtm_mthr)
 <h3 id="parallelization-of-a-generic-geospatial-operation">Parallelization of a generic geospatial operation<a class="anchor" aria-label="anchor" href="#parallelization-of-a-generic-geospatial-operation"></a>
 </h3>
 <ul>
-<li>Other than <code>chopin</code> internal macros, <code>chopin::distribute_process_*</code> functions support generic geospatial operations.</li>
-<li>An example below uses <code><a href="https://rdrr.io/pkg/terra/man/nearby.html" class="external-link">terra::nearest</a></code>, which gets the nearest feature’s attributes, inside <code>chopin::distribute_process_grid</code>.</li>
+<li>Other than <code>chopin</code> internal macros, <code>chopin::par_*</code> functions support to parallelize generic geospatial operations where two layers are involved.</li>
+<li>An example below uses <code><a href="https://rdrr.io/pkg/terra/man/nearby.html" class="external-link">terra::nearest</a></code>, which gets the nearest feature’s attributes, inside <code><a href="reference/par_grid.html">chopin::par_grid</a></code>.</li>
 </ul>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/serialize.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"../testdata/nc_random_point.rds"</span><span class="op">)</span></span>
