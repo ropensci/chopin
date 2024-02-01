@@ -71,7 +71,7 @@ Vector validity violation usually appears in polygon data with
 self-crossing or
 hole orders. This function will pass the input_vector object to
 <code><a href="https://r-spatial.github.io/sf/reference/valid.html" class="external-link">sf::st_make_valid</a></code> (if input_vector is sf) or
-<code><a href="https://rdrr.io/pkg/terra/man/is.valid.html" class="external-link">terra::makeValid</a></code> (if input_vector is SpatVector).
+<code><a href="https://rspatial.github.io/terra/reference/is.valid.html" class="external-link">terra::makeValid</a></code> (if input_vector is SpatVector).
 May take some time depending on the geometry complexity.</p>
     </div>
 
@@ -104,7 +104,7 @@ the class of input_vector.</p>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">ncpath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"gpkg/nc.gpkg"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpath</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpath</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">nc_valid</span> <span class="op">&lt;-</span> <span class="fu">vect_valid_repair</span><span class="op">(</span><span class="va">nc</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>

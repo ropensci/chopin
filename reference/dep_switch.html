@@ -88,8 +88,8 @@
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>sf_use_s2 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## generate a random raster</span></span></span>
-<span class="r-in"><span><span class="va">ras_rand</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">30</span>, ncol <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">ras_rand</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">900</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ras_rand</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">30</span>, ncol <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">ras_rand</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">900</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">stars_rand</span> <span class="op">&lt;-</span> <span class="fu">dep_switch</span><span class="op">(</span><span class="va">ras_rand</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">stars_rand</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> stars object with 2 dimensions and 1 attribute</span>
@@ -102,25 +102,25 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> y    1 30     90    -6 WGS 84 [y]</span>
 <span class="r-in"><span><span class="co"># should return stars object</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">vec_rand</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/sample.html" class="external-link">spatSample</a></span><span class="op">(</span><span class="va">ras_rand</span>, size <span class="op">=</span> <span class="fl">10L</span>, as.points <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">vec_rand</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/sample.html" class="external-link">spatSample</a></span><span class="op">(</span><span class="va">ras_rand</span>, size <span class="op">=</span> <span class="fl">10L</span>, as.points <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sf_rand</span> <span class="op">&lt;-</span> <span class="fu">dep_switch</span><span class="op">(</span><span class="va">vec_rand</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sf_rand</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Simple feature collection with 10 features and 1 field</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Geometry type: POINT</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: -174 ymin: -69 xmax: 162 ymax: 45</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: -162 ymin: -69 xmax: 150 ymax: 45</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Geodetic CRS:  WGS 84</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         lyr.1        geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0.65757560     POINT (6 3)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0.48918318 POINT (-174 -3)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0.47051655  POINT (-42 33)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0.16474325   POINT (162 3)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.16927073  POINT (114 39)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.55702116 POINT (-66 -69)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7  0.02971063  POINT (-42 15)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8  0.50855300   POINT (-6 45)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9  0.62262545  POINT (-162 3)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10 0.59050869   POINT (-66 9)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        lyr.1         geometry</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0.6226255   POINT (-162 3)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0.6969408   POINT (-66 -3)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0.5969548    POINT (30 33)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0.1762442    POINT (138 3)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.2826658   POINT (150 39)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.5825950 POINT (-126 -69)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  0.9565204  POINT (-126 15)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  0.3923108   POINT (102 45)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  0.1054764     POINT (-6 3)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 0.8319061    POINT (-18 9)</span>
 <span class="r-in"><span><span class="co"># should return sf object</span></span></span>
 </code></pre></div>
     </div>

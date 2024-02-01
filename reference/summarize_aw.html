@@ -109,34 +109,34 @@ The unique identifier of each polygon in <code>poly_in</code></p></dd>
 <span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">nc</span>, <span class="fl">5070</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_sample.html" class="external-link">st_sample</a></span><span class="op">(</span><span class="va">nc</span>, size <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">pp</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">pp</span><span class="op">[[</span><span class="st">"id"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">pp</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pp</span><span class="op">[[</span><span class="st">"id"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rspatial.github.io/terra/reference/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">pp</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crs.html" class="external-link">st_crs</a></span><span class="op">(</span><span class="va">pp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:5070"</span></span></span>
 <span class="r-in"><span><span class="va">ppb</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_buffer</a></span><span class="op">(</span><span class="va">pp</span>, nQuadSegs<span class="op">=</span><span class="fl">180</span>, dist <span class="op">=</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://r-quantities.github.io/units/reference/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">20</span>, <span class="st">'km'</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span><span class="va">ppb_nc_aw</span> <span class="op">&lt;-</span> <span class="fu">summarize_aw</span><span class="op">(</span><span class="va">ppb</span>, <span class="va">nc</span>, <span class="st">'id'</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    user  system elapsed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.347   0.008   0.355 </span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.347   0.004   0.355 </span>
+<span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       AREA           PERIMETER         CNTY_         CNTY_ID    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :0.06739   Min.   :1.171   Min.   :1826   Min.   :1826  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:0.11700   1st Qu.:1.510   1st Qu.:1926   1st Qu.:1926  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :0.13450   Median :1.709   Median :2006   Median :2006  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :0.14376   Mean   :1.791   Mean   :2004   Mean   :2004  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:0.16662   3rd Qu.:1.980   3rd Qu.:2081   3rd Qu.:2081  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:0.11770   1st Qu.:1.517   1st Qu.:1926   1st Qu.:1926  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :0.13564   Median :1.705   Median :2013   Median :2013  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :0.14423   Mean   :1.802   Mean   :2007   Mean   :2007  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:0.16652   3rd Qu.:2.005   3rd Qu.:2087   3rd Qu.:2087  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :0.24000   Max.   :3.640   Max.   :2241   Max.   :2241  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      FIPSNO         CRESS_ID          BIR74             SID74       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :37008   Min.   : 4.336   Min.   :  323.3   Min.   : 0.000  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:37079   1st Qu.:40.148   1st Qu.: 1632.5   1st Qu.: 3.492  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :37106   Median :53.691   Median : 2858.6   Median : 5.948  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :37105   Mean   :52.784   Mean   : 3467.2   Mean   : 7.312  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:37132   3rd Qu.:66.333   3rd Qu.: 4215.8   3rd Qu.:10.076  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:37078   1st Qu.:39.367   1st Qu.: 1677.0   1st Qu.: 3.660  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :37106   Median :53.627   Median : 2895.1   Median : 6.080  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :37105   Mean   :52.774   Mean   : 3512.5   Mean   : 7.509  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:37132   3rd Qu.:66.485   3rd Qu.: 4207.2   3rd Qu.:10.170  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :37188   Max.   :94.746   Max.   :17769.9   Max.   :32.991  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     NWBIR74             BIR79             SID79           NWBIR79       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :   4.019   Min.   :  402.7   Min.   : 0.000   Min.   :  11.38  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 330.949   1st Qu.: 1977.4   1st Qu.: 4.136   1st Qu.: 418.76  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median : 928.608   Median : 3531.1   Median : 6.815   Median :1166.85  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :1160.604   Mean   : 4433.8   Mean   : 8.782   Mean   :1479.70  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:1626.673   3rd Qu.: 5364.1   3rd Qu.:12.133   3rd Qu.:1992.03  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 369.452   1st Qu.: 2043.1   1st Qu.: 4.191   1st Qu.: 487.00  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median : 961.573   Median : 3535.7   Median : 6.730   Median :1175.73  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :1196.334   Mean   : 4494.7   Mean   : 8.936   Mean   :1528.72  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:1630.286   3rd Qu.: 5319.1   3rd Qu.:12.341   3rd Qu.:2005.87  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :6106.569   Max.   :22992.2   Max.   :49.638   Max.   :9181.41  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           geometry  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  POLYGON      :300  </span>

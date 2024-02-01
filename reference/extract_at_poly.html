@@ -104,33 +104,33 @@ For example, <code>"mean"</code> or <code>\(x, w) weighted.mean(x, w, na.rm = TR
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">ncpath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"gpkg/nc.gpkg"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpath</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/project.html" class="external-link">project</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rrast</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">nc</span>, nrow <span class="op">=</span> <span class="fl">100</span>, ncol <span class="op">=</span> <span class="fl">220</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">ncr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rasterize.html" class="external-link">rasterize</a></span><span class="op">(</span><span class="va">nc</span>, <span class="va">rrast</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">rrast</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></span><span class="op">(</span><span class="fl">2.2e4</span>, <span class="fl">4</span>, <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rpnt</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/sample.html" class="external-link">spatSample</a></span><span class="op">(</span><span class="va">rrast</span>, <span class="fl">16L</span>, as.points <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpath</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/project.html" class="external-link">project</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rrast</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">nc</span>, nrow <span class="op">=</span> <span class="fl">100</span>, ncol <span class="op">=</span> <span class="fl">220</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rasterize.html" class="external-link">rasterize</a></span><span class="op">(</span><span class="va">nc</span>, <span class="va">rrast</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">rrast</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></span><span class="op">(</span><span class="fl">2.2e4</span>, <span class="fl">4</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rpnt</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/sample.html" class="external-link">spatSample</a></span><span class="op">(</span><span class="va">rrast</span>, <span class="fl">16L</span>, as.points <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rpnt</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"ID-%02d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">16</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rpoly</span> <span class="op">&lt;-</span></span></span>
-<span class="r-in"><span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/buffer.html" class="external-link">buffer</a></span><span class="op">(</span><span class="va">rpnt</span>, <span class="fl">5</span>, capstyle <span class="op">=</span> <span class="st">"square"</span>, joinstyle <span class="op">=</span> <span class="st">"bevel"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/buffer.html" class="external-link">buffer</a></span><span class="op">(</span><span class="va">rpnt</span>, <span class="fl">5</span>, capstyle <span class="op">=</span> <span class="st">"square"</span>, joinstyle <span class="op">=</span> <span class="st">"bevel"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">extract_at_poly</span><span class="op">(</span><span class="va">rpoly</span>, <span class="va">rrast</span>, <span class="st">"pid"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      pid      mean</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  ID-01 1.9446038</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  ID-02 1.5795212</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  ID-03 3.4680066</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  ID-04 4.3505278</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  ID-05 2.6054471</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  ID-06 0.4906177</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7  ID-07 1.2203249</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8  ID-08 1.1647725</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9  ID-09 1.9721923</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10 ID-10 1.6730120</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11 ID-11 1.1531056</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12 ID-12 4.7801585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13 ID-13 0.6278704</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14 ID-14 0.5200240</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15 ID-15 2.9709253</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16 ID-16 0.9964402</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  ID-01 1.3605092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  ID-02 2.2859938</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  ID-03 1.5757203</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  ID-04 2.2192740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  ID-05 2.4626040</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  ID-06 1.3844070</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  ID-07 4.8444252</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  ID-08 2.0995440</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  ID-09 0.7677558</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 ID-10 2.1429260</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 ID-11 2.7326655</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 ID-12 1.1205804</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 ID-13 1.3867524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 ID-14 1.1439190</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 ID-15 0.8089886</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 ID-16 2.1020586</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
