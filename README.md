@@ -147,7 +147,7 @@ doFuture::registerDoFuture()
 
 system.time(
   ncpoints_srtm_mthr <-
-    chopin::distribute_process_grid(
+    chopin::par_grid(
       grids = compregions,
       grid_target_id = NULL,
       fun_dist = chopin::extract_at,
@@ -391,7 +391,7 @@ future::plan(future::multicore, workers = 6L)
 
 system.time(
 res <-
-  distribute_process_grid(
+  par_grid(
     grids = nccompreg,
     fun_dist = terra::nearest,
     x = pnts,
