@@ -3866,6 +3866,8 @@ devtools::test()
 covr::package_coverage()
 ```
 
+
+## Multinode computation
 ```{r slurm-submission-template, eval = FALSE, include = FALSE}
 # slurm submission is here
 

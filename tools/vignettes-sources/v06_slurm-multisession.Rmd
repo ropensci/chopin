@@ -38,8 +38,88 @@ set.seed(2023, kind = "L'Ecuyer-CMRG")
 
 
 ```{r}
-future.batchtools::BatchtoolsMultiprocessFuture()
-future.batchtools::batchtools_slurm()
-future.batchtools::BatchtoolsSlurmFuture()
-future.batchtools::batchtools_bash()
+```
+
+
+
+```{r, eval = FALSE, include = FALSE}
+future.batchtools::batchtools_slurm(
+  expr = {
+
+  },
+  resources = list(memory = 480, nodes = c("cn040717", "cn041719"))
+)
+
+
+```
+
+
+
+```{r data-import}
+data("prediction_grid", package = "chopin")
+pgsf <- sf::st_as_sf(prediction_grid, coords = 2:3, crs = "EPSG:5070")
+cropscape <- terra::rast(path_nass)
+pgsf1e <- pgsf |> dplyr::sample_n(4e5)
+```
+
+```{r main_run}
+grid_init <- chopin::par_make_gridset(
+  pgsf,
+  "grid",
+  nx = 50L,
+  ny = 40L,
+  padding = 1e4L
+)
+
+# plan(multicore, workers = 50L)
+
+Sys.setenv(SLURM_NNODES=2, SLURM_CPUS_PER_TASK=60)
+future::plan(
+  list(
+    tweak(
+      future.batchtools::batchtools_slurm,
+      resources = list(mem = "480g",
+                      partition = "normal",
+                      tasks = 1)
+    ),
+    future::multicore
+  )
+)
+
+cropscape_extr_multi <-
+  chopin::par_grid(
+    grid_init,
+    fun_dist = chopin::extract_at_buffer,
+    points = pgsf,
+    surf = cropscape,
+    radius = 1e4L,
+    id = "site_id",
+    func = "frac"
+  )
+
+```
+
+
+```{r main_run}
+grid_init1e <- chopin::par_make_gridset(
+  pgsf1e,
+  "grid",
+  nx = 60L,
+  ny = 40L,
+  padding = 1e4L
+)
+
+plan(multicore, workers = 16L)
+
+cropscape_extr_multi <-
+  chopin::par_grid(
+    grid_init1e,
+    fun_dist = chopin::extract_at_buffer,
+    points = pgsf1e,
+    surf = cropscape,
+    radius = 1e4L,
+    id = "site_id",
+    func = "frac"
+  )
+# 15:30
 ```
