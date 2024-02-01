@@ -319,7 +319,7 @@ system.time(
 
 ### Multiple rasters
 - There is a common case of having a large group of raster files at which the same operation should be performed.
-- `chopin::distribute_process_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
+- `chopin::par_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
 ``` r
 ncpath <- "../testdata/nc_hierarchy.gpkg"
 nccnty <- terra::vect(ncpath, layer = "county")
@@ -366,8 +366,8 @@ knitr::kable(head(res))
 
 
 ### Parallelization of a generic geospatial operation
-- Other than `chopin` internal macros, `chopin::distribute_process_*` functions support generic geospatial operations.
-- An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `chopin::distribute_process_grid`.
+- Other than `chopin` internal macros, `chopin::par_*` functions support to parallelize generic geospatial operations where two layers are involved.
+- An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `chopin::par_grid`.
 ``` r
 pnts <- readRDS("../testdata/nc_random_point.rds")
 pnts <- terra::vect(pnts)
