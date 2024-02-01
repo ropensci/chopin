@@ -23,10 +23,10 @@
 ## Installation
 - You can install `chopin` using `pak::pak` or `remotes::install_github`
 ``` r
-pak::pak("Spatiotemporal-Exposures-and-Toxicology/Scalable-GIS")
+pak::pak("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
 ``` r
-remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/Scalable-GIS")
+remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
 
 
