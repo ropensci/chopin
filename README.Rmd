@@ -1,5 +1,7 @@
 ---
-output: github_document
+output:
+  github_document:
+    html_preview: false
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -24,7 +26,7 @@ knitr::opts_chunk$set(
 
 ## Objective and target users
 ### What `chopin` does 
-- This package automates [parallellization](https://en.wikipedia.org/wiki/Parallel_computing) in spatial operations with `chopin` functions as well as [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra) functions. With [GDAL](https://gdal.org)-compatible files and database tables, `chopin` functions help to calculate spatial variables from vector and raster data with no external software requirements.
+- This package automates [parallelization](https://en.wikipedia.org/wiki/Parallel_computing) in spatial operations with `chopin` functions as well as [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra) functions. With [GDAL](https://gdal.org)-compatible files and database tables, `chopin` functions help to calculate spatial variables from vector and raster data with no external software requirements.
 
 ### For whom `chopin` is useful
 - Following user groups will find this package useful to accelerate the covariate calculation process for further analysis and modeling:
@@ -72,13 +74,13 @@ remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ## Use case
 - Please refer to a small example below for extracting mean altitude values at circular point buffers and census tracts in North Carolina.
 
-``` r
+```{r load-packages}
 # check and install packages to run examples
 check_and_install <-
   function(pkg_name) {
-    if (!requireNamespace(pkg_name, quietly = TRUE)) {
+    if (!require(pkg_name, character.only = TRUE)) {
       install.packages(pkg_name)
-      requireNamespace(pkg_name, quietly = TRUE)
+      library(pkg_name, character.only = TRUE, quietly = TRUE)
     }
   }
 
@@ -92,10 +94,10 @@ invisible(sapply(pkgs, check_and_install))
 # disable spherical geometries
 options(sf_use_s2 = FALSE)
 # parallelization-safe random number generator
-set.seed(2023, kind = "L'Ecuyer-CMRG")
+set.seed(2024, kind = "L'Ecuyer-CMRG")
 ```
 
-```{r}
+```{r read-nc}
 ncpoly <- system.file("shape/nc.shp", package = "sf")
 ncsf <- sf::read_sf(ncpoly)
 ncsf <- sf::st_transform(ncsf, "EPSG:5070")
@@ -105,13 +107,11 @@ plot(sf::st_geometry(ncsf))
 <!--![](https://i.imgur.com/ImPfGXP.png) -->
 
 ### Generate random points in NC
-- Ten thousands random point locations are generated inside the counties of North Carolina.
+- Ten thousands random point locations were generated inside the counties of North Carolina.
 ```{r gen-ncpoints}
-ncpoints <- sf::st_sample(ncsf, 10000)
-# st_sample output is st_sfc. We should convert it to sf
-ncpoints <- st_as_sf(ncpoints)
-ncpoints$pid <- seq(1, nrow(ncpoints))
-
+ncpoints <- sf::st_sample(ncsf, 1e4)
+ncpoints <- sf::st_as_sf(ncpoints)
+ncpoints$pid <- sprintf("PID-%05d", seq(1, 1e4))
 plot(sf::st_geometry(ncpoints))
 ```
 
@@ -120,16 +120,18 @@ plot(sf::st_geometry(ncpoints))
 
 ```{r load-srtm}
 # data preparation
-(tdir <- tempdir)
-setwd(tdir)
+(wdir <- tempdir())
+path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
 
-download.file(
-  "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/nc_srtm15_otm.rds",
-  "nc_srtm15_otm.rds"
-)
+if (!file.exists(path_srtm)) {
+  download.file(
+    "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/nc_srtm15_otm.rds",
+    path_srtm
+  )
+}
 
 # terra SpatRaster objects are wrapped when exported to rds file
-srtm <- terra::unwrap(readRDS("nc_srtm15_otm.rds"))
+srtm <- terra::unwrap(readRDS(path_srtm))
 terra::crs(srtm) <- "EPSG:5070"
 srtm
 plot(srtm)
@@ -173,7 +175,7 @@ oldpar <- par()
 par(mfcol = c(1, 2))
 plot(compregions$original, main = "Original grids")
 plot(compregions$padded, main = "Padded grids")
-par(oldpar)
+
 ```
 
 <!--![](https://i.imgur.com/c0xweeV.png) -->
@@ -184,7 +186,6 @@ par(oldpar)
 - `chopin::par_*` functions are flexible in terms of supporting generic spatial operations in `sf` and `terra`, especially where two datasets are involved.
     - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis (`...`) arguments, as demonstrated below:
 ```{r}
-# multisession works either
 future::plan(future::multicore, workers = 4L)
 doFuture::registerDoFuture()
 
@@ -205,9 +206,9 @@ system.time(
 ```
 
 ```{r compare-single-multi}
-ncpoints_srtm_mthr <-
-  ncpoints_srtm_mthr[order(ncpoints_srtm_mthr$pid), ]
-all.equal(ncpoints_srtm, ncpoints_srtm_mthr)
+colnames(ncpoints_srtm_mthr)[2] <- "mean_par"
+ncpoints_compar <- merge(ncpoints_srtm, ncpoints_srtm_mthr)
+all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
 ```
 
 ``` r
@@ -232,12 +233,15 @@ plot(ncpoints_m[, "mean"], main = "Multi-thread")
 - `chopin::par_hierarchy` leverages such hierarchies to parallelize geospatial operations, which means that a group of lower-level geographic units in a higher-level geography is assigned to a process.
 - A demonstration below shows that census tracts are grouped by their counties then each county will be processed in a CPU thread.
 ```{r}
-download.file(
-  "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/nc_hierarchy.gpkg",
-  "nc_hierarchy.gpkg"
-)
+path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
+if (!file.exists(path_nchrchy)) {
+  download.file(
+    "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/nc_hierarchy.gpkg",
+    path_nchrchy
+  )
+}
 
-nc_data <- file.path("nc_hierarchy.gpkg")
+nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 
@@ -280,32 +284,33 @@ system.time(
 - `chopin::par_multirasters` is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.
 ```{r prep-multiraster}
 nccnty <- terra::vect(nc_data, layer = "county")
-ncelev <- terra::unwrap(readRDS("nc_srtm15_otm.rds"))
+ncelev <- terra::unwrap(readRDS(path_srtm))
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")
 
-terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(wdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(wdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(wdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(wdir, "test4.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(wdir, "test5.tif"), overwrite = TRUE)
 
 # check if the raster files were exported as expected
-testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
+testfiles <- list.files(wdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
 ```
 
 ```{r run-multiraster}
-res <-
-  par_multirasters(
-    filenames = testfiles,
-    fun_dist = extract_at_poly,
-    polys = nccnty,
-    surf = ncelev,
-    id = "GEOID",
-    func = "mean"
-  )
-
+system.time(
+  res <-
+    par_multirasters(
+      filenames = testfiles,
+      fun_dist = extract_at_poly,
+      polys = nccnty,
+      surf = ncelev,
+      id = "GEOID",
+      func = "mean"
+    )
+)
 knitr::kable(head(res))
 ```
 
@@ -325,18 +330,19 @@ knitr::kable(head(res))
 - An example below uses `terra::nearest`, which gets the nearest feature's attributes, inside `chopin::par_grid`.
 
 ```{r prep-par-generic}
-download.file(
-  "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/nc_random_point.rds",
-  "nc_random_point.rds"
-)
-download.file(
-  "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/ncroads_first.gpkg",
-  "ncroads_first.gpkg"
-)
+path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
+if (!file.exists(path_ncrd1)) {
+  download.file(
+    "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/raw/main/tools/testdata/ncroads_first.gpkg",
+    path_ncrd1
+  )
+}
 
-pnts <- readRDS("nc_random_point.rds")
+pnts <- sf::st_sample(ncsf, 5000)
+pnts <- sf::st_as_sf(pnts)
+pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 pnts <- terra::vect(pnts)
-rd1 <- terra::vect("ncroads_first.gpkg")
+rd1 <- terra::vect(path_ncrd1)
 
 # reproject
 pnts <- terra::project(pnts, "EPSG:5070")
@@ -347,10 +353,17 @@ nccompreg <-
   par_make_gridset(
     input = pnts,
     mode = "grid",
-    nx = 6L,
-    ny = 4L,
-    padding = 3e4L
+    nx = 4L,
+    ny = 2L,
+    padding = 5e4L
   )
+
+# plot
+plot(nccompreg$padded, border = "orange")
+plot(terra::vect(ncsf), add = TRUE)
+plot(rd1, col = "blue", add = TRUE)
+plot(pnts, add = TRUE, cex = 0.5)
+
 ```
 
 
@@ -362,23 +375,30 @@ system.time(
 
 # we use four threads that were configured above
 system.time(
-res <-
-  par_grid(
-    grids = nccompreg,
-    fun_dist = terra::nearest,
-    x = pnts,
-    y = rd1
-  )
+  res <-
+    par_grid(
+      grids = nccompreg,
+      fun_dist = terra::nearest,
+      x = pnts,
+      y = rd1
+    )
 )
 
 ```
 
+
+```{r compare-distance}
+resj <- merge(restr, res, by = c("from_x", "from_y"))
+all.equal(resj$distance.x, resj$distance.y)
+```
+
 ```{r, include = FALSE}
-unlink(tdir)
+unlink(wdir)
 ```
 
 - Users should be mindful of potential caveats in the parallelization of nearest feature search, which may result in no or excess distance depending on the distribution of the target dataset to which the nearest feature is searched.
-- For example, when one wants to calculate the nearest interstate from rural homes with fine grids, some grids may have no interstates then homes in such grids will not get any distance to the nearest interstate.
+    - For example, when one wants to calculate the nearest interstate from rural homes with fine grids, some grids may have no interstates then homes in such grids will not get any distance to the nearest interstate.
+    - Such problems can be avoided by meticulously choosing `nx`, `ny`, and `padding` values in `par_make_gridset`.
 
 ### Why parallelization is slower than the ordinary function run?
 - Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead here refers to the required amount of computational resources for transferring objects to multiple processes.
