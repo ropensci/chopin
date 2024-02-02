@@ -90,15 +90,12 @@ source(\"README_run.r\")
     `devtools::install_github`, or `remotes::install_github`:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
-```
-
-``` r
 # install.packages("pak")
 pak::pak("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
-
+``` r
+remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
+```
 ``` r
 # install.packages("remotes")
 remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
@@ -447,7 +444,6 @@ system.time(
 -   `chopin::par_multirasters` is for such cases. An example below
     demonstrates where we have five elevation raster files to calculate
     the average elevation at counties in North Carolina.
-
 ``` r
 nccnty <- terra::vect(nc_data, layer = "county")
 ncelev <- terra::unwrap(readRDS(path_srtm))
@@ -510,7 +506,8 @@ knitr::kable(head(res))
     support generic geospatial operations.
 -   An example below uses `terra::nearest`, which gets the nearest
     feature’s attributes, inside `chopin::par_grid`.
-
+    
+    
 ``` r
 path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
 if (!file.exists(path_ncrd1)) {
