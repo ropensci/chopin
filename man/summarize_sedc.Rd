@@ -75,6 +75,15 @@ summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 \item Wiesner C. (n.d.). \href{https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html}{Euclidean Sum of Exponentially Decaying Contributions Tutorial}
 }
 }
+\seealso{
+Other Macros for calculation: 
+\code{\link{extract_at_buffer}()},
+\code{\link{extract_at_poly}()},
+\code{\link{extract_at}()},
+\code{\link{kernelfunction}()},
+\code{\link{summarize_aw}()}
+}
 \author{
 Insang Song
 }
+\concept{Macros for calculation}

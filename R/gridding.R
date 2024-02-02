@@ -1,6 +1,7 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
-#' Get a set of computational regions
+#' Get a set of computational grids
+#' @family Parallelization
 #' @param input sf or Spat* object.
 #' @param mode character(1). Mode of region construction.
 #'  One of "grid" (simple grid regardless of
@@ -107,6 +108,7 @@ We try converting padding to numeric...\n")
   }
 
 #' @title Generate grid polygons
+#' @family Parallelization
 #' @description Returns a sf object that includes x- and y- index
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
@@ -162,6 +164,7 @@ par_make_grid <-
 
 
 #' @title Merge adjacent grid polygons with given rules
+#' @family Parallelization
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
 #'  fewer target features than the threshold.
 #'  This function strongly assumes that the input

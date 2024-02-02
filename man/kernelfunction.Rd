@@ -40,3 +40,12 @@ kernelfunction(v_dist, bw_dist2, "epanechnikov")
 \references{
 \href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}
 }
+\seealso{
+Other Macros for calculation: 
+\code{\link{extract_at_buffer}()},
+\code{\link{extract_at_poly}()},
+\code{\link{extract_at}()},
+\code{\link{summarize_aw}()},
+\code{\link{summarize_sedc}()}
+}
+\concept{Macros for calculation}

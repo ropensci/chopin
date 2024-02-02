@@ -11,7 +11,7 @@
     - `extract_at`: extract raster values with point buffers or polygons.
         - `extract_at_poly`
         - `extract_at_buffer`
-    - `summarize_sedc`: calculate sums of exponentially decaying contributions
+    - `summarize_sedc`: calculate sums of [exponentially decaying contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
     - `summarize_aw`: area-weighted covariates based on target and reference polygons
 
 - When processing points/polygons in parallel, the entire study area will be divided into partly overlapped grids or processed through its own hierarchy.

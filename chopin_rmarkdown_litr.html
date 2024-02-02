@@ -11,7 +11,7 @@
 
 <meta name="author" content="Insang Song" />
 
-<meta name="date" content="2024-01-31" />
+<meta name="date" content="2024-02-02" />
 
 <title>CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: chopin</title>
 
@@ -359,7 +359,7 @@ pre code {
 <h1 class="title toc-ignore">CHOPIN: Computation for Climate and Health
 research On Parallelized INfrastructure: <code>chopin</code></h1>
 <h4 class="author">Insang Song</h4>
-<h4 class="date">2024-01-31</h4>
+<h4 class="date">2024-02-02</h4>
 
 </div>
 
@@ -374,7 +374,7 @@ of the R package.</p>
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.3.0.20240131&quot;,
+    Version = &quot;0.3.0.20240202&quot;,
     Title = &quot;CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure&quot;,
     Description = &quot;It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data&#39;s own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.&quot;,
     `Authors@R` = c(
@@ -395,8 +395,8 @@ of the R package.</p>
     LazyData = &quot;true&quot;,
     LazyDataCompression = &quot;xz&quot;,
     Depends = &quot;R (&gt;= 4.1)&quot;,
-    URL = &quot;https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS&quot;,
-    BugReports = &quot;https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/issues&quot;
+    URL = &quot;https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin&quot;,
+    BugReports = &quot;https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues&quot;
   )
 )
 #usethis::use_build_ignore(&quot;rds$&quot;, escape = FALSE)
@@ -429,7 +429,7 @@ usethis::use_package(&quot;withr&quot;, &quot;Suggests&quot;)
 usethis::use_mit_license()
 usethis::use_code_of_conduct(&quot;geoissong@gmail.com&quot;)
 
-usethis::use_pkgdown()
+# usethis::use_pkgdown()
 # https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html#lists
 usethis::use_roxygen_md()
 # usethis::use_pkgdown_github_pages()
@@ -437,6 +437,10 @@ usethis::use_roxygen_md()
 # usethis::use_vignette(&quot;1_setting_distribution.rmd&quot;)</code></pre>
 <!--
 -->
+<pre class="r"><code>file.copy(&quot;../tools/readme-source/README.Rmd&quot;, &quot;./README.Rmd&quot;)
+# file.copy(&quot;../tools/pkgdown-source/_pkgdown.yml&quot;, &quot;./_pkgdown.yml&quot;)
+</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <div id="test-data-generation" class="section level3">
 <h3>Test data generation</h3>
 </div>
@@ -460,7 +464,7 @@ usethis::use_data(prediction_grid, compress = &quot;xz&quot;)</code></pre>
 ## ✔ Saving &#39;prediction_grid&#39; to &#39;data/prediction_grid.rda&#39;
 ## • Document your data (see &#39;https://r-pkgs.org/data.html&#39;)</code></pre>
 <pre class="r"><code>#&#39; Regular grid points in the mainland United States at 1km spatial resolution
-#&#39;
+#&#39; @family Dataset
 #&#39; @format A data frame with 8,092,995 rows and three variables:
 #&#39; \describe{
 #&#39; \item{site_id}{Unique point identifier. Arbitrarily generated.}
@@ -482,6 +486,7 @@ usethis::use_data(prediction_grid, compress = &quot;xz&quot;)</code></pre>
 <div id="create-functions" class="section level3">
 <h3>Create functions</h3>
 <pre class="r"><code>#&#39; Kernel functions
+#&#39; @family Macros for calculation
 #&#39; @param kernel Kernel type. One of
 #&#39; `&quot;uniform&quot;`, `&quot;quartic&quot;`, `&quot;triweight&quot;`, and `&quot;epanechnikov&quot;`
 #&#39; @param d Distance
@@ -530,6 +535,7 @@ kernelfunction &lt;-
 })
 </code></pre>
 <pre class="r"><code>#&#39; @title Return the package the input object is based on
+#&#39; @family Helper functions
 #&#39; @description Detect whether the input object is sf or Spat* object.
 #&#39; @author Insang Song
 #&#39; @param input Spat* in terra or sf object.
@@ -558,6 +564,7 @@ kernelfunction &lt;-
 
 
 #&#39; Return the input&#39;s GIS data model type
+#&#39; @family Helper functions
 #&#39; @description This function returns one of &#39;vector&#39; or &#39;raster&#39;
 #&#39; depending on the input class.
 #&#39; @param input Spat*/sf/stars object.
@@ -634,6 +641,7 @@ testthat::test_that(&quot;What package does the input object belong?&quot;,
 <pre><code>## pr, tas, 
 ## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title Switch spatial data class
+#&#39; @family Helper functions
 #&#39; @description Convert class between `sf`/`stars`-`terra`
 #&#39; @author Insang Song
 #&#39; @param input Spat* in terra or sf object.
@@ -715,6 +723,7 @@ testthat::test_that(&quot;Format is well converted&quot;,
 <pre><code>## pr, tas, 
 ## Test passed</code></pre>
 <pre class="r"><code>#&#39; @title Check coordinate system then reproject
+#&#39; @family Helper functions
 #&#39; @description The input is checked whether its coordinate system is
 #&#39;  present. If not, it is reprojected to the CRS specified in
 #&#39; \code{crs_standard}.
@@ -819,6 +828,7 @@ reproject_std &lt;-
 })
 </code></pre>
 <pre class="r"><code>#&#39; Validate and repair input vector data
+#&#39; @family Helper functions
 #&#39; @description It tries repairing input vector data.
 #&#39; Vector validity violation usually appears in polygon data with
 #&#39; self-crossing or
@@ -868,6 +878,7 @@ reproject_std &lt;-
 })
 </code></pre>
 <pre class="r"><code>#&#39; Setting the clipping extent
+#&#39; @family Helper functions
 #&#39; @description Return clipping extent with buffer radius.
 #&#39;  It assumes the input CRS is projected and linear unit is meters.
 #&#39; @author Insang Song
@@ -943,6 +954,7 @@ reproject_std &lt;-
 </code></pre>
 <pre><code>## Test passed</code></pre>
 <pre class="r"><code>#&#39; Clip to the buffered extent of input vector
+#&#39; @family Helper functions
 #&#39; @description Clip input vector by
 #&#39;  the expected maximum extent of computation.
 #&#39; @author Insang Song
@@ -1061,6 +1073,7 @@ reproject_std &lt;-
 })
 </code></pre>
 <pre class="r"><code>#&#39; @title Clip input raster with a buffered vector extent.
+#&#39; @family Helper functions
 #&#39; @description Clip input raster by the expected maximum extent of
 #&#39; computation.
 #&#39; @param pnts `sf` or `SpatVector` object
@@ -1122,6 +1135,7 @@ reproject_std &lt;-
 
 </code></pre>
 <pre class="r"><code>#&#39; Quick call for SpatRaster with a window
+#&#39; @family Helper functions
 #&#39; @param rasterpath character(1). Path to the raster file.
 #&#39; @param win Named integer vector (4) or terra::ext() results.
 #&#39; @returns SpatRaster object.
@@ -1170,7 +1184,8 @@ reproject_std &lt;-
 
 </code></pre>
 <pre><code>## Test passed</code></pre>
-<pre class="r"><code>#&#39; Get a set of computational regions
+<pre class="r"><code>#&#39; Get a set of computational grids
+#&#39; @family Parallelization
 #&#39; @param input sf or Spat* object.
 #&#39; @param mode character(1). Mode of region construction.
 #&#39;  One of &quot;grid&quot; (simple grid regardless of
@@ -1277,6 +1292,7 @@ We try converting padding to numeric...\n&quot;)
   }
 
 #&#39; @title Generate grid polygons
+#&#39; @family Parallelization
 #&#39; @description Returns a sf object that includes x- and y- index
 #&#39; by using two inputs ncutsx and ncutsy, which are x- and
 #&#39; y-directional splits, respectively.
@@ -1332,6 +1348,7 @@ par_make_grid &lt;-
 
 
 #&#39; @title Merge adjacent grid polygons with given rules
+#&#39; @family Parallelization
 #&#39; @description Merge boundary-sharing (in &quot;Rook&quot; contiguity) grids with
 #&#39;  fewer target features than the threshold.
 #&#39;  This function strongly assumes that the input
@@ -1536,6 +1553,7 @@ par_make_grid &lt;-
 })
 </code></pre>
 <pre class="r"><code>#&#39; Generate a rectangular polygon from extent
+#&#39; @family Helper functions
 #&#39; @param extent input extent.
 #&#39;  A numeric vector with xmin/xmax/ymin/ymax,
 #&#39;  [sf::st_bbox] or [terra::ext] outputs.
@@ -1615,6 +1633,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 })
 </code></pre>
 <pre class="r"><code>#&#39; Check if the data extent is inside the reference bounding box
+#&#39; @family Helper functions
 #&#39; @description One of the most common errors in spatial computation is rooted
 #&#39; in the entirely or partly incomparable spatial extents of input datasets.
 #&#39; This function returns whether your data is inside the target computational
@@ -1684,6 +1703,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 })
 </code></pre>
 <pre class="r"><code>#&#39; @title Extract summarized values from raster with points and a buffer radius
+#&#39; @family Macros for calculation
 #&#39; @description For simplicity, it is assumed that the coordinate systems of
 #&#39;  the points and the raster are the same.
 #&#39; @param points `sf`/`SpatVector` object.
@@ -1881,6 +1901,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 }
 </code></pre>
 <pre class="r"><code>#&#39; @title Extract summarized values from raster with generic polygons
+#&#39; @family Macros for calculation
 #&#39; @description For simplicity, it is assumed that the coordinate systems of
 #&#39;  the points and the raster are the same.
 #&#39;  Kernel function is not yet implemented.
@@ -1950,6 +1971,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 }
 </code></pre>
 <pre class="r"><code>#&#39; Extract raster values with point buffers or polygons
+#&#39; @family Macros for calculation
 #&#39; @param vector `sf`/`SpatVector` object.
 #&#39; @param raster `SpatRaster` object.
 #&#39; @param id character(1). Unique identifier of each point.
@@ -2003,6 +2025,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
 }
 
 #&#39; @title Align vector CRS to raster&#39;s
+#&#39; @family Helper functions
 #&#39; @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
 #&#39; @param raster `SpatRaster` object
 #&#39; @returns Reprojected object in the same class as \code{vector}
@@ -2189,6 +2212,7 @@ reproject_b2r &lt;-
 
 </code></pre>
 <pre class="r"><code>#&#39; Check Coordinate Reference System
+#&#39; @family Helper functions
 #&#39; @param x `sf`/`stars`/`SpatVector`/`SpatRaster` object.
 #&#39; @returns A st_crs or crs object.
 #&#39; @description It returns st_crs object from `sf`/Spat* objects.
@@ -2252,6 +2276,7 @@ reproject_b2r &lt;-
 })
 </code></pre>
 <pre class="r"><code>#&#39; Check if the boundary of the vector/raster object is inside the reference
+#&#39; @family Helper functions
 #&#39; @param input_object sf/stars/SpatVector/SpatRaster object.
 #&#39; @param reference sf/stars/SpatVector/SpatRaster object.
 #&#39; @returns logical
@@ -2435,6 +2460,7 @@ dd &lt;- autoexpand(poly1, 2, 3)
 
 </code></pre>
 <pre class="r"><code>#&#39; Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
+#&#39; @family Macros for calculation
 #&#39; @param point_from `SpatVector` object. Locations where
 #&#39;  the sum of SEDCs are calculated.
 #&#39; @param point_to `SpatVector` object. Locations where each SEDC is calculated.
@@ -2625,6 +2651,7 @@ The result may not be accurate.\n&quot;,
 })
 </code></pre>
 <pre class="r"><code>#&#39; Area weighted summary using two polygon sf or SpatVector objects
+#&#39; @family Macros for calculation
 #&#39; @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #&#39; @param poly_weight A sf/SpatVector object from
 #&#39;  which weighted means will be calculated.
@@ -2775,6 +2802,7 @@ testthat::test_that(&quot;summarize_aw works as expected.&quot;, {
 
 </code></pre>
 <pre class="r"><code>#&#39; Detect classes in function arguments
+#&#39; @family Helper functions
 #&#39; @param args Any list, but preferably generated by \code{list(...)} inside
 #&#39; a function.
 #&#39; @param search character(1). Class name to search. Partial match is supported.
@@ -2834,6 +2862,7 @@ testthat::test_that(&quot;summarize_aw works as expected.&quot;, {
 })
 </code></pre>
 <pre class="r"><code>#&#39; Parallelization error fallback
+#&#39; @family Parallelization
 #&#39; @param err Error status or message.
 #&#39; @param fun function.
 #&#39; @param debug logical(1). Print error messages (`TRUE`) or not (`FALSE`)
@@ -2897,6 +2926,7 @@ par_fallback &lt;-
 
 </code></pre>
 <pre class="r"><code>#&#39; @title Process a given function in the entire or partial computational grids
+#&#39; @family Parallelization
 #&#39; @description
 #&#39; [future::multicore], [future::multisession], [future::cluster]
 #&#39; with [doParallel::registerDoParallel] will parallelize the work
@@ -3033,7 +3063,7 @@ par_grid &lt;-
 
 
 #&#39; @title Process a given function using a hierarchy in input data
-#&#39;
+#&#39; @family Parallelization
 #&#39; @description &quot;Hierarchy&quot; refers to a system,
 #&#39;  which divides the entire study region into multiple subregions.
 #&#39;  It is oftentimes reflected in an area code system
@@ -3154,6 +3184,7 @@ par_hierarchy &lt;-
 
 
 #&#39; @title Process a given function over multiple large rasters
+#&#39; @family Parallelization
 #&#39; @description Large raster files usually exceed the memory capacity in size.
 #&#39;  Cropping a large raster into a small subset even consumes
 #&#39;  a lot of memory and adds processing time.
@@ -3697,7 +3728,7 @@ if (dir.exists(&quot;../figure&quot;)) {
 line found on &#39;../tools/pkgdown-source/_pkgdown.yml&#39;</code></pre>
 <pre><code>destination: ../../docs/
 
-url: https://spatiotemporal-exposures-and-toxicology.github.io/CHOPIN
+url: https://spatiotemporal-exposures-and-toxicology.github.io/chopin
 template:
   bootstrap: 5
 
@@ -3708,6 +3739,9 @@ navbar:
 <pre class="r"><code>litr::add_pkgdown(&quot;../tools/pkgdown-source/_pkgdown.yml&quot;)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="r"><code>cat(readLines(&quot;../tools/pkgdown-source/_pkgdown.yml&quot;), sep = &#39;\n&#39;)</code></pre>
+</div>
+<div id="multinode-computation" class="section level2">
+<h2>Multinode computation</h2>
 </div>
 </div>
 

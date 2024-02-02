@@ -2,10 +2,12 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "identifier": "chopin",
-  "description": "A package for scalable geospatial computation for environmental health research",
-  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized\n    INfrastructure",
+  "description": "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
+  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
+  "codeRepository": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin",
+  "issueTracker": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.3.0.20240127",
+  "version": "0.3.0.20240202",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -56,6 +58,18 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=covr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "doParallel",
+      "name": "doParallel",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=doParallel"
     },
     {
       "@type": "SoftwareApplication",
@@ -178,6 +192,7 @@
       "@type": "SoftwareApplication",
       "identifier": "dplyr",
       "name": "dplyr",
+      "version": ">= 1.1.0",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -190,6 +205,7 @@
       "@type": "SoftwareApplication",
       "identifier": "exactextractr",
       "name": "exactextractr",
+      "version": ">= 0.8.2",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -243,6 +259,7 @@
       "@type": "SoftwareApplication",
       "identifier": "sf",
       "name": "sf",
+      "version": ">= 1.0-10",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -255,6 +272,7 @@
       "@type": "SoftwareApplication",
       "identifier": "stars",
       "name": "stars",
+      "version": ">= 0.6-0",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -267,6 +285,7 @@
       "@type": "SoftwareApplication",
       "identifier": "terra",
       "name": "terra",
+      "version": ">= 1.7-18",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -277,8 +296,8 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "2190.567KB",
-  "codeRepository": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS",
-  "readme": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/blob/main/README.md",
-  "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/actions/workflows/check-standard.yaml"]
+  "fileSize": "2207.567KB",
+  "releaseNotes": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/master/NEWS.md",
+  "readme": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/main/README.md",
+  "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml"]
 }

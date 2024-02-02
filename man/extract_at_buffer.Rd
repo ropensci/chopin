@@ -76,6 +76,15 @@ rpnt <- terra::spatSample(rrast, 100L, as.points = TRUE)
 rpnt$pid <- sprintf("id_\%03d", seq(1, 100))
 extract_at_buffer(rpnt, rrast, 4, "pid")
 }
+\seealso{
+Other Macros for calculation: 
+\code{\link{extract_at_poly}()},
+\code{\link{extract_at}()},
+\code{\link{kernelfunction}()},
+\code{\link{summarize_aw}()},
+\code{\link{summarize_sedc}()}
+}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
+\concept{Macros for calculation}

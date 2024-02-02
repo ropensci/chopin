@@ -26,6 +26,16 @@ This function assumes that the \code{fun} has an argument named
 \examples{
 ## NO EXAMPLE
 }
+\seealso{
+Other Parallelization: 
+\code{\link{par_grid}()},
+\code{\link{par_hierarchy}()},
+\code{\link{par_make_gridset}()},
+\code{\link{par_make_grid}()},
+\code{\link{par_merge_grid}()},
+\code{\link{par_multirasters}()}
+}
 \author{
 Insang Song
 }
+\concept{Parallelization}

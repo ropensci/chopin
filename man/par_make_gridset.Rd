@@ -2,7 +2,7 @@
 % Please edit documentation in chopin_rmarkdown_litr.rmd.
 \name{par_make_gridset}
 \alias{par_make_gridset}
-\title{Get a set of computational regions}
+\title{Get a set of computational grids}
 \usage{
 par_make_gridset(
   input,
@@ -73,6 +73,16 @@ par(mfcol = c(1, 2))
 plot(nc_comp_region$original)
 plot(nc_comp_region$padded)
 }
+\seealso{
+Other Parallelization: 
+\code{\link{par_fallback}()},
+\code{\link{par_grid}()},
+\code{\link{par_hierarchy}()},
+\code{\link{par_make_grid}()},
+\code{\link{par_merge_grid}()},
+\code{\link{par_multirasters}()}
+}
 \author{
 Insang Song
 }
+\concept{Parallelization}

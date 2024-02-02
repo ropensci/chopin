@@ -34,6 +34,24 @@ ras_rand_p <-
 ras_rand_p <- terra::vect(ras_rand_p, geom = c("x", "y"))
 clip_ras_ext(ras_rand_p, 1.5, ras_rand)
 }
+\seealso{
+Other Helper functions: 
+\code{\link{any_class_args}()},
+\code{\link{clip_vec_ext}()},
+\code{\link{crs_check}()},
+\code{\link{datamod}()},
+\code{\link{dep_check}()},
+\code{\link{dep_switch}()},
+\code{\link{ext2poly}()},
+\code{\link{get_clip_ext}()},
+\code{\link{is_bbox_within_reference}()},
+\code{\link{is_within_ref}()},
+\code{\link{rast_short}()},
+\code{\link{reproject_b2r}()},
+\code{\link{reproject_std}()},
+\code{\link{vect_valid_repair}()}
+}
 \author{
 Insang Song
 }
+\concept{Helper functions}

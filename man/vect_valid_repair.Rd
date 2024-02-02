@@ -32,6 +32,24 @@ nc <- terra::vect(ncpath)
 nc_valid <- vect_valid_repair(nc)
 }
 }
+\seealso{
+Other Helper functions: 
+\code{\link{any_class_args}()},
+\code{\link{clip_ras_ext}()},
+\code{\link{clip_vec_ext}()},
+\code{\link{crs_check}()},
+\code{\link{datamod}()},
+\code{\link{dep_check}()},
+\code{\link{dep_switch}()},
+\code{\link{ext2poly}()},
+\code{\link{get_clip_ext}()},
+\code{\link{is_bbox_within_reference}()},
+\code{\link{is_within_ref}()},
+\code{\link{rast_short}()},
+\code{\link{reproject_b2r}()},
+\code{\link{reproject_std}()}
+}
 \author{
 Insang Song
 }
+\concept{Helper functions}

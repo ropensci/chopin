@@ -1,6 +1,6 @@
 ---
 title: "Distribute across nodes on SLURM"
-date: "2024-01-16"
+date: "2024-02-01"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Benchmark: scaled vs non-scaled}
@@ -37,18 +37,13 @@ set.seed(2023, kind = "L'Ecuyer-CMRG")
 ```
 
 
-```{r}
+```{r, read-nass}
+cropscape <- terra::rast(path_nass)
 ```
 
 
 
 ```{r, eval = FALSE, include = FALSE}
-future.batchtools::batchtools_slurm(
-  expr = {
-
-  },
-  resources = list(memory = 480, nodes = c("cn040717", "cn041719"))
-)
 
 
 ```
@@ -78,11 +73,14 @@ future::plan(
   list(
     tweak(
       future.batchtools::batchtools_slurm,
-      resources = list(mem = "480g",
+      resources = list(memory = "8g",
+                      log.file = "~/rtest/futureapply_slurm_test.log",
+                      ncpus = 30,
                       partition = "normal",
-                      tasks = 1)
+                      tasks = 2),
+      template = "./tools/slurm_test/slurm-template.tmpl"
     ),
-    future::multicore
+    future::multisession
   )
 )
 

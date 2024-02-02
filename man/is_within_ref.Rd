@@ -28,6 +28,24 @@ mainland_box <- ext2poly(mainland_vec, output_class = "sf")
 within_res <- is_within_ref(nc, mainland_box)
 within_res
 }
+\seealso{
+Other Helper functions: 
+\code{\link{any_class_args}()},
+\code{\link{clip_ras_ext}()},
+\code{\link{clip_vec_ext}()},
+\code{\link{crs_check}()},
+\code{\link{datamod}()},
+\code{\link{dep_check}()},
+\code{\link{dep_switch}()},
+\code{\link{ext2poly}()},
+\code{\link{get_clip_ext}()},
+\code{\link{is_bbox_within_reference}()},
+\code{\link{rast_short}()},
+\code{\link{reproject_b2r}()},
+\code{\link{reproject_std}()},
+\code{\link{vect_valid_repair}()}
+}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
+\concept{Helper functions}

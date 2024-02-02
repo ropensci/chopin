@@ -1,6 +1,7 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' @title Switch spatial data class
+#' @family Helper functions
 #' @description Convert class between `sf`/`stars`-`terra`
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
@@ -51,6 +52,7 @@ dep_switch <- function(input) {
 }
 
 #' Setting the clipping extent
+#' @family Helper functions
 #' @description Return clipping extent with buffer radius.
 #'  It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
@@ -94,6 +96,7 @@ get_clip_ext <- function(
 }
 
 #' Quick call for SpatRaster with a window
+#' @family Helper functions
 #' @param rasterpath character(1). Path to the raster file.
 #' @param win Named integer vector (4) or terra::ext() results.
 #' @returns SpatRaster object.
