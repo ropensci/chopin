@@ -12,7 +12,7 @@ poly_weight will be converted to the class of poly_in."><!-- mathjax --><script 
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240131</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240202</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,14 +31,11 @@ poly_weight will be converted to the class of poly_in."><!-- mathjax --><script 
     <a class="dropdown-item" href="../articles/v02_par_function_example.html">How to use par_* functions</a>
   </div>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
       <ul class="navbar-nav"><li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/" aria-label="github">
+  <a class="external-link nav-link" href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/" aria-label="github">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -88,6 +85,15 @@ The unique identifier of each polygon in <code>poly_in</code></p></dd>
 <p>A data.frame with all numeric fields of area-weighted means.</p>
     </div>
     <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other Macros for calculation: 
+<code><a href="extract_at_buffer.html">extract_at_buffer</a>()</code>,
+<code><a href="extract_at_poly.html">extract_at_poly</a>()</code>,
+<code><a href="extract_at.html">extract_at</a>()</code>,
+<code><a href="kernelfunction.html">kernelfunction</a>()</code>,
+<code><a href="summarize_sedc.html">summarize_sedc</a>()</code></p></div>
+    </div>
+    <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p>Insang Song <a href="mailto:geoissong@gmail.com">geoissong@gmail.com</a></p>
     </div>
@@ -115,7 +121,7 @@ The unique identifier of each polygon in <code>poly_in</code></p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span><span class="va">ppb_nc_aw</span> <span class="op">&lt;-</span> <span class="fu">summarize_aw</span><span class="op">(</span><span class="va">ppb</span>, <span class="va">nc</span>, <span class="st">'id'</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    user  system elapsed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.345   0.008   0.353 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.356   0.000   0.356 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       AREA           PERIMETER         CNTY_         CNTY_ID    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :0.06739   Min.   :1.171   Min.   :1826   Min.   :1826  </span>
