@@ -1,7 +1,7 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' Regular grid points in the mainland United States at 1km spatial resolution
-#'
+#' @family Dataset
 #' @format A data frame with 8,092,995 rows and three variables:
 #' \describe{
 #' \item{site_id}{Unique point identifier. Arbitrarily generated.}

@@ -1,6 +1,6 @@
 Package: chopin
 Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
-Version: 0.3.0.20240131
+Version: 0.3.0.20240202
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -15,10 +15,9 @@ Description: It enables users with basic understanding on geospatial data
     large number of raster files can be parallelized with a chopin
     function as well.
 License: MIT + file LICENSE
-URL: 
-    https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS
+URL: https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
 BugReports: 
-    https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/issues
+    https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues
 Depends: 
     R (>= 4.1)
 Encoding: UTF-8
@@ -51,4 +50,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 7bd85b2c45b3d547b59b947c1437b711
+LitrId: 8fcae7105f48beea08a677211eae1a45

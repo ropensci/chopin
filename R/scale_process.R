@@ -1,6 +1,7 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' Parallelization error fallback
+#' @family Parallelization
 #' @param err Error status or message.
 #' @param fun function.
 #' @param debug logical(1). Print error messages (`TRUE`) or not (`FALSE`)
@@ -34,6 +35,7 @@ par_fallback <-
 
 
 #' @title Process a given function in the entire or partial computational grids
+#' @family Parallelization
 #' @description
 #' [future::multicore], [future::multisession], [future::cluster]
 #' with [doParallel::registerDoParallel] will parallelize the work
@@ -170,7 +172,7 @@ par_grid <-
 
 
 #' @title Process a given function using a hierarchy in input data
-#'
+#' @family Parallelization
 #' @description "Hierarchy" refers to a system,
 #'  which divides the entire study region into multiple subregions.
 #'  It is oftentimes reflected in an area code system
@@ -291,6 +293,7 @@ par_hierarchy <-
 
 
 #' @title Process a given function over multiple large rasters
+#' @family Parallelization
 #' @description Large raster files usually exceed the memory capacity in size.
 #'  Cropping a large raster into a small subset even consumes
 #'  a lot of memory and adds processing time.

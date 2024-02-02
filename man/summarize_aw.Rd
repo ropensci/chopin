@@ -39,6 +39,15 @@ system.time({ppb_nc_aw <- summarize_aw(ppb, nc, 'id')})
 summary(ppb_nc_aw)
 #### Example of summarize_aw ends ####
 }
+\seealso{
+Other Macros for calculation: 
+\code{\link{extract_at_buffer}()},
+\code{\link{extract_at_poly}()},
+\code{\link{extract_at}()},
+\code{\link{kernelfunction}()},
+\code{\link{summarize_sedc}()}
+}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
+\concept{Macros for calculation}

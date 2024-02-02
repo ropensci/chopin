@@ -40,6 +40,15 @@ rpoly <-
   terra::buffer(rpnt, 5, capstyle = "square", joinstyle = "bevel")
 extract_at_poly(rpoly, rrast, "pid")
 }
+\seealso{
+Other Macros for calculation: 
+\code{\link{extract_at_buffer}()},
+\code{\link{extract_at}()},
+\code{\link{kernelfunction}()},
+\code{\link{summarize_aw}()},
+\code{\link{summarize_sedc}()}
+}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
+\concept{Macros for calculation}

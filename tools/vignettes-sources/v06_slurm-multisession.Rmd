@@ -1,6 +1,6 @@
 ---
 title: "Distribute across nodes on SLURM"
-date: "2024-01-16"
+date: "2024-02-01"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Benchmark: scaled vs non-scaled}
@@ -37,9 +37,87 @@ set.seed(2023, kind = "L'Ecuyer-CMRG")
 ```
 
 
-```{r}
-future.batchtools::BatchtoolsMultiprocessFuture()
-future.batchtools::batchtools_slurm()
-future.batchtools::BatchtoolsSlurmFuture()
-future.batchtools::batchtools_bash()
+```{r, read-nass}
+cropscape <- terra::rast(path_nass)
+```
+
+
+
+```{r, eval = FALSE, include = FALSE}
+
+
+```
+
+
+
+```{r data-import}
+data("prediction_grid", package = "chopin")
+pgsf <- sf::st_as_sf(prediction_grid, coords = 2:3, crs = "EPSG:5070")
+cropscape <- terra::rast(path_nass)
+pgsf1e <- pgsf |> dplyr::sample_n(4e5)
+```
+
+```{r main_run}
+grid_init <- chopin::par_make_gridset(
+  pgsf,
+  "grid",
+  nx = 50L,
+  ny = 40L,
+  padding = 1e4L
+)
+
+# plan(multicore, workers = 50L)
+
+Sys.setenv(SLURM_NNODES=2, SLURM_CPUS_PER_TASK=60)
+future::plan(
+  list(
+    tweak(
+      future.batchtools::batchtools_slurm,
+      resources = list(memory = "8g",
+                      log.file = "~/rtest/futureapply_slurm_test.log",
+                      ncpus = 30,
+                      partition = "normal",
+                      tasks = 2),
+      template = "./tools/slurm_test/slurm-template.tmpl"
+    ),
+    future::multisession
+  )
+)
+
+cropscape_extr_multi <-
+  chopin::par_grid(
+    grid_init,
+    fun_dist = chopin::extract_at_buffer,
+    points = pgsf,
+    surf = cropscape,
+    radius = 1e4L,
+    id = "site_id",
+    func = "frac"
+  )
+
+```
+
+
+```{r main_run}
+grid_init1e <- chopin::par_make_gridset(
+  pgsf1e,
+  "grid",
+  nx = 60L,
+  ny = 40L,
+  padding = 1e4L
+)
+
+plan(multicore, workers = 16L)
+
+cropscape_extr_multi <-
+  chopin::par_grid(
+    grid_init1e,
+    fun_dist = chopin::extract_at_buffer,
+    points = pgsf1e,
+    surf = cropscape,
+    radius = 1e4L,
+    id = "site_id",
+    func = "frac"
+  )
+# 15:30
 ```

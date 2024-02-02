@@ -62,6 +62,16 @@ plan(multicore, workers = 4)
 # See vignette for details.
 }
 }
+\seealso{
+Other Parallelization: 
+\code{\link{par_fallback}()},
+\code{\link{par_hierarchy}()},
+\code{\link{par_make_gridset}()},
+\code{\link{par_make_grid}()},
+\code{\link{par_merge_grid}()},
+\code{\link{par_multirasters}()}
+}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
+\concept{Parallelization}

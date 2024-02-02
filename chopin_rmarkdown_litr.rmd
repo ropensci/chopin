@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-01-31"
+date: "2024-02-02"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.3.0.20240131",
+    Version = "0.3.0.20240202",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -42,8 +42,8 @@ usethis::create_package(
     LazyData = "true",
     LazyDataCompression = "xz",
     Depends = "R (>= 4.1)",
-    URL = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS",
-    BugReports = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/Scalable_GIS/issues"
+    URL = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin",
+    BugReports = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
@@ -76,7 +76,7 @@ usethis::use_package("withr", "Suggests")
 usethis::use_mit_license()
 usethis::use_code_of_conduct("geoissong@gmail.com")
 
-usethis::use_pkgdown()
+# usethis::use_pkgdown()
 # https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html#lists
 usethis::use_roxygen_md()
 # usethis::use_pkgdown_github_pages()
@@ -86,11 +86,10 @@ usethis::use_roxygen_md()
 <!--
 -->
 
-```{r, include = FALSE, eval = FALSE}
-desc::desc_set(
-  "https",
-  "//spatiotemporal-exposures-and-toxicology.github.io/chopin"
-  )
+```{r}
+file.copy("../tools/readme-source/README.Rmd", "./README.Rmd")
+# file.copy("../tools/pkgdown-source/_pkgdown.yml", "./_pkgdown.yml")
+
 ```
 
 
@@ -167,7 +166,7 @@ usethis::use_data(prediction_grid, compress = "xz")
 
 ```{r doc-data}
 #' Regular grid points in the mainland United States at 1km spatial resolution
-#'
+#' @family Dataset
 #' @format A data frame with 8,092,995 rows and three variables:
 #' \describe{
 #' \item{site_id}{Unique point identifier. Arbitrarily generated.}
@@ -203,6 +202,7 @@ bench::mark(
 ```
 ```{r, send_to = "R/processing.R"}
 #' Kernel functions
+#' @family Macros for calculation
 #' @param kernel Kernel type. One of
 #' `"uniform"`, `"quartic"`, `"triweight"`, and `"epanechnikov"`
 #' @param d Distance
@@ -259,6 +259,7 @@ testthat::test_that("Kernel functions work okay", {
 
 ```{r, send_to = "R/check.R"}
 #' @title Return the package the input object is based on
+#' @family Helper functions
 #' @description Detect whether the input object is sf or Spat* object.
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
@@ -287,6 +288,7 @@ dep_check <- function(input) {
 
 
 #' Return the input's GIS data model type
+#' @family Helper functions
 #' @description This function returns one of 'vector' or 'raster'
 #' depending on the input class.
 #' @param input Spat*/sf/stars object.
@@ -365,6 +367,7 @@ testthat::test_that("What package does the input object belong?",
 
 ```{r, send_to = "R/preprocessing.R"}
 #' @title Switch spatial data class
+#' @family Helper functions
 #' @description Convert class between `sf`/`stars`-`terra`
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
@@ -451,6 +454,7 @@ testthat::test_that("Format is well converted",
 
 ```{r, send_to = "R/check.R"}
 #' @title Check coordinate system then reproject
+#' @family Helper functions
 #' @description The input is checked whether its coordinate system is
 #'  present. If not, it is reprojected to the CRS specified in
 #' \code{crs_standard}.
@@ -563,6 +567,7 @@ testthat::test_that("CRS is transformed when it is not standard", {
 
 ```{r, send_to = "R/check.R"}
 #' Validate and repair input vector data
+#' @family Helper functions
 #' @description It tries repairing input vector data.
 #' Vector validity violation usually appears in polygon data with
 #' self-crossing or
@@ -621,6 +626,7 @@ testthat::test_that("vector validity check is cleared", {
 
 ```{r, send_to = "R/preprocessing.R"}
 #' Setting the clipping extent
+#' @family Helper functions
 #' @description Return clipping extent with buffer radius.
 #'  It assumes the input CRS is projected and linear unit is meters.
 #' @author Insang Song
@@ -703,6 +709,7 @@ testthat::test_that("Clip extent is set properly", {
 
 ```{r, send_to = "R/processing.R"}
 #' Clip to the buffered extent of input vector
+#' @family Helper functions
 #' @description Clip input vector by
 #'  the expected maximum extent of computation.
 #' @author Insang Song
@@ -827,6 +834,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
 
 ```{r, send_to = "R/processing.R"}
 #' @title Clip input raster with a buffered vector extent.
+#' @family Helper functions
 #' @description Clip input raster by the expected maximum extent of
 #' computation.
 #' @param pnts `sf` or `SpatVector` object
@@ -895,6 +903,7 @@ testthat::test_that("Clip by extent works without errors", {
 
 ```{r, send_to = "R/preprocessing.R"}
 #' Quick call for SpatRaster with a window
+#' @family Helper functions
 #' @param rasterpath character(1). Path to the raster file.
 #' @param win Named integer vector (4) or terra::ext() results.
 #' @returns SpatRaster object.
@@ -982,7 +991,8 @@ nc_valid <- vect_valid_repair(nc)
 
 
 ```{r, send_to = "R/gridding.R"}
-#' Get a set of computational regions
+#' Get a set of computational grids
+#' @family Parallelization
 #' @param input sf or Spat* object.
 #' @param mode character(1). Mode of region construction.
 #'  One of "grid" (simple grid regardless of
@@ -1089,6 +1099,7 @@ We try converting padding to numeric...\n")
   }
 
 #' @title Generate grid polygons
+#' @family Parallelization
 #' @description Returns a sf object that includes x- and y- index
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
@@ -1144,6 +1155,7 @@ par_make_grid <-
 
 
 #' @title Merge adjacent grid polygons with given rules
+#' @family Parallelization
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
 #'  fewer target features than the threshold.
 #'  This function strongly assumes that the input
@@ -1358,6 +1370,7 @@ testthat::test_that("Grid merge is well done.", {
 
 ```{r, send_to = "R/check.R"}
 #' Generate a rectangular polygon from extent
+#' @family Helper functions
 #' @param extent input extent.
 #'  A numeric vector with xmin/xmax/ymin/ymax,
 #'  [sf::st_bbox] or [terra::ext] outputs.
@@ -1444,6 +1457,7 @@ testthat::test_that("input extent is converted to a polygon", {
 
 ```{r, send_to = "R/check.R"}
 #' Check if the data extent is inside the reference bounding box
+#' @family Helper functions
 #' @description One of the most common errors in spatial computation is rooted
 #' in the entirely or partly incomparable spatial extents of input datasets.
 #' This function returns whether your data is inside the target computational
@@ -1520,6 +1534,7 @@ testthat::test_that("Check bbox abides.", {
 
 ```{r, send_to = "R/processing.R"}
 #' @title Extract summarized values from raster with points and a buffer radius
+#' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
 #' @param points `sf`/`SpatVector` object.
@@ -1781,6 +1796,7 @@ extract_at_buffer(rpnt, rrast, 4, "pid")
 
 ```{r, send_to = "R/processing.R"}
 #' @title Extract summarized values from raster with generic polygons
+#' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
 #'  Kernel function is not yet implemented.
@@ -1853,6 +1869,7 @@ extract_at_poly <- function(
 
 ```{r, send_to = "R/processing.R"}
 #' Extract raster values with point buffers or polygons
+#' @family Macros for calculation
 #' @param vector `sf`/`SpatVector` object.
 #' @param raster `SpatRaster` object.
 #' @param id character(1). Unique identifier of each point.
@@ -1906,6 +1923,7 @@ extract_at <- function(
 }
 
 #' @title Align vector CRS to raster's
+#' @family Helper functions
 #' @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
 #' @param raster `SpatRaster` object
 #' @returns Reprojected object in the same class as \code{vector}
@@ -2100,6 +2118,7 @@ testthat::test_that("extract_at runs well", {
 
 ```{r, send_to = "R/check.R"}
 #' Check Coordinate Reference System
+#' @family Helper functions
 #' @param x `sf`/`stars`/`SpatVector`/`SpatRaster` object.
 #' @returns A st_crs or crs object.
 #' @description It returns st_crs object from `sf`/Spat* objects.
@@ -2170,6 +2189,7 @@ testthat::test_that("crs_check is working as expected", {
 
 ```{r, send_to = "R/check.R"}
 #' Check if the boundary of the vector/raster object is inside the reference
+#' @family Helper functions
 #' @param input_object sf/stars/SpatVector/SpatRaster object.
 #' @param reference sf/stars/SpatVector/SpatRaster object.
 #' @returns logical
@@ -2393,6 +2413,7 @@ plot(buf0l, border = "red", add = TRUE)
 
 ```{r, send_to = "R/processing.R"}
 #' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
+#' @family Macros for calculation
 #' @param point_from `SpatVector` object. Locations where
 #'  the sum of SEDCs are calculated.
 #' @param point_to `SpatVector` object. Locations where each SEDC is calculated.
@@ -2607,6 +2628,7 @@ testthat::test_that("SEDC are well calculated.", {
 
 ```{r, send_to = "R/processing.R"}
 #' Area weighted summary using two polygon sf or SpatVector objects
+#' @family Macros for calculation
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.
@@ -2765,6 +2787,7 @@ testthat::test_that("summarize_aw works as expected.", {
 
 ```{r, send_to = "R/check.R"}
 #' Detect classes in function arguments
+#' @family Helper functions
 #' @param args Any list, but preferably generated by \code{list(...)} inside
 #' a function.
 #' @param search character(1). Class name to search. Partial match is supported.
@@ -2832,6 +2855,7 @@ testthat::test_that("classes are detected.", {
 
 ```{r, send_to = "R/scale_process.R"}
 #' Parallelization error fallback
+#' @family Parallelization
 #' @param err Error status or message.
 #' @param fun function.
 #' @param debug logical(1). Print error messages (`TRUE`) or not (`FALSE`)
@@ -2901,6 +2925,7 @@ testthat::test_that(
 
 ```{r, send_to = "R/scale_process.R"}
 #' @title Process a given function in the entire or partial computational grids
+#' @family Parallelization
 #' @description
 #' [future::multicore], [future::multisession], [future::cluster]
 #' with [doParallel::registerDoParallel] will parallelize the work
@@ -3037,7 +3062,7 @@ par_grid <-
 
 
 #' @title Process a given function using a hierarchy in input data
-#'
+#' @family Parallelization
 #' @description "Hierarchy" refers to a system,
 #'  which divides the entire study region into multiple subregions.
 #'  It is oftentimes reflected in an area code system
@@ -3158,6 +3183,7 @@ par_hierarchy <-
 
 
 #' @title Process a given function over multiple large rasters
+#' @family Parallelization
 #' @description Large raster files usually exceed the memory capacity in size.
 #'  Cropping a large raster into a small subset even consumes
 #'  a lot of memory and adds processing time.
@@ -3859,6 +3885,8 @@ system("rm -r ./chopin")
 # }
 # system("mv _pkgdown.yml ./docs")
 
+codemetar::write_codemeta()
+
 devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
 
 
@@ -3866,6 +3894,8 @@ devtools::test()
 covr::package_coverage()
 ```
 
+
+## Multinode computation
 ```{r slurm-submission-template, eval = FALSE, include = FALSE}
 # slurm submission is here
 

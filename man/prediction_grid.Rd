@@ -28,4 +28,5 @@ Coordinates are in EPSG:5070 (Conus Albers Equal Area)
 \examples{
 data("prediction_grid", package = "chopin")
 }
+\concept{Dataset}
 \keyword{datasets}

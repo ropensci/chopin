@@ -41,7 +41,15 @@ Extract raster values with point buffers or polygons
 }
 \seealso{
 \link{extract_at_poly}, \link{extract_at_buffer}
+
+Other Macros for calculation: 
+\code{\link{extract_at_buffer}()},
+\code{\link{extract_at_poly}()},
+\code{\link{kernelfunction}()},
+\code{\link{summarize_aw}()},
+\code{\link{summarize_sedc}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
+\concept{Macros for calculation}

@@ -41,6 +41,16 @@ nc_gr <- par_make_grid(nc_rp, 10L, 6L)
 plot(nc_rp)
 plot(nc_gr, add = TRUE)
 }
+\seealso{
+Other Parallelization: 
+\code{\link{par_fallback}()},
+\code{\link{par_grid}()},
+\code{\link{par_hierarchy}()},
+\code{\link{par_make_gridset}()},
+\code{\link{par_merge_grid}()},
+\code{\link{par_multirasters}()}
+}
 \author{
 Insang Song
 }
+\concept{Parallelization}

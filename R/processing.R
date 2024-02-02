@@ -1,6 +1,7 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 #' Kernel functions
+#' @family Macros for calculation
 #' @param kernel Kernel type. One of
 #' `"uniform"`, `"quartic"`, `"triweight"`, and `"epanechnikov"`
 #' @param d Distance
@@ -42,6 +43,7 @@ kernelfunction <-
   }
 
 #' Clip to the buffered extent of input vector
+#' @family Helper functions
 #' @description Clip input vector by
 #'  the expected maximum extent of computation.
 #' @author Insang Song
@@ -95,6 +97,7 @@ clip_vec_ext <- function(
 }
 
 #' @title Clip input raster with a buffered vector extent.
+#' @family Helper functions
 #' @description Clip input raster by the expected maximum extent of
 #' computation.
 #' @param pnts `sf` or `SpatVector` object
@@ -136,6 +139,7 @@ clip_ras_ext <- function(
 }
 
 #' @title Extract summarized values from raster with points and a buffer radius
+#' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
 #' @param points `sf`/`SpatVector` object.
@@ -334,6 +338,7 @@ extract_at_buffer_kernel <- function(
 
 
 #' @title Extract summarized values from raster with generic polygons
+#' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
 #'  Kernel function is not yet implemented.
@@ -404,6 +409,7 @@ extract_at_poly <- function(
 
 
 #' Extract raster values with point buffers or polygons
+#' @family Macros for calculation
 #' @param vector `sf`/`SpatVector` object.
 #' @param raster `SpatRaster` object.
 #' @param id character(1). Unique identifier of each point.
@@ -457,6 +463,7 @@ extract_at <- function(
 }
 
 #' @title Align vector CRS to raster's
+#' @family Helper functions
 #' @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
 #' @param raster `SpatRaster` object
 #' @returns Reprojected object in the same class as \code{vector}
@@ -478,6 +485,7 @@ reproject_b2r <-
 
 
 #' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
+#' @family Macros for calculation
 #' @param point_from `SpatVector` object. Locations where
 #'  the sum of SEDCs are calculated.
 #' @param point_to `SpatVector` object. Locations where each SEDC is calculated.
@@ -618,6 +626,7 @@ The result may not be accurate.\n",
 
 
 #' Area weighted summary using two polygon sf or SpatVector objects
+#' @family Macros for calculation
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.

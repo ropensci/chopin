@@ -34,6 +34,24 @@ bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
 bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
 }
+\seealso{
+Other Helper functions: 
+\code{\link{any_class_args}()},
+\code{\link{clip_ras_ext}()},
+\code{\link{crs_check}()},
+\code{\link{datamod}()},
+\code{\link{dep_check}()},
+\code{\link{dep_switch}()},
+\code{\link{ext2poly}()},
+\code{\link{get_clip_ext}()},
+\code{\link{is_bbox_within_reference}()},
+\code{\link{is_within_ref}()},
+\code{\link{rast_short}()},
+\code{\link{reproject_b2r}()},
+\code{\link{reproject_std}()},
+\code{\link{vect_valid_repair}()}
+}
 \author{
 Insang Song
 }
+\concept{Helper functions}
