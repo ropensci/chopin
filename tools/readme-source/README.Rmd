@@ -35,7 +35,7 @@ knitr::opts_chunk$set(
 - We assume that users--
     - Have basic knowledge of [geographic information system data models](https://r.geocompx.org/spatial-class), [spatial operations](https://r.geocompx.org/spatial-operations), and [raster-vector overlay](https://r.geocompx.org/raster-vector);
     - Understood and planned **what they want to calculate**; and
-    - Collected **which datasets they need**
+    - Collected **datasets they need**
 
 ## Basic design
 - Processing functions accept [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)'s classes for spatial data. Raster-vector overlay is done with `exactextractr`.
@@ -51,6 +51,21 @@ knitr::opts_chunk$set(
     - `par_hierarchy`: parallelize over hierarchy coded in identifier fields (for example, census blocks in each county in the US)
     - `par_multirasters`: parallelize over multiple raster files
 
+
+## To run the examples
+- RStudio: download and open this document then press "Run All Chunks Above", "Run All Chunks Below", or "Restart R and Run All Chunks", whichever it is appropriate.
+- Visual Studio Code (with R extension): download and open this document then press "Run Above" at the last code chunk.
+- If you prefer command line (i.e., in Unix-like operating systems), run:
+
+```shell
+git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
+cd chopin
+Rscript -e \
+"
+knitr::purl(\"README.Rmd\", \"README_run.r\")
+source(\"README_run.r\")
+"
+```
 
 
 ## Installation
@@ -208,24 +223,20 @@ system.time(
 ```{r compare-single-multi}
 colnames(ncpoints_srtm_mthr)[2] <- "mean_par"
 ncpoints_compar <- merge(ncpoints_srtm, ncpoints_srtm_mthr)
+# Are the calculations equal?
 all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
 ```
 
-``` r
+```{r plot results}
 ncpoints_s <-
     merge(ncpoints, ncpoints_srtm)
 ncpoints_m <-
     merge(ncpoints, ncpoints_srtm_mthr)
 
-plot(ncpoints_s[, "mean"], main = "Single-thread")
+plot(ncpoints_s[, "mean"], main = "Single-thread", pch = 19, cex = 0.33)
+plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 ```
-
 <!--![](https://i.imgur.com/iaQHWBL.png) -->
-
-``` r
-plot(ncpoints_m[, "mean"], main = "Multi-thread")
-```
-
 <!--![](https://i.imgur.com/fgOvOff.png) -->
 
 ### Parallelize geospatial computations using intrinsic data hierarchy: `chopin::par_hierarchy`
@@ -254,12 +265,13 @@ nc_tracts$COUNTY <- substr(nc_tracts$GEOID, 1, 5)
 ```{r compare-runtime-hierarchy}
 # single-thread
 system.time(
-  nc_elev_tr_single <- chopin::extract_at(
-    vector = nc_tracts,
-    raster = srtm,
-    id = "GEOID",
-    mode = "polygon"
-  )
+  nc_elev_tr_single <-
+    chopin::extract_at(
+      vector = nc_tracts,
+      raster = srtm,
+      id = "GEOID",
+      mode = "polygon"
+    )
 )
 
 # hierarchical parallelization
@@ -302,9 +314,9 @@ testfiles
 ```{r run-multiraster}
 system.time(
   res <-
-    par_multirasters(
+    chopin::par_multirasters(
       filenames = testfiles,
-      fun_dist = extract_at_poly,
+      fun_dist = chopin::extract_at_poly,
       polys = nccnty,
       surf = ncelev,
       id = "GEOID",
@@ -350,7 +362,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 # generate grids
 nccompreg <-
-  par_make_gridset(
+  chopin::par_make_gridset(
     input = pnts,
     mode = "grid",
     nx = 4L,
@@ -395,6 +407,7 @@ all.equal(resj$distance.x, resj$distance.y)
 ```{r, include = FALSE}
 unlink(wdir)
 ```
+
 
 - Users should be mindful of potential caveats in the parallelization of nearest feature search, which may result in no or excess distance depending on the distribution of the target dataset to which the nearest feature is searched.
     - For example, when one wants to calculate the nearest interstate from rural homes with fine grids, some grids may have no interstates then homes in such grids will not get any distance to the nearest interstate.

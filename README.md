@@ -36,7 +36,7 @@
         operations](https://r.geocompx.org/spatial-operations), and
         [raster-vector overlay](https://r.geocompx.org/raster-vector);
     -   Understood and planned **what they want to calculate**; and
-    -   Collected **which datasets they need**
+    -   Collected **datasets they need**
 
 ## Basic design
 
@@ -62,6 +62,27 @@
     -   `par_hierarchy`: parallelize over hierarchy coded in identifier
         fields (for example, census blocks in each county in the US)
     -   `par_multirasters`: parallelize over multiple raster files
+
+## To run the examples
+
+-   RStudio: download and open this document then press “Run All Chunks
+    Above”, “Run All Chunks Below”, or “Restart R and Run All Chunks”,
+    whichever it is appropriate.
+-   Visual Studio Code (with R extension): download and open this
+    document then press “Run Above” at the last code chunk.
+-   If you prefer command line (i.e., in Unix-like operating systems),
+    run:
+
+``` shell
+git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
+cd chopin
+Rscript -e \
+"
+knitr::purl(\"README.Rmd\", \"README_run.r\")
+source(\"README_run.r\")
+"
+```
+
 
 ## Installation
 
@@ -162,7 +183,7 @@ plot(sf::st_geometry(ncpoints))
 ``` r
 # data preparation
 (wdir <- tempdir())
-#> [1] "/tmp/Rtmp43OqGc"
+#> [1] "/tmp/Rtmp1KGqZ5"
 path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
 
 if (!file.exists(path_srtm)) {
@@ -205,7 +226,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.031   0.360  11.424
+#>  11.061   0.239  11.330
 ```
 
 ### Generate regular grid computational regions
@@ -313,12 +334,13 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.777   1.060   5.089
+#>   8.755   1.176   5.106
 ```
 
 ``` r
 colnames(ncpoints_srtm_mthr)[2] <- "mean_par"
 ncpoints_compar <- merge(ncpoints_srtm, ncpoints_srtm_mthr)
+# Are the calculations equal?
 all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
 #> [1] TRUE
 ```
@@ -329,15 +351,17 @@ ncpoints_s <-
 ncpoints_m <-
     merge(ncpoints, ncpoints_srtm_mthr)
 
-plot(ncpoints_s[, "mean"], main = "Single-thread")
+plot(ncpoints_s[, "mean"], main = "Single-thread", pch = 19, cex = 0.33)
 ```
 
-<!--![](https://i.imgur.com/iaQHWBL.png) -->
+<img src="man/figures/README-plot results-1.png" width="100%" />
 
 ``` r
-plot(ncpoints_m[, "mean"], main = "Multi-thread")
+plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 ```
 
+<img src="man/figures/README-plot results-2.png" width="100%" />
+<!--![](https://i.imgur.com/iaQHWBL.png) -->
 <!--![](https://i.imgur.com/fgOvOff.png) -->
 
 ### Parallelize geospatial computations using intrinsic data hierarchy: `chopin::par_hierarchy`
@@ -365,14 +389,14 @@ if (!file.exists(path_nchrchy)) {
 
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/Rtmp43OqGc/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/Rtmp1KGqZ5/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/Rtmp43OqGc/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/Rtmp1KGqZ5/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -388,15 +412,16 @@ nc_tracts$COUNTY <- substr(nc_tracts$GEOID, 1, 5)
 ``` r
 # single-thread
 system.time(
-  nc_elev_tr_single <- chopin::extract_at(
-    vector = nc_tracts,
-    raster = srtm,
-    id = "GEOID",
-    mode = "polygon"
-  )
+  nc_elev_tr_single <-
+    chopin::extract_at(
+      vector = nc_tracts,
+      raster = srtm,
+      id = "GEOID",
+      mode = "polygon"
+    )
 )
 #>    user  system elapsed 
-#>   2.159   0.081   2.246
+#>   2.122   0.018   2.146
 
 # hierarchical parallelization
 system.time(
@@ -412,7 +437,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.054   0.016   2.579
+#>   0.055   0.016   2.601
 ```
 
 ### Multiple rasters
@@ -438,17 +463,17 @@ terra::writeRaster(ncelev, file.path(wdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(wdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp43OqGc/test1.tif" "/tmp/Rtmp43OqGc/test2.tif"
-#> [3] "/tmp/Rtmp43OqGc/test3.tif" "/tmp/Rtmp43OqGc/test4.tif"
-#> [5] "/tmp/Rtmp43OqGc/test5.tif"
+#> [1] "/tmp/Rtmp1KGqZ5/test1.tif" "/tmp/Rtmp1KGqZ5/test2.tif"
+#> [3] "/tmp/Rtmp1KGqZ5/test3.tif" "/tmp/Rtmp1KGqZ5/test4.tif"
+#> [5] "/tmp/Rtmp1KGqZ5/test5.tif"
 ```
 
 ``` r
 system.time(
   res <-
-    par_multirasters(
+    chopin::par_multirasters(
       filenames = testfiles,
-      fun_dist = extract_at_poly,
+      fun_dist = chopin::extract_at_poly,
       polys = nccnty,
       surf = ncelev,
       id = "GEOID",
@@ -456,18 +481,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.259   0.371   0.980
+#>   1.278   0.407   0.988
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmp43OqGc/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmp43OqGc/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmp43OqGc/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmp43OqGc/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmp43OqGc/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmp43OqGc/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmp1KGqZ5/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmp1KGqZ5/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmp1KGqZ5/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmp1KGqZ5/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmp1KGqZ5/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmp1KGqZ5/test1.tif |
 
 <!--| GEOID |      mean |
 |:------|----------:|
@@ -507,7 +532,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 # generate grids
 nccompreg <-
-  par_make_gridset(
+  chopin::par_make_gridset(
     input = pnts,
     mode = "grid",
     nx = 4L,
@@ -529,7 +554,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.878   0.002   0.882
+#>   0.893   0.001   0.896
 
 # we use four threads that were configured above
 system.time(
@@ -550,7 +575,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.745   0.186   0.388
+#>   0.506   0.150   0.394
 ```
 
 ``` r
