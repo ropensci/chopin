@@ -24,9 +24,8 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of scomps with HPC</a>
+    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` with HPC</a>
     <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
-    <a class="dropdown-item" href="../articles/v02_par_function_example.html">How to use par_* functions</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -49,9 +48,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="parallelization-core-functions">Parallelization core functions<a class="anchor" aria-label="anchor" href="#parallelization-core-functions"></a></h2>
       
-      
+      <p class="section-desc"></p><p>Functions for parallelizing chopin, terra and sf geospatial operations</p>
 
       
     </div><div id="" class="section level2">
@@ -60,81 +59,6 @@
       
 
       <dl><dt>
-          
-          <code><a href="any_class_args.html">any_class_args()</a></code> 
-        </dt>
-        <dd>Detect classes in function arguments</dd>
-      </dl><dl><dt>
-          
-          <code><a href="clip_ras_ext.html">clip_ras_ext()</a></code> 
-        </dt>
-        <dd>Clip input raster with a buffered vector extent.</dd>
-      </dl><dl><dt>
-          
-          <code><a href="clip_vec_ext.html">clip_vec_ext()</a></code> 
-        </dt>
-        <dd>Clip to the buffered extent of input vector</dd>
-      </dl><dl><dt>
-          
-          <code><a href="crs_check.html">crs_check()</a></code> 
-        </dt>
-        <dd>Check Coordinate Reference System</dd>
-      </dl><dl><dt>
-          
-          <code><a href="datamod.html">datamod()</a></code> 
-        </dt>
-        <dd>Return the input's GIS data model type</dd>
-      </dl><dl><dt>
-          
-          <code><a href="dep_check.html">dep_check()</a></code> 
-        </dt>
-        <dd>Return the package the input object is based on</dd>
-      </dl><dl><dt>
-          
-          <code><a href="dep_switch.html">dep_switch()</a></code> 
-        </dt>
-        <dd>Switch spatial data class</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ext2poly.html">ext2poly()</a></code> 
-        </dt>
-        <dd>Generate a rectangular polygon from extent</dd>
-      </dl><dl><dt>
-          
-          <code><a href="extract_at.html">extract_at()</a></code> 
-        </dt>
-        <dd>Extract raster values with point buffers or polygons</dd>
-      </dl><dl><dt>
-          
-          <code><a href="extract_at_buffer.html">extract_at_buffer()</a></code> <code><a href="extract_at_buffer.html">extract_at_buffer_flat()</a></code> <code><a href="extract_at_buffer.html">extract_at_buffer_kernel()</a></code> 
-        </dt>
-        <dd>Extract summarized values from raster with points and a buffer radius</dd>
-      </dl><dl><dt>
-          
-          <code><a href="extract_at_poly.html">extract_at_poly()</a></code> 
-        </dt>
-        <dd>Extract summarized values from raster with generic polygons</dd>
-      </dl><dl><dt>
-          
-          <code><a href="get_clip_ext.html">get_clip_ext()</a></code> 
-        </dt>
-        <dd>Setting the clipping extent</dd>
-      </dl><dl><dt>
-          
-          <code><a href="is_bbox_within_reference.html">is_bbox_within_reference()</a></code> 
-        </dt>
-        <dd>Check if the data extent is inside the reference bounding box</dd>
-      </dl><dl><dt>
-          
-          <code><a href="is_within_ref.html">is_within_ref()</a></code> 
-        </dt>
-        <dd>Check if the boundary of the vector/raster object is inside the reference</dd>
-      </dl><dl><dt>
-          
-          <code><a href="kernelfunction.html">kernelfunction()</a></code> 
-        </dt>
-        <dd>Kernel functions</dd>
-      </dl><dl><dt>
           
           <code><a href="par_fallback.html">par_fallback()</a></code> 
         </dt>
@@ -169,26 +93,32 @@
           <code><a href="par_multirasters.html">par_multirasters()</a></code> 
         </dt>
         <dd>Process a given function over multiple large rasters</dd>
+      </dl></div><div class="section level2">
+      <h2 id="chopin-calculation-functions">chopin calculation functions<a class="anchor" aria-label="anchor" href="#chopin-calculation-functions"></a></h2>
+      
+      <p class="section-desc"></p><p>Functions for streamlining frequently used operations in exposure assessment</p>
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="extract_at.html">extract_at()</a></code> 
+        </dt>
+        <dd>Extract raster values with point buffers or polygons</dd>
       </dl><dl><dt>
           
-          <code><a href="prediction_grid.html">prediction_grid</a></code> 
+          <code><a href="extract_at_buffer.html">extract_at_buffer()</a></code> <code><a href="extract_at_buffer.html">extract_at_buffer_flat()</a></code> <code><a href="extract_at_buffer.html">extract_at_buffer_kernel()</a></code> 
         </dt>
-        <dd>Regular grid points in the mainland United States at 1km spatial resolution</dd>
+        <dd>Extract summarized values from raster with points and a buffer radius</dd>
       </dl><dl><dt>
           
-          <code><a href="rast_short.html">rast_short()</a></code> 
+          <code><a href="extract_at_poly.html">extract_at_poly()</a></code> 
         </dt>
-        <dd>Quick call for SpatRaster with a window</dd>
-      </dl><dl><dt>
-          
-          <code><a href="reproject_b2r.html">reproject_b2r()</a></code> 
-        </dt>
-        <dd>Align vector CRS to raster's</dd>
-      </dl><dl><dt>
-          
-          <code><a href="reproject_std.html">reproject_std()</a></code> 
-        </dt>
-        <dd>Check coordinate system then reproject</dd>
+        <dd>Extract summarized values from raster with generic polygons</dd>
       </dl><dl><dt>
           
           <code><a href="summarize_aw.html">summarize_aw()</a></code> 
@@ -201,11 +131,125 @@
         <dd>Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates</dd>
       </dl><dl><dt>
           
+          <code><a href="kernelfunction.html">kernelfunction()</a></code> 
+        </dt>
+        <dd>Kernel functions</dd>
+      </dl></div><div class="section level2">
+      <h2 id="interoperability">Interoperability<a class="anchor" aria-label="anchor" href="#interoperability"></a></h2>
+      
+      <p class="section-desc"></p><p>terra-sf conversion support</p>
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="dep_check.html">dep_check()</a></code> 
+        </dt>
+        <dd>Return the package the input object is based on</dd>
+      </dl><dl><dt>
+          
+          <code><a href="dep_switch.html">dep_switch()</a></code> 
+        </dt>
+        <dd>Switch spatial data class</dd>
+      </dl></div><div class="section level2">
+      <h2 id="helper-functions">Helper functions<a class="anchor" aria-label="anchor" href="#helper-functions"></a></h2>
+      
+      <p class="section-desc"></p><p>Miscellaneous helper functions for subsetting datasets and quick comparison between extents</p>
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="clip_ras_ext.html">clip_ras_ext()</a></code> 
+        </dt>
+        <dd>Clip input raster with a buffered vector extent.</dd>
+      </dl><dl><dt>
+          
+          <code><a href="clip_vec_ext.html">clip_vec_ext()</a></code> 
+        </dt>
+        <dd>Clip to the buffered extent of input vector</dd>
+      </dl><dl><dt>
+          
+          <code><a href="is_bbox_within_reference.html">is_bbox_within_reference()</a></code> 
+        </dt>
+        <dd>Check if the data extent is inside the reference bounding box</dd>
+      </dl><dl><dt>
+          
+          <code><a href="is_within_ref.html">is_within_ref()</a></code> 
+        </dt>
+        <dd>Check if the boundary of the vector/raster object is inside the reference</dd>
+      </dl><dl><dt>
+          
+          <code><a href="reproject_b2r.html">reproject_b2r()</a></code> 
+        </dt>
+        <dd>Align vector CRS to raster's</dd>
+      </dl><dl><dt>
+          
+          <code><a href="reproject_std.html">reproject_std()</a></code> 
+        </dt>
+        <dd>Check coordinate system then reproject</dd>
+      </dl><dl><dt>
+          
           <code><a href="vect_valid_repair.html">vect_valid_repair()</a></code> 
         </dt>
         <dd>Validate and repair input vector data</dd>
+      </dl><dl><dt>
+          
+          <code><a href="any_class_args.html">any_class_args()</a></code> 
+        </dt>
+        <dd>Detect classes in function arguments</dd>
+      </dl><dl><dt>
+          
+          <code><a href="datamod.html">datamod()</a></code> 
+        </dt>
+        <dd>Return the input's GIS data model type</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ext2poly.html">ext2poly()</a></code> 
+        </dt>
+        <dd>Generate a rectangular polygon from extent</dd>
+      </dl><dl><dt>
+          
+          <code><a href="get_clip_ext.html">get_clip_ext()</a></code> 
+        </dt>
+        <dd>Setting the clipping extent</dd>
+      </dl><dl><dt>
+          
+          <code><a href="rast_short.html">rast_short()</a></code> 
+        </dt>
+        <dd>Quick call for SpatRaster with a window</dd>
+      </dl><dl><dt>
+          
+          <code><a href="crs_check.html">crs_check()</a></code> 
+        </dt>
+        <dd>Check Coordinate Reference System</dd>
+      </dl></div><div class="section level2">
+      <h2 id="dataset">Dataset<a class="anchor" aria-label="anchor" href="#dataset"></a></h2>
+      
+      <p class="section-desc"></p><p>Bundled data in chopin package</p>
+
+      
+    </div><div id="" class="section level2">
+      
+      
+      
+
+      <dl><dt>
+          
+          <code><a href="prediction_grid.html">prediction_grid</a></code> 
+        </dt>
+        <dd>Regular grid points in the mainland United States at 1km spatial resolution</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

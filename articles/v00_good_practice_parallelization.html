@@ -6,12 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="chopin">
-<title>Good practice of scomps with HPC • chopin</title>
+<title>Good practice of using `chopin` with HPC • chopin</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Good practice of scomps with HPC">
+<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Good practice of using `chopin` with HPC">
 <meta property="og:description" content="chopin">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -41,9 +41,8 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of scomps with HPC</a>
+    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` with HPC</a>
     <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
-    <a class="dropdown-item" href="../articles/v02_par_function_example.html">How to use par_* functions</a>
   </div>
 </li>
       </ul>
@@ -70,9 +69,9 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Good practice of scomps with HPC</h1>
+      <img src="" class="logo" alt=""><h1>Good practice of using `chopin` with HPC</h1>
             
-            <h4 data-toc-skip class="date">2024-02-02</h4>
+            <h4 data-toc-skip class="date">2024-02-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/HEAD/vignettes/v00_good_practice_parallelization.Rmd" class="external-link"><code>vignettes/v00_good_practice_parallelization.Rmd</code></a></small>
       <div class="d-none name"><code>v00_good_practice_parallelization.Rmd</code></div>
@@ -80,44 +79,51 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/knitr/man/opts_chunk.html" class="external-link">opts_chunk</a></span><span class="op">$</span><span class="fu">set</span><span class="op">(</span>warning <span class="op">=</span> <span class="cn">FALSE</span>, message <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="assumptions">Assumptions<a class="anchor" aria-label="anchor" href="#assumptions"></a>
 </h2>
 <ul>
-<li>Users have an accessible HPC at your work</li>
-<li>Data are stored in distributed file systems (usually incorporated
-into the HPC system)</li>
+<li>Users can access multi-threaded central processing units and
+sufficient memory (i.e., at least 4GB/thread)</li>
+<li>Single-node calculation: as of version 0.3.0, <code>chopin</code>
+only supports single node</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="basic-workflow">Basic workflow<a class="anchor" aria-label="anchor" href="#basic-workflow"></a>
 </h2>
 <div class="section level3">
-<h3 id="practice-for-minimizing-errors">Practice for minimizing errors<a class="anchor" aria-label="anchor" href="#practice-for-minimizing-errors"></a>
+<h3 id="minimize-errors">Minimize errors<a class="anchor" aria-label="anchor" href="#minimize-errors"></a>
 </h3>
 <ul>
-<li>Consider using <code><a href="https://rdrr.io/r/base/try.html" class="external-link">try()</a></code> or <code><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch()</a></code> not to
-a tiny error will halt all the work without any results
-<ul>
-<li>Especially with the higher-level functions</li>
-</ul>
-</li>
+<li>Consider using <code><a href="https://rdrr.io/r/base/try.html" class="external-link">try()</a></code> or <code><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch()</a></code> to let
+an error will not halt all the work without results, especially when
+using higher-level functions</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="raster-vector-overlay">Raster-Vector overlay<a class="anchor" aria-label="anchor" href="#raster-vector-overlay"></a>
 </h3>
 <ul>
-<li>Make <code>sp_index_grid()</code> to get padded grid objects</li>
-<li>Convert sf/SpatVector objects into <code><a href="https://rspatial.github.io/terra/reference/ext.html" class="external-link">terra::ext()</a></code>
-compatible named numeric vector
-<ul>
-<li>For example: <code>c(xmin=0, ymin=0, xmax=10, ymax=10)</code>
-</li>
+<li>Use <code><a href="../reference/par_make_gridset.html">chopin::par_make_gridset</a></code> to make exhaustive and
+padded grid objects in <code>SpatVector</code> class</li>
+<li>
+<code><a href="../reference/par_grid.html">chopin::par_grid</a></code> filters features that
+<strong>intersect</strong> with each grid. Post-processing is necessary
+as polygons may be taken more than twice in parallelized
+calculation.</li>
 </ul>
-</li>
+</div>
+<div class="section level3">
+<h3 id="customization">Customization<a class="anchor" aria-label="anchor" href="#customization"></a>
+</h3>
+<ul>
+<li>
+<code>chopin</code> way to parallelize is to iterate calculation
+over a list then to use <code>future.apply</code> function</li>
+<li>If one wants to customize parallelization workflow like
+<code>chopin</code>, consider:
+<ul>
 <li>Make list objects with:
 <ul>
 <li>An extent vector in each element</li>
@@ -126,11 +132,42 @@ the first list</li>
 <li>Preferably all lists are named</li>
 </ul>
 </li>
-<li>Write a <code>future.apply</code> script running through the extent
-list object</li>
-<li>Run a small amount of data to estimate the total computational
-demand</li>
-<li>Submit a job with a proper amount of computational assets</li>
+<li>
+<code>terra</code>’s <code>SpatRaster</code> and
+<code>SpatVector</code> objects are Rcpp pointers, which cannot be
+exported to processes. Any <code>Spat*</code> objects in the main
+session are not reused in parallel processing.
+<ul>
+<li>Convert them to <code>stars</code> or <code>sf</code> objects</li>
+<li>For rasters, export file/database table paths instead of
+<code>SpatRaster</code> objects</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="save-computing-costs">Save computing costs<a class="anchor" aria-label="anchor" href="#save-computing-costs"></a>
+</h3>
+<ul>
+<li>Most of HPC systems have CPU-memory usage quota for users</li>
+<li>Always run a small amount of data to estimate the total
+computational demand.
+<ul>
+<li>
+<code>profvis::profvis()</code> helps to summarize runtime per
+function call and memory usage</li>
+</ul>
+</li>
+<li>For testing, use <code>future::plan(future::sequential)</code> to
+see single-thread. Keep <code><a href="../reference/par_make_gridset.html">chopin::par_make_gridset</a></code> arguments
+the same then only take one or two grids using <code>lapply</code>.
+Preferably the hardest case will be tested to estimate the maximum peak
+memory usage per thread.</li>
+<li>Submit a job with a proper amount of computational assets: each HPC
+management system offers tools to see statistics and task summaries. Use
+these records to plan asset allocation for the next time.</li>
 </ul>
 </div>
 </div>
