@@ -374,9 +374,12 @@ nccompreg <-
 # plot
 plot(nccompreg$padded, border = "orange")
 plot(terra::vect(ncsf), add = TRUE)
-plot(rd1, col = "blue", add = TRUE)
-plot(pnts, add = TRUE, cex = 0.5)
-
+plot(rd1, col = "blue", lwd = 1.5, add = TRUE)
+plot(pnts, add = TRUE, cex = 0.3)
+legend(1.02e6, 1.72e6,
+       legend = c("Computation grids (50km padding)", "Major roads"),
+       lty = 1, lwd = 1, col = c("orange", "blue"),
+       cex = 0.5)
 ```
 
 

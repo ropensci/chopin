@@ -81,8 +81,8 @@ Rscript -e \
 knitr::purl(\"README.Rmd\", \"README_run.r\")
 source(\"README_run.r\")
 "
+rm README_run.r
 ```
-
 
 ## Installation
 
@@ -90,12 +90,15 @@ source(\"README_run.r\")
     `devtools::install_github`, or `remotes::install_github`:
 
 ``` r
+# install.packages("devtools")
+devtools::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
+```
+
+``` r
 # install.packages("pak")
 pak::pak("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
-``` r
-remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
-```
+
 ``` r
 # install.packages("remotes")
 remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
@@ -180,7 +183,7 @@ plot(sf::st_geometry(ncpoints))
 ``` r
 # data preparation
 (wdir <- tempdir())
-#> [1] "/tmp/Rtmp1KGqZ5"
+#> [1] "/tmp/Rtmppnp97M"
 path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
 
 if (!file.exists(path_srtm)) {
@@ -223,7 +226,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.061   0.239  11.330
+#>  11.227   0.372  11.633
 ```
 
 ### Generate regular grid computational regions
@@ -331,7 +334,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.755   1.176   5.106
+#>   8.687   0.987   5.133
 ```
 
 ``` r
@@ -386,14 +389,14 @@ if (!file.exists(path_nchrchy)) {
 
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/Rtmp1KGqZ5/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/Rtmppnp97M/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/Rtmp1KGqZ5/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/Rtmppnp97M/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -418,7 +421,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   2.122   0.018   2.146
+#>   2.161   0.026   2.194
 
 # hierarchical parallelization
 system.time(
@@ -434,7 +437,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.055   0.016   2.601
+#>   0.056   0.015   2.602
 ```
 
 ### Multiple rasters
@@ -444,6 +447,7 @@ system.time(
 -   `chopin::par_multirasters` is for such cases. An example below
     demonstrates where we have five elevation raster files to calculate
     the average elevation at counties in North Carolina.
+
 ``` r
 nccnty <- terra::vect(nc_data, layer = "county")
 ncelev <- terra::unwrap(readRDS(path_srtm))
@@ -459,9 +463,9 @@ terra::writeRaster(ncelev, file.path(wdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(wdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp1KGqZ5/test1.tif" "/tmp/Rtmp1KGqZ5/test2.tif"
-#> [3] "/tmp/Rtmp1KGqZ5/test3.tif" "/tmp/Rtmp1KGqZ5/test4.tif"
-#> [5] "/tmp/Rtmp1KGqZ5/test5.tif"
+#> [1] "/tmp/Rtmppnp97M/test1.tif" "/tmp/Rtmppnp97M/test2.tif"
+#> [3] "/tmp/Rtmppnp97M/test3.tif" "/tmp/Rtmppnp97M/test4.tif"
+#> [5] "/tmp/Rtmppnp97M/test5.tif"
 ```
 
 ``` r
@@ -477,18 +481,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.278   0.407   0.988
+#>   1.222   0.438   0.966
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmp1KGqZ5/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmp1KGqZ5/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmp1KGqZ5/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmp1KGqZ5/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmp1KGqZ5/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmp1KGqZ5/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmppnp97M/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmppnp97M/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmppnp97M/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmppnp97M/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmppnp97M/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmppnp97M/test1.tif |
 
 <!--| GEOID |      mean |
 |:------|----------:|
@@ -506,8 +510,7 @@ knitr::kable(head(res))
     support generic geospatial operations.
 -   An example below uses `terra::nearest`, which gets the nearest
     feature’s attributes, inside `chopin::par_grid`.
-    
-    
+
 ``` r
 path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
 if (!file.exists(path_ncrd1)) {
@@ -540,8 +543,12 @@ nccompreg <-
 # plot
 plot(nccompreg$padded, border = "orange")
 plot(terra::vect(ncsf), add = TRUE)
-plot(rd1, col = "blue", add = TRUE)
-plot(pnts, add = TRUE, cex = 0.5)
+plot(rd1, col = "blue", lwd = 1.5, add = TRUE)
+plot(pnts, add = TRUE, cex = 0.3)
+legend(1.02e6, 1.72e6,
+       legend = c("Computation grids (50km padding)", "Major roads"),
+       lty = 1, lwd = 1, col = c("orange", "blue"),
+       cex = 0.5)
 ```
 
 <img src="man/figures/README-prep-par-generic-1.png" width="100%" />
@@ -551,7 +558,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.893   0.001   0.896
+#>   0.918   0.000   0.920
 
 # we use four threads that were configured above
 system.time(
@@ -572,7 +579,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.506   0.150   0.394
+#>   0.500   0.153   0.390
 ```
 
 ``` r
