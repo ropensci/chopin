@@ -35,6 +35,7 @@ reference:
   - ext2poly
   - get_clip_ext
   - rast_short
+  - crs_check
 
 - title: "Dataset"
   desc: "Bundled data in chopin package"
