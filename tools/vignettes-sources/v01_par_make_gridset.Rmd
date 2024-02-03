@@ -49,13 +49,13 @@ ncpoints$pid <- seq(1, nrow(ncpoints))
 ```{r}
 ncpoints_tr <- terra::vect(ncpoints)
 compregions <-
-    chopin::par_make_gridset(
-        ncpoints_tr,
-        mode = "grid",
-        nx = 8L,
-        ny = 5L,
-        padding = 1e4L
-    )
+  chopin::par_make_gridset(
+    ncpoints_tr,
+    mode = "grid",
+    nx = 8L,
+    ny = 5L,
+    padding = 1e4L
+  )
 
 names(compregions)
 

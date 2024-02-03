@@ -13,16 +13,23 @@ vignette: >
 - Please refer to a small example below for extracting mean altitude values at circular point buffers and census tracts in North Carolina.
 
 ``` r
+# check and install packages to run examples
+check_and_install <-
+  function(pkg_name) {
+    if (!require(pkg_name, character.only = TRUE)) {
+      install.packages(pkg_name)
+      library(pkg_name, character.only = TRUE, quietly = TRUE)
+    }
+  }
+
+# chopin is loaded separately as it is only available on GitHub now
 library(chopin)
-library(dplyr)
-library(sf)
-library(terra)
-library(future)
-library(future.apply)
-library(doFuture)
-library(tigris)
-options(sf_use_s2 = FALSE)
-set.seed(2023, kind = "L'Ecuyer-CMRG")
+
+# package names
+pkgs <- c("dplyr", "sf", "terra", "future", "future.apply", "doFuture")
+invisible(sapply(pkgs, check_and_install))
+
+set.seed(2024, kind = "L'Ecuyer-CMRG")
 ```
 
 ``` r

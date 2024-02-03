@@ -1,5 +1,5 @@
 ---
-title: "Good practice of scomps with HPC"
+title: "Good practice of using `chopin` with HPC"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -9,30 +9,37 @@ vignette: >
 ---
 
 
-```{r}
+```{r, echo = FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-
 ```
 
 ## Assumptions
-- Users have an accessible HPC at your work
-- Data are stored in distributed file systems (usually incorporated into the HPC system)
-
+- Users can access multi-threaded central processing units and sufficient memory (i.e., at least 4GB/thread)
+- Single-node calculation: as of version 0.3.0, `chopin` only supports single node 
 
 ## Basic workflow
 
-### Practice for minimizing errors
-- Consider using `try()` or `tryCatch()` not to a tiny error will halt all the work without any results 
-    - Especially with the higher-level functions
+### Minimize errors
+- Consider using `try()` or `tryCatch()` to let an error will not halt all the work without results, especially when using higher-level functions
 
 ### Raster-Vector overlay
-- Make `sp_index_grid()` to get padded grid objects
-- Convert sf/SpatVector objects into `terra::ext()` compatible named numeric vector
-    - For example: `c(xmin=0, ymin=0, xmax=10, ymax=10)`
-- Make list objects with: 
-    - An extent vector in each element
-    - Preprocessed vector objects with respect to each extent vector in the first list
-    - Preferably all lists are named 
-- Write a `future.apply` script running through the extent list object
-- Run a small amount of data to estimate the total computational demand
-- Submit a job with a proper amount of computational assets
+- Use `chopin::par_make_gridset` to make exhaustive and padded grid objects in `SpatVector` class
+- `chopin::par_grid` filters features that **intersect** with each grid. Post-processing is necessary as polygons may be taken more than twice in parallelized calculation.
+
+### Customization
+- `chopin` way to parallelize is to iterate calculation over a list then to use `future.apply` function
+- If one wants to customize parallelization workflow like `chopin`, consider:
+    - Make list objects with: 
+        - An extent vector in each element
+        - Preprocessed vector objects with respect to each extent vector in the first list
+        - Preferably all lists are named 
+    - `terra`'s `SpatRaster` and `SpatVector` objects are Rcpp pointers, which cannot be exported to processes. Any `Spat*` objects in the main session are not reused in parallel processing.
+        - Convert them to `stars` or `sf` objects
+        - For rasters, export file/database table paths instead of `SpatRaster` objects
+
+### Save computing costs
+- Most of HPC systems have CPU-memory usage quota for users
+- Always run a small amount of data to estimate the total computational demand.
+    - `profvis::profvis()` helps to summarize runtime per function call and memory usage 
+- For testing, use `future::plan(future::sequential)` to see single-thread. Keep `chopin::par_make_gridset` arguments the same then only take one or two grids using `lapply`. Preferably the hardest case will be tested to estimate the maximum peak memory usage per thread.
+- Submit a job with a proper amount of computational assets: each HPC management system offers tools to see statistics and task summaries. Use these records to plan asset allocation for the next time. 

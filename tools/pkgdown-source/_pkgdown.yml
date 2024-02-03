@@ -1,10 +1,43 @@
-destination: ../../docs/
-
 url: https://spatiotemporal-exposures-and-toxicology.github.io/chopin
 template:
   bootstrap: 5
+  bootswatch: simplex
 
 navbar:
   structure:
     left:  [reference, articles, search]
     right: [github]
+
+reference:
+- title: "Parallelization core functions"
+  desc: >
+    Functions for parallelizing chopin, terra and sf geospatial operations
+  contents: 
+  - starts_with("par_")
+- title: "chopin calculation functions"
+  desc: "Functions for streamlining frequently used operations in exposure assessment"
+  contents:
+  - starts_with("extract_at")
+  - starts_with("summarize_")
+  - kernelfunction
+- title: "Interoperability"
+  desc: "terra-sf conversion support"
+  contents:
+  - starts_with("dep_")
+- title: "Helper functions"
+  desc: "Miscellaneous helper functions for subsetting datasets and quick comparison between extents"
+  contents:
+  - starts_with("clip_")
+  - starts_with("is_")
+  - starts_with("reproject_")
+  - vect_valid_repair
+  - any_class_args
+  - datamod
+  - ext2poly
+  - get_clip_ext
+  - rast_short
+
+- title: "Dataset"
+  desc: "Bundled data in chopin package"
+  contents:
+  - prediction_grid
