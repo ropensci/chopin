@@ -1,16 +1,6 @@
 url: https://spatiotemporal-exposures-and-toxicology.github.io/chopin
 template:
   bootstrap: 5
-  bootswatch: simplex
-
-navbar:
-  structure:
-    left:  [reference, articles, search]
-    right: [github]
-
-url: https://spatiotemporal-exposures-and-toxicology.github.io/chopin
-template:
-  bootstrap: 5
 
 navbar:
   structure:
