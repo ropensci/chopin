@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-02-02"
+date: "2024-02-04"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.3.0.20240202",
+    Version = "0.3.0.20240204",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -58,7 +58,7 @@ usethis::use_package("dplyr", min_version = "1.1.0")
 usethis::use_package("sf", min_version = "1.0-10")
 usethis::use_package("terra", min_version = "1.7-18")
 usethis::use_package("stars", min_version = "0.6-0")
-usethis::use_package("rlang")
+usethis::use_package("rlang", min_version = "0.4.9")
 usethis::use_package("methods")
 usethis::use_package("exactextractr", min_version = "0.8.2")
 usethis::use_package("future")
@@ -67,7 +67,6 @@ usethis::use_package("covr", "Suggests")
 # usethis::use_package("lobstr", "Suggests")
 usethis::use_package("testthat", "Suggests")
 usethis::use_package("units", "Suggests")
-usethis::use_package("tigris", "Suggests")
 usethis::use_package("doParallel", "Suggests")
 usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
@@ -75,7 +74,6 @@ usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
 usethis::use_mit_license()
 usethis::use_code_of_conduct("geoissong@gmail.com")
-
 # usethis::use_pkgdown()
 # https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html#lists
 usethis::use_roxygen_md()
@@ -89,6 +87,9 @@ usethis::use_roxygen_md()
 ```{r}
 file.copy("../tools/readme-source/README.Rmd", "./README.Rmd")
 # file.copy("../tools/pkgdown-source/_pkgdown.yml", "./_pkgdown.yml")
+usethis::use_directory("inst")
+usethis::use_directory("inst/extdata")
+
 
 ```
 
@@ -153,7 +154,7 @@ litr::add_vignettes("../tools/vignettes-sources/v01_par_make_gridset.Rmd")
 
 ### Vignettes 3
 
-```{r vig3, eval = TRUE}
+```{r vig3, eval = FALSE}
 litr::add_vignettes("../tools/vignettes-sources/v02_par_function_example.Rmd")
 ```
 
@@ -3804,14 +3805,6 @@ litr::document()
 #   output = "./tools/vignettes-sources/v02_par.Rmd"
 #   )
 
-if (dir.exists("../figure")) {
-  if (!dir.exists("./vignettes/figure")) {
-    dir.create("./vignettes/figure")
-  }
-  file.copy(from = "../figure", to = "./vignettes/figure", recursive = TRUE)
-  # unlink("../figure", recursive = TRUE)
-}
-
 # devtools::build(pkg = ".")
 # knitr::knit(
 #   "../tools/vignettes-sources/v02_par.Rmd.orig",
@@ -3831,19 +3824,18 @@ cat(readLines("../tools/pkgdown-source/_pkgdown.yml"), sep = '\n')
 ```
 
 
-```{r copy-prebuilt-figures, eval = TRUE}
+
+```{r copy-prebuilt-figures, eval = FALSE}
 # here we return to the current working directory "you see"
 # for pre-built vignettes
-if (dir.exists("../tools/vignettes-sources/figure")) {
-  # if (!dir.exists("./vignettes/figure")) {
-  #   dir.create("./vignettes/figure")
-  # }
-  file.copy(from = "../tools/vignettes-sources/figure", to = "./vignettes", recursive = TRUE)
-  # unlink("../figure", recursive = TRUE)
+if (dir.exists("../figure")) {
+  if (!dir.exists("./vignettes/figure")) {
+    dir.create("./vignettes/figure")
+  }
+  file.copy(from = "../figure", to = "./vignettes/figure", recursive = TRUE)
 }
+
 # pkgbuild::build(path = ".")
-
-
 ```
 
 ```{r, include = FALSE}
@@ -3861,32 +3853,34 @@ if (!dir.exists(getwd())) {
   dir.create(getwd())
 }
 
-
 gitpath = gsub("/chopin", "", getwd())
-# packdir <- paste0(getwd(), "/chopin")
 
-# if (!dir.exists(paste0(getwd(), "/chopin"))) {
-#   dir.create(paste0(getwd(), "/chopin"))
-# }
 system("unalias cp")
 system(paste0("cp -r ", getwd(), "/* ", gitpath))
-
 Sys.sleep(1)
-
 system(paste0("rm -r ", getwd()))
 
 ```
 
-```{r post-hoc-manualrun, eval = FALSE}
-system(paste0("cp -r ./chopin/* ."))
+
+```{r, eval = FALSE}
+system(paste0("cp -r ../chopin/* ."))
+setwd("..")
+Sys.sleep(1)
 system("rm -r ./chopin")
-# if (!dir.exists("./docs")) {
-#   dir.create("./docs")
-# }
-# system("mv _pkgdown.yml ./docs")
+Sys.sleep(1)
+knitr::knit("./README.Rmd", "./README.md")
+```
+
+```{r post-hoc-manualrun, eval = FALSE}
+# in interactive session
+system(paste0("cp -r ./chopin/* ."))
+# Sys.sleep(1)
+system("rm -r ./chopin")
+knitr::knit("./README.Rmd", "./README.md")
+
 
 codemetar::write_codemeta()
-
 devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
 
 

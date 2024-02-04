@@ -1,6 +1,7 @@
 url: https://spatiotemporal-exposures-and-toxicology.github.io/chopin
 template:
   bootstrap: 5
+  bootswatch: minty
 
 navbar:
   structure:

@@ -1,6 +1,6 @@
 Package: chopin
 Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
-Version: 0.3.0.20240202
+Version: 0.3.0.20240204
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -32,7 +32,7 @@ Imports:
     future,
     future.apply,
     methods,
-    rlang,
+    rlang (>= 0.4.9),
     sf (>= 1.0-10),
     stars (>= 0.6-0),
     terra (>= 1.7-18)
@@ -44,10 +44,9 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    tigris,
     units,
     withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 8fcae7105f48beea08a677211eae1a45
+LitrId: f82d21449b3593489f651d17ecf223c2

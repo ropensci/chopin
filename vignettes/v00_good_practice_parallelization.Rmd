@@ -9,13 +9,13 @@ vignette: >
 ---
 
 
-```{r, echo = FALSE}
+```{r, include = FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 ## Assumptions
 - Users can access multi-threaded central processing units and sufficient memory (i.e., at least 4GB/thread)
-- Single-node calculation: as of version 0.3.0, `chopin` only supports single node 
+- Single-node calculation: as of version 0.3.0, `chopin` only supports single-node 
 
 ## Basic workflow
 
@@ -33,9 +33,8 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
         - An extent vector in each element
         - Preprocessed vector objects with respect to each extent vector in the first list
         - Preferably all lists are named 
-    - `terra`'s `SpatRaster` and `SpatVector` objects are Rcpp pointers, which cannot be exported to processes. Any `Spat*` objects in the main session are not reused in parallel processing.
-        - Convert them to `stars` or `sf` objects
-        - For rasters, export file/database table paths instead of `SpatRaster` objects
+    - `terra`'s `SpatRaster` objects made from external files are Rcpp pointers, which cannot be exported to processes in parallelization. Thus, users should
+        - Use file or database table paths instead of `SpatRaster` objects in `future` parallel processing workflow
 
 ### Save computing costs
 - Most of HPC systems have CPU-memory usage quota for users
