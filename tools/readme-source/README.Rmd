@@ -156,7 +156,7 @@ path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
 srtm <- terra::unwrap(readRDS(path_srtm))
 terra::crs(srtm) <- "EPSG:5070"
 srtm
-plot(srtm)
+terra::plot(srtm)
 ```
 
 <!-- ![](https://i.imgur.com/l08bz4j.png)-->
@@ -190,13 +190,13 @@ compregions <-
 ```
 
 - `compregions` is a list object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The figures below illustrate the grid polygons with and without overlaps.
-```{r compare-compregions, fig.width = 8, fig.height = 4.2}
+```{r compare-compregions, fig.width = 8, fig.height = 8}
 names(compregions)
 
 oldpar <- par()
-par(mfcol = c(1, 2))
-plot(compregions$original, main = "Original grids")
-plot(compregions$padded, main = "Padded grids")
+par(mfrow = c(2, 1))
+terra::plot(compregions$original, main = "Original grids")
+terra::plot(compregions$padded, main = "Padded grids")
 
 ```
 
@@ -383,10 +383,14 @@ nccompreg <-
 
 ```{r map-all}
 # plot
-plot(nccompreg$padded, border = "orange")
-plot(terra::vect(ncsf), add = TRUE)
-plot(rd1, col = "blue", add = TRUE)
-plot(pnts, add = TRUE, cex = 0.5)
+terra::plot(nccompreg$padded, border = "orange")
+terra::plot(terra::vect(ncsf), add = TRUE)
+terra::plot(rd1, col = "blue", add = TRUE)
+terra::plot(pnts, add = TRUE, cex = 0.3)
+legend(1.02e6, 1.72e6,
+       legend = c("Computation grids (50km padding)", "Major roads"),
+       lty = 1, lwd = 1, col = c("orange", "blue"),
+       cex = 0.5)
 ```
 
 
@@ -399,7 +403,7 @@ system.time(
 # we use four threads that were configured above
 system.time(
   res <-
-    par_grid(
+    chopin::par_grid(
       grids = nccompreg,
       fun_dist = terra::nearest,
       x = pnts,
