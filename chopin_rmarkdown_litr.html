@@ -372,7 +372,7 @@ pre code {
   path = &quot;.&quot;,
   fields = list(
     Package = params$package_name,
-    Version = &quot;0.3.0.20240202&quot;,
+    Version = &quot;0.3.0.20240204&quot;,
     Title = &quot;CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure&quot;,
     Description = &quot;It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data&#39;s own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.&quot;,
     `Authors@R` = c(
@@ -409,7 +409,7 @@ usethis::use_package(&quot;dplyr&quot;, min_version = &quot;1.1.0&quot;)
 usethis::use_package(&quot;sf&quot;, min_version = &quot;1.0-10&quot;)
 usethis::use_package(&quot;terra&quot;, min_version = &quot;1.7-18&quot;)
 usethis::use_package(&quot;stars&quot;, min_version = &quot;0.6-0&quot;)
-usethis::use_package(&quot;rlang&quot;)
+usethis::use_package(&quot;rlang&quot;, min_version = &quot;0.4.9&quot;)
 usethis::use_package(&quot;methods&quot;)
 usethis::use_package(&quot;exactextractr&quot;, min_version = &quot;0.8.2&quot;)
 usethis::use_package(&quot;future&quot;)
@@ -418,7 +418,6 @@ usethis::use_package(&quot;covr&quot;, &quot;Suggests&quot;)
 # usethis::use_package(&quot;lobstr&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;testthat&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;units&quot;, &quot;Suggests&quot;)
-usethis::use_package(&quot;tigris&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;doParallel&quot;, &quot;Suggests&quot;)
 usethis::use_package(&quot;doFuture&quot;)
 usethis::use_package(&quot;future.batchtools&quot;, &quot;Suggests&quot;)
@@ -3624,7 +3623,6 @@ par_multirasters &lt;-
 ## Writing &#39;par_grid.Rd&#39;
 ## Writing &#39;par_hierarchy.Rd&#39;
 ## Writing &#39;par_multirasters.Rd&#39;</code></pre>
-<p>[1] TRUE</p>
 <pre class="r"><code>testthat::test_that(
   &quot;Processes are properly spawned and compute over multirasters&quot;,
   {
@@ -3709,14 +3707,6 @@ par_multirasters &lt;-
 #   output = &quot;./tools/vignettes-sources/v02_par.Rmd&quot;
 #   )
 
-if (dir.exists(&quot;../figure&quot;)) {
-  if (!dir.exists(&quot;./vignettes/figure&quot;)) {
-    dir.create(&quot;./vignettes/figure&quot;)
-  }
-  file.copy(from = &quot;../figure&quot;, to = &quot;./vignettes/figure&quot;, recursive = TRUE)
-  # unlink(&quot;../figure&quot;, recursive = TRUE)
-}
-
 # devtools::build(pkg = &quot;.&quot;)
 # knitr::knit(
 #   &quot;../tools/vignettes-sources/v02_par.Rmd.orig&quot;,
@@ -3774,16 +3764,14 @@ reference:
 <pre class="r"><code>cat(readLines(&quot;../tools/pkgdown-source/_pkgdown.yml&quot;), sep = &#39;\n&#39;)</code></pre>
 <pre class="r"><code># here we return to the current working directory &quot;you see&quot;
 # for pre-built vignettes
-if (dir.exists(&quot;../tools/vignettes-sources/figure&quot;)) {
-  # if (!dir.exists(&quot;./vignettes/figure&quot;)) {
-  #   dir.create(&quot;./vignettes/figure&quot;)
-  # }
-  file.copy(from = &quot;../tools/vignettes-sources/figure&quot;, to = &quot;./vignettes&quot;, recursive = TRUE)
-  # unlink(&quot;../figure&quot;, recursive = TRUE)
+if (dir.exists(&quot;../figure&quot;)) {
+  if (!dir.exists(&quot;./vignettes/figure&quot;)) {
+    dir.create(&quot;./vignettes/figure&quot;)
+  }
+  file.copy(from = &quot;../figure&quot;, to = &quot;./vignettes/figure&quot;, recursive = TRUE)
 }
-# pkgbuild::build(path = &quot;.&quot;)
 
-</code></pre>
+# pkgbuild::build(path = &quot;.&quot;)</code></pre>
 </div>
 <div id="multinode-computation" class="section level2">
 <h2>Multinode computation</h2>
