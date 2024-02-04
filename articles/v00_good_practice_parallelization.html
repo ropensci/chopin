@@ -22,11 +22,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240202</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240204</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,7 +71,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Good practice of using `chopin` with HPC</h1>
             
-            <h4 data-toc-skip class="date">2024-02-03</h4>
+            <h4 data-toc-skip class="date">2024-02-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/HEAD/vignettes/v00_good_practice_parallelization.Rmd" class="external-link"><code>vignettes/v00_good_practice_parallelization.Rmd</code></a></small>
       <div class="d-none name"><code>v00_good_practice_parallelization.Rmd</code></div>
@@ -86,7 +86,7 @@
 <li>Users can access multi-threaded central processing units and
 sufficient memory (i.e., at least 4GB/thread)</li>
 <li>Single-node calculation: as of version 0.3.0, <code>chopin</code>
-only supports single node</li>
+only supports single-node</li>
 </ul>
 </div>
 <div class="section level2">
@@ -133,14 +133,12 @@ the first list</li>
 </ul>
 </li>
 <li>
-<code>terra</code>’s <code>SpatRaster</code> and
-<code>SpatVector</code> objects are Rcpp pointers, which cannot be
-exported to processes. Any <code>Spat*</code> objects in the main
-session are not reused in parallel processing.
+<code>terra</code>’s <code>SpatRaster</code> objects made from
+external files are Rcpp pointers, which cannot be exported to processes
+in parallelization. Thus, users should
 <ul>
-<li>Convert them to <code>stars</code> or <code>sf</code> objects</li>
-<li>For rasters, export file/database table paths instead of
-<code>SpatRaster</code> objects</li>
+<li>Use file or database table paths instead of <code>SpatRaster</code>
+objects in <code>future</code> parallel processing workflow</li>
 </ul>
 </li>
 </ul>
