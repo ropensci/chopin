@@ -5,14 +5,14 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(
     ncpath, layer = "county",
     query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)"
   )
   nctrct <- terra::vect(ncpath, layer = "tracts")
 
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncpt <- terra::vect(ncp)
 
@@ -74,11 +74,22 @@ testthat::test_that("Clip by extent works without errors", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+  ncelev <-
+    terra::unwrap(
+      readRDS(
+        testthat::test_path(
+          "../..", "inst/extdata", "nc_srtm15_otm.rds"
+        )
+      )
+    )
   terra::crs(ncelev) <- "EPSG:5070"
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
-  ncp <- readRDS("../testdata/nc_random_point.rds")
+  ncp <-
+    readRDS(
+      testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"
+      )
+    )
   ncp_terra <- terra::vect(ncp)
 
   testthat::expect_no_error(clip_ras_ext(ncp, 30000L, ncelev))
@@ -98,14 +109,14 @@ testthat::test_that("extract_at runs well", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncp <- terra::vect(ncp)
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+  ncelev <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds"))
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")

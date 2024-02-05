@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-02-04"
+date: "2024-02-05"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.3.0.20240204",
+    Version = "0.3.0.20240205",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -89,8 +89,9 @@ file.copy("../tools/readme-source/README.Rmd", "./README.Rmd")
 # file.copy("../tools/pkgdown-source/_pkgdown.yml", "./_pkgdown.yml")
 usethis::use_directory("inst")
 usethis::use_directory("inst/extdata")
-
-
+testfiles <- list.files("../tools/testdata", pattern = NULL, full.names = FALSE)
+testfiles <- grep("(prediction_grid)", testfiles, perl = TRUE, value = TRUE, invert = TRUE)
+sapply(testfiles, \(x) file.copy(file.path("../tools/testdata", x), file.path("./inst/extdata", x)))
 ```
 
 
@@ -580,6 +581,7 @@ testthat::test_that("CRS is transformed when it is not standard", {
 #' @param input_vector One of sf or vect class. Target points of computation.
 #' @returns A repaired `sf` or `SpatVector` object depending on
 #' the class of input_vector.
+#' @note This function works with GEOS (>=3.8).
 #' @examples
 #' \dontrun{
 #' library(terra)
@@ -770,14 +772,14 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+  ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
   nccnty <- terra::vect(
     ncpath, layer = "county",
     query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)"
   )
   nctrct <- terra::vect(ncpath, layer = "tracts")
 
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncpt <- terra::vect(ncp)
 
@@ -886,11 +888,22 @@ testthat::test_that("Clip by extent works without errors", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+  ncelev <-
+    terra::unwrap(
+      readRDS(
+        testthat::test_path(
+          "../..", "inst/extdata", "nc_srtm15_otm.rds"
+        )
+      )
+    )
   terra::crs(ncelev) <- "EPSG:5070"
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
-  ncp <- readRDS("../testdata/nc_random_point.rds")
+  ncp <-
+    readRDS(
+      testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"
+      )
+    )
   ncp_terra <- terra::vect(ncp)
 
   testthat::expect_no_error(clip_ras_ext(ncp, 30000L, ncelev))
@@ -1343,7 +1356,7 @@ testthat::test_that("Grid merge is well done.", {
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
   nctr <- terra::vect(nc)
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
@@ -1517,7 +1530,7 @@ testthat::test_that("Check bbox abides.", {
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
 
   testthat::expect_no_error(is_bbox_within_reference(ncp, nc))
@@ -1736,14 +1749,14 @@ extract_at_buffer_kernel <- function(
 
 ```{r, eval = FALSE, include = FALSE}
 # starts from sf/stars
-ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
 ncp <- sf::st_transform(ncp, "EPSG:5070")
 ncp <- terra::vect(ncp)
 nccnty <- system.file("shape/nc.shp", package = "sf")
 nccnty <- sf::st_read(nccnty)
 nccnty <- sf::st_transform(nccnty, "EPSG:5070")
 nccntytr <- terra::vect(nccnty)
-ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+ncelev <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds"))
 ncelev <- terra::unwrap(ncelev)
 
 kk <-
@@ -1957,14 +1970,14 @@ testthat::test_that("extract_at runs well", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncp <- terra::vect(ncp)
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <- readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+  ncelev <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds"))
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
@@ -2585,7 +2598,7 @@ testthat::test_that("SEDC are well calculated.", {
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
   ncpnts <-
-    readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+    readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncrand <- terra::spatSample(ncpoly, 250L)
@@ -2609,7 +2622,7 @@ testthat::test_that("SEDC are well calculated.", {
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
 
   ncpnts <-
-    readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+    readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncpnts <- sf::st_transform(ncpnts, "EPSG:5070")
   ncrandsf <- sf::st_as_sf(ncrand)
 
@@ -3289,12 +3302,12 @@ testthat::test_that("Processes are properly spawned and compute", {
     terra::project("EPSG:5070")
   ncpnts <-
     readRDS(
-            testthat::test_path("..", "testdata", "nc_random_point.rds"))
+            testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncelev <-
     terra::unwrap(
-      readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+      readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds"))
     )
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
@@ -3445,14 +3458,14 @@ testthat::test_that(
     withr::local_package("dplyr")
     withr::local_options(list(sf_use_s2 = FALSE))
 
-    ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+    ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
     nccnty <- terra::vect(ncpath, layer = "county")
     nctrct <- sf::st_read(ncpath, layer = "tracts")
     nctrct <- terra::vect(nctrct)
     ncelev <-
       terra::unwrap(
         readRDS(
-          testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+          testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
@@ -3562,10 +3575,10 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # main test
-  pnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  pnts <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   pnts <- terra::vect(pnts)
   rd1 <-
-    terra::vect(testthat::test_path("..", "testdata", "ncroads_first.gpkg"))
+    terra::vect(testthat::test_path("../..", "inst/extdata", "ncroads_first.gpkg"))
 
   pnts <- terra::project(pnts, "EPSG:5070")
   rd1 <- terra::project(rd1, "EPSG:5070")
@@ -3614,12 +3627,12 @@ testthat::test_that(
       )
     )
 
-    ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+    ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
     nccnty <- terra::vect(ncpath, layer = "county")
     ncelev <-
       terra::unwrap(
         readRDS(
-          testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+          testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
@@ -3690,13 +3703,13 @@ adhoc <- function() {
 
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpnts <-
-    readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+    readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncelev <-
     terra::unwrap(
       readRDS(
-        testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+        testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds")
       )
     )
   terra::crs(ncelev) <- "EPSG:5070"
@@ -3738,10 +3751,10 @@ adhoc2 <- function() {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
-  ncpnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncpnts <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
-  ncelev <- terra::unwrap(readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")))
+  ncelev <- terra::unwrap(readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 
@@ -3877,7 +3890,8 @@ knitr::knit("./README.Rmd", "./README.md")
 system(paste0("cp -r ./chopin/* ."))
 # Sys.sleep(1)
 system("rm -r ./chopin")
-knitr::knit("./README.Rmd", "./README.md")
+# knit manually
+# knitr::knit("./README.Rmd", "./README.md")
 
 
 codemetar::write_codemeta()

@@ -4,8 +4,6 @@ output:
     html_preview: false
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -21,6 +19,8 @@ knitr::opts_chunk$set(
 [![test-coverage](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml)
 [![codecov](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin/graph/badge.svg?token=IG64A3MFUA)](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin)
 [![R-CMD-check](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
 <!-- badges: end -->
 
@@ -78,29 +78,11 @@ source(\"README_run.r\")
 
 ## Installation
 
-- `chopin` can be installed using `pak::pak`, `devtools::install_github`, or `remotes::install_github`.
-    - All required and suggested packages for `chopin` are installed if `dependencies` argument is set `TRUE`. Dependencies include the required packages to run examples below.
+- `chopin` can be installed using `remotes::install_github` (also possible with `pak::pak` or `devtools::install_github`).
 
 ```r
-# install.packages("devtools")
-devtools::install_github(
-  "Spatiotemporal-Exposures-and-Toxicology/chopin",
-  dependencies = TRUE
-)
-```
-```r
-# install.packages("pak")
-pak::pak(
-  "Spatiotemporal-Exposures-and-Toxicology/chopin",
-  dependencies = TRUE
-)
-```
-```r
 # install.packages("remotes")
-remotes::install_github(
-  "Spatiotemporal-Exposures-and-Toxicology/chopin",
-  dependencies = TRUE
-)
+remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
 
 
@@ -149,7 +131,7 @@ plot(sf::st_geometry(ncpoints))
 
 ```{r load-srtm}
 # data preparation
-wdir <- testthat::test_path("../testdata")
+wdir <- system.file("extdata", package = "chopin")
 path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
 
 # terra SpatRaster objects are wrapped when exported to rds file
@@ -236,9 +218,9 @@ all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
 
 ```{r plot results}
 ncpoints_s <-
-  merge(ncpoints, ncpoints_srtm)
+    merge(ncpoints, ncpoints_srtm)
 ncpoints_m <-
-  merge(ncpoints, ncpoints_srtm_mthr)
+    merge(ncpoints, ncpoints_srtm_mthr)
 
 plot(ncpoints_s[, "mean"], main = "Single-thread", pch = 19, cex = 0.33)
 plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)

@@ -13,12 +13,12 @@ testthat::test_that("Processes are properly spawned and compute", {
     terra::project("EPSG:5070")
   ncpnts <-
     readRDS(
-            testthat::test_path("..", "testdata", "nc_random_point.rds"))
+            testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncelev <-
     terra::unwrap(
-      readRDS(testthat::test_path("..", "testdata", "nc_srtm15_otm.rds"))
+      readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds"))
     )
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
@@ -167,14 +167,14 @@ testthat::test_that(
     withr::local_package("dplyr")
     withr::local_options(list(sf_use_s2 = FALSE))
 
-    ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+    ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
     nccnty <- terra::vect(ncpath, layer = "county")
     nctrct <- sf::st_read(ncpath, layer = "tracts")
     nctrct <- terra::vect(nctrct)
     ncelev <-
       terra::unwrap(
         readRDS(
-          testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+          testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
@@ -281,10 +281,10 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # main test
-  pnts <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  pnts <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
   pnts <- terra::vect(pnts)
   rd1 <-
-    terra::vect(testthat::test_path("..", "testdata", "ncroads_first.gpkg"))
+    terra::vect(testthat::test_path("../..", "inst/extdata", "ncroads_first.gpkg"))
 
   pnts <- terra::project(pnts, "EPSG:5070")
   rd1 <- terra::project(rd1, "EPSG:5070")
@@ -331,12 +331,12 @@ testthat::test_that(
       )
     )
 
-    ncpath <- testthat::test_path("..", "testdata", "nc_hierarchy.gpkg")
+    ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
     nccnty <- terra::vect(ncpath, layer = "county")
     ncelev <-
       terra::unwrap(
         readRDS(
-          testthat::test_path("..", "testdata", "nc_srtm15_otm.rds")
+          testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
