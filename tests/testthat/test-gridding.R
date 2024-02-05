@@ -48,7 +48,7 @@ testthat::test_that("Grid merge is well done.", {
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
   nctr <- terra::vect(nc)
-  ncp <- readRDS(testthat::test_path("..", "testdata", "nc_random_point.rds"))
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 

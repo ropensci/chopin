@@ -143,6 +143,7 @@ reproject_std <-
 #' @param input_vector One of sf or vect class. Target points of computation.
 #' @returns A repaired `sf` or `SpatVector` object depending on
 #' the class of input_vector.
+#' @note This function works with GEOS (>=3.8).
 #' @examples
 #' \dontrun{
 #' library(terra)

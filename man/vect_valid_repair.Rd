@@ -22,6 +22,9 @@ hole orders. This function will pass the input_vector object to
 \code{\link[terra:is.valid]{terra::makeValid}} (if input_vector is SpatVector).
 May take some time depending on the geometry complexity.
 }
+\note{
+This function works with GEOS (>=3.8).
+}
 \examples{
 \dontrun{
 library(terra)
