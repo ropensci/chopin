@@ -129,7 +129,7 @@ testthat::test_that("Check bbox abides.", {
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
-  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
 
   testthat::expect_no_error(is_bbox_within_reference(ncp, nc))

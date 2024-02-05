@@ -20,7 +20,7 @@ testthat::test_that("SEDC are well calculated.", {
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
   ncpnts <-
-    readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
+    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncrand <- terra::spatSample(ncpoly, 250L)
@@ -44,7 +44,7 @@ testthat::test_that("SEDC are well calculated.", {
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
 
   ncpnts <-
-    readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
+    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncpnts <- sf::st_transform(ncpnts, "EPSG:5070")
   ncrandsf <- sf::st_as_sf(ncrand)
 

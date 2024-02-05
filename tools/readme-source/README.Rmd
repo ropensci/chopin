@@ -131,7 +131,7 @@ plot(sf::st_geometry(ncpoints))
 
 ```{r load-srtm}
 # data preparation
-wdir <- testthat::test_path("../testdata")
+wdir <- system.file("extdata", package = "chopin")
 path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
 
 # terra SpatRaster objects are wrapped when exported to rds file

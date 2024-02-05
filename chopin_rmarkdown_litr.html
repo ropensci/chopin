@@ -1020,14 +1020,14 @@ reproject_std &lt;-
   withr::local_package(&quot;terra&quot;)
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  ncpath &lt;- testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
+  ncpath &lt;- system.file(&quot;extdata/nc_hierarchy.gpkg&quot;, package = &quot;chopin&quot;)
   nccnty &lt;- terra::vect(
     ncpath, layer = &quot;county&quot;,
     query = &quot;SELECT * FROM county WHERE GEOID IN (37063, 37183)&quot;
   )
   nctrct &lt;- terra::vect(ncpath, layer = &quot;tracts&quot;)
 
-  ncp &lt;- readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+  ncp &lt;- readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncp &lt;- sf::st_transform(ncp, &quot;EPSG:5070&quot;)
   ncpt &lt;- terra::vect(ncp)
 
@@ -1142,8 +1142,7 @@ reproject_std &lt;-
   nc &lt;- sf::read_sf(nc)
   ncp &lt;-
     readRDS(
-      testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;
-      )
+      system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;)
     )
   ncp_terra &lt;- terra::vect(ncp)
 
@@ -1549,7 +1548,7 @@ par_make_grid &lt;-
   nc &lt;- sf::read_sf(nc)
   nc &lt;- sf::st_transform(nc, &quot;EPSG:5070&quot;)
   nctr &lt;- terra::vect(nc)
-  ncp &lt;- readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+  ncp &lt;- readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncp &lt;- sf::st_transform(ncp, &quot;EPSG:5070&quot;)
   ncrp &lt;- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
@@ -1709,7 +1708,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n&quot;)
   nc &lt;- system.file(package = &quot;sf&quot;, &quot;shape/nc.shp&quot;)
   nc &lt;- sf::read_sf(nc)
   nc &lt;- sf::st_transform(nc, &quot;EPSG:5070&quot;)
-  ncp &lt;- readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+  ncp &lt;- readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncp &lt;- sf::st_transform(ncp, &quot;EPSG:5070&quot;)
 
   testthat::expect_no_error(<a href='chopin_rmarkdown_litr.html#is_bbox_within_reference'>is_bbox_within_reference</a>(ncp, nc))
@@ -2074,14 +2073,14 @@ reproject_b2r &lt;-
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp &lt;- readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+  ncp &lt;- readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncp &lt;- sf::st_transform(ncp, &quot;EPSG:5070&quot;)
   ncp &lt;- terra::vect(ncp)
   nccnty &lt;- system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&quot;)
   nccnty &lt;- sf::st_read(nccnty)
   nccnty &lt;- sf::st_transform(nccnty, &quot;EPSG:5070&quot;)
   nccntytr &lt;- terra::vect(nccnty)
-  ncelev &lt;- readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_srtm15_otm.rds&quot;))
+  ncelev &lt;- readRDS(system.file(&quot;extdata/nc_srtm15_otm.rds&quot;, package = &quot;chopin&quot;))
   ncelev &lt;- terra::unwrap(ncelev)
 
   nccnty4326 &lt;- sf::st_transform(nccnty, &quot;EPSG:4326&quot;)
@@ -2631,7 +2630,7 @@ The result may not be accurate.\n&quot;,
   ncpoly &lt;- terra::vect(ncpath) |&gt;
     terra::project(&quot;EPSG:5070&quot;)
   ncpnts &lt;-
-    readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+    readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncpnts &lt;- terra::vect(ncpnts)
   ncpnts &lt;- terra::project(ncpnts, &quot;EPSG:5070&quot;)
   ncrand &lt;- terra::spatSample(ncpoly, 250L)
@@ -2655,7 +2654,7 @@ The result may not be accurate.\n&quot;,
   testthat::expect_true(!is.null(attr(sedc_calc, &quot;sedc_threshold&quot;)))
 
   ncpnts &lt;-
-    readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+    readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncpnts &lt;- sf::st_transform(ncpnts, &quot;EPSG:5070&quot;)
   ncrandsf &lt;- sf::st_as_sf(ncrand)
 
@@ -3305,12 +3304,12 @@ par_multirasters &lt;-
     terra::project(&quot;EPSG:5070&quot;)
   ncpnts &lt;-
     readRDS(
-            testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+            system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   ncpnts &lt;- terra::vect(ncpnts)
   ncpnts &lt;- terra::project(ncpnts, &quot;EPSG:5070&quot;)
   ncelev &lt;-
     terra::unwrap(
-      readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_srtm15_otm.rds&quot;))
+      readRDS(system.file(&quot;extdata/nc_srtm15_otm.rds&quot;, package = &quot;chopin&quot;))
     )
   terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
   names(ncelev) &lt;- c(&quot;srtm15&quot;)
@@ -3458,14 +3457,14 @@ par_multirasters &lt;-
     withr::local_package(&quot;dplyr&quot;)
     withr::local_options(list(sf_use_s2 = FALSE))
 
-    ncpath &lt;- testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
+    ncpath &lt;- system.file(&quot;extdata/nc_hierarchy.gpkg&quot;, package = &quot;chopin&quot;)
     nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
     nctrct &lt;- sf::st_read(ncpath, layer = &quot;tracts&quot;)
     nctrct &lt;- terra::vect(nctrct)
     ncelev &lt;-
       terra::unwrap(
         readRDS(
-          testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_srtm15_otm.rds&quot;)
+          system.file(&quot;extdata/nc_srtm15_otm.rds&quot;, package = &quot;chopin&quot;)
         )
       )
     terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;
@@ -3577,10 +3576,10 @@ this file.</p>
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # main test
-  pnts &lt;- readRDS(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_random_point.rds&quot;))
+  pnts &lt;- readRDS(system.file(&quot;extdata/nc_random_point.rds&quot;, package = &quot;chopin&quot;))
   pnts &lt;- terra::vect(pnts)
   rd1 &lt;-
-    terra::vect(testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;ncroads_first.gpkg&quot;))
+    terra::vect(system.file(&quot;extdata/ncroads_first.gpkg&quot;, package = &quot;chopin&quot;))
 
   pnts &lt;- terra::project(pnts, &quot;EPSG:5070&quot;)
   rd1 &lt;- terra::project(rd1, &quot;EPSG:5070&quot;)
@@ -3659,12 +3658,12 @@ this file.</p>
       )
     )
 
-    ncpath &lt;- testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_hierarchy.gpkg&quot;)
+    ncpath &lt;- system.file(&quot;extdata/nc_hierarchy.gpkg&quot;, package = &quot;chopin&quot;)
     nccnty &lt;- terra::vect(ncpath, layer = &quot;county&quot;)
     ncelev &lt;-
       terra::unwrap(
         readRDS(
-          testthat::test_path(&quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_srtm15_otm.rds&quot;)
+          system.file(&quot;extdata/nc_srtm15_otm.rds&quot;, package = &quot;chopin&quot;)
         )
       )
     terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;

@@ -5,14 +5,14 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  ncpath <- testthat::test_path("../..", "inst/extdata", "nc_hierarchy.gpkg")
+  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
   nccnty <- terra::vect(
     ncpath, layer = "county",
     query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)"
   )
   nctrct <- terra::vect(ncpath, layer = "tracts")
 
-  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncpt <- terra::vect(ncp)
 
@@ -87,8 +87,7 @@ testthat::test_that("Clip by extent works without errors", {
   nc <- sf::read_sf(nc)
   ncp <-
     readRDS(
-      testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"
-      )
+      system.file("extdata/nc_random_point.rds", package = "chopin")
     )
   ncp_terra <- terra::vect(ncp)
 
@@ -109,14 +108,14 @@ testthat::test_that("extract_at runs well", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_random_point.rds"))
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   ncp <- terra::vect(ncp)
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <- readRDS(testthat::test_path("../..", "inst/extdata", "nc_srtm15_otm.rds"))
+  ncelev <- readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
