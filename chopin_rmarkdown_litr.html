@@ -1132,9 +1132,7 @@ reproject_std &lt;-
   ncelev &lt;-
     terra::unwrap(
       readRDS(
-        testthat::test_path(
-          &quot;../..&quot;, &quot;inst/extdata&quot;, &quot;nc_srtm15_otm.rds&quot;
-        )
+        system.file(&quot;extdata/nc_srtm15_otm.rds&quot;, package = &quot;chopin&quot;)
       )
     )
   terra::crs(ncelev) &lt;- &quot;EPSG:5070&quot;

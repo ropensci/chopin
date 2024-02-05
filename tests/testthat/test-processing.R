@@ -77,9 +77,7 @@ testthat::test_that("Clip by extent works without errors", {
   ncelev <-
     terra::unwrap(
       readRDS(
-        testthat::test_path(
-          "../..", "inst/extdata", "nc_srtm15_otm.rds"
-        )
+        system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
       )
     )
   terra::crs(ncelev) <- "EPSG:5070"

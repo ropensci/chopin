@@ -141,7 +141,6 @@ srtm
 terra::plot(srtm)
 ```
 
-
 <!-- ![](https://i.imgur.com/l08bz4j.png)-->
 
 ```{r srtm-extract-single}

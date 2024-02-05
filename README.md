@@ -205,7 +205,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.111   0.265  11.410
+#>  10.992   0.246  11.272
 ```
 
 #### Generate regular grid computational regions
@@ -313,7 +313,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.970   1.233   4.906
+#>   8.791   1.004   4.861
 ```
 
 ``` r
@@ -402,7 +402,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   2.170   0.019   2.196
+#>   2.157   0.038   2.201
 
 # hierarchical parallelization
 system.time(
@@ -418,7 +418,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.051   0.022   2.678
+#>   0.053   0.012   2.615
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -445,9 +445,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpRy1Luv/test1.tif" "/tmp/RtmpRy1Luv/test2.tif"
-#> [3] "/tmp/RtmpRy1Luv/test3.tif" "/tmp/RtmpRy1Luv/test4.tif"
-#> [5] "/tmp/RtmpRy1Luv/test5.tif"
+#> [1] "/tmp/Rtmp6xUBBR/test1.tif" "/tmp/Rtmp6xUBBR/test2.tif"
+#> [3] "/tmp/Rtmp6xUBBR/test3.tif" "/tmp/Rtmp6xUBBR/test4.tif"
+#> [5] "/tmp/Rtmp6xUBBR/test5.tif"
 ```
 
 ``` r
@@ -463,18 +463,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.315   0.438   1.023
+#>   1.329   0.396   1.002
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpRy1Luv/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpRy1Luv/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpRy1Luv/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpRy1Luv/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpRy1Luv/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpRy1Luv/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmp6xUBBR/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmp6xUBBR/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmp6xUBBR/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmp6xUBBR/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmp6xUBBR/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmp6xUBBR/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -552,7 +552,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.898   0.000   0.899
+#>   0.881   0.003   0.886
 
 # we use four threads that were configured above
 system.time(
@@ -573,7 +573,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.806   0.228   0.427
+#>   0.557   0.133   0.409
 ```
 
 -   We will compare the results from the single-thread and multi-thread
