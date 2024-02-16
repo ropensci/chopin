@@ -11,3 +11,4 @@ slurm_test
 containers
 ^codemeta\.json$
 ^README\.Rmd$
+manuscript
