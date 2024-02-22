@@ -40,14 +40,14 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
     - Collected **datasets they need**
 
 ### Notes on data restrictions
-- This package works best with **two-dimensional** (**planar**) geometries. Users should disable `s2` spherical geometry mode in `sf` by setting
+- This package works best with **two-dimensional** (**planar**) geometries. Users should disable `s2` spherical geometry mode in `sf` by setting. Running any `chopin` functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.
 ```r
 sf::sf_use_s2(FALSE)
 ```
 
 ## Basic design
 - Processing functions accept [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)'s classes for spatial data. Raster-vector overlay is done with `exactextractr`.
-- As of version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
+- This package supports three basic functions that are readily parallelized over multithread environments:
     - `extract_at`: extract raster values with point buffers or polygons.
         - `extract_at_buffer`
         - `extract_at_poly`
