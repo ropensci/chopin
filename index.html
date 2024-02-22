@@ -118,7 +118,7 @@
 <h3 id="notes-on-data-restrictions">Notes on data restrictions<a class="anchor" aria-label="anchor" href="#notes-on-data-restrictions"></a>
 </h3>
 <ul>
-<li>This package works best with <strong>two-dimensional</strong> (<strong>planar</strong>) geometries. Users should disable <code>s2</code> spherical geometry mode in <code>sf</code> by setting</li>
+<li>This package works best with <strong>two-dimensional</strong> (<strong>planar</strong>) geometries. Users should disable <code>s2</code> spherical geometry mode in <code>sf</code> by setting. Running any <code>chopin</code> functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.</li>
 </ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
@@ -129,7 +129,7 @@
 </h2>
 <ul>
 <li>Processing functions accept <a href="https://github.com/r-spatial/sf" class="external-link">sf</a>/<a href="https://github.com/rspatial/terra" class="external-link">terra</a>’s classes for spatial data. Raster-vector overlay is done with <code>exactextractr</code>.</li>
-<li>As of version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
+<li>This package supports three basic functions that are readily parallelized over multithread environments:
 <ul>
 <li>
 <code>extract_at</code>: extract raster values with point buffers or polygons.
@@ -216,7 +216,11 @@ source(\"README_run.r\")
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">read_sf</a></span><span class="op">(</span><span class="va">ncpoly</span><span class="op">)</span></span>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncsf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-read-nc-1.png" width="100%"></p>
+<div class="figure">
+<img src="reference/figures/README-read-nc-1.png" alt="plot of chunk read-nc" width="100%"><p class="caption">
+plot of chunk read-nc
+</p>
+</div>
 <!--![](https://i.imgur.com/ImPfGXP.png) -->
 <div class="section level4">
 <h4 id="generate-random-points-in-nc">Generate random points in NC<a class="anchor" aria-label="anchor" href="#generate-random-points-in-nc"></a>
@@ -229,7 +233,11 @@ source(\"README_run.r\")
 <span><span class="va">ncpoints</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span></span>
 <span><span class="va">ncpoints</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"PID-%05d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1e4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-gen-ncpoints-1.png" width="100%"></p>
+<div class="figure">
+<img src="reference/figures/README-gen-ncpoints-1.png" alt="plot of chunk gen-ncpoints" width="100%"><p class="caption">
+plot of chunk gen-ncpoints
+</p>
+</div>
 </div>
 <div class="section level4">
 <h4 id="target-raster-dataset-shuttle-radar-topography-mission">Target raster dataset: <a href="https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1" class="external-link">Shuttle Radar Topography Mission</a>
@@ -257,7 +265,11 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; min value   :        -3589.291 </span></span>
 <span><span class="co">#&gt; max value   :         1946.400</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srtm</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-load-srtm-1.png" width="100%"></p>
+<div class="figure">
+<img src="reference/figures/README-load-srtm-1.png" alt="plot of chunk load-srtm" width="100%"><p class="caption">
+plot of chunk load-srtm
+</p>
+</div>
 <!-- ![](https://i.imgur.com/l08bz4j.png)-->
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoints_tr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span></span>
@@ -272,7 +284,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  10.992   0.246  11.272</span></span></code></pre></div>
+<span><span class="co">#&gt;  10.686   0.195  10.914</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
@@ -302,7 +314,11 @@ source(\"README_run.r\")
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-compare-compregions-1.png" width="100%"></p>
+<div class="figure">
+<img src="reference/figures/README-compare-compregions-1.png" alt="plot of chunk compare-compregions" width="100%"><p class="caption">
+plot of chunk compare-compregions
+</p>
+</div>
 <!--![](https://i.imgur.com/c0xweeV.png) -->
 </div>
 <div class="section level4">
@@ -369,7 +385,7 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 32</span></span>
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 33</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.791   1.004   4.861</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.530   0.869   4.707</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">ncpoints_srtm_mthr</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"mean_par"</span></span>
 <span><span class="va">ncpoints_compar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints_srtm</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
@@ -383,10 +399,20 @@ source(\"README_run.r\")
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_s</span><span class="op">[</span>, <span class="st">"mean"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Single-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot%20results-1.png" width="100%"></p>
+<div class="figure">
+<img src="reference/figures/README-plot%20results-1.png" alt="plot of chunk plot results" width="100%"><p class="caption">
+plot of chunk plot results
+</p>
+</div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_m</span><span class="op">[</span>, <span class="st">"mean_par"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Multi-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot%20results-2.png" width="100%"><!--![](https://i.imgur.com/iaQHWBL.png) --><!--![](https://i.imgur.com/fgOvOff.png) --></p>
+<div class="figure">
+<img src="reference/figures/README-plot%20results-2.png" alt="plot of chunk plot results" width="100%"><p class="caption">
+plot of chunk plot results
+</p>
+</div>
+<!--![](https://i.imgur.com/iaQHWBL.png) -->
+<!--![](https://i.imgur.com/fgOvOff.png) -->
 </div>
 </div>
 <div class="section level3">
@@ -408,7 +434,7 @@ source(\"README_run.r\")
 <span><span class="va">nc_data</span> <span class="op">&lt;-</span> <span class="va">path_nchrchy</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `county' from data source </span></span>
-<span><span class="co">#&gt;   `/ddn/gs1/home/songi2/r-libs/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/ddn/gs1/home/songi2/projects/chopin/inst/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 100 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
@@ -417,7 +443,7 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
 <span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `tracts' from data source </span></span>
-<span><span class="co">#&gt;   `/ddn/gs1/home/songi2/r-libs/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/ddn/gs1/home/songi2/projects/chopin/inst/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2672 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
@@ -445,7 +471,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.157   0.038   2.201</span></span>
+<span><span class="co">#&gt;   1.863   0.021   1.891</span></span>
 <span></span>
 <span><span class="co"># hierarchical parallelization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -461,7 +487,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.053   0.012   2.615</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.057   0.018   2.718</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -489,9 +515,9 @@ source(\"README_run.r\")
 <span><span class="co"># check if the raster files were exported as expected</span></span>
 <span><span class="va">testfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span>, pattern <span class="op">=</span> <span class="st">"*.tif$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">testfiles</span></span>
-<span><span class="co">#&gt; [1] "/tmp/Rtmp6xUBBR/test1.tif" "/tmp/Rtmp6xUBBR/test2.tif"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/Rtmp6xUBBR/test3.tif" "/tmp/Rtmp6xUBBR/test4.tif"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/Rtmp6xUBBR/test5.tif"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/tmp/Rtmp4Yf4Es/test1.tif" "/tmp/Rtmp4Yf4Es/test2.tif"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/Rtmp4Yf4Es/test3.tif" "/tmp/Rtmp4Yf4Es/test4.tif"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/Rtmp4Yf4Es/test5.tif"</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
@@ -505,7 +531,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.329   0.396   1.002</span></span>
+<span><span class="co">#&gt;   1.424   0.423   1.046</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -517,37 +543,38 @@ source(\"README_run.r\")
 <tr class="odd">
 <td align="left">37037</td>
 <td align="right">136.80203</td>
-<td align="left">/tmp/Rtmp6xUBBR/test1.tif</td>
+<td align="left">/tmp/Rtmp4Yf4Es/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="left">37001</td>
 <td align="right">189.76170</td>
-<td align="left">/tmp/Rtmp6xUBBR/test1.tif</td>
+<td align="left">/tmp/Rtmp4Yf4Es/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="left">37057</td>
 <td align="right">231.16968</td>
-<td align="left">/tmp/Rtmp6xUBBR/test1.tif</td>
+<td align="left">/tmp/Rtmp4Yf4Es/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="left">37069</td>
 <td align="right">98.03845</td>
-<td align="left">/tmp/Rtmp6xUBBR/test1.tif</td>
+<td align="left">/tmp/Rtmp4Yf4Es/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="left">37155</td>
 <td align="right">41.23463</td>
-<td align="left">/tmp/Rtmp6xUBBR/test1.tif</td>
+<td align="left">/tmp/Rtmp4Yf4Es/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="left">37109</td>
 <td align="right">270.96933</td>
-<td align="left">/tmp/Rtmp6xUBBR/test1.tif</td>
+<td align="left">/tmp/Rtmp4Yf4Es/test1.tif</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># remove temporary raster files</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="co"># remove temporary raster files</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.remove</a></span><span class="op">(</span><span class="va">testfiles</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE TRUE TRUE TRUE TRUE</span></span></code></pre></div>
 <!--| GEOID |      mean |
@@ -605,14 +632,18 @@ source(\"README_run.r\")
 <span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Computation grids (50km padding)"</span>, <span class="st">"Major roads"</span><span class="op">)</span>,</span>
 <span>       lty <span class="op">=</span> <span class="fl">1</span>, lwd <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"orange"</span>, <span class="st">"blue"</span><span class="op">)</span>,</span>
 <span>       cex <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-map-all-1.png" width="100%"></p>
+<div class="figure">
+<img src="reference/figures/README-map-all-1.png" alt="plot of chunk map-all" width="100%"><p class="caption">
+plot of chunk map-all
+</p>
+</div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># terra::nearest run</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pnts</span>, y <span class="op">=</span> <span class="va">rd1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.881   0.003   0.886</span></span>
+<span><span class="co">#&gt;   0.907   0.001   0.909</span></span>
 <span></span>
 <span><span class="co"># we use four threads that were configured above</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -633,7 +664,7 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 7</span></span>
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 8</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.557   0.133   0.409</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.563   0.174   0.435</span></span></code></pre></div>
 <ul>
 <li>We will compare the results from the single-thread and multi-thread calculation.</li>
 </ul>
