@@ -16,7 +16,7 @@ testthat::test_that("Raster is read properly with a window.", {
 
   ext_numeric <- c(-84, -82, 34, 36) # unnamed
   testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric[1:3]))
-  testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric))
+  testthat::expect_no_error(terra::rast(x = bcsd_path, win = ext_numeric))
 
   names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
   rastshort_num <- terra::rast(x = bcsd_path, win = ext_numeric)
