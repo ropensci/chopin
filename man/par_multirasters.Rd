@@ -42,9 +42,39 @@ to make subsets of input vector objects in advance.
 }
 \examples{
 \dontrun{
+library(terra)
+library(sf)
+library(chopin)
 library(future)
-plan(multisession, workers = 4L)
-# See vignette for details.
+library(doFuture)
+sf::sf_use_s2(FALSE)
+plan(multicore)
+registerDoFuture()
+
+ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+nccnty <- terra::vect(ncpath, layer = "county")
+ncelev <-
+  terra::unwrap(
+    readRDS(
+      system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+    )
+  )
+terra::crs(ncelev) <- "EPSG:5070"
+names(ncelev) <- c("srtm15")
+tdir <- tempdir(check = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+
+res <- par_multirasters(
+  filenames = testfiles,
+  fun_dist = extract_at_poly,
+  polys = nccnty,
+  surf = ncelev,
+  id = "GEOID",
+  func = "mean"
+)
 }
 }
 \seealso{
@@ -52,8 +82,8 @@ Other Parallelization:
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()}
 }
 \author{

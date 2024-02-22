@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-02-05"
+date: "2024-02-22"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.3.0.20240205",
+    Version = "0.3.1.20240222",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -53,6 +53,9 @@ usethis::use_build_ignore(c("/figure"), escape = FALSE)
 usethis::use_build_ignore(c("/containers"), escape = FALSE)
 usethis::use_build_ignore(c("\\*.Rmd"), escape = FALSE)
 usethis::use_build_ignore(c("\\*.rmd"), escape = FALSE)
+usethis::use_build_ignore(c("\\*.yml"), escape = FALSE)
+usethis::use_build_ignore(c("CODE_OF_CONDUCT.md"), escape = FALSE)
+usethis::use_build_ignore(c("\\*.html"), escape = FALSE)
 
 usethis::use_package("dplyr", min_version = "1.1.0")
 usethis::use_package("sf", min_version = "1.0-10")
@@ -912,7 +915,7 @@ testthat::test_that("Clip by extent works without errors", {
 
 ```
 
-```{r, send_to = "R/preprocessing.R"}
+```{r, include=FALSE, eval=FALSE}
 #' Quick call for SpatRaster with a window
 #' @family Helper functions
 #' @param rasterpath character(1). Path to the raster file.
@@ -944,7 +947,7 @@ rast_short <- function(rasterpath = NULL, win = NULL) {
 ```
 
 
-```{r test-rasterbound, send_to = "tests/testthat/test-preprocessing.R"}
+```{r test-rasterbound, include=FALSE, eval=FALSE}
 testthat::test_that("Raster is read properly with a window.", {
   withr::local_package("stars")
   withr::local_package("terra")
@@ -952,15 +955,15 @@ testthat::test_that("Raster is read properly with a window.", {
   bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
 
   ext_numeric <- c(-84, -82, 34, 36) # unnamed
-  testthat::expect_error(rast_short(bcsd_path, ext_numeric[1:3]))
-  testthat::expect_error(rast_short(bcsd_path, ext_numeric))
+  testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric[1:3]))
+  testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric))
 
   names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
-  rastshort_num <- rast_short(bcsd_path, ext_numeric)
+  rastshort_num <- terra::rast(x = bcsd_path, win = ext_numeric)
   testthat::expect_s4_class(rastshort_num, "SpatRaster")
 
   ext_terra <- terra::ext(ext_numeric)
-  rastshort_terra <- rast_short(bcsd_path, ext_terra)
+  rastshort_terra <- terra::rast(x = bcsd_path, win = ext_terra)
   testthat::expect_s4_class(rastshort_terra, "SpatRaster")
 
 })
@@ -1085,7 +1088,8 @@ We try converting padding to numeric...\n")
         par_merge_grid(
           points_in = input,
           par_make_grid(input, nx, ny),
-          grid_min_features = grid_min_features),
+          grid_min_features = grid_min_features
+        ),
         density = simpleError("density method is under development.\n")
       )
 
@@ -1143,9 +1147,9 @@ We try converting padding to numeric...\n")
 #' @export
 par_make_grid <-
   function(
-    points_in,
-    ncutsx,
-    ncutsy
+    points_in = NULL,
+    ncutsx = NULL,
+    ncutsy = NULL
   ) {
     package_detected <- dep_check(points_in)
 
@@ -1204,84 +1208,88 @@ par_make_grid <-
 #' @importFrom sf st_cast
 #' @importFrom rlang sym
 #' @export
-par_merge_grid <- function(points_in, grid_in, grid_min_features) {
-  package_detected <- dep_check(points_in)
-  if (package_detected == "terra") {
-    points_in <- sf::st_as_sf(points_in)
-    grid_in <- sf::st_as_sf(grid_in)
-  }
+par_merge_grid <-
+  function(
+    points_in = NULL,
+    grid_in = NULL,
+    grid_min_features = NULL
+  ) {
+    package_detected <- dep_check(points_in)
+    if (package_detected == "terra") {
+      points_in <- sf::st_as_sf(points_in)
+      grid_in <- sf::st_as_sf(grid_in)
+    }
 
-  n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
-  grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
-  grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
-  grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
-  grid_lt_threshold <- (n_points_in_grid < grid_min_features)
+    n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
+    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
+    grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
+    grid_lt_threshold <- (n_points_in_grid < grid_min_features)
 
-  # does the number of points per grid exceed minimum threshold?
-  if (sum(grid_lt_threshold) < 2) {
-    stop(
-      sprintf(
-        "Threshold is too low. Please try higher threshold.\n
-      min # points in grids: %d, your threshold: %d\n",
-        min(n_points_in_grid), grid_min_features
+    # does the number of points per grid exceed minimum threshold?
+    if (sum(grid_lt_threshold) < 2) {
+      stop(
+        sprintf(
+          "Threshold is too low. Please try higher threshold.\n
+        min # points in grids: %d, your threshold: %d\n",
+          min(n_points_in_grid), grid_min_features
+        )
       )
-    )
-  }
-  grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
+    }
+    grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-  # This part does not work as expected.
-  # Should investigate edge list and actual row index of the grid object; 
-  identified <- lapply(grid_rooks,
-                       function(x) sort(x[which(x %in% grid_lt_threshold)]))
-  identified <- identified[grid_lt_threshold]
-  identified <- unique(identified)
-  identified <- identified[sapply(identified, length) > 1]
+    # This part does not work as expected.
+    # Should investigate edge list and actual row index of the grid object;
+    identified <- lapply(grid_rooks,
+                         function(x) sort(x[which(x %in% grid_lt_threshold)]))
+    identified <- identified[grid_lt_threshold]
+    identified <- unique(identified)
+    identified <- identified[sapply(identified, length) > 1]
 
-  identified_graph <-
-    lapply(identified, function(x) t(utils::combn(x, 2))) |>
-    Reduce(f = rbind, x = _) |>
-    unique() |>
-    apply(X = _, 2, as.character) |>
-    igraph::graph_from_edgelist(el = _, directed = 0) |>
-    igraph::mst() |>
-    igraph::components()
+    identified_graph <-
+      lapply(identified, function(x) t(utils::combn(x, 2))) |>
+      Reduce(f = rbind, x = _) |>
+      unique() |>
+      apply(X = _, 2, as.character) |>
+      igraph::graph_from_edgelist(el = _, directed = 0) |>
+      igraph::mst() |>
+      igraph::components()
 
-  identified_graph_member <- identified_graph$membership
+    identified_graph_member <- identified_graph$membership
 
-  merge_idx <- as.integer(names(identified_graph_member))
-  merge_member <- split(merge_idx, identified_graph_member)
-  merge_member_label <-
-    unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
-  merge_member_label <- merge_member_label[identified_graph_member]
+    merge_idx <- as.integer(names(identified_graph_member))
+    merge_member <- split(merge_idx, identified_graph_member)
+    merge_member_label <-
+      unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
+    merge_member_label <- merge_member_label[identified_graph_member]
 
-  # sf object manipulation
-  grid_out <- grid_in
-  grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
+    # sf object manipulation
+    grid_out <- grid_in
+    grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
 
-  grid_out <- grid_out |>
-    dplyr::group_by(!!rlang::sym("CGRIDID")) |>
-    dplyr::summarize(n_merged = dplyr::n()) |>
-    dplyr::ungroup()
+    grid_out <- grid_out |>
+      dplyr::group_by(!!rlang::sym("CGRIDID")) |>
+      dplyr::summarize(n_merged = dplyr::n()) |>
+      dplyr::ungroup()
 
-  ## polsby-popper test for shape compactness
-  par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
-  par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
-  par_merge_gridd_perimeter <-
-    as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
-  par_merge_gridd_pptest <-
-    (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter ^ 2)
+    ## polsby-popper test for shape compactness
+    par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
+    par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
+    par_merge_gridd_perimeter <-
+      as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
+    par_merge_gridd_pptest <-
+      (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter ^ 2)
 
-  # pptest value is bounded [0,1];
-  # 0.3 threshold is groundless at this moment,
-  # possibly will make it defined by users.
-  if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
-        any(par_merge_gridd_pptest < 0.3)) {
-    message("The reduced computational regions have too complex shapes.
-     Consider increasing thresholds or using the original grids.\n")
-  }
+    # pptest value is bounded [0,1];
+    # 0.3 threshold is groundless at this moment,
+    # possibly will make it defined by users.
+    if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
+          any(par_merge_gridd_pptest < 0.3)) {
+      message("The reduced computational regions have too complex shapes.
+      Consider increasing thresholds or using the original grids.\n")
+    }
 
-  return(grid_out)
-
+    return(grid_out)
 }
 
 ```
@@ -1696,13 +1704,18 @@ extract_at_buffer_kernel <- function(
   name_surf_val <-
     ifelse(terra::nlyr(surf_cropped) == 1,
            "value", names(surf_cropped))
-
+  # convert to data.frame
   coords_df <- as.data.frame(points, geom = "XY")
+  # apply strict order
   coords_df <-
     coords_df[, grep(sprintf("^(%s|%s|%s)", id, "x", "y"), names(coords_df))]
   names(coords_df)[grep("(x|y)", names(coords_df))] <- c("xorig", "yorig")
-  xorig <- yorig <- NULL
-  x <- y <- NULL
+
+  # for linter purpose
+  xorig <- NULL
+  yorig <- NULL
+  x <- NULL
+  y <- NULL
   pairdist <- NULL
   w_kernel <- NULL
   coverage_fraction <- NULL
@@ -1719,10 +1732,12 @@ extract_at_buffer_kernel <- function(
       include_xy = TRUE,
       max_cells_in_memory = 5e07
     )
+  # post-processing
   surf_at_bufs <- do.call(rbind, surf_at_bufs)
   surf_at_bufs_summary <-
     surf_at_bufs |>
     dplyr::left_join(coords_df, by = id) |>
+    # averaging with kernel weights
     dplyr::mutate(
       pairdist = terra::distance(
         x = cbind(xorig, yorig),
@@ -1738,6 +1753,7 @@ extract_at_buffer_kernel <- function(
       dplyr::across(dplyr::all_of(name_surf_val), ~func(., w = w_kernelarea))
     ) |>
     dplyr::ungroup()
+  # restore the original identifier
   colnames(surf_at_bufs_summary)[1] <- id
   return(surf_at_bufs_summary)
 }
@@ -1857,10 +1873,7 @@ extract_at_poly <- function(
   if (!is.character(id)) {
     stop("id should be a character.\n")
   }
-
-  cls_polys <- dep_check(polys)
-  cls_surf <- dep_check(surf)
-
+  # reproject polygons to raster's crs
   polys <- reproject_b2r(polys, surf)
 
   extracted_poly <-
@@ -1940,14 +1953,23 @@ extract_at <- function(
 #' @returns Reprojected object in the same class as \code{vector}
 #' @author Insang Song
 #' @examples
-#' # NOT TO RUN
+#' library(terra)
+#' library(sf)
+#' options(sf_use_s2 = FALSE)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' elev <- system.file("ex/elev.tif", package = "terra")
+#' nc <- terra::vect(ncpath)
+#' elev <- terra::rast(elev)
+#' reproject_b2r(nc, elev) 
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
 #' @export
 reproject_b2r <-
-  function(vector,
-           raster) {
+  function(
+    vector = NULL,
+    raster = NULL
+  ) {
     detected_vec <- dep_check(vector)
     switch(detected_vec,
            sf = sf::st_transform(vector, terra::crs(raster)),
@@ -1974,7 +1996,9 @@ testthat::test_that("extract_at runs well", {
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <- readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+  ncelev <- readRDS(
+    system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+  )
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
@@ -2052,9 +2076,9 @@ testthat::test_that("extract_at runs well", {
   )
   testthat::expect_error(
     extract_at(nccntytr,
-                 ncelev,
-                 "GEOID",
-                 mode = "polygon")
+               ncelev,
+               "GEOID",
+               mode = "polygon")
   )
   testthat::expect_error(
     extract_at(nccntytr,
@@ -2070,55 +2094,71 @@ testthat::test_that("extract_at runs well", {
                       radius = 1e4L)
   )
   testthat::expect_error(
-    extract_at_buffer(sf::st_as_sf(ncp),
-                 ncelev,
-                 id = 1,
-                 radius = 1e4L)
+    extract_at_buffer(
+      sf::st_as_sf(ncp),
+      ncelev,
+      id = 1,
+      radius = 1e4L
+    )
   )
   testthat::expect_error(
-    extract_at_buffer(sf::st_as_sf(ncp),
-                 ncelev,
-                 id = "FIPS",
-                 mode = "buffer",
-                 radius = "Ibidem")
+    extract_at_buffer(
+      sf::st_as_sf(ncp),
+      ncelev,
+      id = "FIPS",
+      mode = "buffer",
+      radius = "Ibidem"
+    )
   )
   testthat::expect_error(
-    extract_at_buffer(sf::st_as_sf(ncp),
-                 ncelev,
-                 "FIPS",
-                 radius = "Ibidem")
+    extract_at_buffer(
+      sf::st_as_sf(ncp),
+      ncelev,
+      "FIPS",
+      radius = "Ibidem"
+    )
   )
   testthat::expect_error(
-    extract_at_buffer(ncp,
-                      ncelev,
-                      "pid",
-                      kernel = "epanechnikov",
-                      func = stats::weighted.mean,
-                      bandwidth = 1.25e4L,
-                      radius = 1e4L,
-                      qsegs = 3 + 2i)
+    extract_at_buffer(
+      ncp,
+      ncelev,
+      "pid",
+      kernel = "epanechnikov",
+      func = stats::weighted.mean,
+      bandwidth = 1.25e4L,
+      radius = 1e4L,
+      qsegs = 3 + 2i
+    )
   )
 
 
   testthat::expect_no_error(
-    extract_at_poly(sf::st_as_sf(nccntytr),
-                    ncelev,
-                    id = "FIPS")
+    extract_at_poly(
+      sf::st_as_sf(nccntytr),
+      ncelev,
+      id = "FIPS"
+    )
   )
   testthat::expect_error(
-    extract_at_poly(as.list(nccntytr),
-                    ncelev,
-                    id = "FIPS")
+    extract_at_poly(
+      as.list(nccntytr),
+      ncelev,
+      id = "FIPS"
+    )
   )
   testthat::expect_error(
-    extract_at_poly(nccntytr,
-                    matrix(rnorm(100), 10, 10),
-                    id = "FIPS")
+    extract_at_poly(
+      nccntytr,
+      matrix(rnorm(100), 10, 10),
+      id = "FIPS"
+    )
   )
   testthat::expect_error(
-    extract_at_poly(nccntytr,
-                    ncelev,
-                    id = 2)
+    extract_at_poly(
+      nccntytr,
+      ncelev,
+      id = 2
+    )
   )
 
 })
@@ -2144,7 +2184,7 @@ testthat::test_that("extract_at runs well", {
 #' @importFrom terra crs
 #' @importFrom methods is
 #' @export
-crs_check <- function(x) {
+crs_check <- function(x = NULL) {
   ref_class <- c("sf", "stars", "SpatVector",
                  "SpatRaster", "SpatRasterDataset")
 
@@ -2434,8 +2474,8 @@ plot(buf0l, border = "red", add = TRUE)
 #'  `exp(-3)` (approximately -95 %)
 #' @param threshold numeric(1). For computational efficiency,
 #'  the nearest points in threshold will be selected.
-#'  Default is \code{2 * sedc_bandwidth}.
-#' @param target_fields character(varying). Field names in characters.
+#'  \code{2 * sedc_bandwidth} is applied if this value remains `NULL`.
+#' @param target_fields character. Field names to calculate SEDC.
 #' @returns data.frame (tibble) object with input field names with
 #'  a suffix \code{"_sedc"} where the sums of EDC are stored.
 #'  Additional attributes are attached for the EDC information.
@@ -2443,13 +2483,13 @@ plot(buf0l, border = "red", add = TRUE)
 #'  concentration reduces to approximately five percent
 #'    - attr(result, "sedc_threshold"): the threshold distance
 #'  at which emission source points are excluded beyond that
-#' @note Distance calculation is done with terra functions internally.
-#'  Thus, the function internally converts sf objects in
-#'  \code{point_*} arguments to terra.
-#'  The threshold should be carefully chosen by users.
+#' @note Distance calculation is done with `terra` functions internally.
+#'  Thus, the function internally converts `sf` objects in
+#'  \code{point_*} arguments to `terra`. Please note that any `NA` values
+#'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, \& Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \& Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
+#' * [Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
 #' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #' @examples
 #' library(terra)
@@ -2513,7 +2553,11 @@ The result may not be accurate.\n",
       )
     }
     point_from$from_id <- len_point_from
-    # select egrid_v only if closer than 3e5 meters from each aqs
+    if (is.null(threshold)) {
+      threshold <- 2 * sedc_bandwidth
+    }
+    # select point_to with threshold
+    # default threshold is 2 * sedc_bandwidth
     point_from_buf <-
       terra::buffer(
         point_from,
@@ -2604,7 +2648,9 @@ testthat::test_that("SEDC are well calculated.", {
   ncrand$pollutant3 <- stats::rbeta(250L, 0.5, 0.5)
 
   polnames <- paste0("pollutant", 1:3)
-
+  testthat::expect_no_error(
+    summarize_sedc(ncpnts, ncrand, "pid", 3e4L, NULL, polnames)
+  )
   testthat::expect_no_error(
     sedc_calc <-
       summarize_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames)
@@ -2643,9 +2689,13 @@ testthat::test_that("SEDC are well calculated.", {
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.
+#' @param target_fields character. Field names to calculate area-weighted .
 #' @param id_poly_in character(1).
-#'  The unique identifier of each polygon in `poly_in`
-#' @return A data.frame with all numeric fields of area-weighted means.
+#'  The unique identifier of each polygon in `poly_in`.
+#'  Default is `"ID"`.
+#' @param fun function(1). The function to calculate the weighted summary.
+#' Default is `stats::weighted.mean`. The function must have a `w` argument.
+#' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `poly_in` and `poly_weight` are different classes,
 #'  `poly_weight` will be converted to the class of `poly_in`.
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -2653,16 +2703,15 @@ testthat::test_that("SEDC are well calculated.", {
 #' # package
 #' library(sf)
 #' sf_use_s2(FALSE)
-#' # run
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 #' nc <- sf::st_transform(nc, 5070)
 #' pp <- sf::st_sample(nc, size = 300)
 #' pp <- sf::st_as_sf(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' sf::st_crs(pp) <- "EPSG:5070"
-#' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+#' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 #'
-#' system.time({ppb_nc_aw <- summarize_aw(ppb, nc, 'id')})
+#' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, "id"))
 #' summary(ppb_nc_aw)
 #' #### Example of summarize_aw ends ####
 #' @importFrom terra expanse
@@ -2680,7 +2729,9 @@ summarize_aw <-
   function(
     poly_in = NULL,
     poly_weight = NULL,
-    id_poly_in = "ID"
+    target_fields = NULL,
+    id_poly_in = "ID",
+    fun = stats::weighted.mean
   ) {
     if (!any(
       methods::is(poly_in, "sf"),
@@ -2695,15 +2746,11 @@ summarize_aw <-
       stop("poly_weight is in invalid class.\n")
     }
 
-
-    ## distinguish numeric and nonnumeric columns
-    index_numeric <-
-      grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
-
     summarize_aw_terra <-
       function(
         poly_in = NULL,
         poly_weight = NULL,
+        target_fields = NULL,
         id_poly_in = id_poly_in
       ) {
         poly_intersected <- terra::intersect(poly_in, poly_weight)
@@ -2713,8 +2760,8 @@ summarize_aw <-
           dplyr::group_by(!!rlang::sym(id_poly_in)) |>
           dplyr::summarize(
             dplyr::across(
-              dplyr::where(is.numeric),
-              ~stats::weighted.mean(., w = area_segment_)
+              dplyr::all_of(target_fields),
+              ~fun(., w = area_segment_)
             )
           ) |>
           dplyr::ungroup()
@@ -2732,13 +2779,14 @@ summarize_aw <-
       sf =
         suppressWarnings(
           sf::st_interpolate_aw(
-            poly_weight[, index_numeric],
+            poly_weight[, target_fields],
             poly_in, extensive = FALSE
           )
         ),
       terra =
         summarize_aw_terra(
-          poly_in, poly_weight[, index_numeric],
+          poly_in, poly_weight,
+          target_fields = target_fields,
           id_poly_in = id_poly_in
         )
     )
@@ -2765,10 +2813,13 @@ testthat::test_that("summarize_aw works as expected.", {
   pp <- sf::st_as_sf(pp)
   pp[["id"]] <- seq(1, nrow(pp))
   sf::st_crs(pp) <- "EPSG:5070"
+  flds <- c("BIR74", "SID74", "BIR79", "SID79")
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- summarize_aw(ppb, nc, "id")})
+    system.time({
+      ppb_nc_aw <- summarize_aw(ppb, nc, target_fields = flds, "id")
+    })
   )
   expect_s3_class(ppb_nc_aw, "sf")
 
@@ -2776,19 +2827,23 @@ testthat::test_that("summarize_aw works as expected.", {
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- summarize_aw(ppb_t, nc_t, "id")})
+    system.time({
+      ppb_nc_aw <- summarize_aw(ppb_t, nc_t, target_fields = flds, "id")
+    })
   )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- summarize_aw(ppb_t, nc, "id")})
+    system.time({
+      ppb_nc_aw <- summarize_aw(ppb_t, nc, target_fields = flds, "id")
+    })
   )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # error case
-  testthat::expect_error(summarize_aw(as.list(ppb_t), nc, "id"))
-  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), "id"))
+  testthat::expect_error(summarize_aw(as.list(ppb_t), nc, fld, "id"))
+  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), fld, "id"))
 })
 
 
@@ -2875,7 +2930,8 @@ testthat::test_that("classes are detected.", {
 #' `"id"`.
 #' @author Insang Song
 #' @examples
-#' ## NO EXAMPLE
+#' err <- simpleError("No input.")
+#' par_fallback(err, extract_at, debug = TRUE)
 #' @export
 par_fallback <-
   function(
@@ -2944,8 +3000,8 @@ testthat::test_that(
 #' refer to \link[future]{plan}. This function assumes that
 #' users have one raster file and a sizable and spatially distributed
 #' target locations. Each thread will process
-#' `ceiling(\eqn{|N_g|/|N_t|})` grids
-#' where \eqn{|N_g|} denotes the number of grids and \eqn{|N_t|} denotes
+#' the nearest integer of $|N_g| / |N_t|$ grids
+#' where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 #' the number of threads.
 #' @note In dynamic dots (\code{...}), the first and second
 #' arguments should be the \code{fun_dist} arguments where
@@ -2976,17 +3032,58 @@ testthat::test_that(
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#'
 #' @examples
 #' \dontrun{
-#' library(future)
-#' plan(multicore, workers = 4)
-#' # See vignette for details.
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' ncpoly <- terra::vect(ncpath) |>
+#'   terra::project("EPSG:5070")
+#' ncpnts <-
+#'   readRDS(
+#'     system.file("extdata/nc_random_point.rds", package = "chopin")
+#'   )
+#' ncpnts <- terra::vect(ncpnts)
+#' ncpnts <- terra::project(ncpnts, "EPSG:5070")
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#'
+#' ncsamp <-
+#'   terra::spatSample(
+#'     terra::ext(ncelev),
+#'     1e4L,
+#'     lonlat = FALSE,
+#'     as.points = TRUE
+#'   )
+#' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+#' nccompreg <-
+#'   par_make_gridset(
+#'     input = ncpnts,
+#'     mode = "grid",
+#'     nx = 6L,
+#'     ny = 4L,
+#'     padding = 3e4L
+#'   )
+#' res <-
+#'   par_grid(
+#'     grids = nccompreg,
+#'     grid_target_id = NULL,
+#'     fun_dist = extract_at_buffer,
+#'     points = ncpnts,
+#'     surf = ncelev,
+#'     qsegs = 90L,
+#'     radius = 5e3L,
+#'     id = "pid"
+#'   )
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
+#' @importFrom dplyr bind_rows
+#' @importFrom sf sf_use_s2
 #' @export
 par_grid <-
   function(
@@ -3084,9 +3181,8 @@ par_grid <-
 #'  refer to \link[future]{plan}.
 #'  This function assumes that users have one raster file and
 #'  a sizable and spatially distributed target locations.
-#'  Each thread will process `ceiling(\eqn{|N_{g}|/|N_{t}|})` grids where
-#'  \eqn{|N_{g}|} denotes the number of grids and \eqn{|N_{t}|} denotes
-#'  the number of threads. Please be advised that
+#'  Each thread will process the number of lower level features
+#'  in each higher level feature. Please be advised that
 #'  accessing the same file simultaneously with
 #'  multiple processes may result in errors.
 #' @note In dynamic dots (\code{...}), the first and second
@@ -3119,14 +3215,54 @@ par_grid <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' \dontrun{
+#' library(terra)
+#' library(sf)
+#' library(chopin)
 #' library(future)
-#' plan(multicore, workers = 4L)
-#' # See vignette for details.
+#' library(doFuture)
+#' sf::sf_use_s2(FALSE)
+#' plan(multicore)
+#' registerDoFuture()
+#' 
+#' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+#' nccnty <- terra::vect(ncpath, layer = "county")
+#' nctrct <- sf::st_read(ncpath, layer = "tracts")
+#' nctrct <- terra::vect(nctrct)
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(
+#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'     )
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#'
+#' ncsamp <-
+#'   terra::spatSample(
+#'     terra::ext(ncelev),
+#'     1e4L,
+#'     lonlat = FALSE,
+#'     as.points = TRUE
+#'   )
+#' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+#' res <-
+#'   par_hierarchy(
+#'     regions = nccnty,
+#'     split_level = "GEOID",
+#'     fun_dist = extract_at_poly,
+#'     polys = nctrct,
+#'     surf = ncelev,
+#'     id = "GEOID",
+#'     func = "mean"
+#'   )
+#' )
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
+#' @importFrom dplyr bind_rows
+#' @importFrom sf sf_use_s2
 #' @export
 par_hierarchy <-
   function(
@@ -3148,7 +3284,7 @@ par_hierarchy <-
     regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
-      future_lapply(
+      future.apply::future_lapply(
         regions_list,
         function(subregion) {
           sf::sf_use_s2(FALSE)
@@ -3224,13 +3360,44 @@ par_hierarchy <-
 #'
 #' @examples
 #' \dontrun{
+#' library(terra)
+#' library(sf)
+#' library(chopin)
 #' library(future)
-#' plan(multisession, workers = 4L)
-#' # See vignette for details.
+#' library(doFuture)
+#' sf::sf_use_s2(FALSE)
+#' plan(multicore)
+#' registerDoFuture()
+#'
+#' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+#' nccnty <- terra::vect(ncpath, layer = "county")
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(
+#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'     )
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#' tdir <- tempdir(check = TRUE)
+#' terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+#' terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+#' terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+#' testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+#'
+#' res <- par_multirasters(
+#'   filenames = testfiles,
+#'   fun_dist = extract_at_poly,
+#'   polys = nccnty,
+#'   surf = ncelev,
+#'   id = "GEOID",
+#'   func = "mean"
+#' )
 #' }
 #' @import future
-#' @import future.apply
+#' @importFrom future.apply future_lapply
 #' @import doFuture
+#' @importFrom terra rast
 #' @export
 par_multirasters <-
   function(
@@ -3256,8 +3423,10 @@ par_multirasters <-
 
               rast_target <- which(any_class_args(args_input, "SpatRaster"))
               args_input[[rast_target]] <-
-                rast_short(rasterpath = path, win = vect_ext)
-              if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
+                terra::rast(x = path, win = vect_ext)
+              if (!"id" %in% names(formals(fun_dist))) {
+                args_input$id <- NULL
+              }
 
               res <- rlang::inject(fun_dist(!!!args_input))
               if (!is.data.frame(res)) res <- as.data.frame(res)
@@ -3884,6 +4053,8 @@ knitr::knit("./README.Rmd", "./README.md")
 
 ```{r post-hoc-manualrun, eval = FALSE}
 # in interactive session
+# system(paste0("rm -r ./man"))
+# system(paste0("rm -r ./R"))
 system(paste0("cp -r ./chopin/* ."))
 # Sys.sleep(1)
 system("rm -r ./chopin")
@@ -3893,7 +4064,7 @@ system("rm -r ./chopin")
 
 codemetar::write_codemeta()
 devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
-
+devtools::check()
 
 devtools::test()
 covr::package_coverage()

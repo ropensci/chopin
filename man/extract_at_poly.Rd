@@ -42,8 +42,8 @@ extract_at_poly(rpoly, rrast, "pid")
 }
 \seealso{
 Other Macros for calculation: 
-\code{\link{extract_at_buffer}()},
 \code{\link{extract_at}()},
+\code{\link{extract_at_buffer}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_sedc}()}

@@ -41,9 +41,8 @@ in each grid. For details of the terminology in \code{future} package,
 refer to \link[future]{plan}.
 This function assumes that users have one raster file and
 a sizable and spatially distributed target locations.
-Each thread will process \verb{ceiling(\eqn{|N_{g}|/|N_{t}|})} grids where
-\eqn{|N_{g}|} denotes the number of grids and \eqn{|N_{t}|} denotes
-the number of threads. Please be advised that
+Each thread will process the number of lower level features
+in each higher level feature. Please be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
 }
@@ -62,17 +61,55 @@ are spatially sparsely distributed.
 }
 \examples{
 \dontrun{
+library(terra)
+library(sf)
+library(chopin)
 library(future)
-plan(multicore, workers = 4L)
-# See vignette for details.
+library(doFuture)
+sf::sf_use_s2(FALSE)
+plan(multicore)
+registerDoFuture()
+
+ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+nccnty <- terra::vect(ncpath, layer = "county")
+nctrct <- sf::st_read(ncpath, layer = "tracts")
+nctrct <- terra::vect(nctrct)
+ncelev <-
+  terra::unwrap(
+    readRDS(
+      system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+    )
+  )
+terra::crs(ncelev) <- "EPSG:5070"
+names(ncelev) <- c("srtm15")
+
+ncsamp <-
+  terra::spatSample(
+    terra::ext(ncelev),
+    1e4L,
+    lonlat = FALSE,
+    as.points = TRUE
+  )
+ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
+res <-
+  par_hierarchy(
+    regions = nccnty,
+    split_level = "GEOID",
+    fun_dist = extract_at_poly,
+    polys = nctrct,
+    surf = ncelev,
+    id = "GEOID",
+    func = "mean"
+  )
+)
 }
 }
 \seealso{
 Other Parallelization: 
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()}
 }

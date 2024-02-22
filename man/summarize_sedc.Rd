@@ -27,9 +27,9 @@ Distance at which the source concentration is reduced to
 
 \item{threshold}{numeric(1). For computational efficiency,
 the nearest points in threshold will be selected.
-Default is \code{2 * sedc_bandwidth}.}
+\code{2 * sedc_bandwidth} is applied if this value remains \code{NULL}.}
 
-\item{target_fields}{character(varying). Field names in characters.}
+\item{target_fields}{character. Field names to calculate SEDC.}
 }
 \value{
 data.frame (tibble) object with input field names with
@@ -46,10 +46,10 @@ at which emission source points are excluded beyond that
 Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 }
 \note{
-Distance calculation is done with terra functions internally.
-Thus, the function internally converts sf objects in
-\code{point_*} arguments to terra.
-The threshold should be carefully chosen by users.
+Distance calculation is done with \code{terra} functions internally.
+Thus, the function internally converts \code{sf} objects in
+\code{point_*} arguments to \code{terra}. Please note that any \code{NA} values
+in the input will be ignored in SEDC calculation.
 }
 \examples{
 library(terra)
@@ -71,15 +71,15 @@ summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 }
 \references{
 \itemize{
-\item \href{https://dx.doi.org/10.1021/es203152a}{Messier KP, Akita Y, \& Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science \& Technology} 46(5), 2772-2780.}
+\item \href{https://dx.doi.org/10.1021/es203152a}{Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780.}
 \item Wiesner C. (n.d.). \href{https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html}{Euclidean Sum of Exponentially Decaying Contributions Tutorial}
 }
 }
 \seealso{
 Other Macros for calculation: 
+\code{\link{extract_at}()},
 \code{\link{extract_at_buffer}()},
 \code{\link{extract_at_poly}()},
-\code{\link{extract_at}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()}
 }

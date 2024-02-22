@@ -4,7 +4,7 @@
 \alias{crs_check}
 \title{Check Coordinate Reference System}
 \usage{
-crs_check(x)
+crs_check(x = NULL)
 }
 \arguments{
 \item{x}{\code{sf}/\code{stars}/\code{SpatVector}/\code{SpatRaster} object.}

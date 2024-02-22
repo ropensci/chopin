@@ -5,9 +5,9 @@
   "description": "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
   "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
   "codeRepository": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin",
-  "issueTracker": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues",
+  "issueTracker": "\n    https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.3.0.20240202",
+  "version": "0.3.0.20240205",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -134,18 +134,6 @@
     },
     {
       "@type": "SoftwareApplication",
-      "identifier": "tigris",
-      "name": "tigris",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=tigris"
-    },
-    {
-      "@type": "SoftwareApplication",
       "identifier": "units",
       "name": "units",
       "provider": {
@@ -247,6 +235,7 @@
       "@type": "SoftwareApplication",
       "identifier": "rlang",
       "name": "rlang",
+      "version": ">= 0.4.9",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -296,8 +285,9 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "2207.567KB",
+  "fileSize": "52801.694KB",
   "releaseNotes": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/main/README.md",
-  "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml"]
+  "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml"],
+  "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental"
 }

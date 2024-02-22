@@ -38,8 +38,8 @@ in each grid. For details of the terminology in \code{future} package,
 refer to \link[future]{plan}. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process
-\verb{ceiling(\eqn{|N_g|/|N_t|})} grids
-where \eqn{|N_g|} denotes the number of grids and \eqn{|N_t|} denotes
+the nearest integer of $|N_g| / |N_t|$ grids
+where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 the number of threads.
 }
 \note{
@@ -57,17 +57,57 @@ are spatially sparsely distributed.
 }
 \examples{
 \dontrun{
-library(future)
-plan(multicore, workers = 4)
-# See vignette for details.
+ncpath <- system.file("shape/nc.shp", package = "sf")
+ncpoly <- terra::vect(ncpath) |>
+  terra::project("EPSG:5070")
+ncpnts <-
+  readRDS(
+    system.file("extdata/nc_random_point.rds", package = "chopin")
+  )
+ncpnts <- terra::vect(ncpnts)
+ncpnts <- terra::project(ncpnts, "EPSG:5070")
+ncelev <-
+  terra::unwrap(
+    readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+  )
+terra::crs(ncelev) <- "EPSG:5070"
+names(ncelev) <- c("srtm15")
+
+ncsamp <-
+  terra::spatSample(
+    terra::ext(ncelev),
+    1e4L,
+    lonlat = FALSE,
+    as.points = TRUE
+  )
+ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
+nccompreg <-
+  par_make_gridset(
+    input = ncpnts,
+    mode = "grid",
+    nx = 6L,
+    ny = 4L,
+    padding = 3e4L
+  )
+res <-
+  par_grid(
+    grids = nccompreg,
+    grid_target_id = NULL,
+    fun_dist = extract_at_buffer,
+    points = ncpnts,
+    surf = ncelev,
+    qsegs = 90L,
+    radius = 5e3L,
+    id = "pid"
+  )
 }
 }
 \seealso{
 Other Parallelization: 
 \code{\link{par_fallback}()},
 \code{\link{par_hierarchy}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()}
 }

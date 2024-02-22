@@ -113,7 +113,9 @@ testthat::test_that("extract_at runs well", {
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <- readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+  ncelev <- readRDS(
+    system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+  )
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
@@ -191,9 +193,9 @@ testthat::test_that("extract_at runs well", {
   )
   testthat::expect_error(
     extract_at(nccntytr,
-                 ncelev,
-                 "GEOID",
-                 mode = "polygon")
+               ncelev,
+               "GEOID",
+               mode = "polygon")
   )
   testthat::expect_error(
     extract_at(nccntytr,
@@ -209,55 +211,71 @@ testthat::test_that("extract_at runs well", {
                       radius = 1e4L)
   )
   testthat::expect_error(
-    extract_at_buffer(sf::st_as_sf(ncp),
-                 ncelev,
-                 id = 1,
-                 radius = 1e4L)
+    extract_at_buffer(
+      sf::st_as_sf(ncp),
+      ncelev,
+      id = 1,
+      radius = 1e4L
+    )
   )
   testthat::expect_error(
-    extract_at_buffer(sf::st_as_sf(ncp),
-                 ncelev,
-                 id = "FIPS",
-                 mode = "buffer",
-                 radius = "Ibidem")
+    extract_at_buffer(
+      sf::st_as_sf(ncp),
+      ncelev,
+      id = "FIPS",
+      mode = "buffer",
+      radius = "Ibidem"
+    )
   )
   testthat::expect_error(
-    extract_at_buffer(sf::st_as_sf(ncp),
-                 ncelev,
-                 "FIPS",
-                 radius = "Ibidem")
+    extract_at_buffer(
+      sf::st_as_sf(ncp),
+      ncelev,
+      "FIPS",
+      radius = "Ibidem"
+    )
   )
   testthat::expect_error(
-    extract_at_buffer(ncp,
-                      ncelev,
-                      "pid",
-                      kernel = "epanechnikov",
-                      func = stats::weighted.mean,
-                      bandwidth = 1.25e4L,
-                      radius = 1e4L,
-                      qsegs = 3 + 2i)
+    extract_at_buffer(
+      ncp,
+      ncelev,
+      "pid",
+      kernel = "epanechnikov",
+      func = stats::weighted.mean,
+      bandwidth = 1.25e4L,
+      radius = 1e4L,
+      qsegs = 3 + 2i
+    )
   )
 
 
   testthat::expect_no_error(
-    extract_at_poly(sf::st_as_sf(nccntytr),
-                    ncelev,
-                    id = "FIPS")
+    extract_at_poly(
+      sf::st_as_sf(nccntytr),
+      ncelev,
+      id = "FIPS"
+    )
   )
   testthat::expect_error(
-    extract_at_poly(as.list(nccntytr),
-                    ncelev,
-                    id = "FIPS")
+    extract_at_poly(
+      as.list(nccntytr),
+      ncelev,
+      id = "FIPS"
+    )
   )
   testthat::expect_error(
-    extract_at_poly(nccntytr,
-                    matrix(rnorm(100), 10, 10),
-                    id = "FIPS")
+    extract_at_poly(
+      nccntytr,
+      matrix(rnorm(100), 10, 10),
+      id = "FIPS"
+    )
   )
   testthat::expect_error(
-    extract_at_poly(nccntytr,
-                    ncelev,
-                    id = 2)
+    extract_at_poly(
+      nccntytr,
+      ncelev,
+      id = 2
+    )
   )
 
 })
@@ -279,10 +297,13 @@ testthat::test_that("summarize_aw works as expected.", {
   pp <- sf::st_as_sf(pp)
   pp[["id"]] <- seq(1, nrow(pp))
   sf::st_crs(pp) <- "EPSG:5070"
+  flds <- c("BIR74", "SID74", "BIR79", "SID79")
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- summarize_aw(ppb, nc, "id")})
+    system.time({
+      ppb_nc_aw <- summarize_aw(ppb, nc, target_fields = flds, "id")
+    })
   )
   expect_s3_class(ppb_nc_aw, "sf")
 
@@ -290,19 +311,23 @@ testthat::test_that("summarize_aw works as expected.", {
   ppb_t <- terra::vect(ppb)
   nc_t <- terra::vect(nc)
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- summarize_aw(ppb_t, nc_t, "id")})
+    system.time({
+      ppb_nc_aw <- summarize_aw(ppb_t, nc_t, target_fields = flds, "id")
+    })
   )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
   testthat::expect_no_error(
-    system.time({ppb_nc_aw <- summarize_aw(ppb_t, nc, "id")})
+    system.time({
+      ppb_nc_aw <- summarize_aw(ppb_t, nc, target_fields = flds, "id")
+    })
   )
   expect_s3_class(ppb_nc_aw, "data.frame")
 
   # error case
-  testthat::expect_error(summarize_aw(as.list(ppb_t), nc, "id"))
-  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), "id"))
+  testthat::expect_error(summarize_aw(as.list(ppb_t), nc, fld, "id"))
+  testthat::expect_error(summarize_aw(ppb_t, list(1, 3), fld, "id"))
 })
 
 
