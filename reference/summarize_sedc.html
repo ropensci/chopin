@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240205</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,11 +89,11 @@ Distance at which the source concentration is reduced to
 <dt>threshold</dt>
 <dd><p>numeric(1). For computational efficiency,
 the nearest points in threshold will be selected.
-Default is <code>2 * sedc_bandwidth</code>.</p></dd>
+<code>2 * sedc_bandwidth</code> is applied if this value remains <code>NULL</code>.</p></dd>
 
 
 <dt>target_fields</dt>
-<dd><p>character(varying). Field names in characters.</p></dd>
+<dd><p>character. Field names to calculate SEDC.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -109,23 +109,23 @@ at which emission source points are excluded beyond that</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>Distance calculation is done with terra functions internally.
-Thus, the function internally converts sf objects in
-<code>point_*</code> arguments to terra.
-The threshold should be carefully chosen by users.</p>
+    <p>Distance calculation is done with <code>terra</code> functions internally.
+Thus, the function internally converts <code>sf</code> objects in
+<code>point_*</code> arguments to <code>terra</code>. Please note that any <code>NA</code> values
+in the input will be ignored in SEDC calculation.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     
-<ul><li><p><a href="https://dx.doi.org/10.1021/es203152a" class="external-link">Messier KP, Akita Y, \&amp; Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. <em>Environmental Science \&amp; Technology</em> 46(5), 2772-2780.</a></p></li>
+<ul><li><p><a href="https://dx.doi.org/10.1021/es203152a" class="external-link">Messier KP, Akita Y, &amp; Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. <em>Environmental Science &amp; Technology</em> 46(5), 2772-2780.</a></p></li>
 <li><p>Wiesner C. (n.d.). <a href="https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html" class="external-link">Euclidean Sum of Exponentially Decaying Contributions Tutorial</a></p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other Macros for calculation: 
+<code><a href="extract_at.html">extract_at</a>()</code>,
 <code><a href="extract_at_buffer.html">extract_at_buffer</a>()</code>,
 <code><a href="extract_at_poly.html">extract_at_poly</a>()</code>,
-<code><a href="extract_at.html">extract_at</a>()</code>,
 <code><a href="kernelfunction.html">kernelfunction</a>()</code>,
 <code><a href="summarize_aw.html">summarize_aw</a>()</code></p></div>
     </div>

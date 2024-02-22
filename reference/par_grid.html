@@ -5,16 +5,16 @@ in each grid. For details of the terminology in future package,
 refer to plan. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process
-ceiling(\eqn{|N_g|/|N_t|}) grids
-where \(|N_g|\) denotes the number of grids and \(|N_t|\) denotes
+the nearest integer of $|N_g| / |N_t|$ grids
+where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 the number of threads."><title>Process a given function in the entire or partial computational grids — par_grid • chopin</title><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Process a given function in the entire or partial computational grids — par_grid"><meta property="og:description" content="future::multicore, future::multisession, future::cluster
 with doParallel::registerDoParallel will parallelize the work
 in each grid. For details of the terminology in future package,
 refer to plan. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process
-ceiling(\eqn{|N_g|/|N_t|}) grids
-where \(|N_g|\) denotes the number of grids and \(|N_t|\) denotes
+the nearest integer of $|N_g| / |N_t|$ grids
+where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 the number of threads."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -26,7 +26,7 @@ the number of threads."><!-- mathjax --><script src="https://cdnjs.cloudflare.co
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240205</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,8 +72,8 @@ in each grid. For details of the terminology in <code>future</code> package,
 refer to <a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a>. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process
-<code>ceiling(\eqn{|N_g|/|N_t|})</code> grids
-where \(|N_g|\) denotes the number of grids and \(|N_t|\) denotes
+the nearest integer of $|N_g| / |N_t|$ grids
+where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 the number of threads.</p>
     </div>
 
@@ -140,8 +140,8 @@ are spatially sparsely distributed.</p>
     <div class="dont-index"><p>Other Parallelization: 
 <code><a href="par_fallback.html">par_fallback</a>()</code>,
 <code><a href="par_hierarchy.html">par_hierarchy</a>()</code>,
-<code><a href="par_make_gridset.html">par_make_gridset</a>()</code>,
 <code><a href="par_make_grid.html">par_make_grid</a>()</code>,
+<code><a href="par_make_gridset.html">par_make_gridset</a>()</code>,
 <code><a href="par_merge_grid.html">par_merge_grid</a>()</code>,
 <code><a href="par_multirasters.html">par_multirasters</a>()</code></p></div>
     </div>
@@ -153,9 +153,49 @@ are spatially sparsely distributed.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.futureverse.org" class="external-link">future</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="va">multicore</span>, workers <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># See vignette for details.</span></span></span>
+<span class="r-in"><span><span class="va">ncpath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"shape/nc.shp"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncpoly</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpath</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/project.html" class="external-link">project</a></span><span class="op">(</span><span class="st">"EPSG:5070"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncpnts</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">readRDS</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/nc_random_point.rds"</span>, package <span class="op">=</span> <span class="st">"chopin"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncpnts</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpnts</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncpnts</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/project.html" class="external-link">project</a></span><span class="op">(</span><span class="va">ncpnts</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncelev</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/wrap.html" class="external-link">unwrap</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/nc_srtm15_otm.rds"</span>, package <span class="op">=</span> <span class="st">"chopin"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:5070"</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srtm15"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">ncsamp</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/sample.html" class="external-link">spatSample</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/ext.html" class="external-link">ext</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fl">1e4L</span>,</span></span>
+<span class="r-in"><span>    lonlat <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>    as.points <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncsamp</span><span class="op">$</span><span class="va">kid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"K-%05d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rspatial.github.io/terra/reference/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ncsamp</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">nccompreg</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="par_make_gridset.html">par_make_gridset</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    input <span class="op">=</span> <span class="va">ncpnts</span>,</span></span>
+<span class="r-in"><span>    mode <span class="op">=</span> <span class="st">"grid"</span>,</span></span>
+<span class="r-in"><span>    nx <span class="op">=</span> <span class="fl">6L</span>,</span></span>
+<span class="r-in"><span>    ny <span class="op">=</span> <span class="fl">4L</span>,</span></span>
+<span class="r-in"><span>    padding <span class="op">=</span> <span class="fl">3e4L</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu">par_grid</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    grids <span class="op">=</span> <span class="va">nccompreg</span>,</span></span>
+<span class="r-in"><span>    grid_target_id <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>    fun_dist <span class="op">=</span> <span class="va">extract_at_buffer</span>,</span></span>
+<span class="r-in"><span>    points <span class="op">=</span> <span class="va">ncpnts</span>,</span></span>
+<span class="r-in"><span>    surf <span class="op">=</span> <span class="va">ncelev</span>,</span></span>
+<span class="r-in"><span>    qsegs <span class="op">=</span> <span class="fl">90L</span>,</span></span>
+<span class="r-in"><span>    radius <span class="op">=</span> <span class="fl">5e3L</span>,</span></span>
+<span class="r-in"><span>    id <span class="op">=</span> <span class="st">"pid"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

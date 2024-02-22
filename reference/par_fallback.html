@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.20240205</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,8 +88,8 @@
     <div class="dont-index"><p>Other Parallelization: 
 <code><a href="par_grid.html">par_grid</a>()</code>,
 <code><a href="par_hierarchy.html">par_hierarchy</a>()</code>,
-<code><a href="par_make_gridset.html">par_make_gridset</a>()</code>,
 <code><a href="par_make_grid.html">par_make_grid</a>()</code>,
+<code><a href="par_make_gridset.html">par_make_gridset</a>()</code>,
 <code><a href="par_merge_grid.html">par_merge_grid</a>()</code>,
 <code><a href="par_multirasters.html">par_multirasters</a>()</code></p></div>
     </div>
@@ -100,8 +100,11 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## NO EXAMPLE</span></span></span>
-<span class="r-in"></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">err</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">simpleError</a></span><span class="op">(</span><span class="st">"No input."</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">par_fallback</span><span class="op">(</span><span class="va">err</span>, <span class="va">extract_at</span>, debug <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;simpleError: No input.&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   NA</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
