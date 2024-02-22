@@ -35,7 +35,6 @@ reference:
   - datamod
   - ext2poly
   - get_clip_ext
-  - rast_short
   - crs_check
 
 - title: "Dataset"
