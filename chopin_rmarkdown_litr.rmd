@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.3.1.20240222",
+    Version = "0.4.0.20240222",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -2711,7 +2711,7 @@ testthat::test_that("SEDC are well calculated.", {
 #' sf::st_crs(pp) <- "EPSG:5070"
 #' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 #'
-#' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, "id"))
+#' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 #' summary(ppb_nc_aw)
 #' #### Example of summarize_aw ends ####
 #' @importFrom terra expanse
@@ -4058,6 +4058,7 @@ knitr::knit("./README.Rmd", "./README.md")
 system(paste0("cp -r ./chopin/* ."))
 # Sys.sleep(1)
 system("rm -r ./chopin")
+system("rm ./chopin_rmarkdown_litr.html")
 # knit manually
 # knitr::knit("./README.Rmd", "./README.md")
 

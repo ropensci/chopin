@@ -46,7 +46,7 @@ pp[["id"]] <- seq(1, nrow(pp))
 sf::st_crs(pp) <- "EPSG:5070"
 ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 
-system.time(ppb_nc_aw <- summarize_aw(ppb, nc, "id"))
+system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 summary(ppb_nc_aw)
 #### Example of summarize_aw ends ####
 }
