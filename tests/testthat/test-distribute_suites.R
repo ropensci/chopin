@@ -362,6 +362,16 @@ testthat::test_that(
     testthat::expect_s3_class(res, "data.frame")
     testthat::expect_true(!anyNA(res))
 
+    testthat::expect_no_error(
+      res <- par_multirasters(
+        filenames = testfiles,
+        fun_dist = extract,
+        y = nccnty,
+        x = ncelev,
+        fun = mean
+      )
+    )
+
     testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
     testthat::expect_condition(
       resnas <- par_multirasters(

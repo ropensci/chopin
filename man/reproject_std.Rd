@@ -50,7 +50,6 @@ Other Helper functions:
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
-\code{\link{rast_short}()},
 \code{\link{reproject_b2r}()},
 \code{\link{vect_valid_repair}()}
 }

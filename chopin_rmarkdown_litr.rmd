@@ -451,6 +451,7 @@ testthat::test_that("Format is well converted",
     testthat::expect_equal(dep_check(sf_nc_trb), "sf")
 
     testthat::expect_error(dep_check(list(1, 2)))
+    testthat::expect_error(dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE)))
   }
 )
 
@@ -916,6 +917,9 @@ testthat::test_that("Clip by extent works without errors", {
 ```
 
 ```{r, include=FALSE, eval=FALSE}
+#
+#
+#
 #' Quick call for SpatRaster with a window
 #' @family Helper functions
 #' @param rasterpath character(1). Path to the raster file.
@@ -932,41 +936,43 @@ testthat::test_that("Clip by extent works without errors", {
 #' @importFrom methods is
 #' @importFrom terra rast
 #' @export
-rast_short <- function(rasterpath = NULL, win = NULL) {
-  if (!(all(is.numeric(win), !is.null(attr(win, "names")), length(win) == 4) ||
-          methods::is(win, "SpatExtent"))) {
-    stop(
-      "Argument win should be one of named numeric vector or SpatExtent object.
-      \n"
-    )
-  }
-  rast_sub <- terra::rast(rasterpath, win = win)
-  return(rast_sub)
-}
+# rast_short <- function(rasterpath = NULL, win = NULL) {
+#   if (!(all(is.numeric(win), !is.null(attr(win, "names")), length(win) == 4) ||
+#           methods::is(win, "SpatExtent"))) {
+#     stop(
+#       "Argument win should be one of named numeric vector or SpatExtent object.
+#       \n"
+#     )
+#   }
+#   rast_sub <- terra::rast(rasterpath, win = win)
+#   return(rast_sub)
+# }
 
 ```
 
 
 ```{r test-rasterbound, include=FALSE, eval=FALSE}
-testthat::test_that("Raster is read properly with a window.", {
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+#
+#
+# testthat::test_that("Raster is read properly with a window.", {
+#   withr::local_package("stars")
+#   withr::local_package("terra")
+#   withr::local_options(list(sf_use_s2 = FALSE))
+#   bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
 
-  ext_numeric <- c(-84, -82, 34, 36) # unnamed
-  testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric[1:3]))
-  testthat::expect_no_error(terra::rast(x = bcsd_path, win = ext_numeric))
+#   ext_numeric <- c(-84, -82, 34, 36) # unnamed
+#   testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric[1:3]))
+#   testthat::expect_no_error(terra::rast(x = bcsd_path, win = ext_numeric))
 
-  names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
-  rastshort_num <- terra::rast(x = bcsd_path, win = ext_numeric)
-  testthat::expect_s4_class(rastshort_num, "SpatRaster")
+#   names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
+#   rastshort_num <- terra::rast(x = bcsd_path, win = ext_numeric)
+#   testthat::expect_s4_class(rastshort_num, "SpatRaster")
 
-  ext_terra <- terra::ext(ext_numeric)
-  rastshort_terra <- terra::rast(x = bcsd_path, win = ext_terra)
-  testthat::expect_s4_class(rastshort_terra, "SpatRaster")
+#   ext_terra <- terra::ext(ext_numeric)
+#   rastshort_terra <- terra::rast(x = bcsd_path, win = ext_terra)
+#   testthat::expect_s4_class(rastshort_terra, "SpatRaster")
 
-})
+# })
 
 
 ```
@@ -3147,10 +3153,7 @@ par_grid <-
               )
             )
 
-            if (!is.data.frame(res)) {
-              res <- as.data.frame(res)
-            }
-
+            try(res <- as.data.frame(res))
             return(res)
           },
           error = function(e) {
@@ -3305,9 +3308,7 @@ par_hierarchy <-
                 }
 
                 res <- rlang::inject(fun_dist(!!!args_input))
-                if (!is.data.frame(res)) {
-                  res <- as.data.frame(res)
-                }
+                try(res <- as.data.frame(res))
                 return(res)
               },
               error =
@@ -3429,7 +3430,7 @@ par_multirasters <-
               }
 
               res <- rlang::inject(fun_dist(!!!args_input))
-              if (!is.data.frame(res)) res <- as.data.frame(res)
+              try(res <- as.data.frame(res))
               res$base_raster <- path
               return(res)
             }
@@ -3823,6 +3824,16 @@ testthat::test_that(
     )
     testthat::expect_s3_class(res, "data.frame")
     testthat::expect_true(!anyNA(res))
+
+    testthat::expect_no_error(
+      res <- par_multirasters(
+        filenames = testfiles,
+        fun_dist = extract,
+        y = nccnty,
+        x = ncelev,
+        fun = mean
+      )
+    )
 
     testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
     testthat::expect_condition(

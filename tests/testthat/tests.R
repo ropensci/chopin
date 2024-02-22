@@ -8,28 +8,6 @@ testthat::test_that("Kernel functions work okay", {
 })
 
 
-testthat::test_that("Raster is read properly with a window.", {
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-
-  ext_numeric <- c(-84, -82, 34, 36) # unnamed
-  testthat::expect_error(terra::rast(x = bcsd_path, win = ext_numeric[1:3]))
-  testthat::expect_no_error(terra::rast(x = bcsd_path, win = ext_numeric))
-
-  names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
-  rastshort_num <- terra::rast(x = bcsd_path, win = ext_numeric)
-  testthat::expect_s4_class(rastshort_num, "SpatRaster")
-
-  ext_terra <- terra::ext(ext_numeric)
-  rastshort_terra <- terra::rast(x = bcsd_path, win = ext_terra)
-  testthat::expect_s4_class(rastshort_terra, "SpatRaster")
-
-})
-
-
-
 testthat::test_that("SEDC are well calculated.", {
   withr::local_package("sf")
   withr::local_package("terra")

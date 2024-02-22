@@ -191,10 +191,7 @@ par_grid <-
               )
             )
 
-            if (!is.data.frame(res)) {
-              res <- as.data.frame(res)
-            }
-
+            try(res <- as.data.frame(res))
             return(res)
           },
           error = function(e) {
@@ -349,9 +346,7 @@ par_hierarchy <-
                 }
 
                 res <- rlang::inject(fun_dist(!!!args_input))
-                if (!is.data.frame(res)) {
-                  res <- as.data.frame(res)
-                }
+                try(res <- as.data.frame(res))
                 return(res)
               },
               error =
@@ -473,7 +468,7 @@ par_multirasters <-
               }
 
               res <- rlang::inject(fun_dist(!!!args_input))
-              if (!is.data.frame(res)) res <- as.data.frame(res)
+              try(res <- as.data.frame(res))
               res$base_raster <- path
               return(res)
             }
