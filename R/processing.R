@@ -290,13 +290,18 @@ extract_at_buffer_kernel <- function(
   name_surf_val <-
     ifelse(terra::nlyr(surf_cropped) == 1,
            "value", names(surf_cropped))
-
+  # convert to data.frame
   coords_df <- as.data.frame(points, geom = "XY")
+  # apply strict order
   coords_df <-
     coords_df[, grep(sprintf("^(%s|%s|%s)", id, "x", "y"), names(coords_df))]
   names(coords_df)[grep("(x|y)", names(coords_df))] <- c("xorig", "yorig")
-  xorig <- yorig <- NULL
-  x <- y <- NULL
+
+  # for linter purpose
+  xorig <- NULL
+  yorig <- NULL
+  x <- NULL
+  y <- NULL
   pairdist <- NULL
   w_kernel <- NULL
   coverage_fraction <- NULL
@@ -313,10 +318,12 @@ extract_at_buffer_kernel <- function(
       include_xy = TRUE,
       max_cells_in_memory = 5e07
     )
+  # post-processing
   surf_at_bufs <- do.call(rbind, surf_at_bufs)
   surf_at_bufs_summary <-
     surf_at_bufs |>
     dplyr::left_join(coords_df, by = id) |>
+    # averaging with kernel weights
     dplyr::mutate(
       pairdist = terra::distance(
         x = cbind(xorig, yorig),
@@ -332,6 +339,7 @@ extract_at_buffer_kernel <- function(
       dplyr::across(dplyr::all_of(name_surf_val), ~func(., w = w_kernelarea))
     ) |>
     dplyr::ungroup()
+  # restore the original identifier
   colnames(surf_at_bufs_summary)[1] <- id
   return(surf_at_bufs_summary)
 }
@@ -388,10 +396,7 @@ extract_at_poly <- function(
   if (!is.character(id)) {
     stop("id should be a character.\n")
   }
-
-  cls_polys <- dep_check(polys)
-  cls_surf <- dep_check(surf)
-
+  # reproject polygons to raster's crs
   polys <- reproject_b2r(polys, surf)
 
   extracted_poly <-
@@ -469,14 +474,23 @@ extract_at <- function(
 #' @returns Reprojected object in the same class as \code{vector}
 #' @author Insang Song
 #' @examples
-#' # NOT TO RUN
+#' library(terra)
+#' library(sf)
+#' options(sf_use_s2 = FALSE)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' elev <- system.file("ex/elev.tif", package = "terra")
+#' nc <- terra::vect(ncpath)
+#' elev <- terra::rast(elev)
+#' reproject_b2r(nc, elev) 
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
 #' @export
 reproject_b2r <-
-  function(vector,
-           raster) {
+  function(
+    vector = NULL,
+    raster = NULL
+  ) {
     detected_vec <- dep_check(vector)
     switch(detected_vec,
            sf = sf::st_transform(vector, terra::crs(raster)),
@@ -495,8 +509,8 @@ reproject_b2r <-
 #'  `exp(-3)` (approximately -95 %)
 #' @param threshold numeric(1). For computational efficiency,
 #'  the nearest points in threshold will be selected.
-#'  Default is \code{2 * sedc_bandwidth}.
-#' @param target_fields character(varying). Field names in characters.
+#'  \code{2 * sedc_bandwidth} is applied if this value remains `NULL`.
+#' @param target_fields character. Field names to calculate SEDC.
 #' @returns data.frame (tibble) object with input field names with
 #'  a suffix \code{"_sedc"} where the sums of EDC are stored.
 #'  Additional attributes are attached for the EDC information.
@@ -504,13 +518,13 @@ reproject_b2r <-
 #'  concentration reduces to approximately five percent
 #'    - attr(result, "sedc_threshold"): the threshold distance
 #'  at which emission source points are excluded beyond that
-#' @note Distance calculation is done with terra functions internally.
-#'  Thus, the function internally converts sf objects in
-#'  \code{point_*} arguments to terra.
-#'  The threshold should be carefully chosen by users.
+#' @note Distance calculation is done with `terra` functions internally.
+#'  Thus, the function internally converts `sf` objects in
+#'  \code{point_*} arguments to `terra`. Please note that any `NA` values
+#'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, \& Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science \& Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
+#' * [Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
 #' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #' @examples
 #' library(terra)
@@ -574,7 +588,11 @@ The result may not be accurate.\n",
       )
     }
     point_from$from_id <- len_point_from
-    # select egrid_v only if closer than 3e5 meters from each aqs
+    if (is.null(threshold)) {
+      threshold <- 2 * sedc_bandwidth
+    }
+    # select point_to with threshold
+    # default threshold is 2 * sedc_bandwidth
     point_from_buf <-
       terra::buffer(
         point_from,
@@ -630,9 +648,13 @@ The result may not be accurate.\n",
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.
+#' @param target_fields character. Field names to calculate area-weighted .
 #' @param id_poly_in character(1).
-#'  The unique identifier of each polygon in `poly_in`
-#' @return A data.frame with all numeric fields of area-weighted means.
+#'  The unique identifier of each polygon in `poly_in`.
+#'  Default is `"ID"`.
+#' @param fun function(1). The function to calculate the weighted summary.
+#' Default is `stats::weighted.mean`. The function must have a `w` argument.
+#' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `poly_in` and `poly_weight` are different classes,
 #'  `poly_weight` will be converted to the class of `poly_in`.
 #' @author Insang Song \email{geoissong@@gmail.com}
@@ -640,16 +662,15 @@ The result may not be accurate.\n",
 #' # package
 #' library(sf)
 #' sf_use_s2(FALSE)
-#' # run
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 #' nc <- sf::st_transform(nc, 5070)
 #' pp <- sf::st_sample(nc, size = 300)
 #' pp <- sf::st_as_sf(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' sf::st_crs(pp) <- "EPSG:5070"
-#' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+#' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 #'
-#' system.time({ppb_nc_aw <- summarize_aw(ppb, nc, 'id')})
+#' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 #' summary(ppb_nc_aw)
 #' #### Example of summarize_aw ends ####
 #' @importFrom terra expanse
@@ -667,7 +688,9 @@ summarize_aw <-
   function(
     poly_in = NULL,
     poly_weight = NULL,
-    id_poly_in = "ID"
+    target_fields = NULL,
+    id_poly_in = "ID",
+    fun = stats::weighted.mean
   ) {
     if (!any(
       methods::is(poly_in, "sf"),
@@ -682,15 +705,11 @@ summarize_aw <-
       stop("poly_weight is in invalid class.\n")
     }
 
-
-    ## distinguish numeric and nonnumeric columns
-    index_numeric <-
-      grep("(integer|numeric)", unlist(sapply(poly_weight, class)))
-
     summarize_aw_terra <-
       function(
         poly_in = NULL,
         poly_weight = NULL,
+        target_fields = NULL,
         id_poly_in = id_poly_in
       ) {
         poly_intersected <- terra::intersect(poly_in, poly_weight)
@@ -700,8 +719,8 @@ summarize_aw <-
           dplyr::group_by(!!rlang::sym(id_poly_in)) |>
           dplyr::summarize(
             dplyr::across(
-              dplyr::where(is.numeric),
-              ~stats::weighted.mean(., w = area_segment_)
+              dplyr::all_of(target_fields),
+              ~fun(., w = area_segment_)
             )
           ) |>
           dplyr::ungroup()
@@ -719,13 +738,14 @@ summarize_aw <-
       sf =
         suppressWarnings(
           sf::st_interpolate_aw(
-            poly_weight[, index_numeric],
+            poly_weight[, target_fields],
             poly_in, extensive = FALSE
           )
         ),
       terra =
         summarize_aw_terra(
-          poly_in, poly_weight[, index_numeric],
+          poly_in, poly_weight,
+          target_fields = target_fields,
           id_poly_in = id_poly_in
         )
     )

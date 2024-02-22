@@ -4,7 +4,7 @@
 \alias{par_merge_grid}
 \title{Merge adjacent grid polygons with given rules}
 \usage{
-par_merge_grid(points_in, grid_in, grid_min_features)
+par_merge_grid(points_in = NULL, grid_in = NULL, grid_min_features = NULL)
 }
 \arguments{
 \item{points_in}{\code{sf} or \code{SpatVector} object. Target points of computation.}
@@ -47,8 +47,8 @@ Other Parallelization:
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_gridset}()},
 \code{\link{par_multirasters}()}
 }
 \author{

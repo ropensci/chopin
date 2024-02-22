@@ -290,7 +290,7 @@ is_bbox_within_reference <- function(
 #' @importFrom terra crs
 #' @importFrom methods is
 #' @export
-crs_check <- function(x) {
+crs_check <- function(x = NULL) {
   ref_class <- c("sf", "stars", "SpatVector",
                  "SpatRaster", "SpatRasterDataset")
 

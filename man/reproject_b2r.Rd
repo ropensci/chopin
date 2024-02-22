@@ -4,7 +4,7 @@
 \alias{reproject_b2r}
 \title{Align vector CRS to raster's}
 \usage{
-reproject_b2r(vector, raster)
+reproject_b2r(vector = NULL, raster = NULL)
 }
 \arguments{
 \item{vector}{\code{sf}/\code{stars}/\code{SpatVector}/\code{SpatRaster} object}
@@ -18,7 +18,14 @@ Reprojected object in the same class as \code{vector}
 Align vector CRS to raster's
 }
 \examples{
-# NOT TO RUN
+library(terra)
+library(sf)
+options(sf_use_s2 = FALSE)
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+elev <- system.file("ex/elev.tif", package = "terra")
+nc <- terra::vect(ncpath)
+elev <- terra::rast(elev)
+reproject_b2r(nc, elev) 
 }
 \seealso{
 Other Helper functions: 
@@ -33,7 +40,6 @@ Other Helper functions:
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
-\code{\link{rast_short}()},
 \code{\link{reproject_std}()},
 \code{\link{vect_valid_repair}()}
 }

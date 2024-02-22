@@ -83,7 +83,8 @@ We try converting padding to numeric...\n")
         par_merge_grid(
           points_in = input,
           par_make_grid(input, nx, ny),
-          grid_min_features = grid_min_features),
+          grid_min_features = grid_min_features
+        ),
         density = simpleError("density method is under development.\n")
       )
 
@@ -141,9 +142,9 @@ We try converting padding to numeric...\n")
 #' @export
 par_make_grid <-
   function(
-    points_in,
-    ncutsx,
-    ncutsy
+    points_in = NULL,
+    ncutsx = NULL,
+    ncutsy = NULL
   ) {
     package_detected <- dep_check(points_in)
 
@@ -202,83 +203,87 @@ par_make_grid <-
 #' @importFrom sf st_cast
 #' @importFrom rlang sym
 #' @export
-par_merge_grid <- function(points_in, grid_in, grid_min_features) {
-  package_detected <- dep_check(points_in)
-  if (package_detected == "terra") {
-    points_in <- sf::st_as_sf(points_in)
-    grid_in <- sf::st_as_sf(grid_in)
-  }
+par_merge_grid <-
+  function(
+    points_in = NULL,
+    grid_in = NULL,
+    grid_min_features = NULL
+  ) {
+    package_detected <- dep_check(points_in)
+    if (package_detected == "terra") {
+      points_in <- sf::st_as_sf(points_in)
+      grid_in <- sf::st_as_sf(grid_in)
+    }
 
-  n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
-  grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
-  grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
-  grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
-  grid_lt_threshold <- (n_points_in_grid < grid_min_features)
+    n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
+    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
+    grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
+    grid_lt_threshold <- (n_points_in_grid < grid_min_features)
 
-  # does the number of points per grid exceed minimum threshold?
-  if (sum(grid_lt_threshold) < 2) {
-    stop(
-      sprintf(
-        "Threshold is too low. Please try higher threshold.\n
-      min # points in grids: %d, your threshold: %d\n",
-        min(n_points_in_grid), grid_min_features
+    # does the number of points per grid exceed minimum threshold?
+    if (sum(grid_lt_threshold) < 2) {
+      stop(
+        sprintf(
+          "Threshold is too low. Please try higher threshold.\n
+        min # points in grids: %d, your threshold: %d\n",
+          min(n_points_in_grid), grid_min_features
+        )
       )
-    )
-  }
-  grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
+    }
+    grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-  # This part does not work as expected.
-  # Should investigate edge list and actual row index of the grid object; 
-  identified <- lapply(grid_rooks,
-                       function(x) sort(x[which(x %in% grid_lt_threshold)]))
-  identified <- identified[grid_lt_threshold]
-  identified <- unique(identified)
-  identified <- identified[sapply(identified, length) > 1]
+    # This part does not work as expected.
+    # Should investigate edge list and actual row index of the grid object;
+    identified <- lapply(grid_rooks,
+                         function(x) sort(x[which(x %in% grid_lt_threshold)]))
+    identified <- identified[grid_lt_threshold]
+    identified <- unique(identified)
+    identified <- identified[sapply(identified, length) > 1]
 
-  identified_graph <-
-    lapply(identified, function(x) t(utils::combn(x, 2))) |>
-    Reduce(f = rbind, x = _) |>
-    unique() |>
-    apply(X = _, 2, as.character) |>
-    igraph::graph_from_edgelist(el = _, directed = 0) |>
-    igraph::mst() |>
-    igraph::components()
+    identified_graph <-
+      lapply(identified, function(x) t(utils::combn(x, 2))) |>
+      Reduce(f = rbind, x = _) |>
+      unique() |>
+      apply(X = _, 2, as.character) |>
+      igraph::graph_from_edgelist(el = _, directed = 0) |>
+      igraph::mst() |>
+      igraph::components()
 
-  identified_graph_member <- identified_graph$membership
+    identified_graph_member <- identified_graph$membership
 
-  merge_idx <- as.integer(names(identified_graph_member))
-  merge_member <- split(merge_idx, identified_graph_member)
-  merge_member_label <-
-    unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
-  merge_member_label <- merge_member_label[identified_graph_member]
+    merge_idx <- as.integer(names(identified_graph_member))
+    merge_member <- split(merge_idx, identified_graph_member)
+    merge_member_label <-
+      unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
+    merge_member_label <- merge_member_label[identified_graph_member]
 
-  # sf object manipulation
-  grid_out <- grid_in
-  grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
+    # sf object manipulation
+    grid_out <- grid_in
+    grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
 
-  grid_out <- grid_out |>
-    dplyr::group_by(!!rlang::sym("CGRIDID")) |>
-    dplyr::summarize(n_merged = dplyr::n()) |>
-    dplyr::ungroup()
+    grid_out <- grid_out |>
+      dplyr::group_by(!!rlang::sym("CGRIDID")) |>
+      dplyr::summarize(n_merged = dplyr::n()) |>
+      dplyr::ungroup()
 
-  ## polsby-popper test for shape compactness
-  par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
-  par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
-  par_merge_gridd_perimeter <-
-    as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
-  par_merge_gridd_pptest <-
-    (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter ^ 2)
+    ## polsby-popper test for shape compactness
+    par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
+    par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
+    par_merge_gridd_perimeter <-
+      as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
+    par_merge_gridd_pptest <-
+      (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter ^ 2)
 
-  # pptest value is bounded [0,1];
-  # 0.3 threshold is groundless at this moment,
-  # possibly will make it defined by users.
-  if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
-        any(par_merge_gridd_pptest < 0.3)) {
-    message("The reduced computational regions have too complex shapes.
-     Consider increasing thresholds or using the original grids.\n")
-  }
+    # pptest value is bounded [0,1];
+    # 0.3 threshold is groundless at this moment,
+    # possibly will make it defined by users.
+    if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
+          any(par_merge_gridd_pptest < 0.3)) {
+      message("The reduced computational regions have too complex shapes.
+      Consider increasing thresholds or using the original grids.\n")
+    }
 
-  return(grid_out)
-
+    return(grid_out)
 }
 

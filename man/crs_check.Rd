@@ -4,7 +4,7 @@
 \alias{crs_check}
 \title{Check Coordinate Reference System}
 \usage{
-crs_check(x)
+crs_check(x = NULL)
 }
 \arguments{
 \item{x}{\code{sf}/\code{stars}/\code{SpatVector}/\code{SpatRaster} object.}
@@ -34,7 +34,6 @@ Other Helper functions:
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
-\code{\link{rast_short}()},
 \code{\link{reproject_b2r}()},
 \code{\link{reproject_std}()},
 \code{\link{vect_valid_repair}()}

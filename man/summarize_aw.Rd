@@ -4,7 +4,13 @@
 \alias{summarize_aw}
 \title{Area weighted summary using two polygon sf or SpatVector objects}
 \usage{
-summarize_aw(poly_in = NULL, poly_weight = NULL, id_poly_in = "ID")
+summarize_aw(
+  poly_in = NULL,
+  poly_weight = NULL,
+  target_fields = NULL,
+  id_poly_in = "ID",
+  fun = stats::weighted.mean
+)
 }
 \arguments{
 \item{poly_in}{A sf/SpatVector object at weighted means will be calculated.}
@@ -12,8 +18,14 @@ summarize_aw(poly_in = NULL, poly_weight = NULL, id_poly_in = "ID")
 \item{poly_weight}{A sf/SpatVector object from
 which weighted means will be calculated.}
 
+\item{target_fields}{character. Field names to calculate area-weighted .}
+
 \item{id_poly_in}{character(1).
-The unique identifier of each polygon in \code{poly_in}}
+The unique identifier of each polygon in \code{poly_in}.
+Default is \code{"ID"}.}
+
+\item{fun}{function(1). The function to calculate the weighted summary.
+Default is \code{stats::weighted.mean}. The function must have a \code{w} argument.}
 }
 \value{
 A data.frame with all numeric fields of area-weighted means.
@@ -26,24 +38,23 @@ When \code{poly_in} and \code{poly_weight} are different classes,
 # package
 library(sf)
 sf_use_s2(FALSE)
-# run
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 nc <- sf::st_transform(nc, 5070)
 pp <- sf::st_sample(nc, size = 300)
 pp <- sf::st_as_sf(pp)
 pp[["id"]] <- seq(1, nrow(pp))
 sf::st_crs(pp) <- "EPSG:5070"
-ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, 'km'))
+ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 
-system.time({ppb_nc_aw <- summarize_aw(ppb, nc, 'id')})
+system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 summary(ppb_nc_aw)
 #### Example of summarize_aw ends ####
 }
 \seealso{
 Other Macros for calculation: 
+\code{\link{extract_at}()},
 \code{\link{extract_at_buffer}()},
 \code{\link{extract_at_poly}()},
-\code{\link{extract_at}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_sedc}()}
 }

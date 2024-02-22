@@ -10,7 +10,8 @@
 #' `"id"`.
 #' @author Insang Song
 #' @examples
-#' ## NO EXAMPLE
+#' err <- simpleError("No input.")
+#' par_fallback(err, extract_at, debug = TRUE)
 #' @export
 par_fallback <-
   function(
@@ -43,8 +44,8 @@ par_fallback <-
 #' refer to \link[future]{plan}. This function assumes that
 #' users have one raster file and a sizable and spatially distributed
 #' target locations. Each thread will process
-#' `ceiling(\eqn{|N_g|/|N_t|})` grids
-#' where \eqn{|N_g|} denotes the number of grids and \eqn{|N_t|} denotes
+#' the nearest integer of $|N_g| / |N_t|$ grids
+#' where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 #' the number of threads.
 #' @note In dynamic dots (\code{...}), the first and second
 #' arguments should be the \code{fun_dist} arguments where
@@ -75,17 +76,58 @@ par_fallback <-
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#'
 #' @examples
 #' \dontrun{
-#' library(future)
-#' plan(multicore, workers = 4)
-#' # See vignette for details.
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' ncpoly <- terra::vect(ncpath) |>
+#'   terra::project("EPSG:5070")
+#' ncpnts <-
+#'   readRDS(
+#'     system.file("extdata/nc_random_point.rds", package = "chopin")
+#'   )
+#' ncpnts <- terra::vect(ncpnts)
+#' ncpnts <- terra::project(ncpnts, "EPSG:5070")
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#'
+#' ncsamp <-
+#'   terra::spatSample(
+#'     terra::ext(ncelev),
+#'     1e4L,
+#'     lonlat = FALSE,
+#'     as.points = TRUE
+#'   )
+#' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+#' nccompreg <-
+#'   par_make_gridset(
+#'     input = ncpnts,
+#'     mode = "grid",
+#'     nx = 6L,
+#'     ny = 4L,
+#'     padding = 3e4L
+#'   )
+#' res <-
+#'   par_grid(
+#'     grids = nccompreg,
+#'     grid_target_id = NULL,
+#'     fun_dist = extract_at_buffer,
+#'     points = ncpnts,
+#'     surf = ncelev,
+#'     qsegs = 90L,
+#'     radius = 5e3L,
+#'     id = "pid"
+#'   )
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
+#' @importFrom dplyr bind_rows
+#' @importFrom sf sf_use_s2
 #' @export
 par_grid <-
   function(
@@ -149,10 +191,7 @@ par_grid <-
               )
             )
 
-            if (!is.data.frame(res)) {
-              res <- as.data.frame(res)
-            }
-
+            try(res <- as.data.frame(res))
             return(res)
           },
           error = function(e) {
@@ -183,9 +222,8 @@ par_grid <-
 #'  refer to \link[future]{plan}.
 #'  This function assumes that users have one raster file and
 #'  a sizable and spatially distributed target locations.
-#'  Each thread will process `ceiling(\eqn{|N_{g}|/|N_{t}|})` grids where
-#'  \eqn{|N_{g}|} denotes the number of grids and \eqn{|N_{t}|} denotes
-#'  the number of threads. Please be advised that
+#'  Each thread will process the number of lower level features
+#'  in each higher level feature. Please be advised that
 #'  accessing the same file simultaneously with
 #'  multiple processes may result in errors.
 #' @note In dynamic dots (\code{...}), the first and second
@@ -218,14 +256,54 @@ par_grid <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' \dontrun{
+#' library(terra)
+#' library(sf)
+#' library(chopin)
 #' library(future)
-#' plan(multicore, workers = 4L)
-#' # See vignette for details.
+#' library(doFuture)
+#' sf::sf_use_s2(FALSE)
+#' plan(multicore)
+#' registerDoFuture()
+#' 
+#' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+#' nccnty <- terra::vect(ncpath, layer = "county")
+#' nctrct <- sf::st_read(ncpath, layer = "tracts")
+#' nctrct <- terra::vect(nctrct)
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(
+#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'     )
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#'
+#' ncsamp <-
+#'   terra::spatSample(
+#'     terra::ext(ncelev),
+#'     1e4L,
+#'     lonlat = FALSE,
+#'     as.points = TRUE
+#'   )
+#' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+#' res <-
+#'   par_hierarchy(
+#'     regions = nccnty,
+#'     split_level = "GEOID",
+#'     fun_dist = extract_at_poly,
+#'     polys = nctrct,
+#'     surf = ncelev,
+#'     id = "GEOID",
+#'     func = "mean"
+#'   )
+#' )
 #' }
 #' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
+#' @importFrom dplyr bind_rows
+#' @importFrom sf sf_use_s2
 #' @export
 par_hierarchy <-
   function(
@@ -247,7 +325,7 @@ par_hierarchy <-
     regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
-      future_lapply(
+      future.apply::future_lapply(
         regions_list,
         function(subregion) {
           sf::sf_use_s2(FALSE)
@@ -268,9 +346,7 @@ par_hierarchy <-
                 }
 
                 res <- rlang::inject(fun_dist(!!!args_input))
-                if (!is.data.frame(res)) {
-                  res <- as.data.frame(res)
-                }
+                try(res <- as.data.frame(res))
                 return(res)
               },
               error =
@@ -323,13 +399,44 @@ par_hierarchy <-
 #'
 #' @examples
 #' \dontrun{
+#' library(terra)
+#' library(sf)
+#' library(chopin)
 #' library(future)
-#' plan(multisession, workers = 4L)
-#' # See vignette for details.
+#' library(doFuture)
+#' sf::sf_use_s2(FALSE)
+#' plan(multicore)
+#' registerDoFuture()
+#'
+#' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+#' nccnty <- terra::vect(ncpath, layer = "county")
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(
+#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'     )
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#' tdir <- tempdir(check = TRUE)
+#' terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+#' terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+#' terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+#' testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+#'
+#' res <- par_multirasters(
+#'   filenames = testfiles,
+#'   fun_dist = extract_at_poly,
+#'   polys = nccnty,
+#'   surf = ncelev,
+#'   id = "GEOID",
+#'   func = "mean"
+#' )
 #' }
 #' @import future
-#' @import future.apply
+#' @importFrom future.apply future_lapply
 #' @import doFuture
+#' @importFrom terra rast
 #' @export
 par_multirasters <-
   function(
@@ -355,11 +462,13 @@ par_multirasters <-
 
               rast_target <- which(any_class_args(args_input, "SpatRaster"))
               args_input[[rast_target]] <-
-                rast_short(rasterpath = path, win = vect_ext)
-              if (!"id" %in% names(formals(fun_dist))) args_input$id <- NULL
+                terra::rast(x = path, win = vect_ext)
+              if (!"id" %in% names(formals(fun_dist))) {
+                args_input$id <- NULL
+              }
 
               res <- rlang::inject(fun_dist(!!!args_input))
-              if (!is.data.frame(res)) res <- as.data.frame(res)
+              try(res <- as.data.frame(res))
               res$base_raster <- path
               return(res)
             }

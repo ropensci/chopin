@@ -10,3 +10,6 @@
 
 # Apptainer image file
 /containers/**/*.sif
+
+# litr knitted html
+**/*.html

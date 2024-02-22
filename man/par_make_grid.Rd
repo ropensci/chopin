@@ -4,7 +4,7 @@
 \alias{par_make_grid}
 \title{Generate grid polygons}
 \usage{
-par_make_grid(points_in, ncutsx, ncutsy)
+par_make_grid(points_in = NULL, ncutsx = NULL, ncutsy = NULL)
 }
 \arguments{
 \item{points_in}{\code{sf} or \code{SpatVector} object. Target points of computation.}

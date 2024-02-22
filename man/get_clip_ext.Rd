@@ -42,7 +42,6 @@ Other Helper functions:
 \code{\link{ext2poly}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
-\code{\link{rast_short}()},
 \code{\link{reproject_b2r}()},
 \code{\link{reproject_std}()},
 \code{\link{vect_valid_repair}()}

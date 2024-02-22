@@ -29,7 +29,9 @@ testthat::test_that("SEDC are well calculated.", {
   ncrand$pollutant3 <- stats::rbeta(250L, 0.5, 0.5)
 
   polnames <- paste0("pollutant", 1:3)
-
+  testthat::expect_no_error(
+    summarize_sedc(ncpnts, ncrand, "pid", 3e4L, NULL, polnames)
+  )
   testthat::expect_no_error(
     sedc_calc <-
       summarize_sedc(ncpnts, ncrand, "pid", 3e4L, 5e4L, polnames)

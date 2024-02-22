@@ -1,6 +1,6 @@
 Package: chopin
 Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
-Version: 0.3.0.20240205
+Version: 0.4.0.20240222
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -24,7 +24,7 @@ Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.0
+RoxygenNote: 7.3.1
 Imports: 
     doFuture,
     dplyr (>= 1.1.0),
@@ -49,4 +49,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 761c2e6609648d033ddf0d6506ae3bbe
+LitrId: 65b64b88def74fbb9156429f0cf0d121

@@ -24,14 +24,15 @@ This function assumes that the \code{fun} has an argument named
 \code{"id"}.
 }
 \examples{
-## NO EXAMPLE
+err <- simpleError("No input.")
+par_fallback(err, extract_at, debug = TRUE)
 }
 \seealso{
 Other Parallelization: 
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()}
 }

@@ -26,6 +26,7 @@ testthat::test_that("Format is well converted",
     testthat::expect_equal(dep_check(sf_nc_trb), "sf")
 
     testthat::expect_error(dep_check(list(1, 2)))
+    testthat::expect_error(dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE)))
   }
 )
 
@@ -62,26 +63,4 @@ testthat::test_that("Clip extent is set properly", {
   testthat::expect_equal(nc_ext_terra_1, proper_xmin)
 
 })
-
-
-testthat::test_that("Raster is read properly with a window.", {
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-
-  ext_numeric <- c(-84, -82, 34, 36) # unnamed
-  testthat::expect_error(rast_short(bcsd_path, ext_numeric[1:3]))
-  testthat::expect_error(rast_short(bcsd_path, ext_numeric))
-
-  names(ext_numeric) <- c("xmin", "xmax", "ymin", "ymax")
-  rastshort_num <- rast_short(bcsd_path, ext_numeric)
-  testthat::expect_s4_class(rastshort_num, "SpatRaster")
-
-  ext_terra <- terra::ext(ext_numeric)
-  rastshort_terra <- rast_short(bcsd_path, ext_terra)
-  testthat::expect_s4_class(rastshort_terra, "SpatRaster")
-
-})
-
 
