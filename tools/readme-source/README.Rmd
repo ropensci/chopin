@@ -40,7 +40,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
     - Collected **datasets they need**
 
 ### Notes on data restrictions
-- This package works best with **two-dimensional** (**planar**) geometries. Users should disable `s2` spherical geometry mode in `sf` by setting
+- This package works best with **two-dimensional** (**planar**) geometries. Users should disable `s2` spherical geometry mode in `sf` by setting. Running any `chopin` functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.
 ```r
 sf::sf_use_s2(FALSE)
 ```
