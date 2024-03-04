@@ -1,0 +1,248 @@
+---
+title: "Reading Weather/Climate Geospatial Data Formats"
+author: Insang Song
+date: `r Sys.Date()`
+output: html_document
+---
+
+
+```{r setup, include = FALSE}
+library(reticulate)
+use_python("../../.conda/envs/rapidsinit/bin/python")
+```
+
+
+# Introduction
+
+This document demonstrates how to expedite processing weather/climate geospatial data with `chopin`. We will cover the following formats:
+
+1. TIFF (tif)
+2. GRIB2 (grib2)
+3. NetCDF (nc)
+
+Thematically, we will cover the following:
+
+
+### Data variables
+We consider ERA5, PRISM, and TerraClimate data which have its own data format each. Workflow is much the same 
+
+| Data | Source | Resolution | File format |
+| :--: | :---- | :---------- | :---------- |
+| ERA5 | ECMWF | 0.2500 degrees | GRIB2 |
+| TerraClimate | UIdaho | 0.0417 degrees | NetCDF |
+| PRISM | Oregon State University | 0.0083 degrees | NetCDF |
+
+## Prepare populated places centroids
+We will consider the populated places centroids in the mainland United States (i.e., excluding Alaska, Hawaii, and the territories). We will use the `tigris` package to download the data.
+
+
+
+```{r}
+pkgs <-
+  c("chopin", "terra", "stars", "future", "doFuture", "parallelly", "tigris")
+invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
+options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
+
+state <- tigris::states(year = 2022)
+statemain <-
+  state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
+target_states <- statemain$GEOID
+
+# popplace <-
+#   lapply(target_states, function(x) tigris::places(x, year = 2022)) %>%
+#   do.call(rbind, .)
+# saveRDS(popplace, "./input/populated_place_2022.rds", compress = "xz")
+```
+
+
+```{r PRISM}
+popplace <- readRDS("./input/populated_place_2022.rds")
+popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
+  sf::st_transform("EPSG:5070")
+popplacep2 <- sf::st_centroid(popplace, of_largest_polygon = TRUE)
+popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
+popplaceb2 <- sf::st_transform(popplaceb, crs = terra::crs(bilssds))
+
+
+bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
+bilssds <- terra::rast(bils[-13])
+popplace2 <- sf::st_transform(popplace, crs = terra::crs(bilssds))
+
+system.time(
+  exsingle <-
+    exactextractr::exact_extract(
+      bilssds,
+      popplaceb,
+      fun = "mean",
+      stack_apply = TRUE,
+      force_df = TRUE,
+      append_cols = "GEOID"
+    )
+)
+#    user  system elapsed
+#  22.218   2.058  34.165
+
+exsinglep <-
+  exactextractr::exact_extract(
+    bilssds,
+    popplace2,
+    fun = "mean",
+    stack_apply = TRUE,
+    force_df = TRUE,
+    append_cols = "GEOID"
+  )
+
+
+system.time(
+  exgrid <-
+    chopin::par_make_gridset(
+      popplacep,
+      mode = "grid",
+      padding = 1e4,
+      nx = 6L,
+      ny = 3L
+    )
+)
+
+exgrid <-
+  chopin::par_make_gridset(
+    popplacep2,
+    mode = "grid",
+    padding = 1e4,
+    nx = 6L,
+    ny = 3L
+  )
+
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 18L)
+system.time(
+  exmulti <-
+    chopin::par_grid(
+      exgrid,
+      fun_dist = chopin::extract_at_buffer,
+      points = popplacep2,
+      surf = bilssds,
+      radius = units::set_units(1e4, "meter"),
+      id = "GEOID",
+      func = "mean"
+    )
+)
+#    user  system elapsed
+#  40.162  13.828  10.621
+```
+
+```{r TerraClimate}
+# wbd
+ext_mainland <- c(xmin = -126, xmax = -64, ymin = 22, ymax = 51)
+ext_mainland <- terra::ext(ext_mainland)
+
+path_tc <- file.path("input", "terraClimate/NetCDF/")
+path_tc_files <- list.files(
+  path = path_tc, pattern = "*.nc$",
+  full.names = TRUE
+)
+
+# some bands should be summed
+bandnames <- c(
+  "aet", "def", "PDSI", "pet", "ppt", "q", "soil", "srad",
+  "swe", "tmax", "tmin", "vap", "vpd", "ws"
+)
+bandnames_sorted <- sort(bandnames)
+
+
+# aet (Actual Evapotranspiration, monthly total), units = mm
+# def (Climate Water Deficit, monthly total), units = mm
+# PDSI (Palmer Drought Severity Index, at end of month), units = unitless
+# pet (Potential evapotranspiration, monthly total), units = mm
+# ppt (Precipitation, monthly total), units = mm
+# q (Runoff, monthly total), units = mm
+# soil (Soil Moisture, total column - at end of month), units = mm
+# srad (Downward surface shortwave radiation), units = W/m2
+# swe (Snow water equivalent - at end of month), units = mm
+# tmax (Max Temperature, average for month), units = C
+# tmin (Min Temperature, average for month), units = C
+# vap (Vapor pressure, average for month), units  = kPa
+# vpd (Vapor Pressure Deficit, average for month), units = kpa
+# ws (Wind speed, average for month), units = m/s
+# sum: aet, def, pet, ppt, q, soil, swe(?)
+# mean: PDSI, srad, tmax(?), tmin(?), vap, vpd, ws
+
+
+# single nc file, yearly aggregation by fun value
+preprocess <- function(ras, fun) {
+  terra::tapp(ras, "years", fun)
+}
+
+
+# band for summation
+bandnames_sum <- c("aet", "def", "pet", "ppt", "q", "soil", "swe")
+
+# band for averaging
+bandnames_avg <- c("PDSI", "srad", "tmax", "tmin", "vap", "vpd", "ws")
+
+# description
+# mean: temporally marginal pixel mean (i.e., monthly -> yearly)
+# sum: temporally marginal pixel sum (i.e., monthly -> yearly)
+# Preprocessed data are stored in
+netcdf_read_sum <-
+  split(bandnames, bandnames) |>
+  lapply(function(x) {
+    grep(paste0("(", x, ")"), path_tc_files, value = TRUE)
+  }) |>
+  lapply(function(x) {
+    preprocess(terra::rast(x, win = ext_mainland, snap = "out"), "sum")
+  }) |>
+  Reduce(f = c, x = _)
+
+netcdf_read_mean <-
+  split(bandnames, bandnames) |>
+  lapply(function(x) {
+    grep(paste0("(", x, ")"), path_tc_files, value = TRUE)
+  }) |>
+  lapply(function(x) {
+    preprocess(terra::rast(x, win = ext_mainland, snap = "out"), "mean")
+  }) |>
+  Reduce(f = c, x = _)
+```
+
+> [!NOTE]
+> This is a note.
+
+> [!TIP]
+> This is a tip. (Supported since 14 Nov 2023)
+
+> [!IMPORTANT]
+> Crutial information comes here.
+
+> [!CAUTION]
+> Negative potential consequences of an action. (Supported since 14 Nov 2023)
+
+> [!WARNING]
+> Critical content comes here.
+
+
+### Addendum: even finely resolved dataset
+
+```{r}
+library(terra)
+
+# Downloading TIFF file
+tif_url <- "https://example.com/path/to/your/tif/file.tif"
+tif_file <- "path/to/your/local/tif/file.tif"
+download.file(tif_url, tif_file)
+tif_raster <- rast(tif_file)
+
+# Downloading GRIB2 file
+grib2_url <- "https://example.com/path/to/your/grib2/file.grib2"
+grib2_file <- "path/to/your/local/grib2/file.grib2"
+download.file(grib2_url, grib2_file)
+grib2_raster <- rast(grib2_file)
+
+# Downloading NetCDF file
+nc_url <- "https://example.com/path/to/your/nc/file.nc"
+nc_file <- "path/to/your/local/nc/file.nc"
+download.file(nc_url, nc_file)
+nc_raster <- rast(nc_file)
+
+
+```

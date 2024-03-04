@@ -13,3 +13,6 @@
 
 # litr knitted html
 **/*.html
+
+# input
+input
