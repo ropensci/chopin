@@ -3297,7 +3297,7 @@ par_hierarchy <-
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
                 subregion <-
-                  regions[startsWith(split_level, subregion)]
+                  regions[startsWith(split_level, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"

@@ -221,8 +221,27 @@ netcdf_read_mean <-
 > Critical content comes here.
 
 
-### Addendum: even finely resolved dataset
+### Addendum 1: even finely resolved dataset
+```{r}
+bg <- terra::vect("~/Blockgroups_2020.gpkg")
 
+## extract prism at bg
+system.time(
+  exsingle <-
+    exactextractr::exact_extract(
+      bilssds,
+      st_as_sf(bg),
+      fun = "mean",
+      stack_apply = TRUE,
+      force_df = TRUE,
+      append_cols = "GEOID",
+      max_cells_in_memory = 2e9
+    )
+)
+
+```
+
+### Addendum 2: which is faster? Stacked vs file-based parallelization
 ```{r}
 library(terra)
 
