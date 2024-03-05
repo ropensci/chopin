@@ -32,9 +32,9 @@ sf::sf_use_s2(FALSE)
 
 ## Basic design
 - Processing functions accept [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)'s classes for spatial data. Raster-vector overlay is done with `exactextractr`.
-- This package supports three basic functions that are readily parallelized over multithread environments:
+- As of version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
     - `extract_at`: extract raster values with point buffers or polygons.
-        - `extract_at_buffer`
+        - `extract_at_buffer`: extract raster values at circular buffers; kernel weight can be applied
         - `extract_at_poly`
     - `summarize_sedc`: calculate sums of [exponentially decaying contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
     - `summarize_aw`: area-weighted covariates based on target and reference polygons
@@ -170,7 +170,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  10.686   0.195  10.914
+#>  11.218   0.624  11.881
 ```
 
 #### Generate regular grid computational regions
@@ -263,7 +263,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.530   0.869   4.707
+#>   8.957   2.506   5.894
 ```
 
 
@@ -315,7 +315,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/ddn/gs1/home/songi2/projects/chopin/inst/extdata/nc_hierarchy.gpkg' 
+#>   `/ddn/gs1/home/songi2/r-libs/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -324,7 +324,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/ddn/gs1/home/songi2/projects/chopin/inst/extdata/nc_hierarchy.gpkg' 
+#>   `/ddn/gs1/home/songi2/r-libs/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -353,7 +353,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.863   0.021   1.891
+#>   2.026   0.048   2.080
 
 # hierarchical parallelization
 system.time(
@@ -369,7 +369,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.057   0.018   2.718
+#>   0.070   0.132   3.172
 ```
 
 
@@ -394,9 +394,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp4Yf4Es/test1.tif" "/tmp/Rtmp4Yf4Es/test2.tif"
-#> [3] "/tmp/Rtmp4Yf4Es/test3.tif" "/tmp/Rtmp4Yf4Es/test4.tif"
-#> [5] "/tmp/Rtmp4Yf4Es/test5.tif"
+#> [1] "/tmp/RtmpAU2r1F/test1.tif" "/tmp/RtmpAU2r1F/test2.tif"
+#> [3] "/tmp/RtmpAU2r1F/test3.tif" "/tmp/RtmpAU2r1F/test4.tif"
+#> [5] "/tmp/RtmpAU2r1F/test5.tif"
 ```
 
 
@@ -413,7 +413,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.424   0.423   1.046
+#>   1.463   1.365   1.504
 knitr::kable(head(res))
 ```
 
@@ -421,12 +421,12 @@ knitr::kable(head(res))
 
 |GEOID |      mean|base_raster               |
 |:-----|---------:|:-------------------------|
-|37037 | 136.80203|/tmp/Rtmp4Yf4Es/test1.tif |
-|37001 | 189.76170|/tmp/Rtmp4Yf4Es/test1.tif |
-|37057 | 231.16968|/tmp/Rtmp4Yf4Es/test1.tif |
-|37069 |  98.03845|/tmp/Rtmp4Yf4Es/test1.tif |
-|37155 |  41.23463|/tmp/Rtmp4Yf4Es/test1.tif |
-|37109 | 270.96933|/tmp/Rtmp4Yf4Es/test1.tif |
+|37037 | 136.80203|/tmp/RtmpAU2r1F/test1.tif |
+|37001 | 189.76170|/tmp/RtmpAU2r1F/test1.tif |
+|37057 | 231.16968|/tmp/RtmpAU2r1F/test1.tif |
+|37069 |  98.03845|/tmp/RtmpAU2r1F/test1.tif |
+|37155 |  41.23463|/tmp/RtmpAU2r1F/test1.tif |
+|37109 | 270.96933|/tmp/RtmpAU2r1F/test1.tif |
 
 
 
@@ -507,7 +507,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.907   0.001   0.909
+#>   0.926   0.007   0.936
 
 # we use four threads that were configured above
 system.time(
@@ -528,7 +528,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.563   0.174   0.435
+#>   0.562   0.879   0.886
 ```
 
 - We will compare the results from the single-thread and multi-thread calculation.

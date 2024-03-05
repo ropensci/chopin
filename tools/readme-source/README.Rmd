@@ -49,7 +49,7 @@ sf::sf_use_s2(FALSE)
 - Processing functions accept [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)'s classes for spatial data. Raster-vector overlay is done with `exactextractr`.
 - As of version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
     - `extract_at`: extract raster values with point buffers or polygons.
-        - `extract_at_buffer`
+        - `extract_at_buffer`: extract raster values at circular buffers; kernel weight can be applied
         - `extract_at_poly`
     - `summarize_sedc`: calculate sums of [exponentially decaying contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
     - `summarize_aw`: area-weighted covariates based on target and reference polygons

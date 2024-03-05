@@ -1,6 +1,5 @@
 Package: chopin
-Title: CHOPIN: Computation for Climate and Health research On Parallelized
-    INfrastructure
+Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
 Version: 0.5.0.20240306
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
