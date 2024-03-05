@@ -47,7 +47,7 @@ sf::sf_use_s2(FALSE)
 
 ## Basic design
 - Processing functions accept [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)'s classes for spatial data. Raster-vector overlay is done with `exactextractr`.
-- This package supports three basic functions that are readily parallelized over multithread environments:
+- As of version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
     - `extract_at`: extract raster values with point buffers or polygons.
         - `extract_at_buffer`
         - `extract_at_poly`

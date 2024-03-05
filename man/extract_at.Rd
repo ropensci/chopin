@@ -16,7 +16,8 @@ extract_at(
 \arguments{
 \item{vector}{\code{sf}/\code{SpatVector} object.}
 
-\item{raster}{\code{SpatRaster} object.}
+\item{raster}{\code{SpatRaster} object. or file path(s) with extensions
+that are GDAL-compatible.}
 
 \item{id}{character(1). Unique identifier of each point.}
 

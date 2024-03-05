@@ -321,7 +321,6 @@ par_hierarchy <-
       ifelse(length(split_level) == nrow(regions),
              split_level,
              unlist(regions[[split_level]]))
-
     regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
@@ -335,7 +334,7 @@ par_hierarchy <-
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
                 subregion <-
-                  regions[startsWith(split_level, subregion)]
+                  regions[startsWith(split_level, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"

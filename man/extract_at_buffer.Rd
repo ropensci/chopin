@@ -43,8 +43,8 @@ extract_at_buffer_kernel(
 \item{points}{\code{sf}/\code{SpatVector} object.
 Coordinates where buffers will be generated.}
 
-\item{surf}{\code{SpatRaster} object.
-A raster at which summary will be calculated}
+\item{surf}{\code{SpatRaster} object or file path(s) with extensions
+that are GDAL-compatible. A raster from which a summary will be calculated}
 
 \item{radius}{numeric(1). Buffer radius. here we assume circular buffers only}
 
@@ -66,6 +66,19 @@ a data.frame object with mean value
 \description{
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
+}
+\note{
+When \code{Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")} is set, the raster will be
+cropped to the extent of the polygons (with \code{snap} = \code{"out"}).
+To note, the function is designed to work with the \code{exactextractr} package.
+Arguments of \code{exactextractr::exact_extract} are set as below
+(default otherwise listed):
+\itemize{
+\item \code{force_df} = \code{TRUE}
+\item \code{stack_apply} = \code{TRUE}
+\item \code{max_cells_in_memory} = \code{2e8}
+\item \code{progress} = \code{FALSE}
+}
 }
 \examples{
 library(terra)

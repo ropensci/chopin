@@ -9,8 +9,8 @@ extract_at_poly(polys = NULL, surf = NULL, id = NULL, func = "mean")
 \arguments{
 \item{polys}{\code{sf}/\code{SpatVector} object. Polygons.}
 
-\item{surf}{\code{SpatRaster} object.
-A raster from which a summary will be calculated}
+\item{surf}{\code{SpatRaster} object or file path(s) with extensions
+that are GDAL-compatible. A raster from which a summary will be calculated}
 
 \item{id}{character(1). Unique identifier of each point.}
 
@@ -25,7 +25,19 @@ a data.frame object with function value
 \description{
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
-Kernel function is not yet implemented.
+}
+\note{
+When \code{Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")} is set, the raster will be
+cropped to the extent of the polygons (with \code{snap} = \code{"out"}).
+To note, the function is designed to work with the \code{exactextractr} package.
+Arguments of \code{exactextractr::exact_extract} are set as below
+(default otherwise listed):
+\itemize{
+\item \code{force_df} = \code{TRUE}
+\item \code{stack_apply} = \code{TRUE}
+\item \code{max_cells_in_memory} = \code{2e8}
+\item \code{progress} = \code{FALSE}
+}
 }
 \examples{
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
