@@ -202,7 +202,7 @@ par_grid <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr", "chopin", "exactextractr")
+        future.packages = c("chopin", "dplyr", "sf", "terra")
       )
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
@@ -262,9 +262,9 @@ par_grid <-
 #' library(future)
 #' library(doFuture)
 #' sf::sf_use_s2(FALSE)
-#' plan(multicore)
 #' registerDoFuture()
-#' 
+#' plan(multicore)
+#'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 #' nccnty <- terra::vect(ncpath, layer = "county")
 #' nctrct <- sf::st_read(ncpath, layer = "tracts")
@@ -356,8 +356,7 @@ par_hierarchy <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr", "rlang",
-                            "chopin", "future", "exactextractr")
+        future.packages = c("chopin", "dplyr", "sf", "terra")
       )
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 
@@ -404,8 +403,8 @@ par_hierarchy <-
 #' library(future)
 #' library(doFuture)
 #' sf::sf_use_s2(FALSE)
-#' plan(multicore)
 #' registerDoFuture()
+#' plan(multicore)
 #'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 #' nccnty <- terra::vect(ncpath, layer = "county")
@@ -478,9 +477,10 @@ par_multirasters <-
         },
         future.seed = TRUE,
         future.packages =
-        c("terra", "sf", "dplyr", "rlang",
-          "chopin", "future",
-          "exactextractr")
+        c("chopin", "dplyr", "sf", "terra")
+        # "terra", "sf", "dplyr", "rlang",
+        #   "chopin", "future",
+        #   "exactextractr")
       )
     results_distributed <- do.call(dplyr::bind_rows, results_distributed)
 

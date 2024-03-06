@@ -16,25 +16,18 @@ library(reticulate)
 use_python("../../.conda/envs/rapidsinit/bin/python")
 ```
 
-# Introduction
+## Introduction
 
-This document demonstrates how to expedite processing weather/climate geospatial data with `chopin`. We will cover the following formats:
+This document demonstrates to parallelize weather/climate geospatial data processing with `chopin` and what cases users may take advantage of parallel processing or not. We will cover the following formats:
 
-1.  TIFF (tif)
-2.  GRIB2 (grib2)
-3.  NetCDF (nc)
-
-Thematically, we will cover the following:
-
-### Data variables
-
-We consider ERA5, PRISM, and TerraClimate data which have its own data format each. Workflow is much the same
+We consider TerraClimate and PRISM data which have its own data format each. [Parameter-elevation Regressions on Independent Slopes Model (PRISM)](https://prism.oregonstate.edu) is a high-resolution (800-1,000 meters) gridded climate dataset available in the BIL (band interleaved by line) format which is readable with GDAL. TerraClimate is a high-resolution (5 km) gridded climate dataset in the NetCDF format which is readable with GDAL.
 
 |     Data     | Source                  | Resolution     | File format |
 |:------------:|:------------------------|:---------------|:------------|
-|     ERA5     | ECMWF                   | 0.2500 degrees | GRIB2       |
 | TerraClimate | University of Idaho     | 0.0417 degrees | NetCDF      |
-|    PRISM     | Oregon State University | 0.0083 degrees | NetCDF      |
+|    PRISM     | Oregon State University | 0.0083 degrees | BIL      |
+
+The spatial resolution of TerraClimate data commensurates 5 km in the equator, whereas that of PRISM data is approximately 1 km. The data are available in the NetCDF format which is readable with GDAL. We will use the `terra` package to read the data.
 
 ### Prepare target datasets
 
@@ -57,12 +50,6 @@ statemain <-
   state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
 target_states <- statemain$GEOID
 
-# populated places
-# popplace <-
-#   lapply(target_states, function(x) tigris::places(x, year = 2022)) %>%
-#   do.call(rbind, .)
-# saveRDS(popplace, "./input/populated_place_2022.rds", compress = "xz")
-
 popplace <- readRDS("./input/populated_place_2022.rds")
 dim(popplace)
 popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
@@ -72,165 +59,10 @@ popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
 
 ```
 
-```{r}
-obj_size(popplace)
-obj_size(vect(popplace))
 
-```
+## TerraClimate
 
-[PRISM](https://prism.oregonstate.edu) is a high-resolution (800-1,000 meters) gridded climate dataset that is widely used in the United States. The dataset is available in the BIL (band interleaved by line) format which is readable with GDAL. Using the `exactextractr` package on a single core and the `chopin` package to parallelize the extraction process, we demonstrate the workflow of extracting 30-year monthly precipitation normals at the differently buffered populated places from the US Census Bureau.
-
-```{r PRISM}
-bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
-bilssds <- terra::rast(bils[-13])
-popplace2 <- sf::st_transform(popplace, crs = terra::crs(bilssds))
-popplaceb2 <- sf::st_transform(popplaceb, crs = terra::crs(bilssds))
-
-system.time(
-  exsingle <-
-    exactextractr::exact_extract(
-      bilssds,
-      popplaceb2,
-      fun = "mean",
-      stack_apply = TRUE,
-      force_df = TRUE,
-      append_cols = "GEOID",
-      max_cells_in_memory = 2.14e9
-    )
-)
-# 2.14e9
-#    user  system elapsed 
-#  19.874   1.928  30.800 
-# 1e8
-#    user  system elapsed 
-#  21.262   1.610  44.005 
-
-exsinglep <-
-  exactextractr::exact_extract(
-    bilssds,
-    popplace2,
-    fun = "mean",
-    stack_apply = TRUE,
-    force_df = TRUE,
-    append_cols = "GEOID"
-  )
-
-
-system.time(
-  exgrid <-
-    chopin::par_make_gridset(
-      popplacep,
-      mode = "grid",
-      padding = 1e4,
-      nx = 6L,
-      ny = 3L
-    )
-)
-
-exgrid <-
-  chopin::par_make_gridset(
-    popplacep2,
-    mode = "grid",
-    padding = 1e4,
-    nx = 6L,
-    ny = 3L
-  )
-
-doFuture::registerDoFuture()
-future::plan(future::multicore, workers = 18L)
-options(future.globals = TRUE)
-system.time(
-  exmulti <-
-    chopin::par_grid(
-      exgrid,
-      fun_dist = chopin::extract_at_buffer,
-      points = popplacep2,
-      surf = bilssds,
-      radius = units::set_units(1e4, "meter"),
-      id = "GEOID",
-      func = "mean"
-    )
-)
-#    user  system elapsed
-#  40.162  13.828  10.621
-
-# no globals
-options(future.globals = FALSE)
-doFuture::registerDoFuture()
-future::plan(future::multicore, workers = 18L)
-system.time(
-  exmulti <-
-    chopin::par_grid(
-      exgrid,
-      fun_dist = chopin::extract_at_buffer,
-      points = popplacep2,
-      surf = bilssds,
-      radius = units::set_units(1e4, "meter"),
-      id = "GEOID",
-      func = "mean"
-    )
-)
-#    user  system elapsed 
-#  39.737  14.437  11.368 
-
-```
-
-```{r}
-popplaceb5 <- sf::st_buffer(popplacep, dist = units::set_units(50, "km")) %>%
-  sf::st_transform(terra::crs(bilssds))
-
-system.time(
-  exsingle5 <-
-    exactextractr::exact_extract(
-      bilssds,
-      popplaceb5,
-      fun = "mean",
-      stack_apply = TRUE,
-      force_df = TRUE,
-      append_cols = "GEOID",
-      max_cells_in_memory = 2.14e9
-    )
-)
-
-system.time(
-  exgrid5k <-
-    chopin::par_make_gridset(
-      popplacep,
-      mode = "grid",
-      padding = 5e4,
-      nx = 6L,
-      ny = 3L
-    )
-)
-
-exgrid5k <-
-  chopin::par_make_gridset(
-    popplacep2,
-    mode = "grid",
-    padding = 5e4,
-    nx = 6L,
-    ny = 3L
-  )
-
-
-options(future.globals = FALSE)
-doFuture::registerDoFuture()
-future::plan(future::multisession, workers = 18L)
-system.time(
-  exmulti5k <-
-    chopin::par_grid(
-      exgrid5k,
-      fun_dist = chopin::extract_at_buffer,
-      points = popplacep,
-      surf = bils[-13],
-      radius = units::set_units(5e4, "meter"),
-      id = "GEOID",
-      func = "mean"
-    )
-)
-```
-
-```{r TerraClimate}
+```{r TerraClimate-read}
 # wbd
 ext_mainland <- c(xmin = -126, xmax = -64, ymin = 22, ymax = 51)
 ext_mainland <- terra::ext(ext_mainland)
@@ -240,7 +72,10 @@ path_tc_files <- list.files(
   path = path_tc, pattern = "*.nc$",
   full.names = TRUE
 )
+path_tc_files
+```
 
+```{r TerraClimate-preprocess}
 # some bands should be summed
 bandnames <- c(
   "aet", "def", "PDSI", "pet", "ppt", "q", "soil", "srad",
@@ -368,6 +203,175 @@ single %>%
 
 > \[!WARNING\] Critical content comes here.
 
+
+
+```{r}
+#| label: populated places download
+
+# populated places
+# state <- tigris::states(year = 2022)
+# statemain <-
+#   state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
+# target_states <- statemain$GEOID
+
+# popplace <-
+#   lapply(target_states, function(x) tigris::places(x, year = 2022)) %>%
+#   do.call(rbind, .)
+# saveRDS(popplace, "./input/populated_place_2022.rds", compress = "xz")
+
+```
+
+```{r PRISM}
+bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
+bilssds <- terra::rast(bils[-13])
+popplace2 <- sf::st_transform(popplace, crs = terra::crs(bilssds))
+popplaceb2 <- sf::st_transform(popplaceb, crs = terra::crs(bilssds))
+
+system.time(
+  exsingle <-
+    exactextractr::exact_extract(
+      bilssds,
+      popplaceb2,
+      fun = "mean",
+      stack_apply = TRUE,
+      force_df = TRUE,
+      append_cols = "GEOID",
+      max_cells_in_memory = 2.14e9
+    )
+)
+# 2.14e9
+#    user  system elapsed 
+#  19.874   1.928  30.800 
+# 1e8
+#    user  system elapsed 
+#  21.262   1.610  44.005 
+
+exsinglep <-
+  exactextractr::exact_extract(
+    bilssds,
+    popplace2,
+    fun = "mean",
+    stack_apply = TRUE,
+    force_df = TRUE,
+    append_cols = "GEOID"
+  )
+
+
+system.time(
+  exgrid <-
+    chopin::par_make_gridset(
+      popplacep,
+      mode = "grid",
+      padding = 1e4,
+      nx = 6L,
+      ny = 3L
+    )
+)
+
+exgrid <-
+  chopin::par_make_gridset(
+    popplacep2,
+    mode = "grid",
+    padding = 1e4,
+    nx = 6L,
+    ny = 3L
+  )
+
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 18L)
+options(future.globals = TRUE)
+system.time(
+  exmulti <-
+    chopin::par_grid(
+      exgrid,
+      fun_dist = chopin::extract_at_buffer,
+      points = popplacep2,
+      surf = bilssds,
+      radius = units::set_units(1e4, "meter"),
+      id = "GEOID",
+      func = "mean"
+    )
+)
+#    user  system elapsed
+#  40.162  13.828  10.621
+
+# no globals
+options(future.globals = FALSE)
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 18L)
+system.time(
+  exmulti <-
+    chopin::par_grid(
+      exgrid,
+      fun_dist = chopin::extract_at_buffer,
+      points = popplacep2,
+      surf = bilssds,
+      radius = units::set_units(1e4, "meter"),
+      id = "GEOID",
+      func = "mean"
+    )
+)
+#    user  system elapsed 
+#  39.737  14.437  11.368 
+
+```
+
+How about expanding the buffer size to 50 km?
+```{r}
+popplaceb5 <- sf::st_buffer(popplacep, dist = units::set_units(50, "km")) %>%
+  sf::st_transform(terra::crs(bilssds))
+
+system.time(
+  exsingle5 <-
+    exactextractr::exact_extract(
+      bilssds,
+      popplaceb5,
+      fun = "mean",
+      stack_apply = TRUE,
+      force_df = TRUE,
+      append_cols = "GEOID",
+      max_cells_in_memory = 2.14e9
+    )
+)
+
+system.time(
+  exgrid5k <-
+    chopin::par_make_gridset(
+      popplacep,
+      mode = "grid",
+      padding = 5e4,
+      nx = 6L,
+      ny = 3L
+    )
+)
+
+exgrid5k <-
+  chopin::par_make_gridset(
+    popplacep2,
+    mode = "grid",
+    padding = 5e4,
+    nx = 6L,
+    ny = 3L
+  )
+
+
+options(future.globals = FALSE)
+doFuture::registerDoFuture()
+future::plan(future::multisession, workers = 18L)
+system.time(
+  exmulti5k <-
+    chopin::par_grid(
+      exgrid5k,
+      fun_dist = chopin::extract_at_buffer,
+      points = popplacep,
+      surf = bils[-13],
+      radius = units::set_units(5e4, "meter"),
+      id = "GEOID",
+      func = "mean"
+    )
+)
+```
+
 ```{r}
 ## generate 1km grid points in the southeastern US States
 stt <- tigris::states(year = 2020)
@@ -437,7 +441,9 @@ system.time(
 
 ### Addendum 1: even finely resolved dataset
 
-Even with a finely resolved dataset, the extraction process can be expedited with the `chopin` package. We demonstrate the extraction process with the CropScape dataset which has a resolution of 30 meters. In this case, we use `frac` option which tabulates the fraction of the area of the cell category that is covered by the polygon.
+Even with a finely resolved dataset, the extraction process can be expedited with the `chopin` package. We demonstrate the extraction process with the CropScape dataset which has a resolution of 30 meters. In this case, we use `frac` option of `exact_extract` which tabulates the fraction of the area of the cell category that is covered by the polygon.
+
+
 
 ```{r}
 tic()
@@ -451,7 +457,7 @@ system.time(
   exsingle <-
     exactextractr::exact_extract(
       bilssds,
-      bg,
+      bgsf %>% dplyr::filter(!STATEFP %in% c("02", "15", "72", "66", "78", "60", "69")),
       fun = "mean",
       stack_apply = TRUE,
       force_df = TRUE,
@@ -471,17 +477,20 @@ nmain <- c("AS", "AK", "HI", "PR", "VI", "GU", "MP")
 stt_nmain <- stt[!stt$STUSPS %in% nmain, ]
 
 
-options(future.globals = FALSE)
+options(future.globals = FALSE, future.globals.maxSize = +Inf)
 doFuture::registerDoFuture()
-future::plan(future::multicore, workers = 49)
+# cl <- mirai::make_cluster(8)
+
+# future::plan("multicore", workers = 6L)
+future::plan(multicore, workers = 20L)
 system.time(
   exhierarchy <-
-    par_hierarchy(
-      stt_targ,
+    chopin::par_hierarchy(
+      bgsf,
       split_level = "STATEFP",
       fun_dist = chopin::extract_at_poly,
-      polys = bg,
-      surf = bilssds,
+      polys = bgsf,
+      surf = bils,
       id = "GEOID"
     )
 )

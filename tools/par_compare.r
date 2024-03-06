@@ -69,7 +69,7 @@ library(furrr)
 library(future)
 library(doFuture)
 doFuture::registerDoFuture()
-plan(list(multisession), workers = 6L)
+plan(multisession, workers = 10L)
 
 
 tictoc::tic()
@@ -78,7 +78,7 @@ furrr::future_map(
   .x = unique(popplace$STATEFP),
   .f = function(x) {
     pkgs <-
-      c("chopin", "terra", "stars", "sf", "future", "doFuture", "parallelly", "tigris", "exactextractr", "tictoc")
+      c("chopin")
     invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
     options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
     bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
@@ -98,7 +98,8 @@ furrr::future_map(
           append_cols = "GEOID",
           max_cells_in_memory = 2.14e9
         )
-    }
+    },
+    .options = furrr::furrr_options(scheduling = 4L)
 )
 tictoc::toc()
 # up to 900MB / thread
@@ -111,8 +112,9 @@ fur_lla <-
 future.apply::future_lapply(
   X = unique(popplace$STATEFP),
   FUN = function(x) {
+    .libPaths("~/r-libs")
     pkgs <-
-      c("chopin", "terra", "stars", "sf", "future", "doFuture", "parallelly", "tigris", "exactextractr", "tictoc")
+      c("chopin")
     invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
     options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
     bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
@@ -132,8 +134,11 @@ future.apply::future_lapply(
           append_cols = "GEOID",
           max_cells_in_memory = 2.14e9
         )
-    }
+    },
+    future.seed = TRUE,
+    future.scheduling = 4L
 )
 tictoc::toc()
 # 114.906 sec
+# cluster, 71.8 sec, scheduling = 4L @cluster (persistent)
 # 700 MB / thread
