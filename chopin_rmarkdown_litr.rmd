@@ -1011,25 +1011,28 @@ nc_valid <- vect_valid_repair(nc)
 ```
 
 
-```{r, send_to = "R/gridding.R"}
+```{r gridding-suite, send_to = "R/gridding.R"}
 #' Get a set of computational grids
 #' @family Parallelization
 #' @param input sf or Spat* object.
 #' @param mode character(1). Mode of region construction.
-#'  One of "grid" (simple grid regardless of
-#'  the number of features in each grid),
-#'  "density" (clustering-based varying grids),
-#'  "grid_advanced" (merging adjacent grids with
-#'  smaller number of features than grid_min_features). 
+#'  One of
+#' * `"grid"` (simple grid regardless of the number of features in each grid)
+#' * `"density"` (clustering-based varying grids),
+#' * `"grid_advanced"` (merging adjacent grids with
+#'  smaller number of features than grid_min_features).
+#' * `"grid_quantile"` (x and y quantiles)
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
 #' @param padding numeric(1). A extrusion factor to make buffer to
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
+# nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'  units::set_units is used for padding when sf object is used.
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
+# nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
 #'  * \code{original}: exhaustive and non-overlapping
@@ -1061,7 +1064,7 @@ nc_valid <- vect_valid_repair(nc)
 par_make_gridset <-
   function(
       input,
-      mode = c("grid", "grid_advanced", "density"),
+      mode = c("grid", "grid_advanced", "density", "grid_quantile"),
       nx = 10L,
       ny = 10L,
       grid_min_features = 30L,
@@ -1097,6 +1100,7 @@ We try converting padding to numeric...\n")
           par_make_grid(input, nx, ny),
           grid_min_features = grid_min_features
         ),
+        grid_quantile = 1,
         density = simpleError("density method is under development.\n")
       )
 
@@ -1176,6 +1180,78 @@ par_make_grid <-
   }
 
 
+#' Quantile definition
+#' @keywords internal
+#' @param steps integer(1). The number of quantiles.
+#' @returns numeric vector of quantiles.
+#' @export
+#' @noRd
+qdef <- function(steps = 4L) {
+  if (steps < 2L) {
+    stop("steps should be greater than 1.")
+  }
+  quantiles <- seq(0, 1, length.out = steps + 1)
+  return(quantiles)
+}
+
+
+#' @title Partition coordinates into quantiles
+#' @note This function is only for two-dimensional points.
+#' @keywords internal
+#' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
+#' @param y numeric. y-coordinates.
+#' @param quantiles numeric vector. Quantiles.
+#' @returns A data.frame of x-y quantile pairs.
+#' @examples
+#' random_points <-
+#'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
+#' quantiles <- qdef(4L)
+#' cut_coords(random_points$x, random_points$y, quantiles)
+#' @importFrom methods is
+#' @importFrom sf st_coordinates
+#' @importFrom terra crds
+#' @export
+#' @noRd
+cut_coords <- function(x = NULL, y = NULL, quantiles) {
+  if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
+    foo <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
+    invect <- foo(x)
+    x <- invect[, 1]
+    y <- invect[, 2]
+  }
+  if (!all.equal(length(x), length(y))) {
+    stop("x and y should have the same length.")
+  }
+  x_quantiles <- quantile(x, probs = quantiles)
+  y_quantiles <- quantile(y, probs = quantiles)
+
+  x_quantiles[-c(1, length(x_quantiles))] <-
+    sapply(
+      x_quantiles[-c(1, length(x_quantiles))],
+      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+    )
+  y_quantiles[-c(1, length(y_quantiles))] <-
+    sapply(
+      y_quantiles[-c(1, length(y_quantiles))],
+      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+    )
+
+  xy_quantiles <- expand.grid(
+    x = x_quantiles,
+    y = y_quantiles
+  )
+  # x_partition <-
+  #   cut(x, breaks = x_quantiles, labels = FALSE, include.lowest = TRUE)
+  # y_partition <-
+  #   cut(y, breaks = y_quantiles, labels = FALSE, include.lowest = TRUE)
+
+  # xy_part <- sprintf("x%03dy%03d", x_partition, y_partition)
+  # xy_part <- factor(xy_part)
+  return(xy_quantiles)
+}
+
+
+
 #' @title Merge adjacent grid polygons with given rules
 #' @family Parallelization
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
@@ -1253,6 +1329,7 @@ par_merge_grid <-
     identified <- unique(identified)
     identified <- identified[sapply(identified, length) > 1]
 
+    # Minimum spanning tree
     identified_graph <-
       lapply(identified, function(x) t(utils::combn(x, 2))) |>
       Reduce(f = rbind, x = _) |>
@@ -1300,6 +1377,54 @@ par_merge_grid <-
 }
 
 ```
+
+```{r test-quantiles, eval = FALSE, send_to = "tests/testthat/test-gridding.R"}
+testthat::test_that("Quantile cut tests", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  rv <- terra::vect(matrix(rpois(100, 8), ncol = 2))
+  rs <- sf::st_as_sf(rv)
+
+  testthat::expect_no_error(
+    cut_coords(rv, NULL, qdef(4L))
+  )
+  testthat::expect_no_error(
+    cut_coords(rs, NULL, qdef(4L))
+  )
+
+  randpoints <- data.frame(
+    x = runif(1000, 0, 100),
+    y = runif(1000, 0, 100)
+  )
+  testthat::expect_no_error(
+    quantiles <- qdef(4L)
+  )
+  testthat::expect_equal(length(quantiles), 5)
+  testthat::expect_error(
+    qdef(1L)
+  )
+
+  testthat::expect_no_error(
+    cut_coords(randpoints$x, randpoints$y, quantiles)
+  )
+  testthat::expect_error(
+    cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
+  )
+
+  testthat::expect_equal(
+    cut_coords(randpoints$x, randpoints$y, quantiles) |>
+      nrow(),
+    16
+  )
+
+})
+
+
+```
+
+
 
 ```{r grid-internal, include = F, eval = F}
 par_make_grid_sf <- function(points_in, ncutsx, ncutsy) {
@@ -3112,6 +3237,8 @@ testthat::test_that(
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. A function to combine results.
+#' Default is \code{dplyr::bind_rows}.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -3179,6 +3306,7 @@ par_grid <-
     grids,
     grid_target_id = NULL,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -3249,7 +3377,7 @@ par_grid <-
         future.seed = TRUE,
         future.packages = c("chopin", "dplyr", "sf", "terra")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -3290,6 +3418,7 @@ par_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -3355,6 +3484,7 @@ par_hierarchy <-
     regions,
     split_level = NULL,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -3403,7 +3533,7 @@ par_hierarchy <-
         future.seed = TRUE,
         future.packages = c("chopin", "dplyr", "sf", "terra")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -3430,6 +3560,8 @@ par_hierarchy <-
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
+#' Default is `dplyr::bind_rows`.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -3485,13 +3617,14 @@ par_multirasters <-
   function(
     filenames,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
 
     file_list <- split(filenames, filenames)
     results_distributed <-
-      future_lapply(
+      future.apply::future_lapply(
         file_list,
         function(path) {
           run_result <-
@@ -3522,12 +3655,14 @@ par_multirasters <-
         },
         future.seed = TRUE,
         future.packages =
-        c("chopin", "dplyr", "sf", "terra")
+        c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
         # "terra", "sf", "dplyr", "rlang",
         #   "chopin", "future",
         #   "exactextractr")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -3949,6 +4084,240 @@ testthat::test_that(
 )
 
 ```
+
+
+```{r, eval = FALSE, include = FALSE}
+# @title Process a given function in the entire or partial computational grids using `furrr`
+#' @family Parallelization
+#' @description
+#' [future::multicore], [future::multisession], [future::cluster]
+#' with [doParallel::registerDoParallel] will parallelize the work
+#' in each grid. For details of the terminology in \code{future} package,
+#' refer to \link[future]{plan}. This function assumes that
+#' users have one raster file and a sizable and spatially distributed
+#' target locations. Each thread will process
+#' the nearest integer of $|N_g| / |N_t|$ grids
+#' where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
+#' the number of threads.
+#' @note In dynamic dots (\code{...}), the first and second
+#' arguments should be the \code{fun_dist} arguments where
+#' sf/SpatVector objects are accepted.
+#' Virtually any sf/terra functions that accept two arguments
+#' can be put in \code{fun_dist}, but please be advised that
+#' some spatial operations do not necessarily give the
+#' exact result from what would have been done single-thread.
+#' For example, distance calculated through this function may return the
+#' lower value than actual because the computational region was reduced.
+#' This would be the case especially where the target features
+#' are spatially sparsely distributed.
+#' @param grids sf/SpatVector object. Computational grids.
+#'  It takes a strict assumption that the grid input is
+#'  an output of \code{par_make_gridset}
+#' @param grid_target_id character(1) or numeric(2).
+#'  Default is NULL. If NULL, all grid_ids are used.
+#'  \code{"id_from:id_to"} format or
+#'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
+#' @param debug logical(1). Prints error messages
+#' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
+#' Default is `dplyr::bind_rows`.
+#' @param fun_dist `sf`, `terra` or `chopin` functions.
+#' @param ... Arguments passed to the argument \code{fun_dist}.
+#' The **second** place should get a vector or raster dataset from which
+#' you want to extract or calculate values. For example, a raster dataset
+#' when vector-raster overlay is performed.
+#' @returns a data.frame object with computation results.
+#'  For entries of the results, consult the function used in
+#'  \code{fun_dist} argument.
+#' @author Insang Song \email{geoissong@@gmail.com}
+#' @examples
+#' \dontrun{
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' ncpoly <- terra::vect(ncpath) |>
+#'   terra::project("EPSG:5070")
+#' ncpnts <-
+#'   readRDS(
+#'     system.file("extdata/nc_random_point.rds", package = "chopin")
+#'   )
+#' ncpnts <- terra::vect(ncpnts)
+#' ncpnts <- terra::project(ncpnts, "EPSG:5070")
+#' ncelev <-
+#'   terra::unwrap(
+#'     readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+#'   )
+#' terra::crs(ncelev) <- "EPSG:5070"
+#' names(ncelev) <- c("srtm15")
+#'
+#' ncsamp <-
+#'   terra::spatSample(
+#'     terra::ext(ncelev),
+#'     1e4L,
+#'     lonlat = FALSE,
+#'     as.points = TRUE
+#'   )
+#' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+#' nccompreg <-
+#'   par_make_gridset(
+#'     input = ncpnts,
+#'     mode = "grid",
+#'     nx = 6L,
+#'     ny = 4L,
+#'     padding = 3e4L
+#'   )
+#' res <-
+#'   par_grid_furrr(
+#'     grids = nccompreg,
+#'     grid_target_id = NULL,
+#'     fun_dist = extract_at_buffer,
+#'     points = ncpnts,
+#'     surf = ncelev,
+#'     qsegs = 90L,
+#'     radius = 5e3L,
+#'     id = "pid"
+#'   )
+#' }
+#' @import future
+#' @import furrr
+#' @importFrom future.apply future_lapply
+#' @importFrom rlang inject
+#' @importFrom rlang !!!
+#' @importFrom dplyr bind_rows
+#' @importFrom sf sf_use_s2
+#' @export
+par_grid_furrr <-
+  function(
+    grids,
+    grid_target_id = NULL,
+    debug = FALSE,
+    combine = dplyr::bind_rows,
+    furrr_opt =
+    furrr::furrr_options(
+      stdout = TRUE,
+      conditions = "condition",
+      globals = FALSE,
+      packages = c("chopin", "dplyr", "sf", "terra", "furrr"),
+      seed = 2024,
+      scheduling = 2,
+      chunk_size = NULL,
+      prefix = NULL
+    )
+    ,
+    fun_dist,
+    ...
+  ) {
+
+    if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
+      stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
+    }
+    if (is.numeric(grid_target_id)) {
+      if (length(grid_target_id) != 2) {
+        stop(
+          "Numeric grid_target_id should be in a form of c(startid, endid).\n"
+        )
+      }
+      grid_target_ids <- unlist(grids$original[["CGRIDID"]])[grid_target_id]
+    }
+    # subset using grids and grid_id
+    if (is.null(grid_target_id)) {
+      grid_target_ids <- unlist(grids$original[["CGRIDID"]])
+    }
+    if (is.character(grid_target_id)) {
+      grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
+      grid_target_ids <-
+        c(which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
+          which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
+    }
+
+    grids_target <-
+      grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
+    grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
+
+    results_distributed <-
+      grids_target_list |>
+      furrr::future_map(
+        .f =
+        function(grid) {
+          sf::sf_use_s2(FALSE)
+
+          run_result <- tryCatch({
+            args_input <- list(...)
+            ## Strongly assuming that
+            # the first is "at", the second is "from"
+            args_input[[1]] <-
+              args_input[[1]][grid, ]
+            if (methods::is(args_input[[2]], "SpatVector")) {
+              gpad_in <- grids$padded[grids$padded$CGRIDID == grid$CGRIDID, ]
+              args_input[[2]] <- args_input[[2]][gpad_in, ]
+            }
+            if (!"id" %in% names(formals(fun_dist))) {
+              args_input$id <- NULL
+            }
+
+            res <- rlang::inject(fun_dist(!!!args_input))
+            cat(
+              sprintf(
+                "Your input function was successfully run at CGRIDID: %s\n",
+                as.character(unlist(grid[["CGRIDID"]]))
+              )
+            )
+
+            try(res <- as.data.frame(res))
+            return(res)
+          },
+          error = function(e) {
+            par_fallback(e, fun_dist, debug)
+
+          })
+
+          return(run_result)
+        },
+        .options = furrr_opt
+      )
+    results_distributed <- do.call(combine, results_distributed)
+
+    return(results_distributed)
+  }
+
+```
+
+
+```{r, include = FALSE, eval = FALSE}
+
+kpart <- function(steps = 4L) {
+  if (steps < 2L) {
+    stop("steps should be greater than 1.")
+  }
+  quantiles <- seq(0, 1, length.out = steps + 1)
+  return(quantiles)
+}
+kpart()
+
+
+# Generate 1000 random points at a 100 by 100 plane
+random_points <- data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
+
+cc <- cut_coords(random_points$x, random_points$y, qdef(4L))
+
+
+partition_coordinates(random_points$x, random_points$y, kpart())
+
+partition_coordinates <- function(x, y, quantiles) {
+  x_quantiles <- quantile(x, probs = quantiles)
+  y_quantiles <- quantile(y, probs = quantiles)
+  
+  x_partition <- cut(x, breaks = x_quantiles, labels = FALSE, include.lowest = TRUE)
+  y_partition <- cut(y, breaks = y_quantiles, labels = FALSE, include.lowest = TRUE)
+  
+  return(list(x_partition = x_partition, y_partition = y_partition))
+}
+
+jj = as.data.frame(partition_coordinates(random_points$x, random_points$y, kpart())
+)
+jj$disting <- sprintf("%d%d", jj$x_partition, jj$y_partition)
+plot(random_points$x, random_points$y, col = jj$disting)
+
+```
+
 
 ```{r, eval = FALSE, include = FALSE}
 adhoc <- function() {

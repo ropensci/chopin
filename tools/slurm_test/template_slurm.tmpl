@@ -42,7 +42,7 @@ error.file = fs::path_expand(resources$error.file)
 
 
 ## Export value of DEBUGME environemnt var to slave
-export DEBUGME=<%= Sys.getenv("DEBUGME") %>
+# export DEBUGME=<%= Sys.getenv("DEBUGME") %>
 
 <%= sprintf("export OMP_NUM_THREADS=%i", resources$omp.threads) -%>
 <%= sprintf("export OPENBLAS_NUM_THREADS=%i", resources$blas.threads) -%>

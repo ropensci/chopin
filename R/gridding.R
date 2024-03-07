@@ -4,20 +4,23 @@
 #' @family Parallelization
 #' @param input sf or Spat* object.
 #' @param mode character(1). Mode of region construction.
-#'  One of "grid" (simple grid regardless of
-#'  the number of features in each grid),
-#'  "density" (clustering-based varying grids),
-#'  "grid_advanced" (merging adjacent grids with
-#'  smaller number of features than grid_min_features). 
+#'  One of
+#' * `"grid"` (simple grid regardless of the number of features in each grid)
+#' * `"density"` (clustering-based varying grids),
+#' * `"grid_advanced"` (merging adjacent grids with
+#'  smaller number of features than grid_min_features).
+#' * `"grid_quantile"` (x and y quantiles)
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
 #' @param padding numeric(1). A extrusion factor to make buffer to
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
+# nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'  units::set_units is used for padding when sf object is used.
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
+# nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
 #'  * \code{original}: exhaustive and non-overlapping
@@ -49,7 +52,7 @@
 par_make_gridset <-
   function(
       input,
-      mode = c("grid", "grid_advanced", "density"),
+      mode = c("grid", "grid_advanced", "density", "grid_quantile"),
       nx = 10L,
       ny = 10L,
       grid_min_features = 30L,
@@ -85,6 +88,7 @@ We try converting padding to numeric...\n")
           par_make_grid(input, nx, ny),
           grid_min_features = grid_min_features
         ),
+        grid_quantile = 1,
         density = simpleError("density method is under development.\n")
       )
 
@@ -164,6 +168,78 @@ par_make_grid <-
   }
 
 
+#' Quantile definition
+#' @keywords internal
+#' @param steps integer(1). The number of quantiles.
+#' @returns numeric vector of quantiles.
+#' @export
+#' @noRd
+qdef <- function(steps = 4L) {
+  if (steps < 2L) {
+    stop("steps should be greater than 1.")
+  }
+  quantiles <- seq(0, 1, length.out = steps + 1)
+  return(quantiles)
+}
+
+
+#' @title Partition coordinates into quantiles
+#' @note This function is only for two-dimensional points.
+#' @keywords internal
+#' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
+#' @param y numeric. y-coordinates.
+#' @param quantiles numeric vector. Quantiles.
+#' @returns A data.frame of x-y quantile pairs.
+#' @examples
+#' random_points <-
+#'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
+#' quantiles <- qdef(4L)
+#' cut_coords(random_points$x, random_points$y, quantiles)
+#' @importFrom methods is
+#' @importFrom sf st_coordinates
+#' @importFrom terra crds
+#' @export
+#' @noRd
+cut_coords <- function(x = NULL, y = NULL, quantiles) {
+  if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
+    foo <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
+    invect <- foo(x)
+    x <- invect[, 1]
+    y <- invect[, 2]
+  }
+  if (!all.equal(length(x), length(y))) {
+    stop("x and y should have the same length.")
+  }
+  x_quantiles <- quantile(x, probs = quantiles)
+  y_quantiles <- quantile(y, probs = quantiles)
+
+  x_quantiles[-c(1, length(x_quantiles))] <-
+    sapply(
+      x_quantiles[-c(1, length(x_quantiles))],
+      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+    )
+  y_quantiles[-c(1, length(y_quantiles))] <-
+    sapply(
+      y_quantiles[-c(1, length(y_quantiles))],
+      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+    )
+
+  xy_quantiles <- expand.grid(
+    x = x_quantiles,
+    y = y_quantiles
+  )
+  # x_partition <-
+  #   cut(x, breaks = x_quantiles, labels = FALSE, include.lowest = TRUE)
+  # y_partition <-
+  #   cut(y, breaks = y_quantiles, labels = FALSE, include.lowest = TRUE)
+
+  # xy_part <- sprintf("x%03dy%03d", x_partition, y_partition)
+  # xy_part <- factor(xy_part)
+  return(xy_quantiles)
+}
+
+
+
 #' @title Merge adjacent grid polygons with given rules
 #' @family Parallelization
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
@@ -241,6 +317,7 @@ par_merge_grid <-
     identified <- unique(identified)
     identified <- identified[sapply(identified, length) > 1]
 
+    # Minimum spanning tree
     identified_graph <-
       lapply(identified, function(x) t(utils::combn(x, 2))) |>
       Reduce(f = rbind, x = _) |>

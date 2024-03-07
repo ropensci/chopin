@@ -1,5 +1,49 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
+testthat::test_that("Quantile cut tests", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  rv <- terra::vect(matrix(rpois(100, 8), ncol = 2))
+  rs <- sf::st_as_sf(rv)
+
+  testthat::expect_no_error(
+    cut_coords(rv, NULL, qdef(4L))
+  )
+  testthat::expect_no_error(
+    cut_coords(rs, NULL, qdef(4L))
+  )
+
+  randpoints <- data.frame(
+    x = runif(1000, 0, 100),
+    y = runif(1000, 0, 100)
+  )
+  testthat::expect_no_error(
+    quantiles <- qdef(4L)
+  )
+  testthat::expect_equal(length(quantiles), 5)
+  testthat::expect_error(
+    qdef(1L)
+  )
+
+  testthat::expect_no_error(
+    cut_coords(randpoints$x, randpoints$y, quantiles)
+  )
+  testthat::expect_error(
+    cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
+  )
+
+  testthat::expect_equal(
+    cut_coords(randpoints$x, randpoints$y, quantiles) |>
+      nrow(),
+    16
+  )
+
+})
+
+
+
 testthat::test_that("Grid split is well done.", {
   withr::local_package("sf")
   withr::local_package("stars")

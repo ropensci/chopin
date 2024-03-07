@@ -12,9 +12,19 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, eval = FALS
 ```
 
 ```{r}
+#| eval: FALSE
 library(reticulate)
 use_python("../../.conda/envs/rapidsinit/bin/python")
 ```
+
+<!--
+quarto callout-notes
+::: {.callout-note}
+Note that there are five types of callouts, including:
+`note`, `warning`, `important`, `tip`, and `caution`.
+:::
+-->
+
 
 ## Introduction
 
@@ -40,18 +50,45 @@ We will consider the populated places centroids in the mainland United States (i
 | Grid points in the southeastern US | 1,204,904          | Author, US Census Bureau (state polygons) | Point   |
 
 ```{r}
+#| title: load packages
 pkgs <-
-  c("chopin", "terra", "stars", "sf", "future", "doFuture", "parallelly", "tigris", "tictoc")
+  c("chopin", "terra", "stars", "sf", "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
 invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
 options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
 
+```
+
+
+::: {.tabset}
+
+## Download and export
+```{r}
+#| label: download populated places and cleaning
+#| eval: FALSE
+# populated places
 state <- tigris::states(year = 2022)
 statemain <-
   state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
 target_states <- statemain$GEOID
 
+popplace <-
+  lapply(target_states, function(x) tigris::places(x, year = 2022)) %>%
+  do.call(rbind, .)
+saveRDS(popplace, "./input/populated_place_2022.rds", compress = "xz")
+```
+
+## Read and preprocess
+```{r}
+#| label: mainland populated places
+state <- tigris::states(year = 2022)
+statemain <-
+  state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
+target_states <- statemain$GEOID
+
+# prepared populated places
 popplace <- readRDS("./input/populated_place_2022.rds")
-dim(popplace)
+
+# generate circular buffers with 10 km radius
 popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
   sf::st_transform("EPSG:5070")
 popplacep2 <- sf::st_centroid(popplace, of_largest_polygon = TRUE)
@@ -59,81 +96,11 @@ popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
 
 ```
 
-
-```{r}
-command <-
-'
-.libPaths(file.path(Sys.getenv("HOME"), "r-libs"))
-pkgs <-
-  c("chopin", "terra", "stars", "sf", "future", "doFuture", "parallelly", "tigris", "tictoc")
-invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
-options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
-
-state <- tigris::states(year = 2022)
-statemain <-
-  state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
-target_states <- statemain$GEOID
-
-popplace <- readRDS("~/projects/chopin/input/populated_place_2022.rds")
-dim(popplace)
-popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
-  sf::st_transform("EPSG:5070")
-popplacep2 <- sf::st_centroid(popplace, of_largest_polygon = TRUE)
-popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
-print(head(popplaceb))
-'
-
-submitSlurm(target_dir = "~/rtest", task_name = "test", task_number = 1L, task_cpu = 8L, command_user = command, task_memory = 16)
-?system
-```
-
-
-```{r}
-library(future)
-library(future.batchtools)
-
-doFuture::registerDoFuture()
-
-plan(
-  tweak(
-    batchtools_slurm,
-    template = "./tools/slurm_test/template_slurm.tmpl",
-    resources =
-    list(
-      memory = 4,
-      ncpus = 8,
-      ntasks = 1,
-      walltime = 300,
-      email = "",
-      log.file =
-      sprintf(
-        "~/rtest/test_%s.log",
-        strftime(Sys.time(), "%Y%m%d_%H%M%S")),
-      error.file =
-      sprintf(
-        "~/rtest/test_%s.error",
-        strftime(Sys.time(), "%Y%m%d_%H%M%S")),
-      partition = ""
-      )
-  )
-)
-
-
-library(furrr)
-xx %<-% furrr::future_map(
-  .x = 1:10,
-  .f = ~{
-    Sys.sleep(1)
-    .x
-  },
-  .options = furrr::furrr_options(packages = c("furrr"))
-)
-value(xx)
-
-
-```
+:::
 
 ## TerraClimate
+
+TerraClimate data are provided in yearly NetCDF files, each of which contains monthly layers. We will read the data with the `terra` package and preprocess the data to extract the annual mean and sum of the bands by types of columns. 
 
 ```{r TerraClimate-read}
 # wbd
@@ -148,6 +115,32 @@ path_tc_files <- list.files(
 path_tc_files
 ```
 
+Fourteen variables are available in TerraClimate data. The table below is from [the TerraClimate website](http://www.climatologylab.org/terraclimate-variables.html).
+
+| Variable | Description | Units |
+|:--------:|:------------|:------|
+| aet      | Actual Evapotranspiration, monthly total | mm |
+| def      | Climate Water Deficit, monthly total | mm |
+| PDSI     | Palmer Drought Severity Index, at end of month | unitless |
+| pet      | Potential evapotranspiration, monthly total | mm |
+| ppt      | Precipitation, monthly total | mm |
+| q        | Runoff, monthly total | mm |
+| soil     | Soil Moisture, total column - at end of month | mm |
+| srad     | Downward surface shortwave radiation | W/m<sup>2</sup> |
+| swe      | Snow water equivalent - at end of month | mm |
+| tmax     | Max Temperature, average for month | C |
+| tmin     | Min Temperature, average for month | C |
+| vap      | Vapor pressure, average for month | kPa |
+| vpd      | Vapor Pressure Deficit, average for month | kpa |
+| ws       | Wind speed, average for month | m/s |
+
+The variables can be categorized into two types: those that will be summed and those that will be averaged.
+
+- Sum: `aet`, `def`, `pet`, `ppt`, `q`, `soil`, and `swe`.
+- Mean: `PDSI`, `srad`, `tmax`, `tmin`, `vap`, `vpd`, and `ws`.
+
+Following that rationale, we will preprocess the data by summing the first seven layers and averaging the rest of the layers. The code blocks below follow "split-apply-combine" strategy. Note that `terra::tapp` aggregates layers by its attributes such as time or custom indices. 
+
 ```{r TerraClimate-preprocess}
 # some bands should be summed
 bandnames <- c(
@@ -156,39 +149,13 @@ bandnames <- c(
 )
 bandnames_sorted <- sort(bandnames)
 
-
-# aet (Actual Evapotranspiration, monthly total), units = mm
-# def (Climate Water Deficit, monthly total), units = mm
-# PDSI (Palmer Drought Severity Index, at end of month), units = unitless
-# pet (Potential evapotranspiration, monthly total), units = mm
-# ppt (Precipitation, monthly total), units = mm
-# q (Runoff, monthly total), units = mm
-# soil (Soil Moisture, total column - at end of month), units = mm
-# srad (Downward surface shortwave radiation), units = W/m2
-# swe (Snow water equivalent - at end of month), units = mm
-# tmax (Max Temperature, average for month), units = C
-# tmin (Min Temperature, average for month), units = C
-# vap (Vapor pressure, average for month), units  = kPa
-# vpd (Vapor Pressure Deficit, average for month), units = kpa
-# ws (Wind speed, average for month), units = m/s
-# sum: aet, def, pet, ppt, q, soil, swe(?)
-# mean: PDSI, srad, tmax(?), tmin(?), vap, vpd, ws
-
-
 # single nc file, yearly aggregation by fun value
-preprocess_sum <- function(ras) {
-  #terra::tapp(ras, "years", fun)
-  sum(ras)
-}
-
-
 # band for summation
 bandnames_sum <- c("aet", "def", "pet", "ppt", "q", "soil", "swe")
 
 # band for averaging
 bandnames_avg <- c("PDSI", "srad", "tmax", "tmin", "vap", "vpd", "ws")
 
-# description
 # mean: temporally marginal pixel mean (i.e., monthly -> yearly)
 # sum: temporally marginal pixel sum (i.e., monthly -> yearly)
 # Preprocessed data are stored in
@@ -199,11 +166,16 @@ netcdf_read_sum <-
     grep(paste0("(", x, ")"), path_tc_files, value = TRUE)
   }) |>
   lapply(function(x) {
-    sum(terra::rast(x, win = ext_mainland, snap = "out"))
+    terra::tapp(terra::rast(x, win = ext_mainland, snap = "out"), index = "years", fun = "sum")
   })
 netcdf_read_sum <- Reduce(c, netcdf_read_sum)
-
 tictoc::toc()
+# 175.091 sec elapsed
+# tapp: 185.288 sec
+# tapp: 11.8G peak
+names(netcdf_read_sum) <- rep(bandnames_sum, each = 23)
+netcdf_read_sum
+
 tictoc::tic("mean: 7 layers")
 netcdf_read_mean <-
   split(bandnames_avg, bandnames_avg) |>
@@ -211,19 +183,23 @@ netcdf_read_mean <-
     grep(paste0("(", x, ")"), path_tc_files, value = TRUE)
   }) |>
   lapply(function(x) {
-    mean(terra::rast(x, win = ext_mainland, snap = "out"))
+    terra::tapp(terra::rast(x, win = ext_mainland, snap = "out"), index = "years", fun = "mean")
   }) |>
   Reduce(f = c, x = _)
 tictoc::toc()
-
-names(netcdf_read_sum) <- bandnames_sum
-names(netcdf_read_mean) <- bandnames_avg
+# 178.46 sec elapsed
+names(netcdf_read_mean) <-
+  sprintf("%s_%d", rep(bandnames_avg, each = 23), rep(2000:2022, 7))
+netcdf_read_mean
 
 ```
 
+
+We have 14 data elements for 23 years with 12 months each. Below demonstrates the summary of the data layers that were averaged. To leverage multiple cores in your machine, run `future::availableCores()` to check the number of cores and set the number of workers in `future::plan` accordingly. There are typically two logical cores in each physical core in modern central processing units. The number of workers should be set to up to the number of physical cores in the machine for optimal performance.
+
 ```{r multiraster}
 doFuture::registerDoFuture()
-future::plan(future::multicore, workers = 46L)
+future::plan(future::multicore, workers = 4L)
 
 tic()
 multi <-
@@ -231,19 +207,67 @@ grep(paste0("(", paste(bandnames_avg, collapse = "|"), ")"), path_tc_files, valu
 chopin::par_multirasters(
   filenames = .,
   fun_dist = chopin::extract_at_buffer,
+  combine = dplyr::bind_cols,
   points = popplacep2,
-  surf = netcdf_read_mean,
+  surf = rast(), # ignored
   id = "GEOID",
   func = "mean",
   radius = 1e4
 )
 toc()
+tic()
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 8L)
+grid_init <-
+  chopin::par_make_gridset(
+    popplacep2,
+    mode = "grid",
+    padding = 1e4,
+    nx = 4L,
+    ny = 2L
+  )
+multi_grid <-
+  chopin::par_grid(
+    grids = grid_init,
+    fun_dist = chopin::extract_at_buffer,
+    combine = dplyr::bind_rows,
+    points = popplacep2,
+    surf = netcdf_read_mean, # ignored
+    id = "GEOID",
+    func = "mean",
+    radius = 1e4
+  )
+toc()
 
+tic()
+grid_init <-
+  chopin::par_make_gridset(
+    popplacep2,
+    mode = "grid",
+    padding = 1e4,
+    nx = 2L,
+    ny = 2L
+  )
+multi_gridf <-
+  par_grid_furrr(
+    grids = grid_init,
+    fun_dist = chopin::extract_at_buffer,
+    combine = dplyr::bind_rows,
+    points = popplacep2,
+    surf = netcdf_read_mean, # ignored
+    id = "GEOID",
+    func = "mean",
+    radius = 1e4
+  )
+toc()
+
+
+# single
 tic()
 single <-
 exactextractr::exact_extract(
   netcdf_read_mean,
-  sf::st_as_sf(popplaceb2),
+  sf::st_as_sf(popplaceb),
   fun = "mean",
   stack_apply = TRUE,
   force_df = TRUE,
@@ -265,6 +289,10 @@ single %>%
 
 
 ```
+
+> \[!CAUTION\] RStudio users will not be able to use `future::multicore` due to the limitation of the RStudio IDE. Use `future::multisession` instead.
+
+
 
 > \[!NOTE\] This is a note.
 
@@ -397,7 +425,9 @@ system.time(
 
 ```
 
-How about expanding the buffer size to 50 km?
+
+## Larger buffer sizes
+
 ```{r}
 # make buffers
 popplaceb5 <- sf::st_buffer(popplacep, dist = units::set_units(50, "km")) %>%
@@ -463,6 +493,8 @@ plot(stt_targ$geometry)
 st_bbox(stt_targ)
 stt_t <- sf::st_transform(stt_targ, "EPSG:5070")
 stt_g <- sf::st_sample(stt_t, type = "regular", 1204934)
+stt_g <- sf::st_as_sf(stt_g)
+stt_g$pid <- seq(1, length(stt_g))
 ```
 
 ```{r}
@@ -480,13 +512,11 @@ exactextractr::exact_extract(
 )
 toc()
 
-stt_gb <- sf::st_as_sf(stt_gb)
-stt_gb$pid <- seq(1, length(stt_gb))
 stt_gbg <-
   chopin::par_make_gridset(
-    stt_gb,
+    stt_g,
     mode = "grid",
-    padding = 5e4,
+    padding = 5e3,
     nx = 5L,
     ny = 5L
   )
@@ -552,7 +582,7 @@ system.time(
 
 ## extract prism by par_hierarchy
 tic()
-bgsf <- st_read("~/Blockgroups_2020.gpkg")
+bgsf <- sf::st_read("~/Blockgroups_2020.gpkg")
 toc()
 
 nmain <- c("AS", "AK", "HI", "PR", "VI", "GU", "MP")
@@ -612,3 +642,54 @@ More tips to save time and memory:
 
 -   [Garnett, R. (2023). Geospatial distributed processing with furrr](https://posit.co/blog/geospatial-distributed-processing-with-furrr/)
 -   [Dyba, K. (n.d.). Parallel raster processing in *stars*](https://kadyb.github.io/stars-parallel/Tutorial.html)
+
+
+
+```{r}
+library(future)
+library(future.batchtools)
+
+doFuture::registerDoFuture()
+
+plan(
+  list(
+    tweak(
+      batchtools_slurm,
+      template = "./tools/slurm_test/template_slurm.tmpl",
+      resources =
+      list(
+        memory = 4, # per cpu
+        ncpus = 24,
+        ntasks = 1,
+        walltime = 600,
+        email = "songi2@nih.gov",
+        log.file =
+        sprintf(
+          "~/rtest/test_%s.log",
+          strftime(Sys.time(), "%Y%m%d_%H%M%S")),
+        error.file =
+        sprintf(
+          "~/rtest/test_%s.error",
+          strftime(Sys.time(), "%Y%m%d_%H%M%S")),
+        partition = ""
+        )
+      )
+    ,
+    multicore
+  )
+)
+
+
+library(furrr)
+xx %<-% furrr::future_map(
+  .x = 1:10,
+  .f = ~{
+    Sys.sleep(1)
+    .x
+  },
+  .options = furrr::furrr_options(packages = c("furrr"))
+)
+value(xx)
+
+
+```

@@ -6,7 +6,7 @@
 \usage{
 par_make_gridset(
   input,
-  mode = c("grid", "grid_advanced", "density"),
+  mode = c("grid", "grid_advanced", "density", "grid_quantile"),
   nx = 10L,
   ny = 10L,
   grid_min_features = 30L,
@@ -19,11 +19,14 @@ par_make_gridset(
 \item{input}{sf or Spat* object.}
 
 \item{mode}{character(1). Mode of region construction.
-One of "grid" (simple grid regardless of
-the number of features in each grid),
-"density" (clustering-based varying grids),
-"grid_advanced" (merging adjacent grids with
-smaller number of features than grid_min_features).}
+One of
+\itemize{
+\item \code{"grid"} (simple grid regardless of the number of features in each grid)
+\item \code{"density"} (clustering-based varying grids),
+\item \code{"grid_advanced"} (merging adjacent grids with
+smaller number of features than grid_min_features).
+\item \code{"grid_quantile"} (x and y quantiles)
+}}
 
 \item{nx}{integer(1). The number of grids along x-axis.}
 

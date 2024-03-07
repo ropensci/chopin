@@ -67,6 +67,8 @@ par_fallback <-
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. A function to combine results.
+#' Default is \code{dplyr::bind_rows}.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -134,6 +136,7 @@ par_grid <-
     grids,
     grid_target_id = NULL,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -204,7 +207,7 @@ par_grid <-
         future.seed = TRUE,
         future.packages = c("chopin", "dplyr", "sf", "terra")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -245,6 +248,7 @@ par_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -310,6 +314,7 @@ par_hierarchy <-
     regions,
     split_level = NULL,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -358,7 +363,7 @@ par_hierarchy <-
         future.seed = TRUE,
         future.packages = c("chopin", "dplyr", "sf", "terra")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -385,6 +390,8 @@ par_hierarchy <-
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
+#' Default is `dplyr::bind_rows`.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -440,13 +447,14 @@ par_multirasters <-
   function(
     filenames,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
 
     file_list <- split(filenames, filenames)
     results_distributed <-
-      future_lapply(
+      future.apply::future_lapply(
         file_list,
         function(path) {
           run_result <-
@@ -477,12 +485,14 @@ par_multirasters <-
         },
         future.seed = TRUE,
         future.packages =
-        c("chopin", "dplyr", "sf", "terra")
+        c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
         # "terra", "sf", "dplyr", "rlang",
         #   "chopin", "future",
         #   "exactextractr")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
