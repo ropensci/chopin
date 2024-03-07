@@ -19,7 +19,7 @@
 
 <%
 # relative paths are not handled well by Slurm
-log.file = fs::path_expand(resources$log.file)
+log.file = fs::path_expand(log.file)
 -%>
 <%
 error.file = fs::path_expand(resources$error.file)
@@ -29,8 +29,8 @@ error.file = fs::path_expand(resources$error.file)
 #SBATCH --job-name=<%= job.name %>
 #SBATCH --output=<%= log.file %>
 #SBATCH --error=<%= error.file %>
-#SBATCH --ntasks=<%= resources$ntasks %>
 #SBATCH --mail-type=END,FAIL
+#SBATCH --ntasks=<%= resources$ntasks %>
 #SBATCH --cpus-per-task=<%= resources$ncpus %>
 #SBATCH --mem-per-cpu=<%= resources$memory %>g
 <%= if (!is.null(resources$partition)) sprintf(paste0("#SBATCH --partition='", resources$partition, "'")) %>
@@ -39,17 +39,15 @@ error.file = fs::path_expand(resources$error.file)
 
 ## Initialize work environment like
 ## source /etc/profile
-## module add ...
-# module load R-4.3.2
+
 
 ## Export value of DEBUGME environemnt var to slave
-# export DEBUGME=<%= Sys.getenv("DEBUGME") %>
+export DEBUGME=<%= Sys.getenv("DEBUGME") %>
 
-# <%= sprintf("export OMP_NUM_THREADS=%i", resources$omp.threads) -%>
-# <%= sprintf("export OPENBLAS_NUM_THREADS=%i", resources$blas.threads) -%>
-# <%= sprintf("export MKL_NUM_THREADS=%i", resources$blas.threads) -%>
+<%= sprintf("export OMP_NUM_THREADS=%i", resources$omp.threads) -%>
+<%= sprintf("export OPENBLAS_NUM_THREADS=%i", resources$blas.threads) -%>
+<%= sprintf("export MKL_NUM_THREADS=%i", resources$blas.threads) -%>
 
 ## Run R:
 ## we merge R output with stdout from SLURM, which gets then logged via --output option
-#Rscript -e <%= expr %>
 Rscript -e '.libPaths("/ddn/gs1/home/songi2/r-libs");batchtools::doJobCollection("<%= uri %>")'

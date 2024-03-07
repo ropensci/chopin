@@ -1,9 +1,9 @@
 ---
-title: "Reading Weather/Climate Geospatial Data Formats"
+title: "Extracting Weather/Climate Geospatial Data with `chopin`"
 author: Insang Song
 date: today
 output:
-  html_document:
+  html:
     embed-resources: true
 ---
 
@@ -59,6 +59,79 @@ popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
 
 ```
 
+
+```{r}
+command <-
+'
+.libPaths(file.path(Sys.getenv("HOME"), "r-libs"))
+pkgs <-
+  c("chopin", "terra", "stars", "sf", "future", "doFuture", "parallelly", "tigris", "tictoc")
+invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
+options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
+
+state <- tigris::states(year = 2022)
+statemain <-
+  state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
+target_states <- statemain$GEOID
+
+popplace <- readRDS("~/projects/chopin/input/populated_place_2022.rds")
+dim(popplace)
+popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
+  sf::st_transform("EPSG:5070")
+popplacep2 <- sf::st_centroid(popplace, of_largest_polygon = TRUE)
+popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
+print(head(popplaceb))
+'
+
+submitSlurm(target_dir = "~/rtest", task_name = "test", task_number = 1L, task_cpu = 8L, command_user = command, task_memory = 16)
+?system
+```
+
+
+```{r}
+library(future)
+library(future.batchtools)
+
+doFuture::registerDoFuture()
+
+plan(
+  tweak(
+    batchtools_slurm,
+    template = "./tools/slurm_test/template_slurm.tmpl",
+    resources =
+    list(
+      memory = 4,
+      ncpus = 8,
+      ntasks = 1,
+      walltime = 300,
+      email = "",
+      log.file =
+      sprintf(
+        "~/rtest/test_%s.log",
+        strftime(Sys.time(), "%Y%m%d_%H%M%S")),
+      error.file =
+      sprintf(
+        "~/rtest/test_%s.error",
+        strftime(Sys.time(), "%Y%m%d_%H%M%S")),
+      partition = ""
+      )
+  )
+)
+
+
+library(furrr)
+xx %<-% furrr::future_map(
+  .x = 1:10,
+  .f = ~{
+    Sys.sleep(1)
+    .x
+  },
+  .options = furrr::furrr_options(packages = c("furrr"))
+)
+value(xx)
+
+
+```
 
 ## TerraClimate
 
@@ -203,7 +276,8 @@ single %>%
 
 > \[!WARNING\] Critical content comes here.
 
-
+::: {.panel-tabset}
+## Download and preprocess
 
 ```{r}
 #| label: populated places download
@@ -221,12 +295,19 @@ single %>%
 
 ```
 
+## Read data 
 ```{r PRISM}
 bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
 bilssds <- terra::rast(bils[-13])
 popplace2 <- sf::st_transform(popplace, crs = terra::crs(bilssds))
 popplaceb2 <- sf::st_transform(popplaceb, crs = terra::crs(bilssds))
 
+
+```
+
+:::
+
+```{r}
 system.time(
   exsingle <-
     exactextractr::exact_extract(
@@ -318,6 +399,7 @@ system.time(
 
 How about expanding the buffer size to 50 km?
 ```{r}
+# make buffers
 popplaceb5 <- sf::st_buffer(popplacep, dist = units::set_units(50, "km")) %>%
   sf::st_transform(terra::crs(bilssds))
 
@@ -389,7 +471,7 @@ stt_gb <- sf::st_buffer(stt_g, units::set_units(5, "km"))
 tic()
 single_2m <-
 exactextractr::exact_extract(
-  netcdf_read_mean,
+  netcdf_read_sum,
   stt_gb,
   fun = "mean",
   stack_apply = TRUE,
@@ -418,7 +500,7 @@ system.time(
       stt_gbg,
       fun_dist = chopin::extract_at_poly,
       poly = stt_gb,
-      surf = netcdf_read_mean,
+      surf = netcdf_read_sum,
       id = "pid",
       func = "mean"
     )
@@ -505,6 +587,9 @@ system.time(
 # 152.557   3.123 157.137 
 ```
 
+
+
+
 ### Addendum 2: which is faster? Stacked vs file-based parallelization
 
 For faster computation, there are two strategies. One is parallelization which is implemented in `chopin` for example. The other strategy is to stack rasters and extract values at once. Adjustment of arguments in `exactextractr::exact_extract` will benefit many people who are dealing with sizable data that are able to be stacked. We compare the two strategies in terms of computation time.
@@ -522,29 +607,6 @@ More tips to save time and memory:
 - If users want to use `exactextractr` for the raster-vector overlay, pre-cropping the raster data may not help saving time for processing. This is because `exactextractr` will read the raster data with the extent of the vector data *ad hoc*.
 - If your analysis does not require the high precision of vector data, simplification of geometries (e.g., using `rmapshaper`) will result in considerable time savings.
 
-```{r}
-library(terra)
-
-# Downloading TIFF file
-tif_url <- "https://example.com/path/to/your/tif/file.tif"
-tif_file <- "path/to/your/local/tif/file.tif"
-download.file(tif_url, tif_file)
-tif_raster <- rast(tif_file)
-
-# Downloading GRIB2 file
-grib2_url <- "https://example.com/path/to/your/grib2/file.grib2"
-grib2_file <- "path/to/your/local/grib2/file.grib2"
-download.file(grib2_url, grib2_file)
-grib2_raster <- rast(grib2_file)
-
-# Downloading NetCDF file
-nc_url <- "https://example.com/path/to/your/nc/file.nc"
-nc_file <- "path/to/your/local/nc/file.nc"
-download.file(nc_url, nc_file)
-nc_raster <- rast(nc_file)
-
-
-```
 
 ### References
 
