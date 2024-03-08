@@ -9,7 +9,8 @@
 #' * `"density"` (clustering-based varying grids),
 #' * `"grid_advanced"` (merging adjacent grids with
 #'  smaller number of features than grid_min_features).
-#' * `"grid_quantile"` (x and y quantiles)
+#' * `"grid_quantile"` (x and y quantiles): an argument `quantiles` should
+#' be specified.
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
@@ -20,6 +21,7 @@
 #'  units::set_units is used for padding when sf object is used.
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
+#' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
@@ -30,6 +32,7 @@
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
 #'  Each grid will be buffered by the radius.
+#' @seealso [par_cut_coords], [par_merge_grid]
 #' @author Insang Song
 #' @examples
 #' # data
@@ -58,6 +61,7 @@ par_make_gridset <-
       grid_min_features = 30L,
       padding = NULL,
       unit = NULL,
+      quantiles = NULL,
       ...) {
     mode <- match.arg(mode)
 
@@ -88,7 +92,11 @@ We try converting padding to numeric...\n")
           par_make_grid(input, nx, ny),
           grid_min_features = grid_min_features
         ),
-        grid_quantile = 1,
+        grid_quantile = par_cut_coords(
+          x = input,
+          y = NULL,
+          quantiles = quantiles
+        ),
         density = simpleError("density method is under development.\n")
       )
 
@@ -169,12 +177,13 @@ par_make_grid <-
 
 
 #' Quantile definition
-#' @keywords internal
+#' @family Helper functions
 #' @param steps integer(1). The number of quantiles.
 #' @returns numeric vector of quantiles.
+#' @examples
+#' par_def_q(5L)
 #' @export
-#' @noRd
-qdef <- function(steps = 4L) {
+par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
     stop("steps should be greater than 1.")
   }
@@ -183,24 +192,40 @@ qdef <- function(steps = 4L) {
 }
 
 
-#' @title Partition coordinates into quantiles
+#' @title Partition coordinates into quantile polygons
 #' @note This function is only for two-dimensional points.
-#' @keywords internal
+#' @family Parallelization
 #' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
 #' @param y numeric. y-coordinates.
 #' @param quantiles numeric vector. Quantiles.
-#' @returns A data.frame of x-y quantile pairs.
+#' @returns A `SpatVector` object with field `CGRIDID`.
 #' @examples
+#' library(terra)
 #' random_points <-
 #'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-#' quantiles <- qdef(4L)
-#' cut_coords(random_points$x, random_points$y, quantiles)
+#' quantiles <- par_def_q(4L)
+#' qpoly <- cut_coords(random_points$x, random_points$y, quantiles)
+#' clustered_points <-
+#'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
+#' qpoly_c <- cut_coords(clustered_points$x, clustered_points$y, quantiles)
+#' par(mfcol = c(1, 2))
+#' plot(qpoly)
+#' plot(qpoly_c)
+#' par(mfcol = c(1, 1))
+#' cvect <- terra::vect(clustered_points, geom = c("x", "y"))
+#' plot(cvect)
+#' plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
+#' qcv <- intersect(cvect, qpoly_c)
+#' table(qcv$CGRIDID)
+#' sum(table(qcv$CGRIDID)) # should be 1000
 #' @importFrom methods is
 #' @importFrom sf st_coordinates
 #' @importFrom terra crds
+#' @importFrom terra ext
+#' @importFrom terra as.polygons
+#' @importFrom stats setNames
 #' @export
-#' @noRd
-cut_coords <- function(x = NULL, y = NULL, quantiles) {
+par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
     foo <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
     invect <- foo(x)
@@ -213,6 +238,8 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
   x_quantiles <- quantile(x, probs = quantiles)
   y_quantiles <- quantile(y, probs = quantiles)
 
+  # these lines are rounding quantiles between
+  # the minimum and the maximum (exclusive) to the nearest 4th decimal place
   x_quantiles[-c(1, length(x_quantiles))] <-
     sapply(
       x_quantiles[-c(1, length(x_quantiles))],
@@ -228,16 +255,33 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
     x = x_quantiles,
     y = y_quantiles
   )
-  # x_partition <-
-  #   cut(x, breaks = x_quantiles, labels = FALSE, include.lowest = TRUE)
-  # y_partition <-
-  #   cut(y, breaks = y_quantiles, labels = FALSE, include.lowest = TRUE)
 
-  # xy_part <- sprintf("x%03dy%03d", x_partition, y_partition)
-  # xy_part <- factor(xy_part)
-  return(xy_quantiles)
+  # leveraging the auto-sorting factor levels and
+  # ll-rr combinations for terra::ext, then convert to polygons
+  xy_quantiles$xindx <- as.integer(factor(xy_quantiles$x))
+  xy_quantiles$yindx <- as.integer(factor(xy_quantiles$y))
+  xy_quantiles_next <- xy_quantiles
+  xy_quantiles$xurindx <- xy_quantiles$xindx + 1
+  xy_quantiles$yurindx <- xy_quantiles$yindx + 1
+  xy_quantiles_next <-
+    stats::setNames(xy_quantiles_next, c("xur", "yur", "xurindx", "yurindx"))
+  xy_quantiles <-
+    merge(xy_quantiles, xy_quantiles_next, by = c("xurindx", "yurindx"))
+  exts <- mapply(
+    function(xur, yur, x, y) {
+      terra::as.polygons(terra::ext(c(x, xur, y, yur)))
+    },
+    xy_quantiles$xur,
+    xy_quantiles$yur,
+    xy_quantiles$x,
+    xy_quantiles$y,
+    SIMPLIFY = TRUE
+  )
+  xy_poly <- Reduce(rbind, exts)
+  xy_poly$CGRIDID <- seq(1, nrow(xy_poly))
+
+  return(xy_poly)
 }
-
 
 
 #' @title Merge adjacent grid polygons with given rules
@@ -270,6 +314,8 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' plot(dg_merged$geometry)
 #' #### NOT RUN ####
 #' }
+#' @references
+#' Polsby, D. D., & Popper, F. J. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353. [http://hdl.handle.net/20.500.13051/17448]
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup
@@ -277,7 +323,14 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' @importFrom sf st_relate
 #' @importFrom sf st_length
 #' @importFrom sf st_cast
+#' @importFrom sf st_intersects
+#' @importFrom sf st_as_sf
+#' @importFrom sf st_area
 #' @importFrom rlang sym
+#' @importFrom igraph graph_from_edgelist
+#' @importFrom igraph mst
+#' @importFrom igraph components
+#' @importFrom utils combn
 #' @export
 par_merge_grid <-
   function(
@@ -344,7 +397,7 @@ par_merge_grid <-
       dplyr::summarize(n_merged = dplyr::n()) |>
       dplyr::ungroup()
 
-    ## polsby-popper test for shape compactness
+    ## Polsby-Popper test for shape compactness
     par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
     par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
     par_merge_gridd_perimeter <-

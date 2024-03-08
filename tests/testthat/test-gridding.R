@@ -9,10 +9,10 @@ testthat::test_that("Quantile cut tests", {
   rs <- sf::st_as_sf(rv)
 
   testthat::expect_no_error(
-    cut_coords(rv, NULL, qdef(4L))
+    par_cut_coords(rv, NULL, par_def_q(4L))
   )
   testthat::expect_no_error(
-    cut_coords(rs, NULL, qdef(4L))
+    par_cut_coords(rs, NULL, par_def_q(4L))
   )
 
   randpoints <- data.frame(
@@ -20,22 +20,22 @@ testthat::test_that("Quantile cut tests", {
     y = runif(1000, 0, 100)
   )
   testthat::expect_no_error(
-    quantiles <- qdef(4L)
+    quantiles <- par_def_q(4L)
   )
   testthat::expect_equal(length(quantiles), 5)
   testthat::expect_error(
-    qdef(1L)
+    par_def_q(1L)
   )
 
   testthat::expect_no_error(
-    cut_coords(randpoints$x, randpoints$y, quantiles)
+    par_cut_coords(randpoints$x, randpoints$y, quantiles)
   )
   testthat::expect_error(
-    cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
+    par_cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
   )
 
   testthat::expect_equal(
-    cut_coords(randpoints$x, randpoints$y, quantiles) |>
+    par_cut_coords(randpoints$x, randpoints$y, quantiles) |>
       nrow(),
     16
   )
@@ -77,6 +77,29 @@ testthat::test_that("Grid split is well done.", {
     )
   )
 
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
+
+  # Points
+  testthat::expect_warning(
+    par_make_gridset(
+      ncp,
+      mode = "grid_advanced",
+      padding = 3e4L,
+      grid_min_features = 20L
+    )
+  )
+  # Points
+  testthat::expect_no_error(
+    par_make_gridset(
+      ncp,
+      mode = "grid_quantile",
+      padding = 3e4L,
+      quantiles = par_def_q(5L)
+    )
+  )
+
 })
 
 
@@ -86,7 +109,7 @@ testthat::test_that("Grid merge is well done.", {
   withr::local_package("igraph")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
-  withr::local_seed(20231121)
+  withr::local_seed(202403)
 
   nc <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::read_sf(nc)

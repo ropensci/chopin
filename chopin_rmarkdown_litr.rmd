@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-03-06"
+date: "2024-03-08"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.5.0.20240306",
+    Version = "0.5.0.20240308",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -1021,7 +1021,8 @@ nc_valid <- vect_valid_repair(nc)
 #' * `"density"` (clustering-based varying grids),
 #' * `"grid_advanced"` (merging adjacent grids with
 #'  smaller number of features than grid_min_features).
-#' * `"grid_quantile"` (x and y quantiles)
+#' * `"grid_quantile"` (x and y quantiles): an argument `quantiles` should
+#' be specified.
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
@@ -1032,6 +1033,7 @@ nc_valid <- vect_valid_repair(nc)
 #'  units::set_units is used for padding when sf object is used.
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
+#' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
@@ -1042,6 +1044,7 @@ nc_valid <- vect_valid_repair(nc)
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
 #'  Each grid will be buffered by the radius.
+#' @seealso [par_cut_coords], [par_merge_grid]
 #' @author Insang Song
 #' @examples
 #' # data
@@ -1070,6 +1073,7 @@ par_make_gridset <-
       grid_min_features = 30L,
       padding = NULL,
       unit = NULL,
+      quantiles = NULL,
       ...) {
     mode <- match.arg(mode)
 
@@ -1100,7 +1104,11 @@ We try converting padding to numeric...\n")
           par_make_grid(input, nx, ny),
           grid_min_features = grid_min_features
         ),
-        grid_quantile = 1,
+        grid_quantile = par_cut_coords(
+          x = input,
+          y = NULL,
+          quantiles = quantiles
+        ),
         density = simpleError("density method is under development.\n")
       )
 
@@ -1181,12 +1189,13 @@ par_make_grid <-
 
 
 #' Quantile definition
-#' @keywords internal
+#' @family Helper functions
 #' @param steps integer(1). The number of quantiles.
 #' @returns numeric vector of quantiles.
+#' @examples
+#' par_def_q(5L)
 #' @export
-#' @noRd
-qdef <- function(steps = 4L) {
+par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
     stop("steps should be greater than 1.")
   }
@@ -1195,24 +1204,40 @@ qdef <- function(steps = 4L) {
 }
 
 
-#' @title Partition coordinates into quantiles
+#' @title Partition coordinates into quantile polygons
 #' @note This function is only for two-dimensional points.
-#' @keywords internal
+#' @family Parallelization
 #' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
 #' @param y numeric. y-coordinates.
 #' @param quantiles numeric vector. Quantiles.
-#' @returns A data.frame of x-y quantile pairs.
+#' @returns A `SpatVector` object with field `CGRIDID`.
 #' @examples
+#' library(terra)
 #' random_points <-
 #'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-#' quantiles <- qdef(4L)
-#' cut_coords(random_points$x, random_points$y, quantiles)
+#' quantiles <- par_def_q(4L)
+#' qpoly <- cut_coords(random_points$x, random_points$y, quantiles)
+#' clustered_points <-
+#'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
+#' qpoly_c <- cut_coords(clustered_points$x, clustered_points$y, quantiles)
+#' par(mfcol = c(1, 2))
+#' plot(qpoly)
+#' plot(qpoly_c)
+#' par(mfcol = c(1, 1))
+#' cvect <- terra::vect(clustered_points, geom = c("x", "y"))
+#' plot(cvect)
+#' plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
+#' qcv <- intersect(cvect, qpoly_c)
+#' table(qcv$CGRIDID)
+#' sum(table(qcv$CGRIDID)) # should be 1000
 #' @importFrom methods is
 #' @importFrom sf st_coordinates
 #' @importFrom terra crds
+#' @importFrom terra ext
+#' @importFrom terra as.polygons
+#' @importFrom stats setNames
 #' @export
-#' @noRd
-cut_coords <- function(x = NULL, y = NULL, quantiles) {
+par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
     foo <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
     invect <- foo(x)
@@ -1225,6 +1250,8 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
   x_quantiles <- quantile(x, probs = quantiles)
   y_quantiles <- quantile(y, probs = quantiles)
 
+  # these lines are rounding quantiles between
+  # the minimum and the maximum (exclusive) to the nearest 4th decimal place
   x_quantiles[-c(1, length(x_quantiles))] <-
     sapply(
       x_quantiles[-c(1, length(x_quantiles))],
@@ -1240,16 +1267,33 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
     x = x_quantiles,
     y = y_quantiles
   )
-  # x_partition <-
-  #   cut(x, breaks = x_quantiles, labels = FALSE, include.lowest = TRUE)
-  # y_partition <-
-  #   cut(y, breaks = y_quantiles, labels = FALSE, include.lowest = TRUE)
 
-  # xy_part <- sprintf("x%03dy%03d", x_partition, y_partition)
-  # xy_part <- factor(xy_part)
-  return(xy_quantiles)
+  # leveraging the auto-sorting factor levels and
+  # ll-rr combinations for terra::ext, then convert to polygons
+  xy_quantiles$xindx <- as.integer(factor(xy_quantiles$x))
+  xy_quantiles$yindx <- as.integer(factor(xy_quantiles$y))
+  xy_quantiles_next <- xy_quantiles
+  xy_quantiles$xurindx <- xy_quantiles$xindx + 1
+  xy_quantiles$yurindx <- xy_quantiles$yindx + 1
+  xy_quantiles_next <-
+    stats::setNames(xy_quantiles_next, c("xur", "yur", "xurindx", "yurindx"))
+  xy_quantiles <-
+    merge(xy_quantiles, xy_quantiles_next, by = c("xurindx", "yurindx"))
+  exts <- mapply(
+    function(xur, yur, x, y) {
+      terra::as.polygons(terra::ext(c(x, xur, y, yur)))
+    },
+    xy_quantiles$xur,
+    xy_quantiles$yur,
+    xy_quantiles$x,
+    xy_quantiles$y,
+    SIMPLIFY = TRUE
+  )
+  xy_poly <- Reduce(rbind, exts)
+  xy_poly$CGRIDID <- seq(1, nrow(xy_poly))
+
+  return(xy_poly)
 }
-
 
 
 #' @title Merge adjacent grid polygons with given rules
@@ -1282,6 +1326,8 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' plot(dg_merged$geometry)
 #' #### NOT RUN ####
 #' }
+#' @references
+#' Polsby, D. D., & Popper, F. J. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353. [http://hdl.handle.net/20.500.13051/17448]
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup
@@ -1289,7 +1335,14 @@ cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' @importFrom sf st_relate
 #' @importFrom sf st_length
 #' @importFrom sf st_cast
+#' @importFrom sf st_intersects
+#' @importFrom sf st_as_sf
+#' @importFrom sf st_area
 #' @importFrom rlang sym
+#' @importFrom igraph graph_from_edgelist
+#' @importFrom igraph mst
+#' @importFrom igraph components
+#' @importFrom utils combn
 #' @export
 par_merge_grid <-
   function(
@@ -1356,7 +1409,7 @@ par_merge_grid <-
       dplyr::summarize(n_merged = dplyr::n()) |>
       dplyr::ungroup()
 
-    ## polsby-popper test for shape compactness
+    ## Polsby-Popper test for shape compactness
     par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
     par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
     par_merge_gridd_perimeter <-
@@ -1388,10 +1441,10 @@ testthat::test_that("Quantile cut tests", {
   rs <- sf::st_as_sf(rv)
 
   testthat::expect_no_error(
-    cut_coords(rv, NULL, qdef(4L))
+    par_cut_coords(rv, NULL, par_def_q(4L))
   )
   testthat::expect_no_error(
-    cut_coords(rs, NULL, qdef(4L))
+    par_cut_coords(rs, NULL, par_def_q(4L))
   )
 
   randpoints <- data.frame(
@@ -1399,22 +1452,22 @@ testthat::test_that("Quantile cut tests", {
     y = runif(1000, 0, 100)
   )
   testthat::expect_no_error(
-    quantiles <- qdef(4L)
+    quantiles <- par_def_q(4L)
   )
   testthat::expect_equal(length(quantiles), 5)
   testthat::expect_error(
-    qdef(1L)
+    par_def_q(1L)
   )
 
   testthat::expect_no_error(
-    cut_coords(randpoints$x, randpoints$y, quantiles)
+    par_cut_coords(randpoints$x, randpoints$y, quantiles)
   )
   testthat::expect_error(
-    cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
+    par_cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
   )
 
   testthat::expect_equal(
-    cut_coords(randpoints$x, randpoints$y, quantiles) |>
+    par_cut_coords(randpoints$x, randpoints$y, quantiles) |>
       nrow(),
     16
   )
@@ -1476,6 +1529,29 @@ testthat::test_that("Grid split is well done.", {
     )
   )
 
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
+
+  # Points
+  testthat::expect_warning(
+    par_make_gridset(
+      ncp,
+      mode = "grid_advanced",
+      padding = 3e4L,
+      grid_min_features = 20L
+    )
+  )
+  # Points
+  testthat::expect_no_error(
+    par_make_gridset(
+      ncp,
+      mode = "grid_quantile",
+      padding = 3e4L,
+      quantiles = par_def_q(5L)
+    )
+  )
+
 })
 
 ```
@@ -1487,7 +1563,7 @@ testthat::test_that("Grid merge is well done.", {
   withr::local_package("igraph")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
-  withr::local_seed(20231121)
+  withr::local_seed(202403)
 
   nc <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::read_sf(nc)
@@ -4283,20 +4359,20 @@ par_grid_furrr <-
 
 ```{r, include = FALSE, eval = FALSE}
 
-kpart <- function(steps = 4L) {
+qpart <- function(steps = 4L) {
   if (steps < 2L) {
     stop("steps should be greater than 1.")
   }
   quantiles <- seq(0, 1, length.out = steps + 1)
   return(quantiles)
 }
-kpart()
+qpart()
 
 
 # Generate 1000 random points at a 100 by 100 plane
 random_points <- data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
 
-cc <- cut_coords(random_points$x, random_points$y, qdef(4L))
+cc <- cut_coords(random_points$x, random_points$y, qpart(4L))
 
 
 partition_coordinates(random_points$x, random_points$y, kpart())

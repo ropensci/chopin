@@ -42,8 +42,12 @@ plot(dg_merged$geometry)
 #### NOT RUN ####
 }
 }
+\references{
+Polsby, D. D., & Popper, F. J. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. \emph{Yale Law & Policy Review}, 9(2), 301–353. \link{http://hdl.handle.net/20.500.13051/17448}
+}
 \seealso{
 Other Parallelization: 
+\code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},

@@ -29,6 +29,7 @@ par_fallback(err, extract_at, debug = TRUE)
 }
 \seealso{
 Other Parallelization: 
+\code{\link{par_cut_coords}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
