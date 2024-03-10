@@ -164,6 +164,8 @@ clip_ras_ext <- function(
 #' @param kernel character(1). Name of a kernel function
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
 #' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param max_cells integer(1). Maximum number of cells in memory.
+#' See [`exactextractr::exact_extract`] for more details.
 #' @returns a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -193,7 +195,8 @@ extract_at_buffer <- function(
   qsegs = 90L,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e7
 ) {
   # type check
   if (!methods::is(points, "SpatVector")) {
@@ -228,7 +231,8 @@ extract_at_buffer <- function(
         func = func,
         qsegs = qsegs,
         kernel = kernel,
-        bandwidth = bandwidth
+        bandwidth = bandwidth,
+        max_cells = max_cells
       )
     return(extracted)
   }
@@ -240,7 +244,8 @@ extract_at_buffer <- function(
       radius = radius,
       id = id,
       func = func,
-      qsegs = qsegs
+      qsegs = qsegs,
+      max_cells = max_cells
     )
   return(extracted)
 
@@ -257,7 +262,8 @@ extract_at_buffer_flat <- function(
   qsegs = NULL,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e7
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
@@ -280,9 +286,8 @@ extract_at_buffer_flat <- function(
       stack_apply = TRUE,
       append_cols = id,
       progress = FALSE,
-      max_cells_in_memory = 2e8
+      max_cells_in_memory = max_cells
     )
-  
   return(surf_at_bufs)
 }
 
@@ -298,7 +303,8 @@ extract_at_buffer_kernel <- function(
   qsegs = NULL,
   func = stats::weighted.mean,
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e7
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
@@ -342,7 +348,7 @@ extract_at_buffer_kernel <- function(
       progress = FALSE,
       include_area = TRUE,
       include_xy = TRUE,
-      max_cells_in_memory = 2e8
+      max_cells_in_memory = max_cells
     )
   # post-processing
   surf_at_bufs <- do.call(rbind, surf_at_bufs)
@@ -380,10 +386,10 @@ extract_at_buffer_kernel <- function(
 #' cropped to the extent of the polygons (with `snap` = `"out"`).
 #' To note, the function is designed to work with the `exactextractr` package.
 #' Arguments of `exactextractr::exact_extract` are set as below
-#' (default otherwise listed):
+#' (default otherwise listed except for max_cells_in_memory,
+#' which is set in the `max_cells` argument):
 #' * `force_df` = `TRUE`
 #' * `stack_apply` = `TRUE`
-#' * `max_cells_in_memory` = `2e8`
 #' * `progress` = `FALSE`
 #' @param polys `sf`/`SpatVector` object. Polygons.
 #' @param surf `SpatRaster` object or file path(s) with extensions
@@ -393,6 +399,8 @@ extract_at_buffer_kernel <- function(
 #'  a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, `"mean"` or `\(x, w) weighted.mean(x, w, na.rm = TRUE)`
+#' @param max_cells integer(1). Maximum number of cells in memory.
+#' See [`exactextractr::exact_extract`] for more details.
 #' @returns a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -416,7 +424,8 @@ extract_at_poly <- function(
   polys = NULL,
   surf = NULL,
   id = NULL,
-  func = "mean"
+  func = "mean",
+  max_cells = 2e7
 ) {
   # type check
   if (!methods::is(polys, "SpatVector")) {
@@ -453,7 +462,7 @@ extract_at_poly <- function(
       stack_apply = TRUE,
       append_cols = id,
       progress = FALSE,
-      max_cells_in_memory = 2e8
+      max_cells_in_memory = max_cells
     )
   return(extracted_poly)
 }

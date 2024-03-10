@@ -510,7 +510,7 @@ sf::write_sf(bg, file.path("input", "Blockgroups_2020.gpkg"))
 ### Extract
 ```{r bg-extract}
 ## extract prism by par_hierarchy
-bgsf <- sf::st_read("~/Blockgroups_2020.gpkg")
+bgsf <- sf::st_read("input/Blockgroups_2020.gpkg")
 bgsf_main <- bgsf %>%
   dplyr::filter(!STATEFP %in% c("02", "15", "72", "66", "78", "60", "69"))
 
@@ -549,14 +549,14 @@ system.time(
     )
 )
 
-#  user  system elapsed 
+#  user  system elapsed
 # 7.255   2.367 205.995
 # multicore (reflow)
-  #  user  system elapsed 
-  # 1.860   0.408 160.795 
+#  user  system elapsed
+# 1.860   0.408 160.795
 # layer: sequential, multicore
-#    user  system elapsed 
-# 152.557   3.123 157.137 
+#    user  system elapsed
+# 152.557   3.123 157.137
 ```
 
 
@@ -565,7 +565,43 @@ system.time(
 We demonstrate the extraction process with the [CropScape](https://croplandcros.scinet.usda.gov) dataset which has a resolution of 30 meters. In this case, we use `frac` option of `exact_extract` which tabulates the fraction of the area of the cell category that is covered by the polygon after accounting for partial coverage of polygon segments over raster cells.
 
 ```{r fine-raster-cdl}
+cdl <- terra::rast("input/2022_cdls/2022_30m_cdls.tif")
 
+system.time(
+  exactextractr::exact_extract(
+    cdl,
+    bgsf_main,
+    fun = "frac",
+    stack_apply = TRUE,
+    force_df = TRUE,
+    append_cols = "GEOID",
+    max_cells_in_memory = 2.14e9
+  )
+)
+
+# balancing the number of workers
+# by splitting block groups by splitting centroids
+bgsf_9grids <- bgsf_main %>%
+  chopin::par_make_gridset(
+    mode = "grid",
+    padding = 1e4,
+    nx = 3L,
+    ny = 3L,
+    unit = "meter"
+  )
+
+future::plan(multicore, workers = 9L)
+system.time(
+  bgsf_par <-
+    chopin::par_grid(
+      bgsf_9grids,
+      fun_dist = chopin::extract_at_poly,
+      poly = bgsf_main,
+      surf = cdl,
+      id = "GEOID",
+      func = "frac"
+    )
+)
 
 ```
 

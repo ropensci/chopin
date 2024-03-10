@@ -4,7 +4,13 @@
 \alias{extract_at_poly}
 \title{Extract summarized values from raster with generic polygons}
 \usage{
-extract_at_poly(polys = NULL, surf = NULL, id = NULL, func = "mean")
+extract_at_poly(
+  polys = NULL,
+  surf = NULL,
+  id = NULL,
+  func = "mean",
+  max_cells = 2e+07
+)
 }
 \arguments{
 \item{polys}{\code{sf}/\code{SpatVector} object. Polygons.}
@@ -18,6 +24,9 @@ that are GDAL-compatible. A raster from which a summary will be calculated}
 a function taking two arguments that are
 compatible with \code{\link[exactextractr]{exact_extract}}.
 For example, \code{"mean"} or \verb{\\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
+
+\item{max_cells}{integer(1). Maximum number of cells in memory.
+See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}
 }
 \value{
 a data.frame object with function value
@@ -31,11 +40,11 @@ When \code{Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")} is set, the raster will be
 cropped to the extent of the polygons (with \code{snap} = \code{"out"}).
 To note, the function is designed to work with the \code{exactextractr} package.
 Arguments of \code{exactextractr::exact_extract} are set as below
-(default otherwise listed):
+(default otherwise listed except for max_cells_in_memory,
+which is set in the \code{max_cells} argument):
 \itemize{
 \item \code{force_df} = \code{TRUE}
 \item \code{stack_apply} = \code{TRUE}
-\item \code{max_cells_in_memory} = \code{2e8}
 \item \code{progress} = \code{FALSE}
 }
 }

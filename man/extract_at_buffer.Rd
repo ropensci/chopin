@@ -14,7 +14,8 @@ extract_at_buffer(
   qsegs = 90L,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e+07
 )
 
 extract_at_buffer_flat(
@@ -25,7 +26,8 @@ extract_at_buffer_flat(
   qsegs = NULL,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e+07
 )
 
 extract_at_buffer_kernel(
@@ -36,7 +38,8 @@ extract_at_buffer_kernel(
   qsegs = NULL,
   func = stats::weighted.mean,
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e+07
 )
 }
 \arguments{
@@ -59,6 +62,9 @@ Default is \code{90L}.}
 One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
+
+\item{max_cells}{integer(1). Maximum number of cells in memory.
+See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}
 }
 \value{
 a data.frame object with mean value
