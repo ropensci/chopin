@@ -41,6 +41,10 @@ testthat::test_that("Quantile cut tests", {
     16
   )
 
+  testthat::expect_error(
+    par_cut_coords(randpoints$x, c(1, 0, 4), quantiles)
+  )
+
   # polygon case
   ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
   nc <- sf::st_read(ncpath)
@@ -127,7 +131,7 @@ testthat::test_that("Grid merge is well done.", {
   nctr <- terra::vect(nc)
   ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
-  ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
+  ncrp <- sf::st_as_sf(sf::st_sample(nc, 500L))
 
   gridded <-
     par_make_gridset(ncrp,
@@ -135,7 +139,7 @@ testthat::test_that("Grid merge is well done.", {
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
   # suppress warnings for "all sub-geometries for which ..."
-  testthat::expect_warning(par_merge_grid(ncrp, gridded$original, 25L))
+  testthat::expect_warning(par_merge_grid(ncrp, gridded$original, 10L))
   testthat::expect_error(par_merge_grid(ncrp, gridded$original, 2L))
 
   ncptr <- terra::vect(ncrp)

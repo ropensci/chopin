@@ -228,6 +228,12 @@ testthat::test_that("extract_at runs well", {
                mode = "whatnot")
   )
   testthat::expect_error(
+    extract_at_buffer(nccntytr,
+               list(1),
+               "FIPS",
+               radius = 1e4)
+  )
+  testthat::expect_error(
     extract_at(nccntytr,
                ncelev,
                "GEOID",
@@ -296,6 +302,13 @@ testthat::test_that("extract_at runs well", {
     extract_at_poly(
       as.list(nccntytr),
       ncelev,
+      id = "FIPS"
+    )
+  )
+  testthat::expect_error(
+    extract_at_poly(
+      nccntytr,
+      list(NA),
       id = "FIPS"
     )
   )
