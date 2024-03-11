@@ -208,7 +208,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.131   0.175  11.343
+#>  11.089   0.197  11.320
 ```
 
 #### Generate regular grid computational regions
@@ -316,7 +316,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.150   0.670   4.693
+#>   8.097   0.642   4.430
 ```
 
 ``` r
@@ -368,7 +368,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e3a55e2f/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e33e1543a/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -377,7 +377,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e3a55e2f/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e33e1543a/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -405,7 +405,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.927   0.002   1.935
+#>   1.942   0.028   1.977
 
 # hierarchical parallelization
 system.time(
@@ -421,7 +421,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.047   0.017   2.568
+#>   0.049   0.016   2.548
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -448,9 +448,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpMZRcCF/test1.tif" "/tmp/RtmpMZRcCF/test2.tif"
-#> [3] "/tmp/RtmpMZRcCF/test3.tif" "/tmp/RtmpMZRcCF/test4.tif"
-#> [5] "/tmp/RtmpMZRcCF/test5.tif"
+#> [1] "/tmp/Rtmp22bLSM/test1.tif" "/tmp/Rtmp22bLSM/test2.tif"
+#> [3] "/tmp/Rtmp22bLSM/test3.tif" "/tmp/Rtmp22bLSM/test4.tif"
+#> [5] "/tmp/Rtmp22bLSM/test5.tif"
 ```
 
 ``` r
@@ -466,18 +466,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.671   0.462   1.016
+#>   1.658   0.449   0.998
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpMZRcCF/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpMZRcCF/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpMZRcCF/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpMZRcCF/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpMZRcCF/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpMZRcCF/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmp22bLSM/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmp22bLSM/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmp22bLSM/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmp22bLSM/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmp22bLSM/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmp22bLSM/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -555,7 +555,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.888   0.000   0.889
+#>   0.875   0.002   0.877
 
 # we use four threads that were configured above
 system.time(
@@ -576,7 +576,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.540   0.154   0.408
+#>   0.549   0.142   0.409
 ```
 
 -   We will compare the results from the single-thread and multi-thread
@@ -614,4 +614,4 @@ all.equal(resj$distance.x, resj$distance.y)
     examples will be provided in vignettes and manuscripts in the near
     future.
 
-#### Last edited: February 4, 2024
+#### Last edited: March 11, 2024

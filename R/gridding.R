@@ -222,10 +222,10 @@ par_def_q <- function(steps = 4L) {
 #' random_points <-
 #'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
 #' quantiles <- par_def_q(4L)
-#' qpoly <- cut_coords(random_points$x, random_points$y, quantiles)
+#' qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
 #' clustered_points <-
 #'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
-#' qpoly_c <- cut_coords(clustered_points$x, clustered_points$y, quantiles)
+#' qpoly_c <- par_cut_coords(clustered_points$x, clustered_points$y, quantiles)
 #' par(mfcol = c(1, 2))
 #' plot(qpoly)
 #' plot(qpoly_c)
@@ -242,6 +242,7 @@ par_def_q <- function(steps = 4L) {
 #' @importFrom terra ext
 #' @importFrom terra as.polygons
 #' @importFrom stats setNames
+#' @importFrom stats quantile
 #' @export
 par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
@@ -260,8 +261,8 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   if (!all.equal(length(x), length(y))) {
     stop("x and y should have the same length.")
   }
-  x_quantiles <- quantile(x, probs = quantiles)
-  y_quantiles <- quantile(y, probs = quantiles)
+  x_quantiles <- stats::quantile(x, probs = quantiles)
+  y_quantiles <- stats::quantile(y, probs = quantiles)
 
   # these lines are rounding quantiles between
   # the minimum and the maximum (exclusive) to the nearest 4th decimal place
@@ -340,7 +341,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' #### NOT RUN ####
 #' }
 #' @references
-#' Polsby, D. D., & Popper, F. J. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353. [http://hdl.handle.net/20.500.13051/17448]
+#' Polsby, D. D., & Popper, F. J. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353. [Link](http://hdl.handle.net/20.500.13051/17448)
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup

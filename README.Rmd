@@ -411,5 +411,5 @@ all.equal(resj$distance.x, resj$distance.y)
 - Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be provided in vignettes and manuscripts in the near future.
 
 
-#### Last edited: February 4, 2024
+#### Last edited: March 11, 2024
 

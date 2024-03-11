@@ -3,7 +3,11 @@ tools
 figure
 containers
 input
+.github
 \/*_litr.rmd
+README.Rmd
+codemeta.json
+_pkgdown.yml
 \*.yml
 \*.html
 ^LICENSE\.md$
