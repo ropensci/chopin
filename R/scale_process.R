@@ -171,7 +171,9 @@ par_grid <-
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
-
+          if (dep_check(grid) != dep_check(args_input[[2]])) {
+            grid <- dep_switch(grid)
+          }
           run_result <- tryCatch({
             args_input <- list(...)
             ## Strongly assuming that

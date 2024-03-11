@@ -1,10 +1,11 @@
 ---
 title: "Extracting Weather/Climate Geospatial Data with `chopin`"
-author: Insang Song
-date: today
-output:
-  html:
-    embed-resources: true
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Extracting Weather/Climate Geospatial Data with `chopin`"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 <!-- header change
@@ -19,7 +20,16 @@ vignette: >
 -->
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, eval = FALSE)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  eval = TRUE,
+  comment = "#>",
+  root.dir = "/home/felix/GitHub/chopin",
+  fig.path = "../../man/figures/climate-ex-",
+  out.width = "100%"
+)
 ```
 
 <!--
@@ -67,9 +77,7 @@ options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
 ## Download and preprocess {.tabset}
 
 ### Download
-```{r}
-#| label: download populated places and cleaning
-#| eval: FALSE
+```{r, eval = FALSE}
 # populated places
 state <- tigris::states(year = 2022)
 statemain <-
@@ -79,19 +87,18 @@ target_states <- statemain$GEOID
 popplace <-
   lapply(target_states, function(x) tigris::places(x, year = 2022)) %>%
   do.call(rbind, .)
-saveRDS(popplace, "./input/populated_place_2022.rds", compress = "xz")
+saveRDS(popplace, "input/populated_place_2022.rds", compress = "xz")
 ```
 
 ### Read
-```{r}
-#| label: mainland populated places
+```{r read-popplaces}
 state <- tigris::states(year = 2022)
 statemain <-
   state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
 target_states <- statemain$GEOID
 
 # prepared populated places
-popplace <- readRDS("./input/populated_place_2022.rds")
+popplace <- readRDS("input/populated_place_2022.rds")
 
 # generate circular buffers with 10 km radius
 popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
@@ -150,6 +157,7 @@ Following that rationale, we will preprocess the data by summing the first seven
 
 
 ```{r TerraClimate-preprocess}
+options(future.globals = FALSE)
 # some bands should be summed
 bandnames <- c(
   "aet", "def", "PDSI", "pet", "ppt", "q", "soil", "srad",
@@ -183,22 +191,26 @@ tictoc::toc()
 names(netcdf_read_sum) <- rep(bandnames_sum, each = 23)
 netcdf_read_sum
 
-tictoc::tic("mean: 7 layers")
-netcdf_read_mean <-
-  split(bandnames_avg, bandnames_avg) |>
-  lapply(function(x) {
-    grep(paste0("(", x, ")"), path_tc_files, value = TRUE)
-  }) |>
-  lapply(function(x) {
-    terra::tapp(terra::rast(x, win = ext_mainland, snap = "out"), index = "years", fun = "mean")
-  }) |>
-  Reduce(f = c, x = _)
-tictoc::toc()
-# 178.46 sec elapsed
-names(netcdf_read_mean) <-
-  sprintf("%s_%d", rep(bandnames_avg, each = 23), rep(2000:2022, 7))
-netcdf_read_mean
+# tictoc::tic("mean: 7 layers")
+# netcdf_read_mean <-
+#   split(bandnames_avg, bandnames_avg) |>
+#   lapply(function(x) {
+#     grep(paste0("(", x, ")"), path_tc_files, value = TRUE)
+#   }) |>
+#   lapply(function(x) {
+#     terra::tapp(terra::rast(x, win = ext_mainland, snap = "out"), index = "years", fun = "mean")
+#   }) |>
+#   Reduce(f = c, x = _)
+# tictoc::toc()
 
+# names(netcdf_read_mean) <-
+#   sprintf("%s_%d", rep(bandnames_avg, each = 23), rep(2000:2022, 7))
+# netcdf_read_mean
+
+```
+
+```{r gc1, include = FALSE}
+gc()
 ```
 
 > \[!WARNING\] Stacking raster data may take a long time and consume a large amount of memory depending on users' area of interest and data resolution. Users need to consider the memory capacity of the system before stacking rasters.
@@ -249,6 +261,8 @@ system.time(
     )
 )
 
+future::plan(future::sequential)
+
 
 # single thread
 system.time(
@@ -281,6 +295,10 @@ system.time(
 > \[!WARNING\] Critical content comes here.
 
 -->
+
+```{r gc2, include = FALSE}
+gc()
+```
 
 # PRISM dataset
 
@@ -335,7 +353,7 @@ exgrid <-
 
 doFuture::registerDoFuture()
 future::plan(future::multicore, workers = 8L)
-options(future.globals = TRUE)
+
 system.time(
   exmulti <-
     chopin::par_grid(
@@ -362,9 +380,12 @@ system.time(
     )
 )
 
-
+future::plan(future::sequential)
 ```
 
+```{r gc3, include = FALSE}
+gc()
+```
 
 # Scaled up examples
 ## Larger buffer sizes
@@ -414,6 +435,8 @@ system.time(
       func = "mean"
     )
 )
+
+future::plan(future::sequential)
 ```
 
 
@@ -421,10 +444,7 @@ system.time(
 
 
 ## Larger number of features
-
-
-
-
+This example uses 1,204,934 1-km grid points in the southeastern United States to summarize seven layers of TerraClimate.
 
 ```{r}
 ## generate 1km grid points in the southeastern US States
@@ -432,7 +452,6 @@ stt <- tigris::states(year = 2020)
 targ_states <- c("NC", "SC", "GA", "FL", "AL", "MS", "TN", "LA", "AR")
 stt_targ <- stt[stt$STUSPS %in% targ_states, ]
 plot(stt_targ$geometry)
-
 
 stt_t <- sf::st_transform(stt_targ, "EPSG:5070")
 stt_g <- sf::st_sample(stt_t, type = "regular", 1204934)
@@ -445,14 +464,14 @@ stt_gb <- sf::st_buffer(stt_g, units::set_units(10, "km"))
 
 tic()
 single_2m <-
-exactextractr::exact_extract(
-  netcdf_read_sum,
-  stt_gb,
-  fun = "mean",
-  stack_apply = TRUE,
-  force_df = TRUE,
-  max_cells_in_memory = 2.14e9
-)
+  exactextractr::exact_extract(
+    netcdf_read_sum,
+    stt_gb,
+    fun = "mean",
+    stack_apply = TRUE,
+    force_df = TRUE,
+    max_cells_in_memory = 2.14e9
+  )
 toc()
 
 stt_gbg <-
@@ -471,34 +490,21 @@ system.time(
   stt5k <-
     chopin::par_grid(
       stt_gbg,
-      fun_dist = chopin::extract_at_poly,
-      poly = stt_gb,
+      fun_dist = chopin::extract_at_buffer,
+      points = stt_g,
       surf = netcdf_read_sum,
       id = "pid",
-      func = "mean"
+      func = "mean",
+      max_cells = 2e7
     )
 )
 
-doFuture::registerDoFuture()
-future::plan(future::multisession, workers = 8L)
-system.time(
-  stt5ks <-
-    chopin::par_grid(
-      stt_gbg,
-      fun_dist = chopin::extract_at_poly,
-      poly = stt_gb,
-      surf = st_as_stars(netcdf_read_mean),
-      id = "pid",
-      func = "mean"
-    )
-)
+future::plan(future::sequential)
 ```
 
 
 ## Finely resolved vector {.tabset}
-
-
-
+Using PRISM data, the example below summarizes the mean values of each data element at census block groups.
 
 ### Download
 ```{r get-bg, eval = FALSE}
@@ -527,9 +533,6 @@ system.time(
       max_cells_in_memory = 2.14e9
     )
 )
-#    user  system elapsed 
-# 116.200   2.951 131.969
-
 
 nmain <- c("AS", "AK", "HI", "PR", "VI", "GU", "MP")
 stt_nmain <- stt[!stt$STUSPS %in% nmain, ]
@@ -548,15 +551,7 @@ system.time(
       id = "GEOID"
     )
 )
-
-#  user  system elapsed
-# 7.255   2.367 205.995
-# multicore (reflow)
-#  user  system elapsed
-# 1.860   0.408 160.795
-# layer: sequential, multicore
-#    user  system elapsed
-# 152.557   3.123 157.137
+future::plan(future::sequential)
 ```
 
 
@@ -564,42 +559,75 @@ system.time(
 
 We demonstrate the extraction process with the [CropScape](https://croplandcros.scinet.usda.gov) dataset which has a resolution of 30 meters. In this case, we use `frac` option of `exact_extract` which tabulates the fraction of the area of the cell category that is covered by the polygon after accounting for partial coverage of polygon segments over raster cells.
 
-```{r fine-raster-cdl}
+```{r fine-raster-cdl-1}
 cdl <- terra::rast("input/2022_cdls/2022_30m_cdls.tif")
 
 system.time(
-  exactextractr::exact_extract(
-    cdl,
-    bgsf_main,
-    fun = "frac",
-    stack_apply = TRUE,
-    force_df = TRUE,
-    append_cols = "GEOID",
-    max_cells_in_memory = 2.14e9
-  )
+  bgsf_cdl_single <-
+    exactextractr::exact_extract(
+      cdl,
+      bgsf_main,
+      fun = "frac",
+      stack_apply = TRUE,
+      force_df = TRUE,
+      append_cols = "GEOID",
+      max_cells_in_memory = 2.14e9
+    )
 )
+```
 
-# balancing the number of workers
+```{r gc4, include = FALSE}
+gc()
+rm(list = ls())
+gc()
+```
+
+
+For balancing computation time, we will split the block groups into nine subsets to parallelize. Note that `mode = "grid_quantile"` is used in `par_make_gridset` to balance the number of block groups per grid. When `input` argument of `par_make_gridset` is polygons, a few polygons will have duplicate rows in the output data.frame since block groups overlapping each grid will be selected.
+
+```{r fine-raster-cdl-2, eval = FALSE}
+pkgs <-
+  c("chopin", "terra", "stars", "sf", "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
+invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
+options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
+cdl <- terra::rast("input/2022_cdls/2022_30m_cdls.tif")
+bgsf <- sf::st_read("input/Blockgroups_2020.gpkg")
+bgsf_main <- bgsf %>%
+  dplyr::filter(!STATEFP %in% c("02", "15", "72", "66", "78", "60", "69"))
+
+
+# balancing the number of features assigned per workers
 # by splitting block groups by splitting centroids
-bgsf_9grids <- bgsf_main %>%
+bgsf_9grids_plain <- bgsf_main %>%
   chopin::par_make_gridset(
     mode = "grid",
+    nx = 3L, ny = 3L, padding = 1e4
+  )
+bgsf_9grids <- bgsf_main %>%
+  chopin::par_make_gridset(
+    mode = "grid_quantile",
     padding = 1e4,
-    nx = 3L,
-    ny = 3L,
-    unit = "meter"
+    quantiles = chopin::par_def_q(3L)
   )
 
+par(mfcol = c(1, 2))
+plot(terra::vect(bgsf_9grids_plain$padded), main = "Plain")
+plot(bgsf_9grids$padded, main = "Quantile")
+par(mfcol = c(1, 1))
+
+
+doFuture::registerDoFuture()
 future::plan(multicore, workers = 9L)
 system.time(
-  bgsf_par <-
+  bgsf_cdl_par <-
     chopin::par_grid(
-      bgsf_9grids,
+      lapply(bgsf_9grids, sf::st_as_sf),
       fun_dist = chopin::extract_at_poly,
       poly = bgsf_main,
       surf = cdl,
       id = "GEOID",
-      func = "frac"
+      func = "frac",
+      max_cells = 2e7
     )
 )
 

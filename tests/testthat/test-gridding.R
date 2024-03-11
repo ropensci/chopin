@@ -15,6 +15,7 @@ testthat::test_that("Quantile cut tests", {
     par_cut_coords(rs, NULL, par_def_q(4L))
   )
 
+  # numeric cases
   randpoints <- data.frame(
     x = runif(1000, 0, 100),
     y = runif(1000, 0, 100)
@@ -38,6 +39,13 @@ testthat::test_that("Quantile cut tests", {
     par_cut_coords(randpoints$x, randpoints$y, quantiles) |>
       nrow(),
     16
+  )
+
+  # polygon case
+  ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+  nc <- sf::st_read(ncpath)
+  testthat::expect_warning(
+    par_cut_coords(nc, NULL, par_def_q(3L))
   )
 
 })

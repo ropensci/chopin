@@ -1020,7 +1020,8 @@ nc_valid <- vect_valid_repair(nc)
 #' * `"grid"` (simple grid regardless of the number of features in each grid)
 #' * `"density"` (clustering-based varying grids),
 #' * `"grid_advanced"` (merging adjacent grids with
-#'  smaller number of features than grid_min_features).
+#'  smaller number of features than `grid_min_features`).
+#'  The argument `grid_min_features` should be specified.
 #' * `"grid_quantile"` (x and y quantiles): an argument `quantiles` should
 #' be specified.
 #' @param nx integer(1). The number of grids along x-axis.
@@ -1063,6 +1064,11 @@ nc_valid <- vect_valid_repair(nc)
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original)
 #' plot(nc_comp_region$padded)
+#' @importFrom sf st_crs
+#' @importFrom sf st_set_crs
+#' @importFrom terra crs
+#' @importFrom terra set.crs
+#' @importFrom terra buffer
 #' @export
 par_make_gridset <-
   function(
@@ -1079,11 +1085,10 @@ par_make_gridset <-
 
     if (!all(
       is.integer(nx),
-      is.integer(ny),
-      is.integer(grid_min_features)
+      is.integer(ny)
     )
     ) {
-      stop("nx, ny, and grid_min_features must be integer.\n")
+      stop("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
       message("padding should be numeric.
@@ -1114,8 +1119,10 @@ We try converting padding to numeric...\n")
 
     # type_grid_reg <- dep_check(grid_reg)
     if (dep_check(grid_reg) == "sf") {
+      grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
+      grid_reg <- terra::set.crs(grid_reg, terra::crs(input))
       grid_reg_conv <- grid_reg
     }
 
@@ -1250,8 +1257,15 @@ par_def_q <- function(steps = 4L) {
 #' @export
 par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
-    foo <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
-    invect <- foo(x)
+    coord <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
+    detectgeom <-
+      if (methods::is(x, "sf")) sf::st_geometry_type else terra::geomtype
+    center <- if (methods::is(x, "sf")) sf::st_centroid else terra::centroids
+    if (any(grepl("polygon", tolower(unique(detectgeom(x)))))) {
+      x <- center(x)
+    }
+
+    invect <- coord(x)
     x <- invect[, 1]
     y <- invect[, 2]
   }
@@ -1458,6 +1472,7 @@ testthat::test_that("Quantile cut tests", {
     par_cut_coords(rs, NULL, par_def_q(4L))
   )
 
+  # numeric cases
   randpoints <- data.frame(
     x = runif(1000, 0, 100),
     y = runif(1000, 0, 100)
@@ -1481,6 +1496,13 @@ testthat::test_that("Quantile cut tests", {
     par_cut_coords(randpoints$x, randpoints$y, quantiles) |>
       nrow(),
     16
+  )
+
+  # polygon case
+  ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+  nc <- sf::st_read(ncpath)
+  testthat::expect_warning(
+    par_cut_coords(nc, NULL, par_def_q(3L))
   )
 
 })
@@ -3437,7 +3459,9 @@ par_grid <-
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
-
+          if (dep_check(grid) != dep_check(args_input[[2]])) {
+            grid <- dep_switch(grid)
+          }
           run_result <- tryCatch({
             args_input <- list(...)
             ## Strongly assuming that

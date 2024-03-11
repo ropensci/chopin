@@ -25,7 +25,8 @@ One of
 \item \code{"grid"} (simple grid regardless of the number of features in each grid)
 \item \code{"density"} (clustering-based varying grids),
 \item \code{"grid_advanced"} (merging adjacent grids with
-smaller number of features than grid_min_features).
+smaller number of features than \code{grid_min_features}).
+The argument \code{grid_min_features} should be specified.
 \item \code{"grid_quantile"} (x and y quantiles): an argument \code{quantiles} should
 be specified.
 }}

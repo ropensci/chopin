@@ -1,8 +1,3 @@
----
-output:
-  github_document:
-    html_preview: false
----
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(

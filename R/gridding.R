@@ -8,7 +8,8 @@
 #' * `"grid"` (simple grid regardless of the number of features in each grid)
 #' * `"density"` (clustering-based varying grids),
 #' * `"grid_advanced"` (merging adjacent grids with
-#'  smaller number of features than grid_min_features).
+#'  smaller number of features than `grid_min_features`).
+#'  The argument `grid_min_features` should be specified.
 #' * `"grid_quantile"` (x and y quantiles): an argument `quantiles` should
 #' be specified.
 #' @param nx integer(1). The number of grids along x-axis.
@@ -51,6 +52,11 @@
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original)
 #' plot(nc_comp_region$padded)
+#' @importFrom sf st_crs
+#' @importFrom sf st_set_crs
+#' @importFrom terra crs
+#' @importFrom terra set.crs
+#' @importFrom terra buffer
 #' @export
 par_make_gridset <-
   function(
@@ -67,11 +73,10 @@ par_make_gridset <-
 
     if (!all(
       is.integer(nx),
-      is.integer(ny),
-      is.integer(grid_min_features)
+      is.integer(ny)
     )
     ) {
-      stop("nx, ny, and grid_min_features must be integer.\n")
+      stop("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
       message("padding should be numeric.
@@ -102,8 +107,10 @@ We try converting padding to numeric...\n")
 
     # type_grid_reg <- dep_check(grid_reg)
     if (dep_check(grid_reg) == "sf") {
+      grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
+      grid_reg <- terra::set.crs(grid_reg, terra::crs(input))
       grid_reg_conv <- grid_reg
     }
 
@@ -238,8 +245,15 @@ par_def_q <- function(steps = 4L) {
 #' @export
 par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
-    foo <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
-    invect <- foo(x)
+    coord <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
+    detectgeom <-
+      if (methods::is(x, "sf")) sf::st_geometry_type else terra::geomtype
+    center <- if (methods::is(x, "sf")) sf::st_centroid else terra::centroids
+    if (any(grepl("polygon", tolower(unique(detectgeom(x)))))) {
+      x <- center(x)
+    }
+
+    invect <- coord(x)
     x <- invect[, 1]
     y <- invect[, 2]
   }
