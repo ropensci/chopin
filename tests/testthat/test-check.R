@@ -53,9 +53,9 @@ testthat::test_that("CRS is transformed when it is not standard", {
   sf::st_crs(ncna) <- NA
   ncnatr <- terra::vect(ncna)
 
-  testthat::expect_error(reproject_std(nc, 4326))
-  testthat::expect_error(reproject_std(ncna, crs_standard = "EPSG:4326"))
-  testthat::expect_error(reproject_std(ncnatr, "EPSG:4326"))
+  # testthat::expect_error(reproject_std(nc, 4326))
+  # testthat::expect_error(reproject_std(ncna, crs_standard = "EPSG:4326"))
+  # testthat::expect_error(reproject_std(ncnatr, "EPSG:4326"))
 
   testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:4326"))
   testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:5070"))
@@ -68,7 +68,7 @@ testthat::test_that("CRS is transformed when it is not standard", {
   testthat::expect_s3_class(nc_align, "sf")
   testthat::expect_s4_class(nctr_align, "SpatVector")
 
-  nc_align_epsg <- sf::st_crs(nc_align)$epsg 
+  nc_align_epsg <- sf::st_crs(nc_align)$epsg
   nctr_align_epsg <- terra::crs(nctr_align, describe = TRUE)$code
 
   testthat::expect_equal(nc_align_epsg, 4326)

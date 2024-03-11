@@ -45,7 +45,9 @@ testthat::test_that("Quantile cut tests", {
   ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
   nc <- sf::st_read(ncpath)
   testthat::expect_warning(
-    par_cut_coords(nc, NULL, par_def_q(3L))
+    testthat::expect_warning(
+      par_cut_coords(nc, NULL, par_def_q(3L))
+    )
   )
 
 })

@@ -1,6 +1,6 @@
 Package: chopin
 Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
-Version: 0.5.0.20240308
+Version: 0.5.0.20240311
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -49,4 +49,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: a88d29fcc6f508059d6318c64275050e
+LitrId: 65ec355ddb7d84f324eb4c62146b0a2e

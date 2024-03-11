@@ -18,16 +18,30 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 -->
+<!--
+knitr::knit("tools/vignettes-sources/v02_climate_example.Rmd", "tools/vignettes-sources/v02_climate_example_knit.Rmd")
+-->
 
 ```{r setup, include = FALSE}
+knitr::opts_knit$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  eval = TRUE,
+  comment = "#>",
+  root.dir = file.path(Sys.getenv("HOME"), "projects/chopin"),
+  fig.path = "figures/climate-ex-",
+  out.width = "100%"
+)
+
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
   eval = TRUE,
   comment = "#>",
-  root.dir = "/home/felix/GitHub/chopin",
-  fig.path = "../../man/figures/climate-ex-",
+  root.dir = file.path(Sys.getenv("HOME"), "projects/chopin"),
+  fig.path = "figures/climate-ex-",
   out.width = "100%"
 )
 ```
@@ -67,12 +81,15 @@ We will consider the populated places centroids in the mainland United States (i
 ```{r}
 #| label: load packages
 pkgs <-
-  c("chopin", "terra", "stars", "sf", "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
+  c("chopin", "terra", "stars", "sf",
+    "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
 invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
 options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
 
 ```
 
+## Hardware specification
+We used a machine with 112 physical CPU cores with 750 GB of memory, but we used only a portion of the cores (up to 20) for the demonstration. No maximum possible memory usage was set. However, in typical HPC management systems, users are required to request the number of cores and memory for their jobs. The number of cores and memory capacity should be considered when users parallelize the extraction process.
 
 ## Download and preprocess {.tabset}
 
@@ -87,7 +104,7 @@ target_states <- statemain$GEOID
 popplace <-
   lapply(target_states, function(x) tigris::places(x, year = 2022)) %>%
   do.call(rbind, .)
-saveRDS(popplace, "input/populated_place_2022.rds", compress = "xz")
+saveRDS(popplace, "./input/populated_place_2022.rds", compress = "xz")
 ```
 
 ### Read
@@ -98,7 +115,7 @@ statemain <-
 target_states <- statemain$GEOID
 
 # prepared populated places
-popplace <- readRDS("input/populated_place_2022.rds")
+popplace <- readRDS("./input/populated_place_2022.rds")
 
 # generate circular buffers with 10 km radius
 popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
@@ -188,7 +205,7 @@ netcdf_read_sum <- Reduce(c, netcdf_read_sum)
 tictoc::toc()
 
 
-names(netcdf_read_sum) <- rep(bandnames_sum, each = 23)
+names(netcdf_read_sum) <- paste0(rep(bandnames_sum, each = 23), "_", rep(2000:2022, 7))
 netcdf_read_sum
 
 # tictoc::tic("mean: 7 layers")
@@ -235,7 +252,7 @@ multi_grid <-
     fun_dist = chopin::extract_at_buffer,
     combine = dplyr::bind_rows,
     points = popplacep2,
-    surf = netcdf_read_mean,
+    surf = netcdf_read_sum,
     id = "GEOID",
     func = "mean",
     radius = 1e4
@@ -245,7 +262,7 @@ toc()
 system.time(
   multi <-
     grep(
-      paste0("(", paste(bandnames_avg, collapse = "|"), ")"),
+      paste0("(", paste(bandnames_sum, collapse = "|"), ")"),
       path_tc_files,
       value = TRUE
     ) %>%
@@ -268,12 +285,13 @@ future::plan(future::sequential)
 system.time(
   single <-
   exactextractr::exact_extract(
-    netcdf_read_mean,
+    netcdf_read_sum,
     sf::st_as_sf(popplaceb),
     fun = "mean",
     stack_apply = TRUE,
     force_df = TRUE,
-    append_cols = c("GEOID")
+    append_cols = c("GEOID"),
+    progress = FALSE
   )
 )
 
@@ -376,7 +394,8 @@ system.time(
       stack_apply = TRUE,
       force_df = TRUE,
       append_cols = "GEOID",
-      max_cells_in_memory = 2.14e9
+      max_cells_in_memory = 2.14e9,
+      progress = FALSE
     )
 )
 
@@ -405,7 +424,8 @@ system.time(
       stack_apply = TRUE,
       force_df = TRUE,
       append_cols = "GEOID",
-      max_cells_in_memory = 2.14e9
+      max_cells_in_memory = 2.14e9,
+      progress = FALSE
     )
 )
 
@@ -428,7 +448,7 @@ system.time(
     chopin::par_grid(
       exgrid5k,
       fun_dist = chopin::extract_at_buffer,
-      points = popplacep,
+      points = popplacep2,
       surf = bilssds,
       radius = units::set_units(5e4, "meter"),
       id = "GEOID",
@@ -446,7 +466,7 @@ future::plan(future::sequential)
 ## Larger number of features
 This example uses 1,204,934 1-km grid points in the southeastern United States to summarize seven layers of TerraClimate.
 
-```{r}
+```{r se-states}
 ## generate 1km grid points in the southeastern US States
 stt <- tigris::states(year = 2020)
 targ_states <- c("NC", "SC", "GA", "FL", "AL", "MS", "TN", "LA", "AR")
@@ -456,10 +476,10 @@ plot(stt_targ$geometry)
 stt_t <- sf::st_transform(stt_targ, "EPSG:5070")
 stt_g <- sf::st_sample(stt_t, type = "regular", 1204934)
 stt_g <- sf::st_as_sf(stt_g)
-stt_g$pid <- seq(1, length(stt_g))
+stt_g$pid <- seq(1, nrow(stt_g))
 ```
 
-```{r}
+```{r run-se-states}
 stt_gb <- sf::st_buffer(stt_g, units::set_units(10, "km"))
 
 tic()
@@ -470,7 +490,8 @@ single_2m <-
     fun = "mean",
     stack_apply = TRUE,
     force_df = TRUE,
-    max_cells_in_memory = 2.14e9
+    max_cells_in_memory = 2.14e9,
+    progress = FALSE
   )
 toc()
 
@@ -530,7 +551,8 @@ system.time(
       stack_apply = TRUE,
       force_df = TRUE,
       append_cols = "GEOID",
-      max_cells_in_memory = 2.14e9
+      max_cells_in_memory = 2.14e9,
+      progress = FALSE
     )
 )
 
@@ -571,7 +593,8 @@ system.time(
       stack_apply = TRUE,
       force_df = TRUE,
       append_cols = "GEOID",
-      max_cells_in_memory = 2.14e9
+      max_cells_in_memory = 2.14e9,
+      progress = FALSE
     )
 )
 ```
@@ -589,7 +612,7 @@ For balancing computation time, we will split the block groups into nine subsets
 pkgs <-
   c("chopin", "terra", "stars", "sf", "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
 invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
-options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
+options(tigris_use_cache = TRUE, sf_use_s2 = FALSE, future.globals = FALSE)
 cdl <- terra::rast("input/2022_cdls/2022_30m_cdls.tif")
 bgsf <- sf::st_read("input/Blockgroups_2020.gpkg")
 bgsf_main <- bgsf %>%

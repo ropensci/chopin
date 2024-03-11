@@ -343,7 +343,7 @@ extract_at_buffer_kernel <- function(
       x = surf_cropped,
       y = sf::st_as_sf(bufs),
       force_df = TRUE,
-      stack_apply = TRUE,
+      stack_apply = FALSE,
       include_cols = id,
       progress = FALSE,
       include_area = TRUE,
@@ -536,7 +536,7 @@ extract_at <- function(
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
 #' elev <- terra::rast(elev)
-#' reproject_b2r(nc, elev) 
+#' reproject_b2r(nc, elev)
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs

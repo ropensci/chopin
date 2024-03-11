@@ -277,7 +277,7 @@ testthat::test_that("extract_at runs well", {
       ncelev,
       "pid",
       kernel = "epanechnikov",
-      func = stats::weighted.mean,
+      func = "mean",
       bandwidth = 1.25e4L,
       radius = 1e4L,
       qsegs = 3 + 2i

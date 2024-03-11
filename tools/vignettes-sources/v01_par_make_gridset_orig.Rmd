@@ -1,6 +1,6 @@
 ---
 title: "Generate computational grids"
-date: "2024-03-11"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Generate computational grids}
@@ -9,12 +9,25 @@ vignette: >
 ---
 
 
+```{r setup, include = FALSE}
+knitr::opts_knit$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  eval = TRUE,
+  root.dir = file.path(Sys.getenv("HOME"), "projects/chopin"),
+  comment = "#>",
+  fig.path = "vignettes/figures/gridset-ex-",
+  out.width = "900px"
+)
 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, out.width = "900px", fig.asp = 0.56)
+
+```
 
 
 # Prepare input data
-
-```r
+```{r}
 library(chopin)
 library(dplyr)
 library(sf)
@@ -22,31 +35,17 @@ library(terra)
 options(sf_use_s2 = FALSE)
 ```
 
-
-```r
+```{r nc-load}
 ncpoly <- system.file("shape/nc.shp", package = "sf")
 ncsf <- sf::read_sf(ncpoly)
 ncsf <- sf::st_transform(ncsf, "EPSG:5070")
 plot(sf::st_geometry(ncsf))
 ```
 
-<div class="figure">
-<img src="figures/nc-load-1.png" alt="plot of chunk nc-load" width="900px" />
-<p class="caption">plot of chunk nc-load</p>
-</div>
-
-
-```r
+```{r nc-random}
 ncpoints <- sf::st_sample(ncsf, 10000)
 plot(sf::st_geometry(ncpoints))
-```
 
-<div class="figure">
-<img src="figures/nc-random-1.png" alt="plot of chunk nc-random" width="900px" />
-<p class="caption">plot of chunk nc-random</p>
-</div>
-
-```r
 # st_sample output is st_sfc. We should convert it to sf
 ncpoints <- st_as_sf(ncpoints)
 ncpoints$pid <- seq(1, nrow(ncpoints))
@@ -56,8 +55,7 @@ ncpoints$pid <- seq(1, nrow(ncpoints))
 
 ## Visualize computational grids
 
-
-```r
+```{r grid-plain}
 ncpoints_tr <- terra::vect(ncpoints)
 compregions <-
   chopin::par_make_gridset(
@@ -69,26 +67,14 @@ compregions <-
   )
 
 names(compregions)
-```
 
-```
-## [1] "original" "padded"
-```
-
-```r
 par(mfcol = c(1, 2))
 plot(compregions$original, main = "Original grids")
 plot(compregions$padded, main = "Padded grids")
 ```
 
-<div class="figure">
-<img src="figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="900px" />
-<p class="caption">plot of chunk grid-plain</p>
-</div>
-
 ## Other types of grids
-
-```r
+```{r grid-others}
 # returns 5 by 5 grids
 compregions_q <-
   chopin::par_make_gridset(
@@ -101,29 +87,18 @@ compregions_q <-
 par(mfcol = c(1, 2))
 plot(compregions_q$original, main = "Original grids (quantiles)")
 plot(compregions_q$padded, main = "Padded grids (quantiles)")
-```
 
-<div class="figure">
-<img src="figures/grid-others-1.png" alt="plot of chunk grid-others" width="900px" />
-<p class="caption">plot of chunk grid-others</p>
-</div>
+
+```
 
 ## Clustered points
 Clustered points will produce larger merged grids in the results with `mode = "grid_advanced"`.
-
-```r
+```{r grid-advanced}
 ## advanced
 data("ncpoints", package = "chopin")
 ncpoints <- sf::st_as_sf(ncpoints, coords = 1:2, crs = "EPSG:5070")
 plot(ncpoints$geometry, col = "red", cex = 0.5)
-```
 
-<div class="figure">
-<img src="figures/grid-advanced-1.png" alt="plot of chunk grid-advanced" width="900px" />
-<p class="caption">plot of chunk grid-advanced</p>
-</div>
-
-```r
 compregions_a <-
   chopin::par_make_gridset(
     ncpoints,
@@ -136,11 +111,6 @@ par(mfcol = c(1, 2))
 plot(compregions_a$original$geometry, main = "Original grids (advanced)")
 plot(compregions_a$padded$geometry, main = "Padded grids (advanced)")
 ```
-
-<div class="figure">
-<img src="figures/grid-advanced-2.png" alt="plot of chunk grid-advanced" width="900px" />
-<p class="caption">plot of chunk grid-advanced</p>
-</div>
 
 
 ## Notes

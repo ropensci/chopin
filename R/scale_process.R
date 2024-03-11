@@ -171,11 +171,12 @@ par_grid <-
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
-          if (dep_check(grid) != dep_check(args_input[[2]])) {
+          args_input <- list(...)
+          if (dep_check(grid) != dep_check(args_input[[1]])) {
             grid <- dep_switch(grid)
           }
+          grid <- reproject_std(grid, terra::crs(args_input[[1]]))
           run_result <- tryCatch({
-            args_input <- list(...)
             ## Strongly assuming that
             # the first is "at", the second is "from"
             args_input[[1]] <-

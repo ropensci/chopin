@@ -1,9 +1,9 @@
 ---
-title: "Good practice of using `chopin` with HPC"
+title: "Good practice of using `chopin` in HPC"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Good practice of scomps with HPC}
+  %\VignetteIndexEntry{Good practice of using `chopin` in HPC}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

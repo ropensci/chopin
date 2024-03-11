@@ -25,7 +25,7 @@ ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 elev <- system.file("ex/elev.tif", package = "terra")
 nc <- terra::vect(ncpath)
 elev <- terra::rast(elev)
-reproject_b2r(nc, elev) 
+reproject_b2r(nc, elev)
 }
 \seealso{
 Other Helper functions: 

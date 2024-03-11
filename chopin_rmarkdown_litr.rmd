@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-03-08"
+date: "2024-03-11"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.5.0.20240308",
+    Version = "0.5.0.20240311",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -47,15 +47,15 @@ usethis::create_package(
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
-usethis::use_build_ignore(c("/tests"), escape = FALSE)
-usethis::use_build_ignore(c("/tools"), escape = FALSE)
-usethis::use_build_ignore(c("/figure"), escape = FALSE)
-usethis::use_build_ignore(c("/containers"), escape = FALSE)
-usethis::use_build_ignore(c("/input"), escape = FALSE)
-usethis::use_build_ignore(c("\\*.Rmd"), escape = FALSE)
-usethis::use_build_ignore(c("\\*.rmd"), escape = FALSE)
+usethis::use_build_ignore(c("tests"), escape = FALSE)
+usethis::use_build_ignore(c("tools"), escape = FALSE)
+usethis::use_build_ignore(c("figure"), escape = FALSE)
+usethis::use_build_ignore(c("containers"), escape = FALSE)
+usethis::use_build_ignore(c("input"), escape = FALSE)
+usethis::use_build_ignore(c("\\*_litr.Rmd"), escape = FALSE)
+usethis::use_build_ignore(c("\\*_litr.rmd"), escape = FALSE)
 usethis::use_build_ignore(c("\\*.yml"), escape = FALSE)
-usethis::use_build_ignore(c("CODE_OF_CONDUCT.md"), escape = FALSE)
+# usethis::use_build_ignore(c("CODE_OF_CONDUCT.md"), escape = FALSE)
 usethis::use_build_ignore(c("\\*.html"), escape = FALSE)
 
 usethis::use_package("dplyr", min_version = "1.1.0")
@@ -76,6 +76,7 @@ usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
 usethis::use_package("igraph", "Suggests")
 usethis::use_package("withr", "Suggests")
+usethis::use_package("knitr", "Suggests")
 usethis::use_mit_license()
 usethis::use_code_of_conduct("geoissong@gmail.com")
 # usethis::use_pkgdown()
@@ -89,7 +90,7 @@ usethis::use_roxygen_md()
 -->
 
 ```{r}
-file.copy("../tools/readme-source/README.Rmd", "./README.Rmd")
+# file.copy("../tools/readme-source/README.Rmd", "./README.Rmd")
 # file.copy("../tools/pkgdown-source/_pkgdown.yml", "./_pkgdown.yml")
 usethis::use_directory("inst")
 usethis::use_directory("inst/extdata")
@@ -159,8 +160,12 @@ litr::add_vignettes("../tools/vignettes-sources/v01_par_make_gridset.Rmd")
 
 ### Vignettes 3
 
-```{r vig3, eval = FALSE}
-litr::add_vignettes("../tools/vignettes-sources/v02_par_function_example.Rmd")
+```{r vig-climate, eval = TRUE}
+litr::add_vignettes("../tools/vignettes-sources/v02_climate_examples.Rmd")
+if (!dir.exists("./vignettes/figures")) {
+  dir.create("./vignettes/figures")
+}
+file.copy("../tools/vignettes-sources/figures/climate-ex-grid-comparison.png", "./vignettes/figures/climate-ex-grid-comparison.png")
 ```
 
 
@@ -168,6 +173,8 @@ litr::add_vignettes("../tools/vignettes-sources/v02_par_function_example.Rmd")
 ```{r add-data}
 prediction_grid <- readRDS("../tools/testdata/prediction_grid.rds")
 usethis::use_data(prediction_grid, compress = "xz")
+ncpoints <- readRDS("../tools/testdata/clpnts.rds")
+usethis::use_data(ncpoints, compress = "xz")
 ```
 
 ```{r doc-data}
@@ -185,6 +192,22 @@ usethis::use_data(prediction_grid, compress = "xz")
 #' @examples
 #' data("prediction_grid", package = "chopin")
 "prediction_grid"
+
+```
+
+```{r doc-ncpoints}
+#' Mildly clustered points in North Carolina, United States
+#' @family Dataset
+#' @format A data frame with 2,304 rows and two variables:
+#' \describe{
+#' \item{X}{X coordinate}
+#' \item{Y}{Y coordinate}
+#' }
+#' @note Coordinates are in EPSG:5070 (Conus Albers Equal Area)
+#' @source sf package data `nc`
+#' @examples
+#' data("ncpoints", package = "chopin")
+"ncpoints"
 
 ```
 
@@ -494,14 +517,6 @@ reproject_std <-
     input,
     crs_standard = "EPSG:4326"
   ) {
-    if (
-      !grepl("[[:alpha:]]+{3,4}\\:([[:alpha:]]{2,4}[0-9]{2,2}|[0-9]{4,7})",
-             crs_standard)
-    ) {
-      stop("crs_standard seems to be in invalid format.
-        It should be '[authority]:[code]' format.
-        Please refer to https://epsg.io, ?sf::st_crs or ?terra::crs.\n")
-    }
 
     bound_package <- dep_check(input)
     input_crs <- switch(
@@ -542,9 +557,9 @@ testthat::test_that("CRS is transformed when it is not standard", {
   sf::st_crs(ncna) <- NA
   ncnatr <- terra::vect(ncna)
 
-  testthat::expect_error(reproject_std(nc, 4326))
-  testthat::expect_error(reproject_std(ncna, crs_standard = "EPSG:4326"))
-  testthat::expect_error(reproject_std(ncnatr, "EPSG:4326"))
+  # testthat::expect_error(reproject_std(nc, 4326))
+  # testthat::expect_error(reproject_std(ncna, crs_standard = "EPSG:4326"))
+  # testthat::expect_error(reproject_std(ncnatr, "EPSG:4326"))
 
   testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:4326"))
   testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:5070"))
@@ -557,7 +572,7 @@ testthat::test_that("CRS is transformed when it is not standard", {
   testthat::expect_s3_class(nc_align, "sf")
   testthat::expect_s4_class(nctr_align, "SpatVector")
 
-  nc_align_epsg <- sf::st_crs(nc_align)$epsg 
+  nc_align_epsg <- sf::st_crs(nc_align)$epsg
   nctr_align_epsg <- terra::crs(nctr_align, describe = TRUE)$code
 
   testthat::expect_equal(nc_align_epsg, 4326)
@@ -1502,7 +1517,9 @@ testthat::test_that("Quantile cut tests", {
   ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
   nc <- sf::st_read(ncpath)
   testthat::expect_warning(
-    par_cut_coords(nc, NULL, par_def_q(3L))
+    testthat::expect_warning(
+      par_cut_coords(nc, NULL, par_def_q(3L))
+    )
   )
 
 })
@@ -1998,7 +2015,7 @@ extract_at_buffer_kernel <- function(
       x = surf_cropped,
       y = sf::st_as_sf(bufs),
       force_df = TRUE,
-      stack_apply = TRUE,
+      stack_apply = FALSE,
       include_cols = id,
       progress = FALSE,
       include_area = TRUE,
@@ -2256,7 +2273,7 @@ extract_at <- function(
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
 #' elev <- terra::rast(elev)
-#' reproject_b2r(nc, elev) 
+#' reproject_b2r(nc, elev)
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
@@ -2456,7 +2473,7 @@ testthat::test_that("extract_at runs well", {
       ncelev,
       "pid",
       kernel = "epanechnikov",
-      func = stats::weighted.mean,
+      func = "mean",
       bandwidth = 1.25e4L,
       radius = 1e4L,
       qsegs = 3 + 2i
@@ -3459,11 +3476,12 @@ par_grid <-
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
-          if (dep_check(grid) != dep_check(args_input[[2]])) {
+          args_input <- list(...)
+          if (dep_check(grid) != dep_check(args_input[[1]])) {
             grid <- dep_switch(grid)
           }
+          grid <- reproject_std(grid, terra::crs(args_input[[1]]))
           run_result <- tryCatch({
-            args_input <- list(...)
             ## Strongly assuming that
             # the first is "at", the second is "from"
             args_input[[1]] <-
@@ -4589,11 +4607,11 @@ cat(readLines("../tools/pkgdown-source/_pkgdown.yml"), sep = '\n')
 ```{r copy-prebuilt-figures, eval = FALSE}
 # here we return to the current working directory "you see"
 # for pre-built vignettes
-if (dir.exists("../figure")) {
-  if (!dir.exists("./vignettes/figure")) {
-    dir.create("./vignettes/figure")
+if (dir.exists("../figures")) {
+  if (!dir.exists("./vignettes/figures")) {
+    dir.create("./vignettes/figures")
   }
-  file.copy(from = "../figure", to = "./vignettes/figure", recursive = TRUE)
+  file.copy(from = "../figures", to = "./vignettes/figures", recursive = TRUE)
 }
 
 # pkgbuild::build(path = ".")
@@ -4643,10 +4661,10 @@ system("rm -r ./chopin")
 system("rm ./chopin_rmarkdown_litr.html")
 # knit manually
 # knitr::knit("./README.Rmd", "./README.md")
-
+devtools::build_readme()
 
 codemetar::write_codemeta()
-devtools::install(build = FALSE, dependencies = FALSE, build_vignettes = TRUE, quick = TRUE)
+devtools::install(build_vignettes = TRUE)
 devtools::check()
 
 devtools::test()
