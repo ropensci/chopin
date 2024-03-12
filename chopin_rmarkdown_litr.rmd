@@ -1639,7 +1639,7 @@ testthat::test_that("Grid merge is well done.", {
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
   withr::local_seed(202403)
-
+  set.seed(202403)
   nc <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
@@ -1664,11 +1664,13 @@ testthat::test_that("Grid merge is well done.", {
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
-  testthat::expect_message(par_merge_grid(ncptr, griddedtr$original, 25L))
+  testthat::expect_message(
+    par_merge_grid(ncptr, griddedtr$original, 25L)
+  )
 
   # pp test fails
   # Then expect warnings of "all sub-geometries for which ..."
-    data("ncpoints", package = "chopin")
+  data("ncpoints", package = "chopin")
   ncptr2 <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = TRUE)
   griddedtr2 <-
     par_make_gridset(ncptr2,
@@ -1678,7 +1680,6 @@ testthat::test_that("Grid merge is well done.", {
   testthat::expect_warning(
     testthat::expect_message(par_merge_grid(ncptr2, griddedtr2$original, 15L))
   )
-  
 })
 
 ```
@@ -3924,19 +3925,21 @@ testthat::test_that("Processes are properly spawned and compute", {
         id = "pid"
       )
     )
+  ncpntsf <- sf::st_as_sf(ncpnts)
   testthat::expect_no_error(
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        grid_target_id = NULL,
-        fun_dist = extract_at_buffer,
-        points = sf::st_as_sf(ncpnts),
-        surf = ncelev,
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid"
+    resk <-
+      suppressWarnings(
+        par_grid(
+          grids = nccompreg,
+          grid_target_id = NULL,
+          fun_dist = extract_at_buffer,
+          points = ncpntsf,
+          surf = ncelev,
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid"
+        )
       )
-    )
   )
   testthat::expect_error(
     suppressWarnings(

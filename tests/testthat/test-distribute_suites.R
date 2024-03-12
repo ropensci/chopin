@@ -53,19 +53,21 @@ testthat::test_that("Processes are properly spawned and compute", {
         id = "pid"
       )
     )
+  ncpntsf <- sf::st_as_sf(ncpnts)
   testthat::expect_no_error(
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        grid_target_id = NULL,
-        fun_dist = extract_at_buffer,
-        points = sf::st_as_sf(ncpnts),
-        surf = ncelev,
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid"
+    resk <-
+      suppressWarnings(
+        par_grid(
+          grids = nccompreg,
+          grid_target_id = NULL,
+          fun_dist = extract_at_buffer,
+          points = ncpntsf,
+          surf = ncelev,
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid"
+        )
       )
-    )
   )
   testthat::expect_error(
     suppressWarnings(
