@@ -4,7 +4,13 @@
 \alias{par_multirasters}
 \title{Process a given function over multiple large rasters}
 \usage{
-par_multirasters(filenames, debug = FALSE, fun_dist, ...)
+par_multirasters(
+  filenames,
+  debug = FALSE,
+  combine = dplyr::bind_rows,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{filenames}{character(n). A vector or list of
@@ -12,6 +18,9 @@ full file paths of raster files. n is the total number of raster files.}
 
 \item{debug}{logical(1). Prints error messages
 if there were any errors during the calculation.}
+
+\item{combine}{function. The function to combine the results.
+Default is \code{dplyr::bind_rows}.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 
@@ -27,6 +36,9 @@ consult the function used in \code{fun_dist} argument.
 }
 \description{
 Large raster files usually exceed the memory capacity in size.
+This function can be helpful to process heterogenous raster files with
+homogeneous summary functions. Heterogenous raster files refer to
+rasters with different spatial extents and resolutions.
 Cropping a large raster into a small subset even consumes
 a lot of memory and adds processing time.
 This function leverages \code{terra} \code{SpatRaster} proxy
@@ -48,8 +60,8 @@ library(chopin)
 library(future)
 library(doFuture)
 sf::sf_use_s2(FALSE)
-plan(multicore)
 registerDoFuture()
+plan(multicore)
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 nccnty <- terra::vect(ncpath, layer = "county")
@@ -79,6 +91,7 @@ res <- par_multirasters(
 }
 \seealso{
 Other Parallelization: 
+\code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},

@@ -41,3 +41,4 @@ reference:
   desc: "Bundled data in chopin package"
   contents:
   - prediction_grid
+  - ncpoints

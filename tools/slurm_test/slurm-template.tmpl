@@ -19,22 +19,28 @@
 
 <%
 # relative paths are not handled well by Slurm
-log.file = fs::path_expand(log.file)
+log.file = fs::path_expand(resources$log.file)
+-%>
+<%
+error.file = fs::path_expand(resources$error.file)
 -%>
 
 
 #SBATCH --job-name=<%= job.name %>
 #SBATCH --output=<%= log.file %>
-#SBATCH --error=<%= log.file %>
-#SBATCH --ntasks=1
+#SBATCH --error=<%= error.file %>
+#SBATCH --ntasks=<%= resources$ntasks %>
+#SBATCH --mail-type=END,FAIL
 #SBATCH --cpus-per-task=<%= resources$ncpus %>
-#SBATCH --mem-per-cpu=<%= resources$memory %>
+#SBATCH --mem-per-cpu=<%= resources$memory %>g
 <%= if (!is.null(resources$partition)) sprintf(paste0("#SBATCH --partition='", resources$partition, "'")) %>
+<%= if (!is.null(resources$email)) sprintf(paste0("#SBATCH --mail-user='", resources$email, "'")) %>
 <%= if (array.jobs) sprintf("#SBATCH --array=1-%i", nrow(jobs)) else "" %>
 
 ## Initialize work environment like
 ## source /etc/profile
 ## module add ...
+# module load R-4.3.2
 
 ## Export value of DEBUGME environemnt var to slave
 # export DEBUGME=<%= Sys.getenv("DEBUGME") %>
@@ -45,4 +51,5 @@ log.file = fs::path_expand(log.file)
 
 ## Run R:
 ## we merge R output with stdout from SLURM, which gets then logged via --output option
-Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
+#Rscript -e <%= expr %>
+Rscript -e '.libPaths("/ddn/gs1/home/songi2/r-libs");batchtools::doJobCollection("<%= uri %>")'

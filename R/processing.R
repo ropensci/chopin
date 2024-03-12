@@ -142,10 +142,20 @@ clip_ras_ext <- function(
 #' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
+#' @note
+#' When `Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")` is set, the raster will be
+#' cropped to the extent of the polygons (with `snap` = `"out"`).
+#' To note, the function is designed to work with the `exactextractr` package.
+#' Arguments of `exactextractr::exact_extract` are set as below
+#' (default otherwise listed):
+#' * `force_df` = `TRUE`
+#' * `stack_apply` = `TRUE`
+#' * `max_cells_in_memory` = `2e8`
+#' * `progress` = `FALSE`
 #' @param points `sf`/`SpatVector` object.
 #' Coordinates where buffers will be generated.
-#' @param surf `SpatRaster` object.
-#'  A raster at which summary will be calculated
+#' @param surf `SpatRaster` object or file path(s) with extensions
+#' that are GDAL-compatible. A raster from which a summary will be calculated
 #' @param radius numeric(1). Buffer radius. here we assume circular buffers only
 #' @param id character(1). Unique identifier of each point.
 #' @param qsegs integer(1). Number of vertices at a quarter of a circle.
@@ -154,6 +164,8 @@ clip_ras_ext <- function(
 #' @param kernel character(1). Name of a kernel function
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
 #' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param max_cells integer(1). Maximum number of cells in memory.
+#' See [`exactextractr::exact_extract`] for more details.
 #' @returns a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -183,7 +195,8 @@ extract_at_buffer <- function(
   qsegs = 90L,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e7
 ) {
   # type check
   if (!methods::is(points, "SpatVector")) {
@@ -191,6 +204,12 @@ extract_at_buffer <- function(
       stop("Check class of the input points.\n")
     }
     points <- terra::vect(points)
+  }
+  if (!methods::is(surf, "SpatRaster")) {
+    surf <- try(terra::rast(surf))
+    if (inherits(surf, "try-error")) {
+      stop("Check class of the input raster.\n")
+    }
   }
   if (!is.numeric(radius)) {
     stop("Check class of the input radius.\n")
@@ -204,14 +223,16 @@ extract_at_buffer <- function(
 
   if (!is.null(kernel)) {
     extracted <-
-      extract_at_buffer_kernel(points = points,
+      extract_at_buffer_kernel(
+        points = points,
         surf = surf,
         radius = radius,
         id = id,
         func = func,
         qsegs = qsegs,
         kernel = kernel,
-        bandwidth = bandwidth
+        bandwidth = bandwidth,
+        max_cells = max_cells
       )
     return(extracted)
   }
@@ -223,7 +244,8 @@ extract_at_buffer <- function(
       radius = radius,
       id = id,
       func = func,
-      qsegs = qsegs
+      qsegs = qsegs,
+      max_cells = max_cells
     )
   return(extracted)
 
@@ -240,14 +262,19 @@ extract_at_buffer_flat <- function(
   qsegs = NULL,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e7
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
   bufs <- reproject_b2r(bufs, surf)
   # crop raster
-  bufs_extent <- terra::ext(bufs)
-  surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
+  if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
+    bufs_extent <- terra::ext(bufs)
+    surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
+  } else {
+    surf_cropped <- surf
+  }
 
   # extract raster values
   surf_at_bufs <-
@@ -256,14 +283,12 @@ extract_at_buffer_flat <- function(
       y = sf::st_as_sf(bufs),
       fun = func,
       force_df = TRUE,
+      stack_apply = TRUE,
       append_cols = id,
       progress = FALSE,
-      max_cells_in_memory = 5e07
+      max_cells_in_memory = max_cells
     )
-  surf_at_bufs_summary <-
-    surf_at_bufs
-
-  return(surf_at_bufs_summary)
+  return(surf_at_bufs)
 }
 
 
@@ -278,15 +303,21 @@ extract_at_buffer_kernel <- function(
   qsegs = NULL,
   func = stats::weighted.mean,
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e7
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
   bufs <- reproject_b2r(bufs, surf)
 
   # crop raster
-  bufs_extent <- terra::ext(bufs)
-  surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
+  if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
+    bufs_extent <- terra::ext(bufs)
+    surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
+  } else {
+    surf_cropped <- surf
+  }
+
   name_surf_val <-
     ifelse(terra::nlyr(surf_cropped) == 1,
            "value", names(surf_cropped))
@@ -312,11 +343,12 @@ extract_at_buffer_kernel <- function(
       x = surf_cropped,
       y = sf::st_as_sf(bufs),
       force_df = TRUE,
+      stack_apply = FALSE,
       include_cols = id,
       progress = FALSE,
       include_area = TRUE,
       include_xy = TRUE,
-      max_cells_in_memory = 5e07
+      max_cells_in_memory = max_cells
     )
   # post-processing
   surf_at_bufs <- do.call(rbind, surf_at_bufs)
@@ -349,15 +381,26 @@ extract_at_buffer_kernel <- function(
 #' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
-#'  Kernel function is not yet implemented.
+#' @note
+#' When `Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")` is set, the raster will be
+#' cropped to the extent of the polygons (with `snap` = `"out"`).
+#' To note, the function is designed to work with the `exactextractr` package.
+#' Arguments of `exactextractr::exact_extract` are set as below
+#' (default otherwise listed except for max_cells_in_memory,
+#' which is set in the `max_cells` argument):
+#' * `force_df` = `TRUE`
+#' * `stack_apply` = `TRUE`
+#' * `progress` = `FALSE`
 #' @param polys `sf`/`SpatVector` object. Polygons.
-#' @param surf `SpatRaster` object.
-#'  A raster from which a summary will be calculated
+#' @param surf `SpatRaster` object or file path(s) with extensions
+#' that are GDAL-compatible. A raster from which a summary will be calculated
 #' @param id character(1). Unique identifier of each point.
 #' @param func a generic function name in string or
 #'  a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, `"mean"` or `\(x, w) weighted.mean(x, w, na.rm = TRUE)`
+#' @param max_cells integer(1). Maximum number of cells in memory.
+#' See [`exactextractr::exact_extract`] for more details.
 #' @returns a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -381,7 +424,8 @@ extract_at_poly <- function(
   polys = NULL,
   surf = NULL,
   id = NULL,
-  func = "mean"
+  func = "mean",
+  max_cells = 2e7
 ) {
   # type check
   if (!methods::is(polys, "SpatVector")) {
@@ -391,23 +435,34 @@ extract_at_poly <- function(
     polys <- terra::vect(polys)
   }
   if (!methods::is(surf, "SpatRaster")) {
-    stop("Check class of the input raster.\n")
+    surf <- try(terra::rast(surf))
+    if (inherits(surf, "try-error")) {
+      stop("Check class of the input raster.\n")
+    }
   }
   if (!is.character(id)) {
     stop("id should be a character.\n")
   }
   # reproject polygons to raster's crs
   polys <- reproject_b2r(polys, surf)
+  # crop raster
+  if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
+    polys_extent <- terra::ext(polys)
+    surf_cropped <- terra::crop(surf, polys_extent, snap = "out")
+  } else {
+    surf_cropped <- surf
+  }
 
   extracted_poly <-
     exactextractr::exact_extract(
-      x = surf,
+      x = surf_cropped,
       y = sf::st_as_sf(polys),
       fun = func,
       force_df = TRUE,
+      stack_apply = TRUE,
       append_cols = id,
       progress = FALSE,
-      max_cells_in_memory = 5e07
+      max_cells_in_memory = max_cells
     )
   return(extracted_poly)
 }
@@ -416,7 +471,8 @@ extract_at_poly <- function(
 #' Extract raster values with point buffers or polygons
 #' @family Macros for calculation
 #' @param vector `sf`/`SpatVector` object.
-#' @param raster `SpatRaster` object.
+#' @param raster `SpatRaster` object. or file path(s) with extensions
+#' that are GDAL-compatible.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
 #' @param mode one of `"polygon"`
@@ -441,7 +497,6 @@ extract_at <- function(
 ) {
 
   mode <- match.arg(mode)
-
   stopifnot(is.character(id))
   stopifnot(id %in% names(vector))
 
@@ -481,7 +536,7 @@ extract_at <- function(
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
 #' elev <- terra::rast(elev)
-#' reproject_b2r(nc, elev) 
+#' reproject_b2r(nc, elev)
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs

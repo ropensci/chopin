@@ -67,6 +67,8 @@ par_fallback <-
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. A function to combine results.
+#' Default is \code{dplyr::bind_rows}.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -134,6 +136,7 @@ par_grid <-
     grids,
     grid_target_id = NULL,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -168,9 +171,12 @@ par_grid <-
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
-
+          args_input <- list(...)
+          if (dep_check(grid) != dep_check(args_input[[1]])) {
+            grid <- dep_switch(grid)
+          }
+          grid <- reproject_std(grid, terra::crs(args_input[[1]]))
           run_result <- tryCatch({
-            args_input <- list(...)
             ## Strongly assuming that
             # the first is "at", the second is "from"
             args_input[[1]] <-
@@ -202,9 +208,11 @@ par_grid <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr", "chopin", "exactextractr")
+        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -245,6 +253,7 @@ par_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -262,9 +271,9 @@ par_grid <-
 #' library(future)
 #' library(doFuture)
 #' sf::sf_use_s2(FALSE)
-#' plan(multicore)
 #' registerDoFuture()
-#' 
+#' plan(multicore)
+#'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 #' nccnty <- terra::vect(ncpath, layer = "county")
 #' nctrct <- sf::st_read(ncpath, layer = "tracts")
@@ -310,6 +319,7 @@ par_hierarchy <-
     regions,
     split_level = NULL,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -321,7 +331,6 @@ par_hierarchy <-
       ifelse(length(split_level) == nrow(regions),
              split_level,
              unlist(regions[[split_level]]))
-
     regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
@@ -335,7 +344,7 @@ par_hierarchy <-
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
                 subregion <-
-                  regions[startsWith(split_level, subregion)]
+                  regions[startsWith(split_level, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"
@@ -357,10 +366,11 @@ par_hierarchy <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("terra", "sf", "dplyr", "rlang",
-                            "chopin", "future", "exactextractr")
+        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }
@@ -371,6 +381,9 @@ par_hierarchy <-
 #' @title Process a given function over multiple large rasters
 #' @family Parallelization
 #' @description Large raster files usually exceed the memory capacity in size.
+#'  This function can be helpful to process heterogenous raster files with
+#'  homogeneous summary functions. Heterogenous raster files refer to
+#'  rasters with different spatial extents and resolutions.
 #'  Cropping a large raster into a small subset even consumes
 #'  a lot of memory and adds processing time.
 #'  This function leverages `terra` `SpatRaster` proxy
@@ -387,6 +400,8 @@ par_hierarchy <-
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
+#' @param combine function. The function to combine the results.
+#' Default is `dplyr::bind_rows`.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -405,8 +420,8 @@ par_hierarchy <-
 #' library(future)
 #' library(doFuture)
 #' sf::sf_use_s2(FALSE)
-#' plan(multicore)
 #' registerDoFuture()
+#' plan(multicore)
 #'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 #' nccnty <- terra::vect(ncpath, layer = "county")
@@ -442,13 +457,14 @@ par_multirasters <-
   function(
     filenames,
     debug = FALSE,
+    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
 
     file_list <- split(filenames, filenames)
     results_distributed <-
-      future_lapply(
+      future.apply::future_lapply(
         file_list,
         function(path) {
           run_result <-
@@ -479,11 +495,15 @@ par_multirasters <-
         },
         future.seed = TRUE,
         future.packages =
-        c("terra", "sf", "dplyr", "rlang",
-          "chopin", "future",
-          "exactextractr")
+        c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
+        # TODO: scheduling to (length(list) %/% nbrOfWorkers() + 1)
+        # "terra", "sf", "dplyr", "rlang",
+        #   "chopin", "future",
+        #   "exactextractr")
       )
-    results_distributed <- do.call(dplyr::bind_rows, results_distributed)
+    results_distributed <- do.call(combine, results_distributed)
 
     return(results_distributed)
   }

@@ -4,7 +4,14 @@
 \alias{par_grid}
 \title{Process a given function in the entire or partial computational grids}
 \usage{
-par_grid(grids, grid_target_id = NULL, debug = FALSE, fun_dist, ...)
+par_grid(
+  grids,
+  grid_target_id = NULL,
+  debug = FALSE,
+  combine = dplyr::bind_rows,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{grids}{sf/SpatVector object. Computational grids.
@@ -18,6 +25,9 @@ Default is NULL. If NULL, all grid_ids are used.
 
 \item{debug}{logical(1). Prints error messages
 if there were any errors during the calculation.}
+
+\item{combine}{function. A function to combine results.
+Default is \code{dplyr::bind_rows}.}
 
 \item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.}
 
@@ -104,6 +114,7 @@ res <-
 }
 \seealso{
 Other Parallelization: 
+\code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},

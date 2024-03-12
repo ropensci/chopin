@@ -4,20 +4,26 @@
 #' @family Parallelization
 #' @param input sf or Spat* object.
 #' @param mode character(1). Mode of region construction.
-#'  One of "grid" (simple grid regardless of
-#'  the number of features in each grid),
-#'  "density" (clustering-based varying grids),
-#'  "grid_advanced" (merging adjacent grids with
-#'  smaller number of features than grid_min_features). 
+#'  One of
+#' * `"grid"` (simple grid regardless of the number of features in each grid)
+#' * `"density"` (clustering-based varying grids),
+#' * `"grid_advanced"` (merging adjacent grids with
+#'  smaller number of features than `grid_min_features`).
+#'  The argument `grid_min_features` should be specified.
+#' * `"grid_quantile"` (x and y quantiles): an argument `quantiles` should
+#' be specified.
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
 #' @param padding numeric(1). A extrusion factor to make buffer to
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
+# nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'  units::set_units is used for padding when sf object is used.
 #'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'  for the list of acceptable unit forms.
+#' @param quantiles numeric. Quantiles for `grid_quantile` mode.
+# nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
 #'  * \code{original}: exhaustive and non-overlapping
@@ -27,6 +33,7 @@
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
 #'  Each grid will be buffered by the radius.
+#' @seealso [par_cut_coords], [par_merge_grid]
 #' @author Insang Song
 #' @examples
 #' # data
@@ -45,26 +52,31 @@
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original)
 #' plot(nc_comp_region$padded)
+#' @importFrom sf st_crs
+#' @importFrom sf st_set_crs
+#' @importFrom terra crs
+#' @importFrom terra set.crs
+#' @importFrom terra buffer
 #' @export
 par_make_gridset <-
   function(
       input,
-      mode = c("grid", "grid_advanced", "density"),
+      mode = c("grid", "grid_advanced", "density", "grid_quantile"),
       nx = 10L,
       ny = 10L,
       grid_min_features = 30L,
       padding = NULL,
       unit = NULL,
+      quantiles = NULL,
       ...) {
     mode <- match.arg(mode)
 
     if (!all(
       is.integer(nx),
-      is.integer(ny),
-      is.integer(grid_min_features)
+      is.integer(ny)
     )
     ) {
-      stop("nx, ny, and grid_min_features must be integer.\n")
+      stop("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
       message("padding should be numeric.
@@ -85,22 +97,40 @@ We try converting padding to numeric...\n")
           par_make_grid(input, nx, ny),
           grid_min_features = grid_min_features
         ),
+        grid_quantile = par_cut_coords(
+          x = input,
+          y = NULL,
+          quantiles = quantiles
+        ),
         density = simpleError("density method is under development.\n")
       )
 
-    type_grid_reg <- dep_check(grid_reg)
+    # type_grid_reg <- dep_check(grid_reg)
+    if (dep_check(grid_reg) == "sf") {
+      grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
+      grid_reg_conv <- dep_switch(grid_reg)
+    } else {
+      grid_reg <- terra::set.crs(grid_reg, terra::crs(input))
+      grid_reg_conv <- grid_reg
+    }
+
     grid_reg_pad <-
-      switch(type_grid_reg,
-             sf =
-             sf::st_buffer(grid_reg,
-                           dist = padding,
-                           endCapStyle = "SQUARE",
-                           joinStyle = "MITRE"),
-             terra =
-             terra::buffer(grid_reg,
-                           width = padding,
-                           capstyle = "square",
-                           joinstyle = "mitre"))
+      # switch(type_grid_reg,
+      #        sf =
+      #        sf::st_buffer(grid_reg,
+      #                      dist = padding,
+      #                      endCapStyle = "SQUARE",
+      #                      joinStyle = "MITRE"),
+            #  terra =
+      terra::buffer(
+        grid_reg_conv,
+        width = padding,
+        capstyle = "square",
+        joinstyle = "mitre"
+      )
+    if (dep_check(grid_reg) != dep_check(grid_reg_pad)) {
+      grid_reg_pad <- dep_switch(grid_reg_pad)
+    }
     grid_results <-
       list(original = grid_reg,
            padded = grid_reg_pad)
@@ -164,6 +194,122 @@ par_make_grid <-
   }
 
 
+#' Quantile definition
+#' @family Helper functions
+#' @param steps integer(1). The number of quantiles.
+#' @returns numeric vector of quantiles.
+#' @examples
+#' par_def_q(5L)
+#' @export
+par_def_q <- function(steps = 4L) {
+  if (steps < 2L) {
+    stop("steps should be greater than 1.")
+  }
+  quantiles <- seq(0, 1, length.out = steps + 1)
+  return(quantiles)
+}
+
+
+#' @title Partition coordinates into quantile polygons
+#' @note This function is only for two-dimensional points.
+#' @family Parallelization
+#' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
+#' @param y numeric. y-coordinates.
+#' @param quantiles numeric vector. Quantiles.
+#' @returns A `SpatVector` object with field `CGRIDID`.
+#' @examples
+#' library(terra)
+#' random_points <-
+#'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
+#' quantiles <- par_def_q(4L)
+#' qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
+#' clustered_points <-
+#'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
+#' qpoly_c <- par_cut_coords(clustered_points$x, clustered_points$y, quantiles)
+#' par(mfcol = c(1, 2))
+#' plot(qpoly)
+#' plot(qpoly_c)
+#' par(mfcol = c(1, 1))
+#' cvect <- terra::vect(clustered_points, geom = c("x", "y"))
+#' plot(cvect)
+#' plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
+#' qcv <- intersect(cvect, qpoly_c)
+#' table(qcv$CGRIDID)
+#' sum(table(qcv$CGRIDID)) # should be 1000
+#' @importFrom methods is
+#' @importFrom sf st_coordinates
+#' @importFrom terra crds
+#' @importFrom terra ext
+#' @importFrom terra as.polygons
+#' @importFrom stats setNames
+#' @importFrom stats quantile
+#' @export
+par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
+  if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
+    coord <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
+    detectgeom <-
+      if (methods::is(x, "sf")) sf::st_geometry_type else terra::geomtype
+    center <- if (methods::is(x, "sf")) sf::st_centroid else terra::centroids
+    if (any(grepl("polygon", tolower(unique(detectgeom(x)))))) {
+      x <- center(x)
+    }
+
+    invect <- coord(x)
+    x <- invect[, 1]
+    y <- invect[, 2]
+  }
+  if (length(x) != length(y)) {
+    stop("x and y should have the same length.")
+  }
+  x_quantiles <- stats::quantile(x, probs = quantiles)
+  y_quantiles <- stats::quantile(y, probs = quantiles)
+
+  # these lines are rounding quantiles between
+  # the minimum and the maximum (exclusive) to the nearest 4th decimal place
+  x_quantiles[-c(1, length(x_quantiles))] <-
+    sapply(
+      x_quantiles[-c(1, length(x_quantiles))],
+      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+    )
+  y_quantiles[-c(1, length(y_quantiles))] <-
+    sapply(
+      y_quantiles[-c(1, length(y_quantiles))],
+      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+    )
+
+  xy_quantiles <- expand.grid(
+    x = x_quantiles,
+    y = y_quantiles
+  )
+
+  # leveraging the auto-sorting factor levels and
+  # ll-rr combinations for terra::ext, then convert to polygons
+  xy_quantiles$xindx <- as.integer(factor(xy_quantiles$x))
+  xy_quantiles$yindx <- as.integer(factor(xy_quantiles$y))
+  xy_quantiles_next <- xy_quantiles
+  xy_quantiles$xurindx <- xy_quantiles$xindx + 1
+  xy_quantiles$yurindx <- xy_quantiles$yindx + 1
+  xy_quantiles_next <-
+    stats::setNames(xy_quantiles_next, c("xur", "yur", "xurindx", "yurindx"))
+  xy_quantiles <-
+    merge(xy_quantiles, xy_quantiles_next, by = c("xurindx", "yurindx"))
+  exts <- mapply(
+    function(xur, yur, x, y) {
+      terra::as.polygons(terra::ext(c(x, xur, y, yur)))
+    },
+    xy_quantiles$xur,
+    xy_quantiles$yur,
+    xy_quantiles$x,
+    xy_quantiles$y,
+    SIMPLIFY = TRUE
+  )
+  xy_poly <- Reduce(rbind, exts)
+  xy_poly$CGRIDID <- seq(1, nrow(xy_poly))
+
+  return(xy_poly)
+}
+
+
 #' @title Merge adjacent grid polygons with given rules
 #' @family Parallelization
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
@@ -194,6 +340,8 @@ par_make_grid <-
 #' plot(dg_merged$geometry)
 #' #### NOT RUN ####
 #' }
+#' @references
+#' Polsby, D. D., & Popper, F. J. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353. [Link](http://hdl.handle.net/20.500.13051/17448)
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup
@@ -201,7 +349,14 @@ par_make_grid <-
 #' @importFrom sf st_relate
 #' @importFrom sf st_length
 #' @importFrom sf st_cast
+#' @importFrom sf st_intersects
+#' @importFrom sf st_as_sf
+#' @importFrom sf st_area
 #' @importFrom rlang sym
+#' @importFrom igraph graph_from_edgelist
+#' @importFrom igraph mst
+#' @importFrom igraph components
+#' @importFrom utils combn
 #' @export
 par_merge_grid <-
   function(
@@ -211,36 +366,54 @@ par_merge_grid <-
   ) {
     package_detected <- dep_check(points_in)
     if (package_detected == "terra") {
-      points_in <- sf::st_as_sf(points_in)
-      grid_in <- sf::st_as_sf(grid_in)
+      points_in <- dep_switch(points_in)
+      grid_in <- dep_switch(grid_in)
     }
 
+    # 1. count #points in each grid
     n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
-    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
-    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
-    grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
     grid_lt_threshold <- (n_points_in_grid < grid_min_features)
 
-    # does the number of points per grid exceed minimum threshold?
-    if (sum(grid_lt_threshold) < 2) {
-      stop(
+    # 2. concatenate self and contiguity grid indices
+    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
+    # 3. merge self and rook neighbors
+    grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
+    # 4. conditional 1: the number of points per grid exceed the threshold?
+    if (
+      any(
+        sum(grid_lt_threshold) < 2,
+        is.null(grid_lt_threshold),
+        is.na(grid_lt_threshold)
+      )
+    ) {
+      message(
         sprintf(
-          "Threshold is too low. Please try higher threshold.\n
-        min # points in grids: %d, your threshold: %d\n",
+          "Threshold is too low. Return the original grid.
+           Please try higher threshold.
+           Minimum number of points in grids: %d, your threshold: %d\n",
           min(n_points_in_grid), grid_min_features
         )
       )
+      return(grid_in)
     }
-    grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
+    # leave only actual index rather than logical
+    grid_lt_threshold_idx <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-    # This part does not work as expected.
-    # Should investigate edge list and actual row index of the grid object;
-    identified <- lapply(grid_rooks,
-                         function(x) sort(x[which(x %in% grid_lt_threshold)]))
+    # 5. filter out the ones that are below the threshold
+    identified <- lapply(grid_selfrook,
+                         function(x) sort(x[x %in% grid_lt_threshold_idx]))
     identified <- identified[grid_lt_threshold]
+    # 6. remove duplicate neighbor pairs
     identified <- unique(identified)
+    # 7. remove singletons
     identified <- identified[sapply(identified, length) > 1]
-
+    # 8. conditional 2: if there is no grid to merge
+    if (length(identified) == 0) {
+      message("No grid to merge.\n")
+      return(grid_in)
+    }
+    # 9. Minimum spanning tree: find the connected components
     identified_graph <-
       lapply(identified, function(x) t(utils::combn(x, 2))) |>
       Reduce(f = rbind, x = _) |>
@@ -252,13 +425,15 @@ par_merge_grid <-
 
     identified_graph_member <- identified_graph$membership
 
+    # 10. Assign membership information
     merge_idx <- as.integer(names(identified_graph_member))
     merge_member <- split(merge_idx, identified_graph_member)
+    # 11. Label the merged grids
     merge_member_label <-
       unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
     merge_member_label <- merge_member_label[identified_graph_member]
 
-    # sf object manipulation
+    # 12. Assign labels to the original sf object
     grid_out <- grid_in
     grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
 
@@ -267,7 +442,7 @@ par_merge_grid <-
       dplyr::summarize(n_merged = dplyr::n()) |>
       dplyr::ungroup()
 
-    ## polsby-popper test for shape compactness
+    ## 13. Polsby-Popper test for shape compactness
     par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
     par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
     par_merge_gridd_perimeter <-

@@ -14,7 +14,8 @@ extract_at_buffer(
   qsegs = 90L,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e+07
 )
 
 extract_at_buffer_flat(
@@ -25,7 +26,8 @@ extract_at_buffer_flat(
   qsegs = NULL,
   func = "mean",
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e+07
 )
 
 extract_at_buffer_kernel(
@@ -36,15 +38,16 @@ extract_at_buffer_kernel(
   qsegs = NULL,
   func = stats::weighted.mean,
   kernel = NULL,
-  bandwidth = NULL
+  bandwidth = NULL,
+  max_cells = 2e+07
 )
 }
 \arguments{
 \item{points}{\code{sf}/\code{SpatVector} object.
 Coordinates where buffers will be generated.}
 
-\item{surf}{\code{SpatRaster} object.
-A raster at which summary will be calculated}
+\item{surf}{\code{SpatRaster} object or file path(s) with extensions
+that are GDAL-compatible. A raster from which a summary will be calculated}
 
 \item{radius}{numeric(1). Buffer radius. here we assume circular buffers only}
 
@@ -59,6 +62,9 @@ Default is \code{90L}.}
 One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
+
+\item{max_cells}{integer(1). Maximum number of cells in memory.
+See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}
 }
 \value{
 a data.frame object with mean value
@@ -66,6 +72,19 @@ a data.frame object with mean value
 \description{
 For simplicity, it is assumed that the coordinate systems of
 the points and the raster are the same.
+}
+\note{
+When \code{Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")} is set, the raster will be
+cropped to the extent of the polygons (with \code{snap} = \code{"out"}).
+To note, the function is designed to work with the \code{exactextractr} package.
+Arguments of \code{exactextractr::exact_extract} are set as below
+(default otherwise listed):
+\itemize{
+\item \code{force_df} = \code{TRUE}
+\item \code{stack_apply} = \code{TRUE}
+\item \code{max_cells_in_memory} = \code{2e8}
+\item \code{progress} = \code{FALSE}
+}
 }
 \examples{
 library(terra)

@@ -53,7 +53,22 @@ testthat::test_that("Processes are properly spawned and compute", {
         id = "pid"
       )
     )
-
+  ncpntsf <- sf::st_as_sf(ncpnts)
+  testthat::expect_no_error(
+    resk <-
+      suppressWarnings(
+        par_grid(
+          grids = nccompreg,
+          grid_target_id = NULL,
+          fun_dist = extract_at_buffer,
+          points = ncpntsf,
+          surf = ncelev,
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid"
+        )
+      )
+  )
   testthat::expect_error(
     suppressWarnings(
       par_grid(
@@ -386,6 +401,16 @@ testthat::test_that(
 
     testthat::expect_s3_class(resnas, "data.frame")
     testthat::expect_true(anyNA(resnas))
+    testthat::expect_no_error(
+      par_multirasters(
+        filenames = testfiles,
+        fun_dist = terra::extract,
+        y = nccnty,
+        x = ncelev,
+        ID = TRUE,
+        fun = "mean"
+      )
+    )
 
     # error case
     future::plan(future::sequential)

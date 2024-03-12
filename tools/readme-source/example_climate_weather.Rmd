@@ -1,0 +1,125 @@
+---
+title: "Climate and weather data workdown"
+author: "Insang Song"
+date: "2024-03-04"
+output:
+  html_document:
+    toc: true
+    folded: true
+---
+
+
+```{r}
+knitr::opts_chunk$set(message = FALSE)
+
+```
+
+# TOC
+
+
+
+## Data
+### Target location
+We consider [Census populated places](https://www.arcgis.com/home/item.html?id=d8e6e822e6b44d80b4d3b5fe7538576d) centroids in the mainland United States, which is defined as lower 48 states and DC, from the US Census Bureau (N=18,179)
+
+```{r}
+cpp <- terra::vect("/home/felix/Documents/census_populated_places.gpkg",
+  #filter = terra::as.polygons(terra::ext(c(-126, -64, 22, 52))),
+  crs = "EPSG:5070")
+cppx <- cpp[terra::vect(terra::ext(c(-126, -64, 22, 52)), crs = "EPSG:4269"), ]
+```
+
+
+### Data variables
+We consider ERA5, PRISM, and TerraClimate data which have its own data format each. Workflow is much the same 
+
+| Data | Source | Resolution |
+| :--: | :---- | :-----------|
+| ERA5 | ECMWF | 0.2500 degrees |
+| TerraClimate | UIdaho | 0.0417 degrees |
+| PRISM | Oregon State University | 0.0083 degrees |
+
+
+## TerraClimate (NetCDF)
+
+TerraClimate data is a model product which was produced by the University of Idaho. The dataset includes an array of climate normal variables covering thirty years (1991-2020).
+```{r}
+# http://thredds.northwestknowledge.net:8080/thredds/ncss/agg_terraclimate_ppt_1958_CurrentYear_GLOBE.nc?var=ppt&north=52&west=-126&east=-64&south=22&disableProjSubset=on&horizStride=1&time_start=1958-01-01T00%3A00%3A00Z&time_end=2023-12-01T00%3A00%3A00Z&timeStride=1&accept=netcdf
+
+tcr <- "/home/felix/Downloads/agg_terraclimate_ppt_1958_CurrentYear_GLOBE.nc"
+tcr <- terra::rast(tcr)
+
+```
+
+
+```{r}
+exurl <-
+  c("https://north.america.world/usa/eastcoast/northcarolina/durham.city",
+    "https://north.america.world/usa/eastcoast/northcarolina/raleigh.city")
+exurl0 <- sub("https://", "", exurl)
+strsplit(exurl0, "/", fixed = TRUE) |>
+  sapply(X = _, function(t) t[length(t)])
+
+```
+
+
+
+
+
+```{r}
+url_era <- readLines("./tools/urls_era.txt")
+
+confirmdownload <- function(urls, save_dir) {
+
+  url_era_sub <- sub("https://", "", urls)
+  url_era_sub <- strsplit(url_era_sub, "/")
+  file_era <- sapply(url_era_sub, function(x) x[length(x)])
+  file_res <- file.path(save_dir, file_era)
+  file_ext <- file.exists(file_res)
+
+  if (!all(file_ext)) {
+    targc <- file_res[!file_ext]
+    urlc <- url_era_sub[!file_ext]
+    download.file(urlc, targc)
+  }
+}
+```
+
+## PRISM (BIL)
+
+```{r}
+url_prism <- readLines("./tools/urls_merra2.txt")
+
+prism <- "/home/felix/Downloads/PRISM_tmax_30yr_normal_800mM5_all_bil"
+prism_files <- list.files(prism, "*.bil$", full.names = TRUE)
+prismr <- terra::rast(prism_files)
+
+grid <- chopin::par_make_gridset()
+chopin::par_grid(
+  grid,
+  fun_dist = chopin::extract_at,
+  vector = ,
+  raster = ,
+  id = ,
+  func = ,
+  mode = "buffer",
+  radius = 1e4
+)
+
+```
+
+
+## ERA5 (GRIB2)
+
+```{r}
+url_noaa <- readLines("./tools/urls_noaa.txt")
+grib <- "~/Documents/input_test/20240227T00Z_MSC_RAQDPS-FW_PM2.5_Sfc_RLatLon0.09_PT000H.grib2"
+grib <- terra::rast(grib)
+```
+
+## Cropscape
+```{r}
+crsc <- list.files("~/Documents/cropscape", "*.tif$", full.names = TRUE)
+crscs <- terra::rast(crsc)
+
+```

@@ -4,7 +4,14 @@
 \alias{par_hierarchy}
 \title{Process a given function using a hierarchy in input data}
 \usage{
-par_hierarchy(regions, split_level = NULL, debug = FALSE, fun_dist, ...)
+par_hierarchy(
+  regions,
+  split_level = NULL,
+  debug = FALSE,
+  combine = dplyr::bind_rows,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{regions}{sf/SpatVector object.
@@ -17,6 +24,8 @@ A field name with the higher level information is also accepted.}
 
 \item{debug}{logical(1). Prints error messages
 if there were any errors during the calculation.}
+
+\item{combine}{function. The function to combine the results.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 
@@ -67,8 +76,8 @@ library(chopin)
 library(future)
 library(doFuture)
 sf::sf_use_s2(FALSE)
-plan(multicore)
 registerDoFuture()
+plan(multicore)
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 nccnty <- terra::vect(ncpath, layer = "county")
@@ -106,6 +115,7 @@ res <-
 }
 \seealso{
 Other Parallelization: 
+\code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_make_grid}()},

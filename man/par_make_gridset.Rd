@@ -6,12 +6,13 @@
 \usage{
 par_make_gridset(
   input,
-  mode = c("grid", "grid_advanced", "density"),
+  mode = c("grid", "grid_advanced", "density", "grid_quantile"),
   nx = 10L,
   ny = 10L,
   grid_min_features = 30L,
   padding = NULL,
   unit = NULL,
+  quantiles = NULL,
   ...
 )
 }
@@ -19,11 +20,16 @@ par_make_gridset(
 \item{input}{sf or Spat* object.}
 
 \item{mode}{character(1). Mode of region construction.
-One of "grid" (simple grid regardless of
-the number of features in each grid),
-"density" (clustering-based varying grids),
-"grid_advanced" (merging adjacent grids with
-smaller number of features than grid_min_features).}
+One of
+\itemize{
+\item \code{"grid"} (simple grid regardless of the number of features in each grid)
+\item \code{"density"} (clustering-based varying grids),
+\item \code{"grid_advanced"} (merging adjacent grids with
+smaller number of features than \code{grid_min_features}).
+The argument \code{grid_min_features} should be specified.
+\item \code{"grid_quantile"} (x and y quantiles): an argument \code{quantiles} should
+be specified.
+}}
 
 \item{nx}{integer(1). The number of grids along x-axis.}
 
@@ -38,6 +44,8 @@ clip actual datasets. Depending on the length unit of the CRS of input.}
 units::set_units is used for padding when sf object is used.
 See \href{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html}{units package vignette (web)}
 for the list of acceptable unit forms.}
+
+\item{quantiles}{numeric. Quantiles for \code{grid_quantile} mode.}
 
 \item{...}{arguments passed to the internal function}
 }
@@ -74,7 +82,10 @@ plot(nc_comp_region$original)
 plot(nc_comp_region$padded)
 }
 \seealso{
+\link{par_cut_coords}, \link{par_merge_grid}
+
 Other Parallelization: 
+\code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},

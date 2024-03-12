@@ -131,6 +131,18 @@ testthat::test_that("extract_at runs well", {
         mode = "polygon"
       )
   )
+
+  withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
+    testthat::expect_no_error(
+      extract_at(
+        nccntytr,
+        ncelev,
+        "FIPS",
+        mode = "polygon"
+      )
+    )
+  )
+
   testthat::expect_no_error(
     ncexbuff <-
       extract_at(ncp,
@@ -148,6 +160,17 @@ testthat::test_that("extract_at runs well", {
       radius = 1e4L
     )
   )
+  withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
+    testthat::expect_no_error(
+      extract_at(ncp,
+        ncelev,
+        "pid",
+        mode = "buffer",
+        radius = 1e4L
+      )
+    )
+  )
+
   testthat::expect_error(
     extract_at(matrix(runif(100, 2e6, 3e6), 50, 2, TRUE),
       ncelev,
@@ -169,6 +192,19 @@ testthat::test_that("extract_at runs well", {
         radius = 1e4L
       )
   )
+  withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
+    testthat::expect_no_error(
+      extract_at_buffer(
+        ncp,
+        ncelev,
+        "pid",
+        kernel = "epanechnikov",
+        func = stats::weighted.mean,
+        bandwidth = 1.25e4L,
+        radius = 1e4L
+      )
+    )
+  )
 
   testthat::expect_no_error(
     ncexbuffkern <-
@@ -187,9 +223,15 @@ testthat::test_that("extract_at runs well", {
   # errors
   testthat::expect_error(
     extract_at(nccntytr,
-                 ncelev,
-                 "FIPS",
-                 mode = "whatnot")
+               ncelev,
+               "FIPS",
+               mode = "whatnot")
+  )
+  testthat::expect_error(
+    extract_at_buffer(nccntytr,
+               list(1),
+               "FIPS",
+               radius = 1e4)
   )
   testthat::expect_error(
     extract_at(nccntytr,
@@ -241,7 +283,7 @@ testthat::test_that("extract_at runs well", {
       ncelev,
       "pid",
       kernel = "epanechnikov",
-      func = stats::weighted.mean,
+      func = "mean",
       bandwidth = 1.25e4L,
       radius = 1e4L,
       qsegs = 3 + 2i
@@ -260,6 +302,13 @@ testthat::test_that("extract_at runs well", {
     extract_at_poly(
       as.list(nccntytr),
       ncelev,
+      id = "FIPS"
+    )
+  )
+  testthat::expect_error(
+    extract_at_poly(
+      nccntytr,
+      list(NA),
       id = "FIPS"
     )
   )
