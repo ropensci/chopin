@@ -258,7 +258,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
     x <- invect[, 1]
     y <- invect[, 2]
   }
-  if (!all.equal(length(x), length(y))) {
+  if (length(x) != length(y)) {
     stop("x and y should have the same length.")
   }
   x_quantiles <- stats::quantile(x, probs = quantiles)
@@ -366,37 +366,54 @@ par_merge_grid <-
   ) {
     package_detected <- dep_check(points_in)
     if (package_detected == "terra") {
-      points_in <- sf::st_as_sf(points_in)
-      grid_in <- sf::st_as_sf(grid_in)
+      points_in <- dep_switch(points_in)
+      grid_in <- dep_switch(grid_in)
     }
 
+    # 1. count #points in each grid
     n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
-    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
-    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
-    grid_rooks <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
     grid_lt_threshold <- (n_points_in_grid < grid_min_features)
 
-    # does the number of points per grid exceed minimum threshold?
-    if (sum(grid_lt_threshold) < 2) {
-      stop(
+    # 2. concatenate self and contiguity grid indices
+    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
+    # 3. merge self and rook neighbors
+    grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
+    # 4. conditional 1: the number of points per grid exceed the threshold?
+    if (
+      any(
+        sum(grid_lt_threshold) < 2,
+        is.null(grid_lt_threshold),
+        is.na(grid_lt_threshold)
+      )
+    ) {
+      message(
         sprintf(
-          "Threshold is too low. Please try higher threshold.\n
-        min # points in grids: %d, your threshold: %d\n",
+          "Threshold is too low. Return the original grid.
+           Please try higher threshold.
+           Minimum number of points in grids: %d, your threshold: %d\n",
           min(n_points_in_grid), grid_min_features
         )
       )
+      return(grid_in)
     }
-    grid_lt_threshold <- seq(1, nrow(grid_in))[grid_lt_threshold]
+    # leave only actual index rather than logical
+    grid_lt_threshold_idx <- seq(1, nrow(grid_in))[grid_lt_threshold]
 
-    # This part does not work as expected.
-    # Should investigate edge list and actual row index of the grid object;
-    identified <- lapply(grid_rooks,
-                         function(x) sort(x[which(x %in% grid_lt_threshold)]))
+    # 5. filter out the ones that are below the threshold
+    identified <- lapply(grid_selfrook,
+                         function(x) sort(x[x %in% grid_lt_threshold_idx]))
     identified <- identified[grid_lt_threshold]
+    # 6. remove duplicate neighbor pairs
     identified <- unique(identified)
+    # 7. remove singletons
     identified <- identified[sapply(identified, length) > 1]
-
-    # Minimum spanning tree
+    # 8. conditional 2: if there is no grid to merge
+    if (length(identified) == 0) {
+      message("No grid to merge.\n")
+      return(grid_in)
+    }
+    # 9. Minimum spanning tree: find the connected components
     identified_graph <-
       lapply(identified, function(x) t(utils::combn(x, 2))) |>
       Reduce(f = rbind, x = _) |>
@@ -408,13 +425,15 @@ par_merge_grid <-
 
     identified_graph_member <- identified_graph$membership
 
+    # 10. Assign membership information
     merge_idx <- as.integer(names(identified_graph_member))
     merge_member <- split(merge_idx, identified_graph_member)
+    # 11. Label the merged grids
     merge_member_label <-
       unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
     merge_member_label <- merge_member_label[identified_graph_member]
 
-    # sf object manipulation
+    # 12. Assign labels to the original sf object
     grid_out <- grid_in
     grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
 
@@ -423,7 +442,7 @@ par_merge_grid <-
       dplyr::summarize(n_merged = dplyr::n()) |>
       dplyr::ungroup()
 
-    ## Polsby-Popper test for shape compactness
+    ## 13. Polsby-Popper test for shape compactness
     par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
     par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
     par_merge_gridd_perimeter <-

@@ -32,7 +32,7 @@ testthat::test_that("Quantile cut tests", {
     par_cut_coords(randpoints$x, randpoints$y, quantiles)
   )
   testthat::expect_error(
-    par_cut_coords(randpoints$x, randpoints$y[seq(1, 100)], quantiles)
+    par_cut_coords(randpoints$x, randpoints$y[seq(1, 10)], quantiles)
   )
 
   testthat::expect_equal(
@@ -131,16 +131,17 @@ testthat::test_that("Grid merge is well done.", {
   nctr <- terra::vect(nc)
   ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")
-  ncrp <- sf::st_as_sf(sf::st_sample(nc, 500L))
+  ncrp <- sf::st_as_sf(sf::st_sample(nc, 1600L))
 
   gridded <-
     par_make_gridset(ncrp,
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
-  # suppress warnings for "all sub-geometries for which ..."
-  testthat::expect_warning(par_merge_grid(ncrp, gridded$original, 10L))
-  testthat::expect_error(par_merge_grid(ncrp, gridded$original, 2L))
+  testthat::expect_message(par_merge_grid(ncrp, gridded$original, 10L))
+  testthat::expect_message(par_merge_grid(ncrp, gridded$original, 2L))
+  ncrp2 <- sf::st_as_sf(sf::st_sample(nc, 10000L))
+  testthat::expect_message(par_merge_grid(ncrp2, gridded$original, 10L))
 
   ncptr <- terra::vect(ncrp)
   griddedtr <-
@@ -148,7 +149,20 @@ testthat::test_that("Grid merge is well done.", {
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
-  testthat::expect_warning(par_merge_grid(ncptr, griddedtr$original, 25L))
+  testthat::expect_message(par_merge_grid(ncptr, griddedtr$original, 25L))
 
+  # pp test fails
+  # Then expect warnings of "all sub-geometries for which ..."
+    data("ncpoints", package = "chopin")
+  ncptr2 <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = TRUE)
+  griddedtr2 <-
+    par_make_gridset(ncptr2,
+                     mode = "grid",
+                     nx = 20L, ny = 12L,
+                     padding = 1e4L)
+  testthat::expect_warning(
+    testthat::expect_message(par_merge_grid(ncptr2, griddedtr2$original, 15L))
+  )
+  
 })
 

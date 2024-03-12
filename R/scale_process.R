@@ -208,7 +208,9 @@ par_grid <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra")
+        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
       )
     results_distributed <- do.call(combine, results_distributed)
 
@@ -364,7 +366,9 @@ par_hierarchy <-
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra")
+        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.globals = FALSE,
+        future.scheduling = 2
       )
     results_distributed <- do.call(combine, results_distributed)
 
@@ -377,6 +381,9 @@ par_hierarchy <-
 #' @title Process a given function over multiple large rasters
 #' @family Parallelization
 #' @description Large raster files usually exceed the memory capacity in size.
+#'  This function can be helpful to process heterogenous raster files with
+#'  homogeneous summary functions. Heterogenous raster files refer to
+#'  rasters with different spatial extents and resolutions.
 #'  Cropping a large raster into a small subset even consumes
 #'  a lot of memory and adds processing time.
 #'  This function leverages `terra` `SpatRaster` proxy
@@ -491,6 +498,7 @@ par_multirasters <-
         c("chopin", "dplyr", "sf", "terra"),
         future.globals = FALSE,
         future.scheduling = 2
+        # TODO: scheduling to (length(list) %/% nbrOfWorkers() + 1)
         # "terra", "sf", "dplyr", "rlang",
         #   "chopin", "future",
         #   "exactextractr")
