@@ -1,10 +1,11 @@
-pandoc: 2.19.2
+pandoc: 3.1.11
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   v00_good_practice_parallelization: v00_good_practice_parallelization.html
   v01_par_make_gridset: v01_par_make_gridset.html
-last_built: 2024-02-22T23:50Z
+  v02_climate_examples: v02_climate_examples.html
+last_built: 2024-03-12T01:56Z
 urls:
   reference: https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference
   article: https://spatiotemporal-exposures-and-toxicology.github.io/chopin/articles

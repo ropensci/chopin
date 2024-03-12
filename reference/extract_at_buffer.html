@@ -12,7 +12,7 @@ the points and the raster are the same."><!-- mathjax --><script src="https://cd
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.20240311</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,8 +26,9 @@ the points and the raster are the same."><!-- mathjax --><script src="https://cd
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` with HPC</a>
+    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` in HPC</a>
     <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -66,7 +67,8 @@ the points and the raster are the same.</p>
 <span>  qsegs <span class="op">=</span> <span class="fl">90L</span>,</span>
 <span>  func <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>  kernel <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_cells <span class="op">=</span> <span class="fl">2e+07</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">extract_at_buffer_flat</span><span class="op">(</span></span>
@@ -77,7 +79,8 @@ the points and the raster are the same.</p>
 <span>  qsegs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  func <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>  kernel <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_cells <span class="op">=</span> <span class="fl">2e+07</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">extract_at_buffer_kernel</span><span class="op">(</span></span>
@@ -88,7 +91,8 @@ the points and the raster are the same.</p>
 <span>  qsegs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  func <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean</a></span>,</span>
 <span>  kernel <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_cells <span class="op">=</span> <span class="fl">2e+07</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,8 +104,8 @@ Coordinates where buffers will be generated.</p></dd>
 
 
 <dt>surf</dt>
-<dd><p><code>SpatRaster</code> object.
-A raster at which summary will be calculated</p></dd>
+<dd><p><code>SpatRaster</code> object or file path(s) with extensions
+that are GDAL-compatible. A raster from which a summary will be calculated</p></dd>
 
 
 <dt>radius</dt>
@@ -129,6 +133,11 @@ One of <code>"uniform"</code>, <code>"triweight"</code>, <code>"quartic"</code>,
 <dt>bandwidth</dt>
 <dd><p>numeric(1). Kernel bandwidth.</p></dd>
 
+
+<dt>max_cells</dt>
+<dd><p>integer(1). Maximum number of cells in memory.
+See <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract</a></code> for more details.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -136,6 +145,17 @@ One of <code>"uniform"</code>, <code>"triweight"</code>, <code>"quartic"</code>,
 
 <p>a data.frame object with mean value</p>
     </div>
+    <div class="section level2">
+    <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
+    <p>When <code>Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")</code> is set, the raster will be
+cropped to the extent of the polygons (with <code>snap</code> = <code>"out"</code>).
+To note, the function is designed to work with the <code>exactextractr</code> package.
+Arguments of <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract</a></code> are set as below
+(default otherwise listed):</p><ul><li><p><code>force_df</code> = <code>TRUE</code></p></li>
+<li><p><code>stack_apply</code> = <code>TRUE</code></p></li>
+<li><p><code>max_cells_in_memory</code> = <code>2e8</code></p></li>
+<li><p><code>progress</code> = <code>FALSE</code></p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other Macros for calculation: 

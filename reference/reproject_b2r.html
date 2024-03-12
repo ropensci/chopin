@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.20240311</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,8 +24,9 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` with HPC</a>
+    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` in HPC</a>
     <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -90,6 +91,7 @@
 <code><a href="get_clip_ext.html">get_clip_ext</a>()</code>,
 <code><a href="is_bbox_within_reference.html">is_bbox_within_reference</a>()</code>,
 <code><a href="is_within_ref.html">is_within_ref</a>()</code>,
+<code><a href="par_def_q.html">par_def_q</a>()</code>,
 <code><a href="reproject_std.html">reproject_std</a>()</code>,
 <code><a href="vect_valid_repair.html">vect_valid_repair</a>()</code></p></div>
     </div>
@@ -107,7 +109,7 @@
 <span class="r-in"><span><span class="va">elev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"ex/elev.tif"</span>, package <span class="op">=</span> <span class="st">"terra"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpath</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">elev</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">elev</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">reproject_b2r</span><span class="op">(</span><span class="va">nc</span>, <span class="va">elev</span><span class="op">)</span> </span></span>
+<span class="r-in"><span><span class="fu">reproject_b2r</span><span class="op">(</span><span class="va">nc</span>, <span class="va">elev</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  class       : SpatVector </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  geometry    : polygons </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  dimensions  : 100, 14  (geometries, attributes)</span>

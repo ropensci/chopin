@@ -26,7 +26,7 @@ the number of threads."><!-- mathjax --><script src="https://cdnjs.cloudflare.co
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.20240311</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,8 +40,9 @@ the number of threads."><!-- mathjax --><script src="https://cdnjs.cloudflare.co
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` with HPC</a>
+    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` in HPC</a>
     <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -79,7 +80,14 @@ the number of threads.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par_grid</span><span class="op">(</span><span class="va">grids</span>, grid_target_id <span class="op">=</span> <span class="cn">NULL</span>, debug <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">fun_dist</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par_grid</span><span class="op">(</span></span>
+<span>  <span class="va">grids</span>,</span>
+<span>  grid_target_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  combine <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span>,</span>
+<span>  <span class="va">fun_dist</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -100,6 +108,11 @@ Default is NULL. If NULL, all grid_ids are used.
 <dt>debug</dt>
 <dd><p>logical(1). Prints error messages
 if there were any errors during the calculation.</p></dd>
+
+
+<dt>combine</dt>
+<dd><p>function. A function to combine results.
+Default is <code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">dplyr::bind_rows</a></code>.</p></dd>
 
 
 <dt>fun_dist</dt>
@@ -138,6 +151,7 @@ are spatially sparsely distributed.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other Parallelization: 
+<code><a href="par_cut_coords.html">par_cut_coords</a>()</code>,
 <code><a href="par_fallback.html">par_fallback</a>()</code>,
 <code><a href="par_hierarchy.html">par_hierarchy</a>()</code>,
 <code><a href="par_make_grid.html">par_make_grid</a>()</code>,

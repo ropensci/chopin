@@ -12,7 +12,7 @@ poly_weight will be converted to the class of poly_in."><!-- mathjax --><script 
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.20240222</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0.20240311</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,8 +26,9 @@ poly_weight will be converted to the class of poly_in."><!-- mathjax --><script 
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` with HPC</a>
+    <a class="dropdown-item" href="../articles/v00_good_practice_parallelization.html">Good practice of using `chopin` in HPC</a>
     <a class="dropdown-item" href="../articles/v01_par_make_gridset.html">Generate computational grids</a>
+    <a class="dropdown-item" href="../articles/v02_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -135,15 +136,15 @@ Default is <code><a href="https://rdrr.io/r/stats/weighted.mean.html" class="ext
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span> <span class="op">&lt;-</span> <span class="fu">summarize_aw</span><span class="op">(</span><span class="va">ppb</span>, <span class="va">nc</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BIR74"</span>, <span class="st">"BIR79"</span><span class="op">)</span>, <span class="st">"id"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    user  system elapsed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.347   0.001   0.347 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.344   0.000   0.344 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      BIR74             BIR79                  geometry  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :  323.3   Min.   :  402.7   POLYGON      :300  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 1677.0   1st Qu.: 2043.1   epsg:5070    :  0  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median : 2895.1   Median : 3535.7   +proj=aea ...:  0  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   : 3512.5   Mean   : 4494.7                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.: 4207.2   3rd Qu.: 5319.1                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :17769.9   Max.   :22992.2                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :  265.1   Min.   :  348.3   POLYGON      :300  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 1932.8   1st Qu.: 2422.2   epsg:5070    :  0  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median : 3116.3   Median : 3855.7   +proj=aea ...:  0  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   : 4006.6   Mean   : 5166.8                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.: 4855.9   3rd Qu.: 6216.7                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :16721.9   Max.   :23772.3                      </span>
 <span class="r-in"><span><span class="co">#### Example of summarize_aw ends ####</span></span></span>
 </code></pre></div>
     </div>

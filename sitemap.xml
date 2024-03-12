@@ -22,6 +22,9 @@
     <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/articles/v01_par_make_gridset.html</loc>
   </url>
   <url>
+    <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/articles/v02_climate_examples.html</loc>
+  </url>
+  <url>
     <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/authors.html</loc>
   </url>
   <url>
@@ -77,6 +80,15 @@
   </url>
   <url>
     <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference/kernelfunction.html</loc>
+  </url>
+  <url>
+    <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference/ncpoints.html</loc>
+  </url>
+  <url>
+    <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference/par_cut_coords.html</loc>
+  </url>
+  <url>
+    <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference/par_def_q.html</loc>
   </url>
   <url>
     <loc>https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference/par_fallback.html</loc>
