@@ -150,7 +150,7 @@ testthat::test_that("Grid merge is well done.", {
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
   testthat::expect_message(
-    par_merge_grid(ncptr, griddedtr$original, 25L)
+    par_merge_grid(ncptr, griddedtr$original, 10L)
   )
 
   # pp test fails
