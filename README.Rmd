@@ -113,7 +113,7 @@ graph LR
 	n94475834 --> n64849552
 	n77415399 --> n64849552
 '
-DiagrammeR::mermaid(mermaid_chart)
+DiagrammeR::mermaid(mermaid_chart, width = 2000, height = 1400)
 ```
 
 ## To run the examples
