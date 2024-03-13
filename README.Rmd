@@ -69,7 +69,7 @@ future::plan(future::multicore, workers = 4L)
 # the number of workers are up to users' choice
 ```
 
-```{r flowchart-mermaid, echo = FALSE, results = "asis"}
+```{r flowchart-mermaid, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
 mermaid_chart <-
 '
 graph LR
