@@ -42,8 +42,8 @@ usethis::create_package(
     LazyData = "true",
     LazyDataCompression = "xz",
     Depends = "R (>= 4.1)",
-    URL = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin",
-    BugReports = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues"
+    URL = "https://github.com/kyle-messier/chopin",
+    BugReports = "https://github.com/kyle-messier/chopin/issues"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
@@ -75,6 +75,9 @@ usethis::use_package("units", "Suggests")
 usethis::use_package("doParallel", "Suggests")
 usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
+usethis::use_package("future.callr", "Suggests")
+usethis::use_package("callr", "Suggests")
+usethis::use_package("DiagrammeR", "Suggests")
 usethis::use_package("igraph")
 usethis::use_package("withr", "Suggests")
 usethis::use_package("knitr", "Suggests")
@@ -4736,6 +4739,7 @@ system(paste0("cp -r ./chopin/* ."))
 system("rm -r ./chopin")
 system("rm ./chopin_rmarkdown_litr.html")
 # knit manually
+file.copy("tools/readme-source/README.Rmd", "./README.Rmd", overwrite = TRUE)
 devtools::build_readme()
 
 codemetar::write_codemeta()

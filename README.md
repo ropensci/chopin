@@ -102,49 +102,10 @@ future::plan(future::multicore, workers = 4L)
 # the number of workers are up to users' choice
 ```
 
-``` mermaid
-graph LR
-    n72366978["Is the spatial resolution finer than 100 meters?"]
-    n21640044["Are there 100K+ features in the input vectors?"]
-    n38371203["Are there multiple rasters?"]
-    n9291599["exact_extract with suitable max_cells_in_memory value"]
-    n84295645["Are they hierarchical?"]
-    n82902796["single thread processing"]
-    n76722667["Do they have the same extent and resolution?"]
-    n53137122["Is a single raster larger than your free memory space?"]
-    n34878990["Are your split_level have similar number of members?"]
-    n27787116["Are they spatially clustered?"]
-    n38458721["Do you have enough memory, say, more than the total disk space of the rasters?"]
-    n10339179["exact_extract with low max_cells_in_memory"]
-    n95964029["exact_extract with high max_cells_in_memory argument value"]
-    n89847105["par_hierarchy"]
-    n94475834["par_make_gridset(..., mode = #quot;grid_quantile#quot;) or par_make_gridset_mode = #quot;grid_advanced#quot;)"]
-    n77415399["par_make_gridset(..., mode = #quot;grid#quot;)"]
-    n65357807["Stack rasters then process in the single thread"]
-    n60994964["par_multirasters"]
-    n64849552["par_grid"]
-    n72366978 -->|Yes| n38371203
-    n72366978 -->|No| n9291599
-    n21640044 -->|Yes| n84295645
-    n21640044 -->|No| n82902796
-    n38371203 -->|Yes| n76722667
-    n38371203 -->|No| n53137122
-    n84295645 -->|Yes| n34878990
-    n84295645 -->|No| n27787116
-    n76722667 -->|Yes| n38458721
-    n76722667 -->|No| n60994964
-    n53137122 -->|Yes| n10339179
-    n53137122 -->|No| n95964029
-    n34878990 -->|Yes| n89847105
-    n34878990 -->|No| n94475834
-    n27787116 -->|Yes| n94475834
-    n27787116 -->|No| n77415399
-    n38458721 -->|Yes| n65357807
-    n38458721 -->|No| n60994964
-    n94475834 --> n64849552
-    n77415399 --> n64849552
+    #> PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.
 
-```
+<div class="DiagrammeR html-widget html-fill-item" id="htmlwidget-7096cf9987d1ca5b267f" style="width:100%;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-7096cf9987d1ca5b267f">{"x":{"diagram":"\ngraph LR\n\tn72366978[\"Is the spatial resolution finer than 100 meters?\"]\n\tn21640044[\"Are there 100K+ features in the input vectors?\"]\n\tn38371203[\"Are there multiple rasters?\"]\n\tn9291599[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn84295645[\"Are they hierarchical?\"]\n\tn82902796[\"single thread processing\"]\n\tn76722667[\"Do they have the same extent and resolution?\"]\n\tn53137122[\"Is a single raster larger than your free memory space?\"]\n\tn34878990[\"Are your split_level have similar number of members?\"]\n\tn27787116[\"Are they spatially clustered?\"]\n\tn38458721[\"Do you have enough memory, say, more than the total disk space of the rasters?\"]\n\tn10339179[\"exact_extract with low max_cells_in_memory\"]\n\tn95964029[\"exact_extract with high max_cells_in_memory argument value\"]\n\tn89847105[\"par_hierarchy\"]\n\tn94475834[\"par_make_gridset(..., mode = #quot;grid_quantile#quot;) or par_make_gridset_mode = #quot;grid_advanced#quot;)\"]\n\tn77415399[\"par_make_gridset(..., mode = #quot;grid#quot;)\"]\n\tn65357807[\"Stack rasters then process in the single thread\"]\n\tn60994964[\"par_multirasters\"]\n\tn64849552[\"par_grid\"]\n\tn72366978 -->|Yes| n38371203\n\tn72366978 -->|No| n9291599\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn38371203 -->|Yes| n76722667\n\tn38371203 -->|No| n53137122\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn76722667 -->|Yes| n38458721\n\tn76722667 -->|No| n60994964\n\tn53137122 -->|Yes| n10339179\n\tn53137122 -->|No| n95964029\n\tn34878990 -->|Yes| n89847105\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n\tn38458721 -->|Yes| n65357807\n\tn38458721 -->|No| n60994964\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
 
 ## To run the examples
 
@@ -272,7 +233,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.783   0.369  12.187
+#>  10.872   0.373  11.278
 ```
 
 #### Generate regular grid computational regions
@@ -380,7 +341,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.313   1.325   3.756
+#>  10.336   1.294   3.677
 ```
 
 ``` r
@@ -432,7 +393,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e061dcfa21/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e0179a53e2/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -441,7 +402,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e061dcfa21/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e0179a53e2/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -469,7 +430,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.991   0.007   2.003
+#>   1.939   0.029   1.974
 
 # hierarchical parallelization
 system.time(
@@ -485,7 +446,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.037   0.021   2.648
+#>   0.039   0.016   2.537
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -512,9 +473,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpsWEpA6/test1.tif" "/tmp/RtmpsWEpA6/test2.tif"
-#> [3] "/tmp/RtmpsWEpA6/test3.tif" "/tmp/RtmpsWEpA6/test4.tif"
-#> [5] "/tmp/RtmpsWEpA6/test5.tif"
+#> [1] "/tmp/Rtmp5L9WNC/test1.tif" "/tmp/Rtmp5L9WNC/test2.tif"
+#> [3] "/tmp/Rtmp5L9WNC/test3.tif" "/tmp/Rtmp5L9WNC/test4.tif"
+#> [5] "/tmp/Rtmp5L9WNC/test5.tif"
 ```
 
 ``` r
@@ -530,18 +491,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.714   0.691   1.109
+#>   1.681   0.483   1.021
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpsWEpA6/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpsWEpA6/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpsWEpA6/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpsWEpA6/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpsWEpA6/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpsWEpA6/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmp5L9WNC/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmp5L9WNC/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmp5L9WNC/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmp5L9WNC/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmp5L9WNC/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmp5L9WNC/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -619,7 +580,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.902   0.001   0.905
+#>   0.876   0.002   0.880
 
 # we use four threads that were configured above
 system.time(
@@ -640,7 +601,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   1.034   0.561   0.577
+#>   1.072   0.420   0.547
 ```
 
 -   We will compare the results from the single-thread and multi-thread
@@ -678,4 +639,4 @@ all.equal(resj$distance.x, resj$distance.y)
     examples will be provided in vignettes and manuscripts in the near
     future.
 
-#### Last edited: March 12, 2024
+#### Last edited: March 13, 2024

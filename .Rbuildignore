@@ -12,3 +12,4 @@ _pkgdown.yml
 \*.html
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
+^codemeta\.json$

@@ -2,6 +2,7 @@
 output:
   github_document:
     html_preview: false
+always_allow_html: true
 ---
 
 ```{r, include = FALSE}
@@ -68,8 +69,9 @@ future::plan(future::multicore, workers = 4L)
 # the number of workers are up to users' choice
 ```
 
-```mermaid
-
+```{r flowchart-mermaid, echo = FALSE, results = "asis"}
+mermaid_chart <-
+'
 graph LR
 	n72366978["Is the spatial resolution finer than 100 meters?"]
 	n21640044["Are there 100K+ features in the input vectors?"]
@@ -110,11 +112,9 @@ graph LR
 	n38458721 -->|No| n60994964
 	n94475834 --> n64849552
 	n77415399 --> n64849552
-
-
+'
+DiagrammeR::mermaid(mermaid_chart)
 ```
-
-
 
 ## To run the examples
 - RStudio: download and open this document then press "Run All Chunks Above", "Run All Chunks Below", or "Restart R and Run All Chunks", whichever it is appropriate.
@@ -468,5 +468,5 @@ all.equal(resj$distance.x, resj$distance.y)
 - Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be provided in vignettes and manuscripts in the near future.
 
 
-#### Last edited: March 12, 2024
+#### Last edited: March 13, 2024
 
