@@ -62,8 +62,8 @@ sf::sf_use_s2(FALSE)
     [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)’s
     classes for spatial data. Raster-vector overlay is done with
     `exactextractr`.
--   As of version 0.3.0, this package supports three basic functions
-    that are readily parallelized over multithread environments:
+-   From version 0.3.0, this package supports three basic functions that
+    are readily parallelized over multithread environments:
     -   `extract_at`: extract raster values with point buffers or
         polygons.
         -   `extract_at_buffer`: extract raster values at circular
@@ -75,12 +75,68 @@ sf::sf_use_s2(FALSE)
         reference polygons
 -   When processing points/polygons in parallel, the entire study area
     will be divided into partly overlapped grids or processed through
-    its own hierarchy.
+    its own hierarchy. We suggest a flowchart to help which function to
+    use for parallel processing below.
     -   `par_grid`: parallelize over artificial grid polygons that are
-        generated from the maximum extent of inputs
+        generated from the maximum extent of inputs. `par_make_gridset`
+        is used to generate the grid polygons before running this
+        function.
     -   `par_hierarchy`: parallelize over hierarchy coded in identifier
         fields (for example, census blocks in each county in the US)
     -   `par_multirasters`: parallelize over multiple raster files
+-   These functions are designed to be used with `future` and `doFuture`
+    packages to parallelize over multiple CPU threads. Users can choose
+    the number of threads to be used in the parallelization process.
+    Users always need to register parallel workers with `future` and
+    `doFuture` before running the three functions above.
+
+``` r
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 4L)
+# future::multisession, future::cluster are available,
+# See future.batchtools and future.callr for other options
+```
+
+``` mermaid
+graph LR
+    n72366978["Is the spatial resolution finer than 100 meters?"]
+    n21640044["Are there 100K+ features in the input vectors?"]
+    n38371203["Are there multiple rasters?"]
+    n84295645["Are they hierarchical?"]
+    n82902796["single thread processing"]
+    n76722667["Do they have the same extent and resolution?"]
+    n53137122["Is a single raster larger than your free memory space?"]
+    n34878990["Are your split_level have similar number of members?"]
+    n27787116["Are they spatially clustered?"]
+    n38458721["Do you have memory more than the total disk space of the rasters?"]
+    n10339179["exact_extract with low max_cells_in_memory"]
+    n95964029["exact_extract with high max_cells_in_memory"]
+    n89847105["par_hierarchy"]
+    n94475834["par_make_gridset(..., mode = #quot;grid_quantile#quot;) or par_make_grid(..., set_mode = #quot;grid_advanced#quot;)"]
+    n77415399["par_make_gridset(..., mode = #quot;grid#quot;)"]
+    n65357807["Stack rasters then process in the single thread"]
+    n60994964["par_multirasters"]
+    n64849552["par_grid"]
+    n72366978 --> n38371203
+    n21640044 --> n84295645
+    n21640044 --> n82902796
+    n38371203 --> n76722667
+    n38371203 --> n53137122
+    n84295645 --> n34878990
+    n84295645 --> n27787116
+    n76722667 --> n38458721
+    n76722667 --> n60994964
+    n53137122 --> n10339179
+    n53137122 --> n95964029
+    n34878990 --> n89847105
+    n34878990 --> n94475834
+    n27787116 --> n94475834
+    n27787116 --> n77415399
+    n38458721 --> n65357807
+    n38458721 --> n60994964
+    n94475834 --> n64849552
+    n77415399 --> n64849552
+```
 
 ## To run the examples
 
@@ -208,7 +264,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.089   0.197  11.320
+#>  11.110   0.348  11.494
 ```
 
 #### Generate regular grid computational regions
@@ -316,7 +372,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.097   0.642   4.430
+#>  10.670   1.279   3.823
 ```
 
 ``` r
@@ -368,7 +424,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e33e1543a/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e013f1fe59/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -377,7 +433,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e33e1543a/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e013f1fe59/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -405,7 +461,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.942   0.028   1.977
+#>   1.958   0.007   1.971
 
 # hierarchical parallelization
 system.time(
@@ -421,7 +477,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.049   0.016   2.548
+#>   0.035   0.020   2.522
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -448,9 +504,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp22bLSM/test1.tif" "/tmp/Rtmp22bLSM/test2.tif"
-#> [3] "/tmp/Rtmp22bLSM/test3.tif" "/tmp/Rtmp22bLSM/test4.tif"
-#> [5] "/tmp/Rtmp22bLSM/test5.tif"
+#> [1] "/tmp/RtmpBvxJ0b/test1.tif" "/tmp/RtmpBvxJ0b/test2.tif"
+#> [3] "/tmp/RtmpBvxJ0b/test3.tif" "/tmp/RtmpBvxJ0b/test4.tif"
+#> [5] "/tmp/RtmpBvxJ0b/test5.tif"
 ```
 
 ``` r
@@ -466,18 +522,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.658   0.449   0.998
+#>   1.706   0.484   1.029
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmp22bLSM/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmp22bLSM/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmp22bLSM/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmp22bLSM/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmp22bLSM/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmp22bLSM/test1.tif |
+| 37037 | 136.80203 | /tmp/RtmpBvxJ0b/test1.tif |
+| 37001 | 189.76170 | /tmp/RtmpBvxJ0b/test1.tif |
+| 37057 | 231.16968 | /tmp/RtmpBvxJ0b/test1.tif |
+| 37069 |  98.03845 | /tmp/RtmpBvxJ0b/test1.tif |
+| 37155 |  41.23463 | /tmp/RtmpBvxJ0b/test1.tif |
+| 37109 | 270.96933 | /tmp/RtmpBvxJ0b/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -555,7 +611,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.875   0.002   0.877
+#>   0.890   0.013   0.904
 
 # we use four threads that were configured above
 system.time(
@@ -576,7 +632,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.549   0.142   0.409
+#>   1.053   0.472   0.556
 ```
 
 -   We will compare the results from the single-thread and multi-thread
@@ -614,4 +670,4 @@ all.equal(resj$distance.x, resj$distance.y)
     examples will be provided in vignettes and manuscripts in the near
     future.
 
-#### Last edited: March 11, 2024
+#### Last edited: March 12, 2024

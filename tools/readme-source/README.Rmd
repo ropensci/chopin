@@ -47,17 +47,69 @@ sf::sf_use_s2(FALSE)
 
 ## Basic design
 - Processing functions accept [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)'s classes for spatial data. Raster-vector overlay is done with `exactextractr`.
-- As of version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
+- From version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
     - `extract_at`: extract raster values with point buffers or polygons.
         - `extract_at_buffer`: extract raster values at circular buffers; kernel weight can be applied
         - `extract_at_poly`
     - `summarize_sedc`: calculate sums of [exponentially decaying contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
     - `summarize_aw`: area-weighted covariates based on target and reference polygons
 
-- When processing points/polygons in parallel, the entire study area will be divided into partly overlapped grids or processed through its own hierarchy.
-    - `par_grid`: parallelize over artificial grid polygons that are generated from the maximum extent of inputs
+- When processing points/polygons in parallel, the entire study area will be divided into partly overlapped grids or processed through its own hierarchy. We suggest a flowchart to help which function to use for parallel processing below.
+    - `par_grid`: parallelize over artificial grid polygons that are generated from the maximum extent of inputs. `par_make_gridset` is used to generate the grid polygons before running this function.
     - `par_hierarchy`: parallelize over hierarchy coded in identifier fields (for example, census blocks in each county in the US)
     - `par_multirasters`: parallelize over multiple raster files
+- These functions are designed to be used with `future` and `doFuture` packages to parallelize over multiple CPU threads. Users can choose the number of threads to be used in the parallelization process. Users always need to register parallel workers with `future` and `doFuture` before running the three functions above.
+
+```r
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 4L)
+# future::multisession, future::cluster are available,
+# See future.batchtools and future.callr for other options
+```
+
+```mermaid
+
+graph LR
+	n72366978["Is the spatial resolution finer than 100 meters?"]
+	n21640044["Are there 100K+ features in the input vectors?"]
+	n38371203["Are there multiple rasters?"]
+	n84295645["Are they hierarchical?"]
+	n82902796["single thread processing"]
+	n76722667["Do they have the same extent and resolution?"]
+	n53137122["Is a single raster larger than your free memory space?"]
+	n34878990["Are your split_level have similar number of members?"]
+	n27787116["Are they spatially clustered?"]
+	n38458721["Do you have memory more than the total disk space of the rasters?"]
+	n10339179["exact_extract with low max_cells_in_memory"]
+	n95964029["exact_extract with high max_cells_in_memory"]
+	n89847105["par_hierarchy"]
+	n94475834["par_make_gridset(..., mode = #quot;grid_quantile#quot;) or par_make_grid(..., set_mode = #quot;grid_advanced#quot;)"]
+	n77415399["par_make_gridset(..., mode = #quot;grid#quot;)"]
+	n65357807["Stack rasters then process in the single thread"]
+	n60994964["par_multirasters"]
+	n64849552["par_grid"]
+	n72366978 --> n38371203
+	n21640044 --> n84295645
+	n21640044 --> n82902796
+	n38371203 --> n76722667
+	n38371203 --> n53137122
+	n84295645 --> n34878990
+	n84295645 --> n27787116
+	n76722667 --> n38458721
+	n76722667 --> n60994964
+	n53137122 --> n10339179
+	n53137122 --> n95964029
+	n34878990 --> n89847105
+	n34878990 --> n94475834
+	n27787116 --> n94475834
+	n27787116 --> n77415399
+	n38458721 --> n65357807
+	n38458721 --> n60994964
+	n94475834 --> n64849552
+	n77415399 --> n64849552
+
+```
+
 
 
 ## To run the examples
@@ -84,6 +136,7 @@ source(\"README_run.r\")
 # install.packages("remotes")
 remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
+
 
 
 ## Examples
@@ -411,5 +464,5 @@ all.equal(resj$distance.x, resj$distance.y)
 - Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be provided in vignettes and manuscripts in the near future.
 
 
-#### Last edited: February 4, 2024
+#### Last edited: March 12, 2024
 
