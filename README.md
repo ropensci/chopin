@@ -62,8 +62,8 @@ sf::sf_use_s2(FALSE)
     [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)’s
     classes for spatial data. Raster-vector overlay is done with
     `exactextractr`.
--   As of version 0.3.0, this package supports three basic functions
-    that are readily parallelized over multithread environments:
+-   From version 0.3.0, this package supports three basic functions that
+    are readily parallelized over multithread environments:
     -   `extract_at`: extract raster values with point buffers or
         polygons.
         -   `extract_at_buffer`: extract raster values at circular
@@ -75,12 +75,34 @@ sf::sf_use_s2(FALSE)
         reference polygons
 -   When processing points/polygons in parallel, the entire study area
     will be divided into partly overlapped grids or processed through
-    its own hierarchy.
+    its own hierarchy. We suggest two flowcharts to help which function
+    to use for parallel processing below. The upper flowchart is
+    raster-oriented and the lower one is vector-oriented. They are
+    separated but supplementary to each other. When a user follows the
+    raster-oriented one, they might visit the vector-oriented flowchart
+    at each end of the raster-oriented flowchart.
     -   `par_grid`: parallelize over artificial grid polygons that are
-        generated from the maximum extent of inputs
+        generated from the maximum extent of inputs. `par_make_gridset`
+        is used to generate the grid polygons before running this
+        function.
     -   `par_hierarchy`: parallelize over hierarchy coded in identifier
         fields (for example, census blocks in each county in the US)
     -   `par_multirasters`: parallelize over multiple raster files
+-   These functions are designed to be used with `future` and `doFuture`
+    packages to parallelize over multiple CPU threads. Users can choose
+    the number of threads to be used in the parallelization process.
+    Users always need to register parallel workers with `future` and
+    `doFuture` before running the three functions above.
+
+``` r
+doFuture::registerDoFuture()
+future::plan(future::multicore, workers = 4L)
+# future::multisession, future::cluster are available,
+# See future.batchtools and future.callr for other options
+# the number of workers are up to users' choice
+```
+
+<img src="man/figures/README-flowchart-mermaid-1.png" width="100%" />
 
 ## To run the examples
 
@@ -208,7 +230,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.089   0.197  11.320
+#>  11.238   0.302  11.578
 ```
 
 #### Generate regular grid computational regions
@@ -316,7 +338,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.097   0.642   4.430
+#>  10.439   1.675   4.036
 ```
 
 ``` r
@@ -368,7 +390,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e33e1543a/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e06d07aab7/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -377,7 +399,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpvPdgwu/temp_libpath1be78e33e1543a/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e06d07aab7/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -405,7 +427,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.942   0.028   1.977
+#>   1.936   0.036   1.979
 
 # hierarchical parallelization
 system.time(
@@ -421,7 +443,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.049   0.016   2.548
+#>   0.037   0.018   2.584
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -448,9 +470,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp22bLSM/test1.tif" "/tmp/Rtmp22bLSM/test2.tif"
-#> [3] "/tmp/Rtmp22bLSM/test3.tif" "/tmp/Rtmp22bLSM/test4.tif"
-#> [5] "/tmp/Rtmp22bLSM/test5.tif"
+#> [1] "/tmp/Rtmpt4JvoB/test1.tif" "/tmp/Rtmpt4JvoB/test2.tif"
+#> [3] "/tmp/Rtmpt4JvoB/test3.tif" "/tmp/Rtmpt4JvoB/test4.tif"
+#> [5] "/tmp/Rtmpt4JvoB/test5.tif"
 ```
 
 ``` r
@@ -466,18 +488,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.658   0.449   0.998
+#>   1.732   0.586   1.095
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmp22bLSM/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmp22bLSM/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmp22bLSM/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmp22bLSM/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmp22bLSM/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmp22bLSM/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmpt4JvoB/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmpt4JvoB/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmpt4JvoB/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmpt4JvoB/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmpt4JvoB/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmpt4JvoB/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -555,7 +577,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.875   0.002   0.877
+#>   0.894   0.005   0.901
 
 # we use four threads that were configured above
 system.time(
@@ -576,7 +598,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.549   0.142   0.409
+#>   1.030   0.531   0.559
 ```
 
 -   We will compare the results from the single-thread and multi-thread
@@ -614,4 +636,4 @@ all.equal(resj$distance.x, resj$distance.y)
     examples will be provided in vignettes and manuscripts in the near
     future.
 
-#### Last edited: March 11, 2024
+#### Last edited: March 13, 2024

@@ -105,23 +105,15 @@ We try converting padding to numeric...\n")
         density = simpleError("density method is under development.\n")
       )
 
-    # type_grid_reg <- dep_check(grid_reg)
     if (dep_check(grid_reg) == "sf") {
       grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
-      grid_reg <- terra::set.crs(grid_reg, terra::crs(input))
+      terra::set.crs(grid_reg, terra::crs(input))
       grid_reg_conv <- grid_reg
     }
 
     grid_reg_pad <-
-      # switch(type_grid_reg,
-      #        sf =
-      #        sf::st_buffer(grid_reg,
-      #                      dist = padding,
-      #                      endCapStyle = "SQUARE",
-      #                      joinStyle = "MITRE"),
-            #  terra =
       terra::buffer(
         grid_reg_conv,
         width = padding,

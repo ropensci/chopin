@@ -42,8 +42,8 @@ usethis::create_package(
     LazyData = "true",
     LazyDataCompression = "xz",
     Depends = "R (>= 4.1)",
-    URL = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin",
-    BugReports = "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues"
+    URL = "https://github.com/kyle-messier/chopin",
+    BugReports = "https://github.com/kyle-messier/chopin/issues"
   )
 )
 #usethis::use_build_ignore("rds$", escape = FALSE)
@@ -75,6 +75,9 @@ usethis::use_package("units", "Suggests")
 usethis::use_package("doParallel", "Suggests")
 usethis::use_package("doFuture")
 usethis::use_package("future.batchtools", "Suggests")
+usethis::use_package("future.callr", "Suggests")
+usethis::use_package("callr", "Suggests")
+usethis::use_package("DiagrammeR", "Suggests")
 usethis::use_package("igraph")
 usethis::use_package("withr", "Suggests")
 usethis::use_package("knitr", "Suggests")
@@ -1015,6 +1018,8 @@ estimate_demands <- function(
     f)
   ## cpu
   lobstr::cst()
+  lobstr::mem_used()
+  pryr::mem_change()
   ## memory
   ## estimate maximum coverage
   ## clipped data size
@@ -1024,6 +1029,43 @@ estimate_demands <- function(
 }
 
 nc_valid <- vect_valid_repair(nc)
+
+
+## check data-memory consumption
+tc <- list.files("input/terraClimate", full.names = TRUE, pattern = "*.*aet_*.*nc")
+tc
+
+doextr <- \() {
+pryr::mem_change(
+{
+  tc <- list.files("input/terraClimate", full.names = TRUE, pattern = "*.*aet_*.*nc")
+  bgnc <- tigris::block_groups("FL", year = 2020, cb = TRUE)
+  bgncex <- chopin::extract_at(
+    vector = bgnc,
+    raster = tc[1],
+    id = "GEOID",
+    mode = "polygon"
+  )
+  write.csv(bgncex, "~/bgncex2.csv", row.names = FALSE)
+})
+}
+callr::r_bg(doextr)
+callr::r_safe(doextr)
+callr::r_process
+rmapshaper::ms_clip()
+
+pryr::mem_change({
+bgnc <- tigris::block_groups("NC", year = 2020, cb = TRUE)
+intc <- terra::rast(tc[1:6], win = terra::ext(sf::st_bbox(bgnc)))
+terra::set.names(intc, paste0(names(intc), "_", rep(2000:2005, each = 12)))
+chopin::extract_at(
+  vector = bgnc,
+  raster = intc,
+  id = "GEOID",
+  mode = "polygon"
+)
+})
+
 ```
 
 
@@ -1133,23 +1175,15 @@ We try converting padding to numeric...\n")
         density = simpleError("density method is under development.\n")
       )
 
-    # type_grid_reg <- dep_check(grid_reg)
     if (dep_check(grid_reg) == "sf") {
       grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
-      grid_reg <- terra::set.crs(grid_reg, terra::crs(input))
+      terra::set.crs(grid_reg, terra::crs(input))
       grid_reg_conv <- grid_reg
     }
 
     grid_reg_pad <-
-      # switch(type_grid_reg,
-      #        sf =
-      #        sf::st_buffer(grid_reg,
-      #                      dist = padding,
-      #                      endCapStyle = "SQUARE",
-      #                      joinStyle = "MITRE"),
-            #  terra =
       terra::buffer(
         grid_reg_conv,
         width = padding,
@@ -4310,7 +4344,7 @@ testthat::test_that(
 ```
 
 
-```{r, eval = FALSE, include = FALSE}
+```{r furrr_test, eval = FALSE, include = FALSE}
 # @title Process a given function in the entire or partial computational grids using `furrr`
 #' @family Parallelization
 #' @description
@@ -4501,44 +4535,6 @@ par_grid_furrr <-
 
     return(results_distributed)
   }
-
-```
-
-
-```{r, include = FALSE, eval = FALSE}
-
-qpart <- function(steps = 4L) {
-  if (steps < 2L) {
-    stop("steps should be greater than 1.")
-  }
-  quantiles <- seq(0, 1, length.out = steps + 1)
-  return(quantiles)
-}
-qpart()
-
-
-# Generate 1000 random points at a 100 by 100 plane
-random_points <- data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-
-cc <- par_cut_coords(random_points$x, random_points$y, qpart(4L))
-
-
-partition_coordinates(random_points$x, random_points$y, kpart())
-
-partition_coordinates <- function(x, y, quantiles) {
-  x_quantiles <- quantile(x, probs = quantiles)
-  y_quantiles <- quantile(y, probs = quantiles)
-  
-  x_partition <- cut(x, breaks = x_quantiles, labels = FALSE, include.lowest = TRUE)
-  y_partition <- cut(y, breaks = y_quantiles, labels = FALSE, include.lowest = TRUE)
-  
-  return(list(x_partition = x_partition, y_partition = y_partition))
-}
-
-jj = as.data.frame(partition_coordinates(random_points$x, random_points$y, kpart())
-)
-jj$disting <- sprintf("%d%d", jj$x_partition, jj$y_partition)
-plot(random_points$x, random_points$y, col = jj$disting)
 
 ```
 
@@ -4743,6 +4739,7 @@ system(paste0("cp -r ./chopin/* ."))
 system("rm -r ./chopin")
 system("rm ./chopin_rmarkdown_litr.html")
 # knit manually
+file.copy("tools/readme-source/README.Rmd", "./README.Rmd", overwrite = TRUE)
 devtools::build_readme()
 
 codemetar::write_codemeta()

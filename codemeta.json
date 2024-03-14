@@ -3,11 +3,11 @@
   "@type": "SoftwareSourceCode",
   "identifier": "chopin",
   "description": "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
-  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
-  "codeRepository": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin",
-  "issueTracker": "\n    https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/issues",
+  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized\n    INfrastructure",
+  "codeRepository": "https://github.com/kyle-messier/chopin",
+  "issueTracker": "https://github.com/kyle-messier/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.3.0.20240205",
+  "version": "0.5.0.20240311",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -49,6 +49,18 @@
   "softwareSuggestions": [
     {
       "@type": "SoftwareApplication",
+      "identifier": "callr",
+      "name": "callr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=callr"
+    },
+    {
+      "@type": "SoftwareApplication",
       "identifier": "covr",
       "name": "covr",
       "provider": {
@@ -58,6 +70,18 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=covr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "DiagrammeR",
+      "name": "DiagrammeR",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=DiagrammeR"
     },
     {
       "@type": "SoftwareApplication",
@@ -85,15 +109,15 @@
     },
     {
       "@type": "SoftwareApplication",
-      "identifier": "igraph",
-      "name": "igraph",
+      "identifier": "future.callr",
+      "name": "future.callr",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
         "name": "Comprehensive R Archive Network (CRAN)",
         "url": "https://cran.r-project.org"
       },
-      "sameAs": "https://CRAN.R-project.org/package=igraph"
+      "sameAs": "https://CRAN.R-project.org/package=future.callr"
     },
     {
       "@type": "SoftwareApplication",
@@ -228,10 +252,22 @@
     },
     "7": {
       "@type": "SoftwareApplication",
+      "identifier": "igraph",
+      "name": "igraph",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=igraph"
+    },
+    "8": {
+      "@type": "SoftwareApplication",
       "identifier": "methods",
       "name": "methods"
     },
-    "8": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "rlang",
       "name": "rlang",
@@ -244,7 +280,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=rlang"
     },
-    "9": {
+    "10": {
       "@type": "SoftwareApplication",
       "identifier": "sf",
       "name": "sf",
@@ -257,7 +293,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=sf"
     },
-    "10": {
+    "11": {
       "@type": "SoftwareApplication",
       "identifier": "stars",
       "name": "stars",
@@ -270,7 +306,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=stars"
     },
-    "11": {
+    "12": {
       "@type": "SoftwareApplication",
       "identifier": "terra",
       "name": "terra",
@@ -285,9 +321,9 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "52801.694KB",
-  "releaseNotes": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/master/NEWS.md",
-  "readme": "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/blob/main/README.md",
+  "fileSize": "26507.895KB",
+  "releaseNotes": "https://github.com/kyle-messier/chopin/blob/master/NEWS.md",
+  "readme": "https://github.com/kyle-messier/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml"],
   "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental"
 }
