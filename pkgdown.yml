@@ -5,8 +5,8 @@ articles:
   v00_good_practice_parallelization: v00_good_practice_parallelization.html
   v01_par_make_gridset: v01_par_make_gridset.html
   v02_climate_examples: v02_climate_examples.html
-last_built: 2024-03-12T01:56Z
+last_built: 2024-03-14T16:05Z
 urls:
-  reference: https://spatiotemporal-exposures-and-toxicology.github.io/chopin/reference
-  article: https://spatiotemporal-exposures-and-toxicology.github.io/chopin/articles
+  reference: https://kyle-messier.github.io/chopin/reference
+  article: https://kyle-messier.github.io/chopin/articles
 
