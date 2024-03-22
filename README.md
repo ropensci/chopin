@@ -1,11 +1,11 @@
 
-# chopin
+# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure
 
 <!-- badges: start -->
 
-[![test-coverage](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml)
-[![codecov](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin/graph/badge.svg?token=IG64A3MFUA)](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin)
-[![R-CMD-check](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml)
+[![test-coverage](https://github.com/NIEHS/chopin/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/test-coverage.yaml)
+[![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
+[![R-CMD-check](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
@@ -230,7 +230,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.238   0.302  11.578
+#>  10.241   0.264  10.545
 ```
 
 #### Generate regular grid computational regions
@@ -338,7 +338,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>  10.439   1.675   4.036
+#>   8.784   1.814   3.450
 ```
 
 ``` r
@@ -390,7 +390,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e06d07aab7/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpptI6SE/temp_libpath7b048314ef37a/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -399,7 +399,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpxBiRZZ/temp_libpath21d6e06d07aab7/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpptI6SE/temp_libpath7b048314ef37a/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -427,7 +427,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.936   0.036   1.979
+#>   1.795   0.075   1.876
 
 # hierarchical parallelization
 system.time(
@@ -443,7 +443,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.037   0.018   2.584
+#>   0.032   0.022   2.476
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -470,9 +470,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmpt4JvoB/test1.tif" "/tmp/Rtmpt4JvoB/test2.tif"
-#> [3] "/tmp/Rtmpt4JvoB/test3.tif" "/tmp/Rtmpt4JvoB/test4.tif"
-#> [5] "/tmp/Rtmpt4JvoB/test5.tif"
+#> [1] "/tmp/Rtmp6NDy3J/test1.tif" "/tmp/Rtmp6NDy3J/test2.tif"
+#> [3] "/tmp/Rtmp6NDy3J/test3.tif" "/tmp/Rtmp6NDy3J/test4.tif"
+#> [5] "/tmp/Rtmp6NDy3J/test5.tif"
 ```
 
 ``` r
@@ -488,18 +488,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.732   0.586   1.095
+#>   1.360   0.728   0.955
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmpt4JvoB/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmpt4JvoB/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmpt4JvoB/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmpt4JvoB/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmpt4JvoB/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmpt4JvoB/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmp6NDy3J/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmp6NDy3J/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmp6NDy3J/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmp6NDy3J/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmp6NDy3J/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmp6NDy3J/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -577,7 +577,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.894   0.005   0.901
+#>   0.922   0.002   0.925
 
 # we use four threads that were configured above
 system.time(
@@ -598,7 +598,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   1.030   0.531   0.559
+#>   1.041   0.698   0.627
 ```
 
 -   We will compare the results from the single-thread and multi-thread
@@ -636,4 +636,4 @@ all.equal(resj$distance.x, resj$distance.y)
     examples will be provided in vignettes and manuscripts in the near
     future.
 
-#### Last edited: March 13, 2024
+#### Last edited: March 22, 2024
