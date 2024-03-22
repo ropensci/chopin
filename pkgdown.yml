@@ -5,7 +5,7 @@ articles:
   v00_good_practice_parallelization: v00_good_practice_parallelization.html
   v01_par_make_gridset: v01_par_make_gridset.html
   v02_climate_examples: v02_climate_examples.html
-last_built: 2024-03-22T17:21Z
+last_built: 2024-03-22T19:34Z
 urls:
   reference: https://kyle-messier.github.io/chopin/reference
   article: https://kyle-messier.github.io/chopin/articles
