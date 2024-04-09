@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-03-11"
+date: "2024-03-30"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.5.0.20240311",
+    Version = "0.6.0.20240330",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -79,6 +79,7 @@ usethis::use_package("future.callr", "Suggests")
 usethis::use_package("callr", "Suggests")
 usethis::use_package("DiagrammeR", "Suggests")
 usethis::use_package("igraph")
+usethis::use_package("quadtree")
 usethis::use_package("withr", "Suggests")
 usethis::use_package("knitr", "Suggests")
 usethis::use_mit_license()
