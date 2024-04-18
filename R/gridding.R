@@ -450,6 +450,9 @@ par_merge_grid <-
       message("The reduced computational regions have too complex shapes.
       Consider increasing thresholds or using the original grids.\n")
     }
+    if (dep_check(points_in) != dep_check(grid_out)) {
+      grid_out <- dep_switch(grid_out)
+    }
 
     return(grid_out)
 }

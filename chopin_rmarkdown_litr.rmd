@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.6.0.20240330",
+    Version = "0.6.1.20240417",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -1521,10 +1521,37 @@ par_merge_grid <-
       message("The reduced computational regions have too complex shapes.
       Consider increasing thresholds or using the original grids.\n")
     }
+    if (dep_check(points_in) != dep_check(grid_out)) {
+      grid_out <- dep_switch(grid_out)
+    }
 
     return(grid_out)
 }
 
+```
+
+```{r grid-quadtree}
+
+
+
+
+## test
+library(spatstat.explore)
+library(terra)
+
+data("ncpoints", package = "chopin")
+ncpnt <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = TRUE, crs = "EPSG:5070")
+ncppp <- as.ppp(sf::st_as_sf(ncpnt))
+ncpds <- density(ncppp)
+plot(ncpds)
+ncpdsr <- rast(ncpds)
+ncpdsrq <- quadtree::quadtree(ncpdsr, split_threshold = 1e-8)
+plot(ncpdsrq)
+ncnear <- terra::nearby(ncpnt, distance = 10000)
+ncneard <- terra::distance(ncpnt[ncnear[,1],], ncpnt[ncnear[,2],], pairwise = TRUE)
+ncr <- rasterize(ncpnt, rast(ext(ncpnt), resolution = 1000))
+chopin::kernelfunction(ncneard, 10000, "epanechnikov")
+plot(ncr)
 ```
 
 ```{r test-quantiles, eval = FALSE, send_to = "tests/testthat/test-gridding.R"}
@@ -1605,7 +1632,7 @@ par_make_grid_terra <- function(points_in, ncutsx, ncutsy) {
 }
 ```
 
-```{r test-compregion, send_to = "tests/testthat/test-gridding.R"}
+```{r test-compregion, eval= FALSE, send_to = "tests/testthat/test-gridding.R"}
 testthat::test_that("Grid split is well done.", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -1713,8 +1740,11 @@ testthat::test_that("Grid merge is well done.", {
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
   testthat::expect_warning(
-    testthat::expect_message(par_merge_grid(ncptr2, griddedtr2$original, 15L))
+    testthat::expect_message(
+      gridmerged2 <- par_merge_grid(ncptr2, griddedtr2$original, 15L)
+    )
   )
+  testthat::expect_s4_class(gridmerged2, "SpatVector")
 })
 
 ```
