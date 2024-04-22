@@ -1530,7 +1530,7 @@ par_merge_grid <-
 
 ```
 
-```{r grid-quadtree}
+```{r grid-quadtree, include = FALSE, eval = FALSE}
 
 
 
@@ -1540,13 +1540,21 @@ library(spatstat.explore)
 library(terra)
 
 data("ncpoints", package = "chopin")
-ncpnt <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = TRUE, crs = "EPSG:5070")
+ncpnt <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = FALSE, crs = "EPSG:5070")
+ncpnt$w <- 1L
 ncppp <- as.ppp(sf::st_as_sf(ncpnt))
 ncpds <- density(ncppp)
 plot(ncpds)
 ncpdsr <- rast(ncpds)
-ncpdsrq <- quadtree::quadtree(ncpdsr, split_threshold = 1e-8)
+ncpdsr2 <- deepcopy(ncpdsr)
+ncpdsrv <- values(ncpdsr)
+values(ncpdsr2) <- max(ncpdsrv) - ncpdsrv + min(ncpdsrv)
+ncpdsrq2 <- quadtree::quadtree(ncpdsr2,split_threshold = 1e-8)
+ncpdsrq <- quadtree::quadtree(ncpdsr,split_threshold = 1e-8)
+plot(ncpdsrq2)
 plot(ncpdsrq)
+plot(ncppp, add = T)
+
 ncnear <- terra::nearby(ncpnt, distance = 10000)
 ncneard <- terra::distance(ncpnt[ncnear[,1],], ncpnt[ncnear[,2],], pairwise = TRUE)
 ncr <- rasterize(ncpnt, rast(ext(ncpnt), resolution = 1000))
