@@ -72,24 +72,24 @@ future::plan(future::multicore, workers = 4L)
 ```{r flowchart-mermaid, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
 mermaid_chart <-
 '
-graph LR
-	n72366978["Is the spatial resolution finer than 100 meters?"]
-	n21640044["Are there 100K+ features in the input vectors?"]
-	n38371203["Are there multiple rasters?"]
+graph TD
+	n72366978["Spatial resolution <= 100 meters?"]
+	n21640044["100K+ features?"]
+	n38371203["Multiple rasters?"]
 	n9291599["exact_extract with suitable max_cells_in_memory value"]
-	n84295645["Are they hierarchical?"]
+	n84295645["Hierarchical structure?"]
 	n82902796["single thread processing"]
-	n76722667["Do they have the same extent and resolution?"]
-	n53137122["Is a single raster larger than your free memory space?"]
-	n34878990["Are your split_level have similar number of members?"]
-	n27787116["Are they spatially clustered?"]
-	n38458721["Do you have enough memory, say, more than the total disk space of the rasters?"]
+	n76722667["The same extent and resolution?"]
+	n53137122["Raster files larger than your free memory space?"]
+	n34878990["Split levels are in similar sizes?"]
+	n27787116["Spatially clustered?"]
+	n38458721["Free memory >= the total disk space of the rasters?"]
 	n10339179["exact_extract with low max_cells_in_memory"]
-	n95964029["exact_extract with high max_cells_in_memory argument value"]
+	n95964029["exact_extract with high max_cells_in_memory"]
 	n89847105["par_hierarchy"]
-	n94475834["par_make_gridset(..., mode = #quot;grid_quantile#quot;) or par_make_gridset_mode = #quot;grid_advanced#quot;)"]
-	n77415399["par_make_gridset(..., mode = #quot;grid#quot;)"]
-	n65357807["Stack rasters then process in the single thread"]
+	n94475834["par_make_gridset with mode = \'grid_quantile\' or mode = \'grid_advanced\'"]
+	n77415399["par_make_gridset with mode = \'grid\'"]
+	n65357807["Stack rasters then process with single thread"]
 	n60994964["par_multirasters"]
 	n64849552["par_grid"]
 	n72366978 -->|Yes| n38371203
@@ -113,11 +113,11 @@ graph LR
 	n94475834 --> n64849552
 	n77415399 --> n64849552
 '
-DiagrammeR::mermaid(mermaid_chart, width = 2000, height = 1400)
+DiagrammeR::mermaid(mermaid_chart, width = 2500, height = 600)
 ```
 
 ## To run the examples
-- RStudio: download and open this document then press "Run All Chunks Above", "Run All Chunks Below", or "Restart R and Run All Chunks", whichever it is appropriate.
+- RStudio: download and open this document then press "Run All Chunks Above", "Run All Chunks Below", or "Restart R and Run All Chunks", whichever is appropriate.
 - Visual Studio Code (with R extension): download and open this document then press "Run Above" at the last code chunk.
 - If you prefer command line (i.e., in Unix-like operating systems), run:
 
@@ -465,8 +465,7 @@ all.equal(resj$distance.x, resj$distance.y)
 
 ## Why parallelization is slower than the ordinary function run?
 - Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead here refers to the required amount of computational resources for transferring objects to multiple processes.
-- Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. More illustrative and truly scaled examples will be provided in vignettes and manuscripts in the near future.
+- Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. Please refer to a [vignette](https://kyle-messier.github.io/chopin/articles/v02_climate_examples.html) in this package for the demonstration of various climate/weather datasets.
 
-
-#### Last edited: March 13, 2024
+#### Last edited: March 15, 2024
 

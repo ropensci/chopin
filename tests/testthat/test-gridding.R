@@ -163,7 +163,10 @@ testthat::test_that("Grid merge is well done.", {
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
   testthat::expect_warning(
-    testthat::expect_message(par_merge_grid(ncptr2, griddedtr2$original, 15L))
+    testthat::expect_message(
+      gridmerged2 <- par_merge_grid(ncptr2, griddedtr2$original, 15L)
+    )
   )
+  testthat::expect_s4_class(gridmerged2, "SpatVector")
 })
 
