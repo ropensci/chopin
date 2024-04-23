@@ -1,11 +1,10 @@
 
-# chopin
+# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure
 
 <!-- badges: start -->
 
-[![test-coverage](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml)
-[![codecov](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin/graph/badge.svg?token=IG64A3MFUA)](https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin)
-[![R-CMD-check](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml)
+[![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
+[![R-CMD-check](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
@@ -230,7 +229,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  12.103   0.325  12.484
+#>   9.431   0.165   9.632
 ```
 
 #### Generate regular grid computational regions
@@ -338,7 +337,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>  11.093   1.993   4.072
+#>   8.541   1.260   3.200
 ```
 
 ``` r
@@ -390,7 +389,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpK6lLFi/temp_libpath13aa5e6aa8e9de/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpMgu9Ju/temp_libpath83077453d9e66/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -399,7 +398,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpK6lLFi/temp_libpath13aa5e6aa8e9de/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpMgu9Ju/temp_libpath83077453d9e66/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -427,7 +426,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   2.113   0.026   2.149
+#>   1.739   0.065   1.810
 
 # hierarchical parallelization
 system.time(
@@ -443,7 +442,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.051   0.023   3.079
+#>   0.037   0.017   2.249
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -470,9 +469,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpBc09zn/test1.tif" "/tmp/RtmpBc09zn/test2.tif"
-#> [3] "/tmp/RtmpBc09zn/test3.tif" "/tmp/RtmpBc09zn/test4.tif"
-#> [5] "/tmp/RtmpBc09zn/test5.tif"
+#> [1] "/tmp/RtmpJfLU9V/test1.tif" "/tmp/RtmpJfLU9V/test2.tif"
+#> [3] "/tmp/RtmpJfLU9V/test3.tif" "/tmp/RtmpJfLU9V/test4.tif"
+#> [5] "/tmp/RtmpJfLU9V/test5.tif"
 ```
 
 ``` r
@@ -488,18 +487,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.835   0.652   1.170
+#>   1.305   0.503   0.841
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpBc09zn/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpBc09zn/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpBc09zn/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpBc09zn/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpBc09zn/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpBc09zn/test1.tif |
+| 37037 | 136.80203 | /tmp/RtmpJfLU9V/test1.tif |
+| 37001 | 189.76170 | /tmp/RtmpJfLU9V/test1.tif |
+| 37057 | 231.16968 | /tmp/RtmpJfLU9V/test1.tif |
+| 37069 |  98.03845 | /tmp/RtmpJfLU9V/test1.tif |
+| 37155 |  41.23463 | /tmp/RtmpJfLU9V/test1.tif |
+| 37109 | 270.96933 | /tmp/RtmpJfLU9V/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -577,7 +576,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.978   0.001   0.982
+#>   0.922   0.008   0.933
 
 # we use four threads that were configured above
 system.time(
@@ -598,7 +597,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   1.140   0.619   0.625
+#>   0.988   0.472   0.524
 ```
 
 -   We will compare the results from the single-thread and multi-thread
@@ -637,4 +636,4 @@ all.equal(resj$distance.x, resj$distance.y)
     in this package for the demonstration of various climate/weather
     datasets.
 
-#### Last edited: March 15, 2024
+#### Last edited: March 22, 2024
