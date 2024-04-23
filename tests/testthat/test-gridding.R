@@ -152,7 +152,7 @@ testthat::test_that("Grid split is well done.", {
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
   # Points
-  testthat::expect_warning(
+  testthat::expect_no_warning(
     par_make_gridset(
       ncp,
       mode = "grid_advanced",
