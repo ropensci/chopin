@@ -36,10 +36,10 @@ testthat::test_that("Balanced group tests", {
   testthat::expect_true(all(table(pgg_terra$original$CGRIDID) == 50))
 
   testthat::expect_error(
-    par_group_grid(rv, NULL, NULL)
+    par_group_grid(rv, NULL)
   )
   testthat::expect_error(
-    par_group_grid(rv, 5L, NULL)
+    par_group_grid(rv, 5L)
   )
   testthat::expect_no_error(
     par_group_grid(rv, 5L, "10000")
