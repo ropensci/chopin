@@ -4,7 +4,7 @@
 \alias{par_group_grid}
 \title{Extension of par_group_balanced for padded grids}
 \usage{
-par_group_grid(points_in = NULL, ngroups = NULL, padding = NULL)
+par_group_grid(points_in = NULL, ngroups = NULL, padding)
 }
 \arguments{
 \item{points_in}{\code{sf} or \code{SpatVector} object.}

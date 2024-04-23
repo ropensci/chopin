@@ -161,7 +161,7 @@ par_group_grid <-
   function(
     points_in = NULL,
     ngroups = NULL,
-    padding = NULL
+    padding
   ) {
     if (missing(ngroups)) {
       stop("ngroups should be specified.\n")
@@ -603,7 +603,7 @@ par_merge_grid <-
 #' library(anticlust)
 #' data(ncpoints, package = "chopin")
 #' ncp <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = FALSE, crs = "EPSG:5070")
-#' par_grid_balanced(ncp, 10)
+#' par_group_balanced(ncp, 10)
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
 #' @importFrom terra vect
