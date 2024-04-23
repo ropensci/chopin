@@ -7,7 +7,7 @@
   "codeRepository": "https://github.com/kyle-messier/chopin",
   "issueTracker": "https://github.com/kyle-messier/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.5.0.20240311",
+  "version": "0.6.2.20240423",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -145,6 +145,18 @@
     },
     {
       "@type": "SoftwareApplication",
+      "identifier": "spatstat.random",
+      "name": "spatstat.random",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=spatstat.random"
+    },
+    {
+      "@type": "SoftwareApplication",
       "identifier": "testthat",
       "name": "testthat",
       "version": ">= 3.0.0",
@@ -190,6 +202,18 @@
     },
     "2": {
       "@type": "SoftwareApplication",
+      "identifier": "anticlust",
+      "name": "anticlust",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=anticlust"
+    },
+    "3": {
+      "@type": "SoftwareApplication",
       "identifier": "doFuture",
       "name": "doFuture",
       "provider": {
@@ -200,7 +224,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=doFuture"
     },
-    "3": {
+    "4": {
       "@type": "SoftwareApplication",
       "identifier": "dplyr",
       "name": "dplyr",
@@ -213,7 +237,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=dplyr"
     },
-    "4": {
+    "5": {
       "@type": "SoftwareApplication",
       "identifier": "exactextractr",
       "name": "exactextractr",
@@ -226,7 +250,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=exactextractr"
     },
-    "5": {
+    "6": {
       "@type": "SoftwareApplication",
       "identifier": "future",
       "name": "future",
@@ -238,7 +262,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=future"
     },
-    "6": {
+    "7": {
       "@type": "SoftwareApplication",
       "identifier": "future.apply",
       "name": "future.apply",
@@ -250,7 +274,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=future.apply"
     },
-    "7": {
+    "8": {
       "@type": "SoftwareApplication",
       "identifier": "igraph",
       "name": "igraph",
@@ -262,12 +286,12 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=igraph"
     },
-    "8": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "methods",
       "name": "methods"
     },
-    "9": {
+    "10": {
       "@type": "SoftwareApplication",
       "identifier": "rlang",
       "name": "rlang",
@@ -280,7 +304,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=rlang"
     },
-    "10": {
+    "11": {
       "@type": "SoftwareApplication",
       "identifier": "sf",
       "name": "sf",
@@ -293,7 +317,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=sf"
     },
-    "11": {
+    "12": {
       "@type": "SoftwareApplication",
       "identifier": "stars",
       "name": "stars",
@@ -306,7 +330,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=stars"
     },
-    "12": {
+    "13": {
       "@type": "SoftwareApplication",
       "identifier": "terra",
       "name": "terra",
@@ -321,9 +345,9 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "26507.895KB",
+  "fileSize": "26515.43KB",
   "releaseNotes": "https://github.com/kyle-messier/chopin/blob/master/NEWS.md",
-  "readme": "https://github.com/kyle-messier/chopin/blob/main/README.md",
+  "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml"],
   "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental"
 }

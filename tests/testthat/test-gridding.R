@@ -1,5 +1,60 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
+testthat::test_that("Balanced group tests", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  rv <- terra::vect(matrix(rnorm(1000, 1e3, 350), ncol = 2))
+  rs <- sf::st_as_sf(rv)
+
+  testthat::expect_no_error(
+    par_group_balanced(rv, 10)
+  )
+  testthat::expect_no_error(
+    par_group_balanced(rs, 10)
+  )
+
+  testthat::expect_error(
+    par_group_balanced(rv, "NUMBER")
+  )
+  testthat::expect_error(
+    par_group_balanced(rv, 1L)
+  )
+  testthat::expect_true(any("CGRIDID" %in% names(par_group_balanced(rv, 10))))
+
+  # gridded
+  testthat::expect_no_error(
+    pgg_terra <- par_group_grid(rv, 10, 100)
+  )
+  testthat::expect_no_error(
+    pgg_sf <- par_group_grid(rs, 10, 100)
+  )
+  testthat::expect_equal(length(pgg_terra), 2)
+  testthat::expect_equal(length(pgg_sf), 2)
+  testthat::expect_true(all(table(pgg_terra$original$CGRIDID) == 100))
+
+  testthat::expect_error(
+    par_group_grid(rv, NULL, NULL)
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, NULL)
+  )
+  testthat::expect_no_error(
+    par_group_grid(rv, 5L, "10000")
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, "radius")
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, NA)
+  )
+
+})
+
+
+
+
 testthat::test_that("Quantile cut tests", {
   withr::local_package("sf")
   withr::local_package("terra")

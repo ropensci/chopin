@@ -15,7 +15,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 ### Objective
 
-  - This package automates
+-   This package automates
     [parallelization](https://en.wikipedia.org/wiki/Parallel_computing)
     in spatial operations with `chopin` functions as well as
     [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)
@@ -26,33 +26,31 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 ### For whom `chopin` is useful
 
-  - Following user groups will find this package useful to accelerate
+-   Following user groups will find this package useful to accelerate
     the covariate calculation process for further analysis and modeling:
-      - Environmental health researchers and data analysts
-      - Health geographers and spatial epidemiologists
-      - Spatial analysts who need to perform geospatial operations with
+    -   Environmental health researchers and data analysts
+    -   Health geographers and spatial epidemiologists
+    -   Spatial analysts who need to perform geospatial operations with
         large datasets
-  - We assume that users–
-      - Can run R functions following relevant instructions;
-      - Have basic knowledge of [geographic information system data
+-   We assume that users–
+    -   Can run R functions following relevant instructions;
+    -   Have basic knowledge of [geographic information system data
         models](https://r.geocompx.org/spatial-class), [coordinate
         systems and
         transformations](https://gistbok.ucgis.org/bok-topics/coordinate-transformations),
         [spatial operations](https://r.geocompx.org/spatial-operations),
         and [raster-vector
         overlay](https://r.geocompx.org/raster-vector);
-      - Understood and planned **what they want to calculate**; and
-      - Collected **datasets they need**
+    -   Understood and planned **what they want to calculate**; and
+    -   Collected **datasets they need**
 
 ### Notes on data restrictions
 
-  - This package works best with **two-dimensional** (**planar**)
+-   This package works best with **two-dimensional** (**planar**)
     geometries. Users should disable `s2` spherical geometry mode in
     `sf` by setting. Running any `chopin` functions at spherical or
     three-dimensional (e.g., including M/Z dimensions) geometries may
     produce incorrect or unexpected results.
-
-<!-- end list -->
 
 ``` r
 sf::sf_use_s2(FALSE)
@@ -60,22 +58,22 @@ sf::sf_use_s2(FALSE)
 
 ## Basic design
 
-  - Processing functions accept
+-   Processing functions accept
     [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)’s
     classes for spatial data. Raster-vector overlay is done with
     `exactextractr`.
-  - From version 0.3.0, this package supports three basic functions that
+-   From version 0.3.0, this package supports three basic functions that
     are readily parallelized over multithread environments:
-      - `extract_at`: extract raster values with point buffers or
+    -   `extract_at`: extract raster values with point buffers or
         polygons.
-          - `extract_at_buffer`: extract raster values at circular
+        -   `extract_at_buffer`: extract raster values at circular
             buffers; kernel weight can be applied
-          - `extract_at_poly`
-      - `summarize_sedc`: calculate sums of [exponentially decaying
+        -   `extract_at_poly`
+    -   `summarize_sedc`: calculate sums of [exponentially decaying
         contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
-      - `summarize_aw`: area-weighted covariates based on target and
+    -   `summarize_aw`: area-weighted covariates based on target and
         reference polygons
-  - When processing points/polygons in parallel, the entire study area
+-   When processing points/polygons in parallel, the entire study area
     will be divided into partly overlapped grids or processed through
     its own hierarchy. We suggest two flowcharts to help which function
     to use for parallel processing below. The upper flowchart is
@@ -83,20 +81,18 @@ sf::sf_use_s2(FALSE)
     separated but supplementary to each other. When a user follows the
     raster-oriented one, they might visit the vector-oriented flowchart
     at each end of the raster-oriented flowchart.
-      - `par_grid`: parallelize over artificial grid polygons that are
+    -   `par_grid`: parallelize over artificial grid polygons that are
         generated from the maximum extent of inputs. `par_make_gridset`
         is used to generate the grid polygons before running this
         function.
-      - `par_hierarchy`: parallelize over hierarchy coded in identifier
+    -   `par_hierarchy`: parallelize over hierarchy coded in identifier
         fields (for example, census blocks in each county in the US)
-      - `par_multirasters`: parallelize over multiple raster files
-  - These functions are designed to be used with `future` and `doFuture`
+    -   `par_multirasters`: parallelize over multiple raster files
+-   These functions are designed to be used with `future` and `doFuture`
     packages to parallelize over multiple CPU threads. Users can choose
     the number of threads to be used in the parallelization process.
     Users always need to register parallel workers with `future` and
     `doFuture` before running the three functions above.
-
-<!-- end list -->
 
 ``` r
 doFuture::registerDoFuture()
@@ -106,20 +102,17 @@ future::plan(future::multicore, workers = 4L)
 # the number of workers are up to users' choice
 ```
 
-<div id="htmlwidget-46cc4425f810b97e9429" style="width:2500px;height:600px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-46cc4425f810b97e9429">{"x":{"diagram":"\ngraph TD\n\tn72366978[\"Spatial resolution <= 100 meters?\"]\n\tn21640044[\"100K+ features?\"]\n\tn38371203[\"Multiple rasters?\"]\n\tn9291599[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn84295645[\"Hierarchical structure?\"]\n\tn82902796[\"single thread processing\"]\n\tn76722667[\"The same extent and resolution?\"]\n\tn53137122[\"Raster files larger than your free memory space?\"]\n\tn34878990[\"Split levels are in similar sizes?\"]\n\tn27787116[\"Spatially clustered?\"]\n\tn38458721[\"Free memory >= the total disk space of the rasters?\"]\n\tn10339179[\"exact_extract with low max_cells_in_memory\"]\n\tn95964029[\"exact_extract with high max_cells_in_memory\"]\n\tn89847105[\"par_hierarchy\"]\n\tn94475834[\"par_make_gridset with mode = 'grid_quantile' or mode = 'grid_advanced'\"]\n\tn77415399[\"par_make_gridset with mode = 'grid'\"]\n\tn65357807[\"Stack rasters then process with single thread\"]\n\tn60994964[\"par_multirasters\"]\n\tn64849552[\"par_grid\"]\n\tn72366978 -->|Yes| n38371203\n\tn72366978 -->|No| n9291599\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn38371203 -->|Yes| n76722667\n\tn38371203 -->|No| n53137122\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn76722667 -->|Yes| n38458721\n\tn76722667 -->|No| n60994964\n\tn53137122 -->|Yes| n10339179\n\tn53137122 -->|No| n95964029\n\tn34878990 -->|Yes| n89847105\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n\tn38458721 -->|Yes| n65357807\n\tn38458721 -->|No| n60994964\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
+<img src="man/figures/README-flowchart-mermaid-1.png" width="100%" />
 
 ## To run the examples
 
-  - RStudio: download and open this document then press “Run All Chunks
+-   RStudio: download and open this document then press “Run All Chunks
     Above”, “Run All Chunks Below”, or “Restart R and Run All Chunks”,
     whichever is appropriate.
-  - Visual Studio Code (with R extension): download and open this
+-   Visual Studio Code (with R extension): download and open this
     document then press “Run Above” at the last code chunk.
-  - If you prefer command line (i.e., in Unix-like operating systems),
+-   If you prefer command line (i.e., in Unix-like operating systems),
     run:
-
-<!-- end list -->
 
 ``` shell
 git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
@@ -133,10 +126,8 @@ source(\"README_run.r\")
 
 ## Installation
 
-  - `chopin` can be installed using `remotes::install_github` (also
+-   `chopin` can be installed using `remotes::install_github` (also
     possible with `pak::pak` or `devtools::install_github`).
-
-<!-- end list -->
 
 ``` r
 # install.packages("remotes")
@@ -145,11 +136,9 @@ remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 
 ## Examples
 
-  - Examples will navigate `par_grid`, `par_hierarchy`, and
+-   Examples will navigate `par_grid`, `par_hierarchy`, and
     `par_multirasters` functions in `chopin` to parallelize geospatial
     operations.
-
-<!-- end list -->
 
 ``` r
 # check and install packages to run examples
@@ -167,13 +156,11 @@ set.seed(2024, kind = "L'Ecuyer-CMRG")
 
 ### `par_grid`: parallelize over artificial grid polygons
 
-  - Please refer to a small example below for extracting mean altitude
+-   Please refer to a small example below for extracting mean altitude
     values at circular point buffers and census tracts in North
     Carolina.
-  - Before running code chunks below, set the cloned `chopin` repository
+-   Before running code chunks below, set the cloned `chopin` repository
     as your working directory with `setwd()`
-
-<!-- end list -->
 
 ``` r
 ncpoly <- system.file("shape/nc.shp", package = "sf")
@@ -188,10 +175,8 @@ plot(sf::st_geometry(ncsf))
 
 #### Generate random points in NC
 
-  - Ten thousands random point locations were generated inside the
+-   Ten thousands random point locations were generated inside the
     counties of North Carolina.
-
-<!-- end list -->
 
 ``` r
 ncpoints <- sf::st_sample(ncsf, 1e4)
@@ -204,10 +189,8 @@ plot(sf::st_geometry(ncpoints))
 
 #### Target raster dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
 
-  - We use an elevation dataset with and a moderate spatial resolution
+-   We use an elevation dataset with and a moderate spatial resolution
     (approximately 400 meters or 0.25 miles).
-
-<!-- end list -->
 
 ``` r
 # data preparation
@@ -247,19 +230,17 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   6.026   0.071   6.105
+#>  12.103   0.325  12.484
 ```
 
 #### Generate regular grid computational regions
 
-  - `chopin::par_make_gridset` takes a spatial dataset to generate
+-   `chopin::par_make_gridset` takes a spatial dataset to generate
     regular grid polygons with `nx` and `ny` arguments with padding.
     Users will have both overlapping (by the degree of `radius`) and
     non-overlapping grids, both of which will be utilized to split
     locations and target datasets into sub-datasets for efficient
     processing.
-
-<!-- end list -->
 
 ``` r
 compregions <-
@@ -272,12 +253,10 @@ compregions <-
   )
 ```
 
-  - `compregions` is a list object with two elements named `original`
+-   `compregions` is a list object with two elements named `original`
     (non-overlapping grid polygons) and `padded` (overlapping by
     `padding`). The figures below illustrate the grid polygons with and
     without overlaps.
-
-<!-- end list -->
 
 ``` r
 names(compregions)
@@ -295,20 +274,18 @@ terra::plot(compregions$padded, main = "Padded grids")
 
 #### Parallel processing
 
-  - Using the grid polygons, we distribute the task of averaging
+-   Using the grid polygons, we distribute the task of averaging
     elevations at 10,000 circular buffer polygons, which are generated
     from the random locations, with 10 kilometers radius by
     `chopin::par_grid`.
-  - Users always need to **register** multiple CPU threads (logical
+-   Users always need to **register** multiple CPU threads (logical
     cores) for parallelization.
-  - `chopin::par_*` functions are flexible in terms of supporting
+-   `chopin::par_*` functions are flexible in terms of supporting
     generic spatial operations in `sf` and `terra`, especially where two
     datasets are involved.
-      - Users can inject generic functions’ arguments (parameters) by
+    -   Users can inject generic functions’ arguments (parameters) by
         writing them in the ellipsis (`...`) arguments, as demonstrated
         below:
-
-<!-- end list -->
 
 ``` r
 future::plan(future::multicore, workers = 4L)
@@ -361,7 +338,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   5.391   0.928   2.017
+#>  11.093   1.993   4.072
 ```
 
 ``` r
@@ -393,16 +370,16 @@ plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 
 ### `chopin::par_hierarchy`: parallelize geospatial computations using intrinsic data hierarchy
 
-  - In real world datasets, we usually have nested/exhaustive
+-   In real world datasets, we usually have nested/exhaustive
     hierarchies. For example, land is organized by
     administrative/jurisdictional borders where multiple levels exist.
     In the U.S. context, a state consists of several counties, counties
     are split into census tracts, and they have a group of block groups.
-  - `chopin::par_hierarchy` leverages such hierarchies to parallelize
+-   `chopin::par_hierarchy` leverages such hierarchies to parallelize
     geospatial operations, which means that a group of lower-level
     geographic units in a higher-level geography is assigned to a
     process.
-  - A demonstration below shows that census tracts are grouped by their
+-   A demonstration below shows that census tracts are grouped by their
     counties then each county will be processed in a CPU thread.
 
 #### Read data
@@ -413,7 +390,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/Rtmp1F35OT/temp_libpath42d763126f91/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpK6lLFi/temp_libpath13aa5e6aa8e9de/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -422,7 +399,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/Rtmp1F35OT/temp_libpath42d763126f91/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpK6lLFi/temp_libpath13aa5e6aa8e9de/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -450,7 +427,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.052   0.000   1.053
+#>   2.113   0.026   2.149
 
 # hierarchical parallelization
 system.time(
@@ -466,18 +443,16 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.031   0.010   1.256
+#>   0.051   0.023   3.079
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
 
-  - There is a common case of having a large group of raster files at
+-   There is a common case of having a large group of raster files at
     which the same operation should be performed.
-  - `chopin::par_multirasters` is for such cases. An example below
+-   `chopin::par_multirasters` is for such cases. An example below
     demonstrates where we have five elevation raster files to calculate
     the average elevation at counties in North Carolina.
-
-<!-- end list -->
 
 ``` r
 nccnty <- terra::vect(nc_data, layer = "county")
@@ -495,9 +470,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpoMNSJ1/test1.tif" "/tmp/RtmpoMNSJ1/test2.tif"
-#> [3] "/tmp/RtmpoMNSJ1/test3.tif" "/tmp/RtmpoMNSJ1/test4.tif"
-#> [5] "/tmp/RtmpoMNSJ1/test5.tif"
+#> [1] "/tmp/RtmpBc09zn/test1.tif" "/tmp/RtmpBc09zn/test2.tif"
+#> [3] "/tmp/RtmpBc09zn/test3.tif" "/tmp/RtmpBc09zn/test4.tif"
+#> [5] "/tmp/RtmpBc09zn/test5.tif"
 ```
 
 ``` r
@@ -513,21 +488,20 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.903   0.323   0.590
+#>   1.835   0.652   1.170
 knitr::kable(head(res))
 ```
 
-| GEOID |      mean | base\_raster              |
-| :---- | --------: | :------------------------ |
-| 37037 | 136.80203 | /tmp/RtmpoMNSJ1/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpoMNSJ1/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpoMNSJ1/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpoMNSJ1/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpoMNSJ1/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpoMNSJ1/test1.tif |
+| GEOID |      mean | base_raster               |
+|:------|----------:|:--------------------------|
+| 37037 | 136.80203 | /tmp/RtmpBc09zn/test1.tif |
+| 37001 | 189.76170 | /tmp/RtmpBc09zn/test1.tif |
+| 37057 | 231.16968 | /tmp/RtmpBc09zn/test1.tif |
+| 37069 |  98.03845 | /tmp/RtmpBc09zn/test1.tif |
+| 37155 |  41.23463 | /tmp/RtmpBc09zn/test1.tif |
+| 37109 | 270.96933 | /tmp/RtmpBc09zn/test1.tif |
 
 ``` r
-
 # remove temporary raster files
 file.remove(testfiles)
 #> [1] TRUE TRUE TRUE TRUE TRUE
@@ -545,12 +519,10 @@ file.remove(testfiles)
 
 ## Parallelization of a generic geospatial operation
 
-  - Other than `chopin` internal macros, `chopin::par_*` functions
+-   Other than `chopin` internal macros, `chopin::par_*` functions
     support generic geospatial operations.
-  - An example below uses `terra::nearest`, which gets the nearest
+-   An example below uses `terra::nearest`, which gets the nearest
     feature’s attributes, inside `chopin::par_grid`.
-
-<!-- end list -->
 
 ``` r
 path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
@@ -578,14 +550,12 @@ nccompreg <-
   )
 ```
 
-  - The figure below shows the padded grids (50 kilometers), primary
+-   The figure below shows the padded grids (50 kilometers), primary
     roads, and points. Primary roads will be selected by a padded grid
     per iteration and used to calculate the distance from each point to
     the nearest primary road. Padded grids and their overlapping areas
     will look different according to `padding` argument in
     `chopin::par_make_gridset`.
-
-<!-- end list -->
 
 ``` r
 # plot
@@ -607,7 +577,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.281   0.000   0.281
+#>   0.978   0.001   0.982
 
 # we use four threads that were configured above
 system.time(
@@ -628,13 +598,11 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.604   0.201   0.303
+#>   1.140   0.619   0.625
 ```
 
-  - We will compare the results from the single-thread and multi-thread
+-   We will compare the results from the single-thread and multi-thread
     calculation.
-
-<!-- end list -->
 
 ``` r
 resj <- merge(restr, res, by = c("from_x", "from_y"))
@@ -642,25 +610,25 @@ all.equal(resj$distance.x, resj$distance.y)
 #> [1] TRUE
 ```
 
-  - Users should be mindful of potential caveats in the parallelization
+-   Users should be mindful of potential caveats in the parallelization
     of nearest feature search, which may result in no or excess distance
     depending on the distribution of the target dataset to which the
     nearest feature is searched.
-      - For example, when one wants to calculate the nearest interstate
+    -   For example, when one wants to calculate the nearest interstate
         from rural homes with fine grids, some grids may have no
         interstates then homes in such grids will not get any distance
         to the nearest interstate.
-      - Such problems can be avoided by choosing `nx`, `ny`, and
+    -   Such problems can be avoided by choosing `nx`, `ny`, and
         `padding` values in `par_make_gridset` meticulously.
 
 ## Why parallelization is slower than the ordinary function run?
 
-  - Parallelization may underperform when the datasets are too small to
+-   Parallelization may underperform when the datasets are too small to
     take advantage of divide-and-compute approach, where parallelization
     overhead is involved. Overhead here refers to the required amount of
     computational resources for transferring objects to multiple
     processes.
-  - Since the demonstrations above use quite small datasets, the
+-   Since the demonstrations above use quite small datasets, the
     advantage of parallelization was not as noticeable as it was
     expected. Should a large amount of data (spatial/temporal resolution
     or number of files, for example) be processed, users could see the

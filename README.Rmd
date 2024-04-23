@@ -449,7 +449,6 @@ system.time(
       y = rd1
     )
 )
-
 ```
 
 - We will compare the results from the single-thread and multi-thread calculation.

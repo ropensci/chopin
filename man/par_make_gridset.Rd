@@ -6,7 +6,7 @@
 \usage{
 par_make_gridset(
   input,
-  mode = c("grid", "grid_advanced", "density", "grid_quantile"),
+  mode = c("grid", "grid_advanced", "balanced", "grid_quantile"),
   nx = 10L,
   ny = 10L,
   grid_min_features = 30L,
@@ -23,7 +23,6 @@ par_make_gridset(
 One of
 \itemize{
 \item \code{"grid"} (simple grid regardless of the number of features in each grid)
-\item \code{"density"} (clustering-based varying grids),
 \item \code{"grid_advanced"} (merging adjacent grids with
 smaller number of features than \code{grid_min_features}).
 The argument \code{grid_min_features} should be specified.
@@ -88,6 +87,7 @@ Other Parallelization:
 \code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
+\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
 \code{\link{par_merge_grid}()},

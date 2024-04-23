@@ -140,6 +140,7 @@ par_grid <-
     fun_dist,
     ...
   ) {
+    # grid id selection check
     if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
       stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
     }
@@ -182,7 +183,7 @@ par_grid <-
             args_input[[1]] <-
               args_input[[1]][grid, ]
             if (methods::is(args_input[[2]], "SpatVector")) {
-              gpad_in <- grids$padded[grids$padded$CGRIDID == grid$CGRIDID, ]
+              gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid$CGRIDID, ]
               args_input[[2]] <- args_input[[2]][gpad_in, ]
             }
             if (!"id" %in% names(formals(fun_dist))) {
@@ -202,7 +203,6 @@ par_grid <-
           },
           error = function(e) {
             par_fallback(e, fun_dist, debug)
-
           })
 
           return(run_result)

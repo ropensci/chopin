@@ -1,7 +1,7 @@
 ---
 title: "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure: ``r params$package_name``"
 author: "Insang Song"
-date: "2024-03-30"
+date: "2024-04-23"
 knit: litr::render
 output: litr::litr_html_document
 params:
@@ -21,7 +21,7 @@ usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
-    Version = "0.6.1.20240417",
+    Version = "0.6.2.20240423",
     Title = "CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
     Description = "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
     `Authors@R` = c(
@@ -79,8 +79,9 @@ usethis::use_package("future.callr", "Suggests")
 usethis::use_package("callr", "Suggests")
 usethis::use_package("DiagrammeR", "Suggests")
 usethis::use_package("igraph")
-usethis::use_package("quadtree")
+usethis::use_package("anticlust")
 usethis::use_package("withr", "Suggests")
+usethis::use_package("spatstat.random", "Suggests")
 usethis::use_package("knitr", "Suggests")
 usethis::use_mit_license()
 usethis::use_code_of_conduct("geoissong@gmail.com")
@@ -1077,7 +1078,6 @@ chopin::extract_at(
 #' @param mode character(1). Mode of region construction.
 #'  One of
 #' * `"grid"` (simple grid regardless of the number of features in each grid)
-#' * `"density"` (clustering-based varying grids),
 #' * `"grid_advanced"` (merging adjacent grids with
 #'  smaller number of features than `grid_min_features`).
 #'  The argument `grid_min_features` should be specified.
@@ -1132,7 +1132,7 @@ chopin::extract_at(
 par_make_gridset <-
   function(
       input,
-      mode = c("grid", "grid_advanced", "density", "grid_quantile"),
+      mode = c("grid", "grid_advanced", "balanced", "grid_quantile"),
       nx = 10L,
       ny = 10L,
       grid_min_features = 30L,
@@ -1145,12 +1145,11 @@ par_make_gridset <-
     if (!all(
       is.integer(nx),
       is.integer(ny)
-    )
-    ) {
+    )) {
       stop("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
-      message("padding should be numeric. We try converting padding to numeric...\n")
+      message("padding should be numeric. Try converting padding to numeric...\n")
       padding <- as.numeric(padding)
       if (any(inherits(padding, "try-error"), is.na(padding))) {
         stop("padding is not convertible to numeric or converted to NA.\n")
@@ -1171,10 +1170,10 @@ par_make_gridset <-
           x = input,
           y = NULL,
           quantiles = quantiles
-        ),
-        density = simpleError("density method is under development.\n")
+        )
       )
 
+    # register CRS
     if (dep_check(grid_reg) == "sf") {
       grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
@@ -1199,6 +1198,81 @@ par_make_gridset <-
     return(grid_results)
 
   }
+
+
+#' Extension of par_group_balanced for padded grids
+#' @description This function is an extension of `par_group_balanced`
+#' to be compatible with `par_grid`, for which a set of padded grids
+#' is generated out of input points along with the output of
+#' `par_group_balanced`.
+#' @family Parallelization
+#' @param points_in `sf` or `SpatVector` object.
+#' @param ngroups integer(1). The number of groups.
+#' @param padding numeric(1). A extrusion factor to make buffer to
+#'  clip actual datasets. Depending on the length unit of the CRS of input.
+#' @returns A list of two,
+#'  * \code{original}: exhaustive and non-overlapping
+#'  grid polygons in the class of input
+#'  * \code{padded}: a square buffer of each polygon in
+#'  \code{original}. Used for computation.
+#' @author Insang Song
+#' @examples
+#' library(terra)
+#' library(sf)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' nc <- terra::vect(ncpath)
+#' nc_rp <- terra::spatSample(nc, 1000)
+#' nc_gr <- par_group_grid(nc_rp, 10L, 1000)
+#' nc_gr
+#' @importFrom terra as.polygons
+#' @importFrom terra ext
+#' @importFrom terra buffer
+#' @export
+par_group_grid <-
+  function(
+    points_in = NULL,
+    ngroups = NULL,
+    padding = NULL
+  ) {
+    if (missing(ngroups)) {
+      stop("ngroups should be specified.\n")
+    }
+
+    if (!is.numeric(padding)) {
+      message("padding should be numeric. Try converting padding to numeric...\n")
+      padding <- as.numeric(padding)
+      if (any(inherits(padding, "try-error"), is.na(padding))) {
+        stop("padding is not convertible to numeric or converted to NA.\n")
+      }
+    }
+    pgroups <- par_group_balanced(points_in, ngroups)
+
+    grid_p <- lapply(
+      split(pgroups, pgroups$CGRIDID),
+      function(x) {
+        terra::as.polygons(terra::ext(x))
+      }
+    )
+    grid_p <- Reduce(rbind, grid_p)
+    grid_p$CGRIDID <- sort(unique(pgroups$CGRIDID))
+
+    grid_reg_pad <-
+      terra::buffer(
+        grid_p,
+        width = padding,
+        capstyle = "square",
+        joinstyle = "mitre"
+      )
+    if (dep_check(points_in) != dep_check(grid_reg_pad)) {
+      grid_reg_pad <- dep_switch(grid_reg_pad)
+    }
+    grid_results <-
+      list(original = grid_p,
+           padded = grid_reg_pad)
+    return(grid_results)
+  }
+
+
 
 #' @title Generate grid polygons
 #' @family Parallelization
@@ -1379,6 +1453,8 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #'  This function strongly assumes that the input
 #'  is returned from the par_make_grid,
 #'  which has `"CGRIDID"` as the unique id field.
+#' @note This function will not work properly if `grid_in` has
+#' more than one million grids.
 #' @author Insang Song
 #' @param points_in `sf` or `SpatVector` object. Target points of computation.
 #' @param grid_in `sf` or `SpatVector` object.
@@ -1393,7 +1469,8 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' \dontrun{
 #' library(sf)
 #' library(igraph)
-#' ligrary(dplyr)
+#' library(dplyr)
+#' library(spatstat.random)
 #' dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
 #' sf::st_crs(dg) <- 5070
 #' dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
@@ -1606,8 +1683,8 @@ chopin::kernelfunction(ncneard, 10000, "epanechnikov")
 plot(ncr)
 ```
 
-```{r grid-balanced, send_to = "R/gridding.R"}
-#' Generate grids based on balanced clustering
+```{r group-balanced, send_to = "R/gridding.R"}
+#' Generate groups based on balanced clustering
 #' @description For balancing computational loads, the function uses
 #' the `anticlust` package to cluster the input points. The number of clusters
 #' is determined by the `num_cluster` argument. Each cluster will have
@@ -1615,8 +1692,8 @@ plot(ncr)
 #' @note This function is only for two-dimensional points.
 #' The results will be inexhaustive grids.
 #' @param points_in `sf` or `SpatVector` object. Target points of computation.
-#' @param num_cluster integer(1). The number of clusters.
-#' @returns `sf` or `SpatVector` object with rectangular polygons.
+#' @param n_clusters integer(1). The number of clusters.
+#' @returns `SpatVector` object with a field `"CGRIDID"`.
 #' @examples
 #' library(terra)
 #' library(anticlust)
@@ -1625,29 +1702,34 @@ plot(ncr)
 #' par_grid_balanced(ncp, 10)
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
-#' @importFrom terra convHull
-#' @importFrom terra delaunay
-#' @importFrom terra centroids
 #' @importFrom terra vect
-#' @importFrom terra distance
+#' @importFrom terra crds
+#' @importFrom stats dist
 #' @export
-par_grid_balanced <- function(
+par_group_balanced <- function(
   points_in = NULL,
-  num_cluster = NULL
+  n_clusters = NULL
 ) {
-  if (!is.numeric(num_cluster)) {
-    stop("num_cluster should be numeric.\n")
+  if (!is.numeric(n_clusters)) {
+    stop("n_clusters should be numeric.\n")
   }
-  if (num_cluster < 2) {
-    stop("num_cluster should be greater than 1.\n")
+  if (n_clusters < 2) {
+    stop("n_clusters should be greater than 1.\n")
   }
   if (dep_check(points_in) == "sf") {
     points_in <- terra::vect(points_in)
   }
-  #dissim <- as.matrix(terra::distance(points_in))
-  dissim <- dist(terra::crds(points_in), method = "minkowski", p = 4)
-  cl <- anticlust::balanced_clustering(dissim, K = num_cluster)
+  # define dissimilarity based on Euclidean distance
+  dissim <- dist(terra::crds(points_in), method = "euclidean")
+  cl <- anticlust::balanced_clustering(dissim, K = n_clusters)
   points_in$CGRIDID <- cl
+  return(points_in)
+}
+
+
+```
+
+```{r par_group_balanced-remainders, eval = FALSE, include = FALSE}
   # extent to polygon
   # convex hulls and voronoi polygons: unbalanced; abandoned
   # clust <- split(points_in, points_in$clust)
@@ -1660,16 +1742,70 @@ par_grid_balanced <- function(
   # clustk <- terra::voronoi(clustcnt, bnd = clustchr)
   # clustk <- terra::crop(clustk, clustchr)
   # assign unique grid id
-  clustk$CGRIDID <- seq(1, nrow(clustk))
-  if (dep_check(points_in) != dep_check(clustk)) {
-    clustk <- dep_switch(clustk)
-  }
-  return(clustk)
-}
+  #clustk$CGRIDID <- seq(1, nrow(clustk))
+  # if (dep_check(points_in) != dep_check(clustk)) {
+  #   clustk <- dep_switch(clustk)
+  # }
 
 
 ```
 
+```{r test-group-balanced, eval = FALSE, send_to = "tests/testthat/test-gridding.R"}
+testthat::test_that("Balanced group tests", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  rv <- terra::vect(matrix(rnorm(1000, 1e3, 350), ncol = 2))
+  rs <- sf::st_as_sf(rv)
+
+  testthat::expect_no_error(
+    par_group_balanced(rv, 10)
+  )
+  testthat::expect_no_error(
+    par_group_balanced(rs, 10)
+  )
+
+  testthat::expect_error(
+    par_group_balanced(rv, "NUMBER")
+  )
+  testthat::expect_error(
+    par_group_balanced(rv, 1L)
+  )
+  testthat::expect_true(any("CGRIDID" %in% names(par_group_balanced(rv, 10))))
+
+  # gridded
+  testthat::expect_no_error(
+    pgg_terra <- par_group_grid(rv, 10, 100)
+  )
+  testthat::expect_no_error(
+    pgg_sf <- par_group_grid(rs, 10, 100)
+  )
+  testthat::expect_equal(length(pgg_terra), 2)
+  testthat::expect_equal(length(pgg_sf), 2)
+  testthat::expect_true(all(table(pgg_terra$original$CGRIDID) == 100))
+
+  testthat::expect_error(
+    par_group_grid(rv, NULL, NULL)
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, NULL)
+  )
+  testthat::expect_no_error(
+    par_group_grid(rv, 5L, "10000")
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, "radius")
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, NA)
+  )
+
+})
+
+
+
+```
 
 ```{r test-quantiles, eval = FALSE, send_to = "tests/testthat/test-gridding.R"}
 testthat::test_that("Quantile cut tests", {
@@ -3680,6 +3816,7 @@ par_grid <-
     fun_dist,
     ...
   ) {
+    # grid id selection check
     if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
       stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
     }
@@ -3722,7 +3859,7 @@ par_grid <-
             args_input[[1]] <-
               args_input[[1]][grid, ]
             if (methods::is(args_input[[2]], "SpatVector")) {
-              gpad_in <- grids$padded[grids$padded$CGRIDID == grid$CGRIDID, ]
+              gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid$CGRIDID, ]
               args_input[[2]] <- args_input[[2]][gpad_in, ]
             }
             if (!"id" %in% names(formals(fun_dist))) {
@@ -3742,7 +3879,6 @@ par_grid <-
           },
           error = function(e) {
             par_fallback(e, fun_dist, debug)
-
           })
 
           return(run_result)
@@ -4854,7 +4990,6 @@ if (dir.exists("../figures")) {
 #   "./tools/vignettes-sources/v02_par.Rmd.orig",
 #   output = "./tools/vignettes-sources/v02_par.Rmd"
 #   )
-
 ```
 
 ```{r post-hoc-cleaning, echo = F, eval = FALSE}
