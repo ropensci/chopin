@@ -4,8 +4,8 @@
   "identifier": "chopin",
   "description": "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
   "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized\n    INfrastructure",
-  "codeRepository": "https://github.com/kyle-messier/chopin",
-  "issueTracker": "https://github.com/kyle-messier/chopin/issues",
+  "codeRepository": "https://github.com/NIEHS/chopin",
+  "issueTracker": "https://github.com/NIEHS/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
   "version": "0.6.2.20240423",
   "programmingLanguage": {
@@ -345,9 +345,9 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "26515.43KB",
-  "releaseNotes": "https://github.com/kyle-messier/chopin/blob/master/NEWS.md",
+  "fileSize": "26515.884KB",
+  "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
-  "contIntegration": ["https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/test-coverage.yaml", "https://codecov.io/github/Spatiotemporal-Exposures-and-Toxicology/chopin", "https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin/actions/workflows/check-standard.yaml"],
+  "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],
   "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental"
 }
