@@ -15,8 +15,8 @@ Description: It enables users with basic understanding on geospatial data
     large number of raster files can be parallelized with a chopin
     function as well.
 License: MIT + file LICENSE
-URL: https://github.com/kyle-messier/chopin
-BugReports: https://github.com/kyle-messier/chopin/issues
+URL: https://github.com/NIEHS/chopin
+BugReports: https://github.com/NIEHS/chopin/issues
 Depends: 
     R (>= 4.1)
 Encoding: UTF-8
@@ -53,4 +53,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: 5af3a7d30fa132cc525ba06ef54fd718
+LitrId: 2110817b831926ddd681bed94b7ff464
