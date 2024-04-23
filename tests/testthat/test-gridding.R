@@ -1,5 +1,61 @@
 # Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
+testthat::test_that("Balanced group tests", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("anticlust")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  rv <- terra::vect(matrix(rnorm(1000, 1e3, 350), ncol = 2))
+  rs <- sf::st_as_sf(rv)
+
+  testthat::expect_no_error(
+    par_group_balanced(rv, 10)
+  )
+  testthat::expect_no_error(
+    par_group_balanced(rs, 10)
+  )
+
+  testthat::expect_error(
+    par_group_balanced(rv, "NUMBER")
+  )
+  testthat::expect_error(
+    par_group_balanced(rv, 1L)
+  )
+  testthat::expect_true(any("CGRIDID" %in% names(par_group_balanced(rv, 10))))
+
+  # gridded
+  testthat::expect_no_error(
+    pgg_terra <- par_group_grid(rv, 10, 100)
+  )
+  testthat::expect_no_error(
+    pgg_sf <- par_group_grid(rs, 10, 100)
+  )
+  testthat::expect_equal(length(pgg_terra), 2)
+  testthat::expect_equal(length(pgg_sf), 2)
+  testthat::expect_true(all(table(pgg_terra$original$CGRIDID) == 50))
+
+  testthat::expect_error(
+    par_group_grid(rv, NULL)
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L)
+  )
+  testthat::expect_no_error(
+    par_group_grid(rv, 5L, "10000")
+  )
+  testthat::expect_error(
+    suppressWarnings(par_group_grid(rv, 5L, "radius"))
+  )
+  testthat::expect_error(
+    par_group_grid(rv, 5L, NA)
+  )
+
+})
+
+
+
+
 testthat::test_that("Quantile cut tests", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -96,7 +152,7 @@ testthat::test_that("Grid split is well done.", {
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
   # Points
-  testthat::expect_warning(
+  testthat::expect_no_warning(
     par_make_gridset(
       ncp,
       mode = "grid_advanced",
@@ -162,8 +218,19 @@ testthat::test_that("Grid merge is well done.", {
                      mode = "grid",
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
-  testthat::expect_warning(
-    testthat::expect_message(par_merge_grid(ncptr2, griddedtr2$original, 15L))
+  testthat::expect_message(
+    gridmerged2 <- par_merge_grid(ncptr2, griddedtr2$original, 15L)
   )
+  testthat::expect_s4_class(gridmerged2, "SpatVector")
+
+  griddedtr22 <-
+    par_make_gridset(ncptr2,
+                     mode = "grid",
+                     nx = 40L, ny = 20L,
+                     padding = 1e4L)
+  testthat::expect_message(
+    gridmergedx <- par_merge_grid(ncptr2, griddedtr22$original, 10L, merge_max = 10L)
+  )
+
 })
 

@@ -107,7 +107,7 @@ future::plan(future::multicore, workers = 4L)
 
 -   RStudio: download and open this document then press “Run All Chunks
     Above”, “Run All Chunks Below”, or “Restart R and Run All Chunks”,
-    whichever it is appropriate.
+    whichever is appropriate.
 -   Visual Studio Code (with R extension): download and open this
     document then press “Run Above” at the last code chunk.
 -   If you prefer command line (i.e., in Unix-like operating systems),
@@ -631,8 +631,9 @@ all.equal(resj$distance.x, resj$distance.y)
     advantage of parallelization was not as noticeable as it was
     expected. Should a large amount of data (spatial/temporal resolution
     or number of files, for example) be processed, users could see the
-    efficiency of this package. More illustrative and truly scaled
-    examples will be provided in vignettes and manuscripts in the near
-    future.
+    efficiency of this package. Please refer to a
+    [vignette](https://kyle-messier.github.io/chopin/articles/v02_climate_examples.html)
+    in this package for the demonstration of various climate/weather
+    datasets.
 
 #### Last edited: March 22, 2024

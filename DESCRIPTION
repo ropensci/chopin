@@ -1,7 +1,6 @@
 Package: chopin
-Title: CHOPIN: Computation for Climate and Health research On Parallelized
-    INfrastructure
-Version: 0.5.0.20240311
+Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
+Version: 0.6.2.20240423
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -26,6 +25,7 @@ LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Imports: 
+    anticlust,
     doFuture,
     dplyr (>= 1.1.0),
     exactextractr (>= 0.8.2),
@@ -46,10 +46,11 @@ Suggests:
     future.callr,
     knitr,
     rmarkdown,
+    spatstat.random,
     testthat (>= 3.0.0),
     units,
     withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LitrVersionUsed: 0.9.0
-LitrId: b95c1c1ccdf00f4553673c2a048681ca
+LitrId: 5af3a7d30fa132cc525ba06ef54fd718
