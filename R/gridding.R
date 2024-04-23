@@ -60,7 +60,7 @@
 par_make_gridset <-
   function(
       input,
-      mode = c("grid", "grid_advanced", "balanced", "grid_quantile"),
+      mode = c("grid", "grid_advanced", "grid_quantile"),
       nx = 10L,
       ny = 10L,
       grid_min_features = 30L,
@@ -131,6 +131,7 @@ par_make_gridset <-
 #' Extension of par_group_balanced for padded grids
 #' @description This function is an extension of `par_group_balanced`
 #' to be compatible with `par_grid`, for which a set of padded grids
+#' of the extent of input point subsets (as recorded in the field named `"CGRIDID"`)
 #' is generated out of input points along with the output of
 #' `par_group_balanced`.
 #' @family Parallelization
@@ -438,17 +439,20 @@ par_merge_grid <-
   ) {
     package_detected <- dep_check(points_in)
     if (package_detected == "terra") {
-      points_in <- dep_switch(points_in)
-      grid_in <- dep_switch(grid_in)
+      points_pc <- dep_switch(points_in)
+      grid_pc <- dep_switch(grid_in)
+    } else {
+      points_pc <- points_in
+      grid_pc <- grid_in
     }
 
     # 1. count #points in each grid
-    n_points_in_grid <- lengths(sf::st_intersects(grid_in, points_in))
+    n_points_in_grid <- lengths(sf::st_intersects(grid_pc, points_pc))
     grid_lt_threshold <- (n_points_in_grid < grid_min_features)
 
     # 2. concatenate self and contiguity grid indices
-    grid_self <- sf::st_relate(grid_in, grid_in, pattern = "2********")
-    grid_rook <- sf::st_relate(grid_in, grid_in, pattern = "F***1****")
+    grid_self <- sf::st_relate(grid_pc, grid_pc, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_pc, grid_pc, pattern = "F***1****")
     # 3. merge self and rook neighbors
     grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
     # 4. conditional 1: the number of points per grid exceed the threshold?
@@ -470,7 +474,7 @@ par_merge_grid <-
       return(grid_in)
     }
     # leave only actual index rather than logical
-    grid_lt_threshold_idx <- seq(1, nrow(grid_in))[grid_lt_threshold]
+    grid_lt_threshold_idx <- seq(1, nrow(grid_pc))[grid_lt_threshold]
 
     # 5. filter out the ones that are below the threshold
     identified <- lapply(grid_selfrook,
@@ -497,17 +501,22 @@ par_merge_grid <-
 
     identified_graph_member <- identified_graph$membership
     identified_graph_member2 <- identified_graph_member
+
+    # for assigning merged grid id (original)  
+    merge_idx <- which(rownames(grid_pc) %in% names(identified_graph_member))
+
     # nolint start
     # post-process: split membership into (almost) equal sizes
     # note that identified_graph_member should preserve the order
     tab_graph_member <- table(identified_graph_member)
-    if (any(tab_graph_member >= merge_max)) {
-      graph_member_excess_idx <- which(identified_graph_member %in% names(tab_graph_member[tab_graph_member >= merge_max]))
+    if (any(tab_graph_member > merge_max)) {
+      # gets index of the grids in too large groups
+      graph_member_excess_idx <- which(identified_graph_member %in% names(tab_graph_member[tab_graph_member > merge_max]))
       # extract the excess groups
       graph_member_excess <- identified_graph_member[graph_member_excess_idx]
       # for each excess group, split into smaller groups
-      for (i in unique(graph_member_excess)) {
-        graph_member_excess_this <- which(graph_member_excess == i)
+      for (i in seq_along(unique(graph_member_excess))) {
+        graph_member_excess_this <- which(graph_member_excess == unique(graph_member_excess)[i])
         graph_member_excess_repl <- graph_member_excess[graph_member_excess_this]
         # 1e6 is arbitrarily chosen; it should be large enough to avoid conflicts
         # with the original membership
@@ -517,30 +526,37 @@ par_merge_grid <-
             graph_member_excess_repl,
             ceiling(seq_along(graph_member_excess_repl) / merge_max) + (i * 1e6)
           )
+
         graph_member_excess_split <-
           mapply(function(x, y) {
-            rep(as.numeric(y), length(x))
-          }, graph_member_excess_split, names(graph_member_excess_split))
-        identified_graph_member2[identified_graph_member2 == i] <- graph_member_excess_split
+              rep(sapply(y, as.numeric), length(x))
+            }, graph_member_excess_split, names(graph_member_excess_split),
+            SIMPLIFY = TRUE
+          )
+        graph_member_excess_split <- unname(unlist(graph_member_excess_split))
+        identified_graph_member2[which(identified_graph_member2 == unique(graph_member_excess)[i])] <-
+          graph_member_excess_split
       }
       identified_graph_member <- identified_graph_member2
     } else {
       identified_graph_member <- identified_graph_member
     }
     # nolint end
-
     # 10. Assign membership information
-    merge_idx <- as.numeric(names(identified_graph_member))
-    merge_member <- split(merge_idx, identified_graph_member)
+    # Here we use the modified membership
+    merge_member <- split(rownames(grid_pc)[merge_idx], identified_graph_member)
     # 11. Label the merged grids
     merge_member_label <-
       unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
-    merge_member_label <- merge_member_label[identified_graph_member]
+    merge_member_label <- mapply(function(lst, label) {
+      rep(label, length(lst)) },
+      merge_member, merge_member_label, SIMPLIFY = TRUE)
+    merge_member_label <- unlist(merge_member_label)
 
     # 12. Assign labels to the original sf object
-    grid_out <- grid_in
+    grid_out <- grid_pc
     grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
-
+    
     grid_out <- grid_out |>
       dplyr::group_by(!!rlang::sym("CGRIDID")) |>
       dplyr::summarize(n_merged = dplyr::n()) |>
@@ -550,7 +566,9 @@ par_merge_grid <-
     par_merge_gridd <- grid_out[which(grid_out$n_merged > 1), ]
     par_merge_gridd_area <- as.numeric(sf::st_area(par_merge_gridd))
     par_merge_gridd_perimeter <-
-      as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
+      suppressWarnings(
+        as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
+      )
     par_merge_gridd_pptest <-
       (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter ^ 2)
 
@@ -567,7 +585,7 @@ par_merge_grid <-
     }
 
     return(grid_out)
-}
+  }
 
 
 #' Generate groups based on balanced clustering

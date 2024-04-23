@@ -218,11 +218,19 @@ testthat::test_that("Grid merge is well done.", {
                      mode = "grid",
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
-  testthat::expect_warning(
-    testthat::expect_message(
-      gridmerged2 <- par_merge_grid(ncptr2, griddedtr2$original, 15L)
-    )
+  testthat::expect_message(
+    gridmerged2 <- par_merge_grid(ncptr2, griddedtr2$original, 15L)
   )
   testthat::expect_s4_class(gridmerged2, "SpatVector")
+
+  griddedtr22 <-
+    par_make_gridset(ncptr2,
+                     mode = "grid",
+                     nx = 40L, ny = 20L,
+                     padding = 1e4L)
+  testthat::expect_message(
+    gridmergedx <- par_merge_grid(ncptr2, griddedtr22$original, 10L, merge_max = 10L)
+  )
+
 })
 

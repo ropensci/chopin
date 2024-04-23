@@ -6,7 +6,7 @@
 \usage{
 par_make_gridset(
   input,
-  mode = c("grid", "grid_advanced", "balanced", "grid_quantile"),
+  mode = c("grid", "grid_advanced", "grid_quantile"),
   nx = 10L,
   ny = 10L,
   grid_min_features = 30L,
