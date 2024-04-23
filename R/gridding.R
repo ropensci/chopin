@@ -169,7 +169,7 @@ par_group_grid <-
     if (!is.numeric(padding)) {
       message("padding should be numeric. Try converting padding to numeric...\n")
       padding <- as.numeric(padding)
-      if (any(inherits(padding, "try-error"), is.na(padding))) {
+      if (any(inherits(padding, "try-error"), is.na(padding), missing(padding))) {
         stop("padding is not convertible to numeric or converted to NA.\n")
       }
     }
@@ -195,7 +195,7 @@ par_group_grid <-
       grid_reg_pad <- dep_switch(grid_reg_pad)
     }
     grid_results <-
-      list(original = grid_p,
+      list(original = pgroups,
            padded = grid_reg_pad)
     return(grid_results)
   }

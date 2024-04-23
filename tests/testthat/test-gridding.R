@@ -3,6 +3,7 @@
 testthat::test_that("Balanced group tests", {
   withr::local_package("sf")
   withr::local_package("terra")
+  withr::local_package("anticlust")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   rv <- terra::vect(matrix(rnorm(1000, 1e3, 350), ncol = 2))
@@ -32,7 +33,7 @@ testthat::test_that("Balanced group tests", {
   )
   testthat::expect_equal(length(pgg_terra), 2)
   testthat::expect_equal(length(pgg_sf), 2)
-  testthat::expect_true(all(table(pgg_terra$original$CGRIDID) == 100))
+  testthat::expect_true(all(table(pgg_terra$original$CGRIDID) == 50))
 
   testthat::expect_error(
     par_group_grid(rv, NULL, NULL)
@@ -44,7 +45,7 @@ testthat::test_that("Balanced group tests", {
     par_group_grid(rv, 5L, "10000")
   )
   testthat::expect_error(
-    par_group_grid(rv, 5L, "radius")
+    suppressWarnings(par_group_grid(rv, 5L, "radius"))
   )
   testthat::expect_error(
     par_group_grid(rv, 5L, NA)
