@@ -16,6 +16,9 @@ This value will be automatically multiplied by 1.25}
 
 \item{nqsegs}{\code{integer(1)}. the number of points per a quarter circle}
 }
+\value{
+A clipped \code{SpatRaster} object.
+}
 \description{
 Clip input raster by the expected maximum extent of
 computation.
