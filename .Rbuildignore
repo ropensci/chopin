@@ -13,3 +13,4 @@ _pkgdown.yml
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
 ^codemeta\.json$
+^\.github$

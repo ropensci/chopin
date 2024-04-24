@@ -100,7 +100,7 @@ clip_vec_ext <- function(
   return(cae)
 }
 
-#' @title Clip input raster with a buffered vector extent.
+#' Clip input raster with a buffered vector extent.
 #' @family Helper functions
 #' @description Clip input raster by the expected maximum extent of
 #' computation.
@@ -109,6 +109,7 @@ clip_vec_ext <- function(
 #' This value will be automatically multiplied by 1.25
 #' @param ras `SpatRaster` object to be clipped
 #' @param nqsegs `integer(1)`. the number of points per a quarter circle
+#' @returns A clipped `SpatRaster` object.
 #' @author Insang Song
 #' @examples
 #' library(terra)
@@ -146,7 +147,7 @@ clip_ras_ext <- function(
   return(cae)
 }
 
-#' @title Extract summarized values from raster with points and a buffer radius
+#' Extract summarized values from raster with points and a buffer radius
 #' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
