@@ -567,7 +567,8 @@ reproject_b2r <-
 #' @family Macros for calculation
 #' @param point_from `SpatVector` object. Locations where
 #'  the sum of SEDCs are calculated.
-#' @param point_to `SpatVector` object. Locations where each SEDC is calculated.
+#' @param point_to `SpatVector` object.
+#' Locations where each SEDC is calculated.
 #' @param id character(1). Name of the unique id field in `point_to`.
 #' @param sedc_bandwidth numeric(1).
 #' Distance at which the source concentration is reduced to
@@ -589,7 +590,7 @@ reproject_b2r <-
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, & Serre ML. (2012). 
+#' * [Messier KP, Akita Y, Serre ML. (2012).
 #'   Integrating Address Geocoding, Land Use
 #'   Regression, and Spatiotemporal Geostatistical Estimation
 #'   for Groundwater Tetrachloroethylene.
@@ -720,7 +721,7 @@ The result may not be accurate.\n",
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.
-#' @param target_fields character. Field names to calculate area-weighted .
+#' @param target_fields character. Field names to calculate area-weighted.
 #' @param id_poly_in character(1).
 #'  The unique identifier of each polygon in `poly_in`.
 #'  Default is `"ID"`.

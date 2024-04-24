@@ -18,7 +18,7 @@ par_group_balanced(points_in = NULL, n_clusters = NULL)
 For balancing computational loads, the function uses
 the \code{anticlust} package to cluster the input points. The number of clusters
 is determined by the \code{num_cluster} argument. Each cluster will have
-equal number of points. Grids will be generated based on the cluster extents.
+equal number of points. Grids will be generated based on the cluster extents
 }
 \note{
 This function is only for two-dimensional points.
