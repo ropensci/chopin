@@ -1,5 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
 #' Parallelization error fallback
 #' @family Parallelization
 #' @param err Error status or message.
@@ -124,7 +122,6 @@ par_fallback <-
 #'     id = "pid"
 #'   )
 #' }
-#' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
@@ -307,7 +304,6 @@ par_grid <-
 #'   )
 #' )
 #' }
-#' @import future
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
@@ -448,10 +444,9 @@ par_hierarchy <-
 #'   func = "mean"
 #' )
 #' }
-#' @import future
 #' @importFrom future.apply future_lapply
-#' @import doFuture
 #' @importFrom terra rast
+#' @importFrom rlang inject
 #' @export
 par_multirasters <-
   function(
@@ -507,6 +502,3 @@ par_multirasters <-
 
     return(results_distributed)
   }
-
-
-

@@ -1,6 +1,4 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
-#' @title Return the package the input object is based on
+#' Return the package the input object is based on
 #' @family Helper functions
 #' @description Detect whether the input object is sf or Spat* object.
 #' @author Insang Song
@@ -387,8 +385,6 @@ any_class_args <- function(
 ) {
   searchphrase <- sprintf("(%s)", search)
   args_scanned <- lapply(args, function(x) any(grepl(searchphrase, class(x))))
-  args_scanned <- sapply(args_scanned, any)
+  args_scanned <- vapply(args_scanned, FUN = any, FUN.VALUE = logical(1))
   return(args_scanned)
 }
-
-

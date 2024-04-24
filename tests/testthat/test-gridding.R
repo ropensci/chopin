@@ -229,7 +229,13 @@ testthat::test_that("Grid merge is well done.", {
                      nx = 40L, ny = 20L,
                      padding = 1e4L)
   testthat::expect_message(
-    gridmergedx <- par_merge_grid(ncptr2, griddedtr22$original, 10L, merge_max = 10L)
+    gridmergedx <-
+      par_merge_grid(
+        ncptr2,
+        griddedtr22$original,
+        10L,
+        merge_max = 10L
+      )
   )
 
 })

@@ -26,10 +26,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Imports: 
     anticlust,
-    doFuture,
     dplyr (>= 1.1.0),
     exactextractr (>= 0.8.2),
-    future,
     future.apply,
     igraph,
     methods,
@@ -41,7 +39,9 @@ Suggests:
     callr,
     covr,
     DiagrammeR,
+    doFuture,
     doParallel,
+    future,
     future.batchtools,
     future.callr,
     knitr,
@@ -52,5 +52,3 @@ Suggests:
     withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-LitrVersionUsed: 0.9.0
-LitrId: 2110817b831926ddd681bed94b7ff464

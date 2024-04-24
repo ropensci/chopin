@@ -1,5 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
 #' Regular grid points in the mainland United States at 1km spatial resolution
 #' @family Dataset
 #' @format A data frame with 8,092,995 rows and three variables:
@@ -14,4 +12,3 @@
 #' @examples
 #' data("prediction_grid", package = "chopin")
 "prediction_grid"
-

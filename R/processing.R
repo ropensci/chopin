@@ -1,5 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
 #' Kernel functions
 #' @family Macros for calculation
 #' @param kernel Kernel type. One of
@@ -72,7 +70,13 @@ clip_vec_ext <- function(
   radius,
   target_input
 ) {
-  if (any(sapply(list(pnts, radius, target_input), is.null))) {
+  if (any(
+    vapply(
+      list(pnts, radius, target_input),
+      FUN = is.null,
+      FUN.VALUE = TRUE
+    )
+  )) {
     stop("One or more required arguments are NULL. Please check.\n")
   }
   detected_pnts <- dep_check(pnts)
@@ -128,7 +132,11 @@ clip_ras_ext <- function(
   ras = NULL,
   nqsegs = 180L
 ) {
-  if (any(sapply(list(pnts, radius, ras), is.null))) {
+  if (any(
+    vapply(list(pnts, radius, ras),
+           FUN = is.null,
+           FUN.VALUE = TRUE)
+  )) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
   ext_input <- get_clip_ext(pnts, radius) |>
@@ -156,7 +164,8 @@ clip_ras_ext <- function(
 #' Coordinates where buffers will be generated.
 #' @param surf `SpatRaster` object or file path(s) with extensions
 #' that are GDAL-compatible. A raster from which a summary will be calculated
-#' @param radius numeric(1). Buffer radius. here we assume circular buffers only
+#' @param radius numeric(1). Buffer radius.
+#'  Here we assume circular buffers only
 #' @param id character(1). Unique identifier of each point.
 #' @param qsegs integer(1). Number of vertices at a quarter of a circle.
 #'  Default is `90L`.
@@ -579,8 +588,15 @@ reproject_b2r <-
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](https://dx.doi.org/10.1021/es203152a)
-#' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
+#' * [Messier KP, Akita Y, & Serre ML. (2012). 
+#'   Integrating Address Geocoding, Land Use
+#'   Regression, and Spatiotemporal Geostatistical Estimation
+#'   for Groundwater Tetrachloroethylene.
+#'   _Environmental Science & Technology_ 46(5), 2772-2780.
+#'   ](https://dx.doi.org/10.1021/es203152a)
+#' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying
+#'   Contributions Tutorial](
+#'   https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #' @examples
 #' library(terra)
 #' library(sf)
@@ -806,5 +822,3 @@ summarize_aw <-
     )
 
   }
-
-
