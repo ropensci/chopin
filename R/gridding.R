@@ -18,8 +18,11 @@
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 # nolint start
 #' @param unit character(1). The length unit for padding (optional).
-#'  units::set_units is used for padding when sf object is used.
-#'  See [units package vignette (web)](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'   units::set_units is used for padding when sf object is used.
+#'   See [units package vignette (web)](
+#'   https://cran.r-project.org/web/packages/
+#'   units/vignettes/measurement_units_in_R.html
+#'   )
 #'  for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 # nolint end
@@ -77,7 +80,9 @@ par_make_gridset <-
       stop("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
-      message("padding should be numeric. Try converting padding to numeric...\n")
+      message(
+        "padding should be numeric. Try converting padding to numeric...\n"
+      )
       padding <- as.numeric(padding)
       if (any(inherits(padding, "try-error"), is.na(padding))) {
         stop("padding is not convertible to numeric or converted to NA.\n")
@@ -131,7 +136,8 @@ par_make_gridset <-
 #' Extension of par_group_balanced for padded grids
 #' @description This function is an extension of `par_group_balanced`
 #' to be compatible with `par_grid`, for which a set of padded grids
-#' of the extent of input point subsets (as recorded in the field named `"CGRIDID"`)
+#' of the extent of input point subsets
+#' (as recorded in the field named `"CGRIDID"`)
 #' is generated out of input points along with the output of
 #' `par_group_balanced`.
 #' @family Parallelization
@@ -168,9 +174,15 @@ par_group_grid <-
     }
 
     if (!is.numeric(padding)) {
-      message("padding should be numeric. Try converting padding to numeric...\n")
+      message(
+        "padding should be numeric. Try converting padding to numeric...\n"
+      )
       padding <- as.numeric(padding)
-      if (any(inherits(padding, "try-error"), is.na(padding), missing(padding))) {
+      if (
+        any(
+          inherits(padding, "try-error"), is.na(padding), missing(padding)
+        )
+      ) {
         stop("padding is not convertible to numeric or converted to NA.\n")
       }
     }
@@ -332,14 +344,16 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
   # these lines are rounding quantiles between
   # the minimum and the maximum (exclusive) to the nearest 4th decimal place
   x_quantiles[-c(1, length(x_quantiles))] <-
-    sapply(
+    vapply(
       x_quantiles[-c(1, length(x_quantiles))],
-      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+      FUN = function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x)))),
+      FUN.VALUE = 0
     )
   y_quantiles[-c(1, length(y_quantiles))] <-
-    sapply(
+    vapply(
       y_quantiles[-c(1, length(y_quantiles))],
-      function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x))))
+      FUN = function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x)))),
+      FUN.VALUE = 0
     )
 
   xy_quantiles <- expand.grid(
@@ -413,7 +427,10 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' #### NOT RUN ####
 #' }
 #' @references
-#' Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353. [Link](http://hdl.handle.net/20.500.13051/17448)
+#' * Polsby DD, Popper FJ. (1991).
+#'   The Third Criterion: Compactness as a Procedural Safeguard Against
+#'   Partisan Gerrymandering. _Yale Law & Policy Review_,
+#'   9(2), 301–353. [Link](http://hdl.handle.net/20.500.13051/17448)
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarize
 #' @importFrom dplyr ungroup
@@ -483,7 +500,8 @@ par_merge_grid <-
     # 6. remove duplicate neighbor pairs
     identified <- unique(identified)
     # 7. remove singletons
-    identified <- identified[sapply(identified, length) > 1]
+    identified <-
+      identified[vapply(identified, FUN = length, FUN.VALUE = 0) > 1]
     # 8. conditional 2: if there is no grid to merge
     if (length(identified) == 0) {
       message("No grid to merge.\n")
@@ -511,16 +529,23 @@ par_merge_grid <-
     tab_graph_member <- table(identified_graph_member)
     if (any(tab_graph_member > merge_max)) {
       # gets index of the grids in too large groups
-      graph_member_excess_idx <- which(identified_graph_member %in% names(tab_graph_member[tab_graph_member > merge_max]))
+      graph_member_excess_idx <-
+        which(
+          identified_graph_member %in%
+          names(tab_graph_member[tab_graph_member > merge_max])
+        )
       # extract the excess groups
       graph_member_excess <- identified_graph_member[graph_member_excess_idx]
       # for each excess group, split into smaller groups
       for (i in seq_along(unique(graph_member_excess))) {
-        graph_member_excess_this <- which(graph_member_excess == unique(graph_member_excess)[i])
-        graph_member_excess_repl <- graph_member_excess[graph_member_excess_this]
-        # 1e6 is arbitrarily chosen; it should be large enough to avoid conflicts
-        # with the original membership
-        # I do believe this number will not be changed as 1e6+ computation grids are not practical
+        graph_member_excess_this <-
+          which(graph_member_excess == unique(graph_member_excess)[i])
+        graph_member_excess_repl <-
+          graph_member_excess[graph_member_excess_this]
+        # 1e6 is arbitrarily chosen; it should be large enough to avoid
+        # conflicts with the original membership
+        # I do believe this number will not be changed as 1e6+
+        # computation grids are not practical
         graph_member_excess_split <-
           split(
             graph_member_excess_repl,
@@ -529,13 +554,14 @@ par_merge_grid <-
 
         graph_member_excess_split <-
           mapply(function(x, y) {
-              rep(sapply(y, as.numeric), length(x))
+              rep(vapply(y, FUN = as.numeric, FUN.VALUE = 0), length(x))
             }, graph_member_excess_split, names(graph_member_excess_split),
             SIMPLIFY = TRUE
           )
         graph_member_excess_split <- unname(unlist(graph_member_excess_split))
-        identified_graph_member2[which(identified_graph_member2 == unique(graph_member_excess)[i])] <-
-          graph_member_excess_split
+        identified_graph_member2[
+          which(identified_graph_member2 == unique(graph_member_excess)[i])] <-
+            graph_member_excess_split
       }
       identified_graph_member <- identified_graph_member2
     } else {
@@ -548,15 +574,19 @@ par_merge_grid <-
     # 11. Label the merged grids
     merge_member_label <-
       unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))
-    merge_member_label <- mapply(function(lst, label) {
-      rep(label, length(lst)) },
-      merge_member, merge_member_label, SIMPLIFY = TRUE)
+    merge_member_label <-
+      mapply(
+        function(lst, label) {
+          rep(label, length(lst))
+        },
+        merge_member, merge_member_label, SIMPLIFY = TRUE
+      )
     merge_member_label <- unlist(merge_member_label)
 
     # 12. Assign labels to the original sf object
     grid_out <- grid_pc
     grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
-    
+
     grid_out <- grid_out |>
       dplyr::group_by(!!rlang::sym("CGRIDID")) |>
       dplyr::summarize(n_merged = dplyr::n()) |>
@@ -602,7 +632,10 @@ par_merge_grid <-
 #' library(terra)
 #' library(anticlust)
 #' data(ncpoints, package = "chopin")
-#' ncp <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = FALSE, crs = "EPSG:5070")
+#' ncp <- terra::vect(
+#'   ncpoints, geom = c("X", "Y"),
+#'   keepgeom = FALSE, crs = "EPSG:5070"
+#' )
 #' par_group_balanced(ncp, 10)
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering

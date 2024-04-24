@@ -28,7 +28,10 @@ The results will be inexhaustive grids.
 library(terra)
 library(anticlust)
 data(ncpoints, package = "chopin")
-ncp <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = FALSE, crs = "EPSG:5070")
+ncp <- terra::vect(
+  ncpoints, geom = c("X", "Y"),
+  keepgeom = FALSE, crs = "EPSG:5070"
+)
 par_group_balanced(ncp, 10)
 }
 \author{

@@ -41,7 +41,10 @@ clip actual datasets. Depending on the length unit of the CRS of input.}
 
 \item{unit}{character(1). The length unit for padding (optional).
 units::set_units is used for padding when sf object is used.
-See \href{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html}{units package vignette (web)}
+See \link{units package vignette (web)}(
+https://cran.r-project.org/web/packages/
+units/vignettes/measurement_units_in_R.html
+)
 for the list of acceptable unit forms.}
 
 \item{quantiles}{numeric. Quantiles for \code{grid_quantile} mode.}

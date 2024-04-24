@@ -49,7 +49,8 @@ Coordinates where buffers will be generated.}
 \item{surf}{\code{SpatRaster} object or file path(s) with extensions
 that are GDAL-compatible. A raster from which a summary will be calculated}
 
-\item{radius}{numeric(1). Buffer radius. here we assume circular buffers only}
+\item{radius}{numeric(1). Buffer radius.
+Here we assume circular buffers only}
 
 \item{id}{character(1). Unique identifier of each point.}
 

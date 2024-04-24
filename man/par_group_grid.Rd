@@ -26,7 +26,8 @@ grid polygons in the class of input
 \description{
 This function is an extension of \code{par_group_balanced}
 to be compatible with \code{par_grid}, for which a set of padded grids
-of the extent of input point subsets (as recorded in the field named \code{"CGRIDID"})
+of the extent of input point subsets
+(as recorded in the field named \code{"CGRIDID"})
 is generated out of input points along with the output of
 \code{par_group_balanced}.
 }

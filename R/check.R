@@ -387,7 +387,7 @@ any_class_args <- function(
 ) {
   searchphrase <- sprintf("(%s)", search)
   args_scanned <- lapply(args, function(x) any(grepl(searchphrase, class(x))))
-  args_scanned <- sapply(args_scanned, any)
+  args_scanned <- vapply(args_scanned, FUN = any, FUN.VALUE = logical(1))
   return(args_scanned)
 }
 

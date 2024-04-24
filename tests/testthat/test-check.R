@@ -53,10 +53,6 @@ testthat::test_that("CRS is transformed when it is not standard", {
   sf::st_crs(ncna) <- NA
   ncnatr <- terra::vect(ncna)
 
-  # testthat::expect_error(reproject_std(nc, 4326))
-  # testthat::expect_error(reproject_std(ncna, crs_standard = "EPSG:4326"))
-  # testthat::expect_error(reproject_std(ncnatr, "EPSG:4326"))
-
   testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:4326"))
   testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:5070"))
   testthat::expect_no_error(reproject_std(nctr, crs_standard = "EPSG:4326"))
