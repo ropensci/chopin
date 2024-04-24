@@ -52,7 +52,7 @@ equal number of points. Grids will be generated based on the cluster extents."><
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Generate groups based on balanced clustering</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/NIEHS/chopin/blob/HEAD/R/gridding.R" class="external-link"><code>R/gridding.R</code></a></small>
       <div class="d-none name"><code>par_group_balanced.Rd</code></div>
     </div>
 
@@ -99,7 +99,10 @@ The results will be inexhaustive grids.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/m-Py/anticlust" class="external-link">anticlust</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ncpoints</span>, package <span class="op">=</span> <span class="st">"chopin"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">ncp</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpoints</span>, geom <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>, keepgeom <span class="op">=</span> <span class="cn">FALSE</span>, crs <span class="op">=</span> <span class="st">"EPSG:5070"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ncp</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">ncpoints</span>, geom <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  keepgeom <span class="op">=</span> <span class="cn">FALSE</span>, crs <span class="op">=</span> <span class="st">"EPSG:5070"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">par_group_balanced</span><span class="op">(</span><span class="va">ncp</span>, <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  class       : SpatVector </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  geometry    : points </span>
