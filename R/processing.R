@@ -1,5 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
 #' Kernel functions
 #' @family Macros for calculation
 #' @param kernel Kernel type. One of
@@ -824,5 +822,3 @@ summarize_aw <-
     )
 
   }
-
-

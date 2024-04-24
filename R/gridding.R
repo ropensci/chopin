@@ -1,5 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
 #' Get a set of computational grids
 #' @family Parallelization
 #' @param input sf or Spat* object.
@@ -19,11 +17,8 @@
 # nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'   units::set_units is used for padding when sf object is used.
-#'   See [units package vignette (web)](
-#'   https://cran.r-project.org/web/packages/
-#'   units/vignettes/measurement_units_in_R.html
-#'   )
-#'  for the list of acceptable unit forms.
+#'   See https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'   for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 # nolint end
 #' @param ... arguments passed to the internal function
@@ -662,5 +657,3 @@ par_group_balanced <- function(
   points_in$CGRIDID <- cl
   return(points_in)
 }
-
-

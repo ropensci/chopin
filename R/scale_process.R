@@ -1,5 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
 #' Parallelization error fallback
 #' @family Parallelization
 #' @param err Error status or message.
@@ -504,6 +502,3 @@ par_multirasters <-
 
     return(results_distributed)
   }
-
-
-

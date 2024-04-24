@@ -1,6 +1,4 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
-
-#' @title Switch spatial data class
+#' Switch spatial data class
 #' @family Helper functions
 #' @description Convert class between `sf`/`stars`-`terra`
 #' @author Insang Song
