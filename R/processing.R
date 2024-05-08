@@ -174,6 +174,11 @@ clip_ras_ext <- function(
 #' @param kernel character(1). Name of a kernel function
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
 #' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
+#'   It only works with `points` of character(1) file path.
+#'   When using numeric(4), it should be in the order of
+#'   `c(xmin, xmax, ymin, ymax)`. The coordinate system should be the same
+#'   as the `points`.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
 #' @returns a data.frame object with mean value
@@ -206,14 +211,18 @@ extract_at_buffer <- function(
   func = "mean",
   kernel = NULL,
   bandwidth = NULL,
+  extent = NULL,
   max_cells = 2e7
 ) {
   # type check
-  if (!methods::is(points, "SpatVector")) {
-    if (!methods::is(points, "sf")) {
-      stop("Check class of the input points.\n")
-    }
-    points <- terra::vect(points)
+  if (!any(
+    sapply(
+      c("SpatVector", "sf", "character"),
+      methods::is,
+      object = points
+    )
+  )) {
+    stop("Check class of the input points.\n")
   }
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
@@ -229,6 +238,9 @@ extract_at_buffer <- function(
   }
   if (!is.numeric(qsegs)) {
     stop("qsegs should be numeric.\n")
+  }
+  if (is.character(points)) {
+    points <- try(terra::vect(points, extent = extent))
   }
 
   if (!is.null(kernel)) {

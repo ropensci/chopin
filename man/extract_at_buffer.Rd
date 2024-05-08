@@ -15,6 +15,7 @@ extract_at_buffer(
   func = "mean",
   kernel = NULL,
   bandwidth = NULL,
+  extent = NULL,
   max_cells = 2e+07
 )
 
@@ -63,6 +64,12 @@ Default is \code{90L}.}
 One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
+
+\item{extent}{numeric(4) or SpatExtent. Extent of clipping vector.
+It only works with \code{points} of character(1) file path.
+When using numeric(4), it should be in the order of
+\code{c(xmin, xmax, ymin, ymax)}. The coordinate system should be the same
+as the \code{points}.}
 
 \item{max_cells}{integer(1). Maximum number of cells in memory.
 See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}
