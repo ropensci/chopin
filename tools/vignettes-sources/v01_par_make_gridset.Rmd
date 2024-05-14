@@ -1,6 +1,6 @@
 ---
 title: "Generate computational grids"
-date: "2024-03-11"
+date: "2024-05-14"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Generate computational grids}
@@ -12,7 +12,6 @@ vignette: >
 
 
 
-# Prepare input data
 
 ```r
 library(chopin)
@@ -23,6 +22,36 @@ options(sf_use_s2 = FALSE)
 ```
 
 
+
+
+
+## Computational grids
+- Computational grids refer to a set of polygons that cover the entire spatial domain of interest. These grids are used to split the spatial domain into smaller pieces for parallel processing.
+- `chopin` provides functions to generate computational grids for parallel processing by `par_grid()` function.
+- The standard sequence of running `par_grid()` includes the following steps:
+    1. Generate computational grids with `par_make_gridset()` or `par_group_balanced()`-`par_group_grid()` sequence. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
+    2. Run `par_grid()` with the input dataset and the grid polygons.
+
+## Types of computational grids and their generation
+
+- There are two approaches to generate computational grids. One is to use `par_make_gridset()` with one of three `mode`s and the other is to use `par_group_balanced()` with `par_group_grid()`. Thus, users have **four options** in total to generate computational grids.
+
+### `par_make_gridset()`: standard interface
+- `par_make_gridset()` generates regular grid polygons with padding for parallel processing. Padding is the distance of overlapping between grid polygons, essentially from the buffer radius of the points when buffer polygons are concerned.
+- `par_make_gridset()` supports three internal `mode`s:
+    - `mode = "grid"`: generates regular grid polygons with padding, `nx` and `ny` arguments determine the number of columns and rows in the grid, respectively.
+    - `mode = "grid_quantile"`: generates regular grid polygons with padding based on quantiles of the number of points in each grid. The grids will look irregular and the points per grid will be more balanced than the `grid` mode.
+    - `mode = "grid_advanced"`: generates regular grid polygons with padding based on the number of points in each grid and the number of points in the entire dataset. `nx` and `ny` arguments determine the number of columns and rows in the grid, then `merge_max` argument controls how many adjacent grids are merged into one grid. `grid_min_features` argument determines the minimum number of points in each grid, which means grids with fewer points than this value will be merged with adjacent grids. Adjusting these arguments can balance the computational load among the threads and reduce the overhead of parallelization.
+
+
+### `par_group_balanced()` and `par_group_grid()`: focusing on getting the balanced clusters
+- Expanding the exhaustive grid generation, `par_group_balanced()` generates rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing by converting it to the grid sets with `par_group_grid()`.
+
+
+
+### Random points in NC
+- For demonstration of `par_make_gridset()`, we use moderately clustered point locations generated inside the counties of North Carolina.
+
 ```r
 ncpoly <- system.file("shape/nc.shp", package = "sf")
 ncsf <- sf::read_sf(ncpoly)
@@ -31,28 +60,40 @@ plot(sf::st_geometry(ncsf))
 ```
 
 <div class="figure">
-<img src="figures/nc-load-1.png" alt="plot of chunk nc-load" width="900px" />
-<p class="caption">plot of chunk nc-load</p>
+<img src="figure/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="900px" />
+<p class="caption">plot of chunk nc-gen-points</p>
 </div>
 
-
 ```r
-ncpoints <- sf::st_sample(ncsf, 10000)
+set.seed(202404)
+library(spatstat.random)
+ncpoints <-
+  sf::st_sample(
+    x = ncsf,
+    type = "Thomas",
+    mu = 20,
+    scale = 1e4,
+    kappa = 1.25e-9
+  )
+ncpoints <- sf::st_as_sf(ncpoints)
+ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
 plot(sf::st_geometry(ncpoints))
 ```
 
 <div class="figure">
-<img src="figures/nc-random-1.png" alt="plot of chunk nc-random" width="900px" />
-<p class="caption">plot of chunk nc-random</p>
+<img src="figure/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="900px" />
+<p class="caption">plot of chunk nc-gen-points</p>
 </div>
 
 ```r
-# st_sample output is st_sfc. We should convert it to sf
-ncpoints <- st_as_sf(ncpoints)
-ncpoints$pid <- seq(1, nrow(ncpoints))
+# convert to terra SpatVector
+ncpoints_tr <- chopin::dep_switch(ncpoints)
 ```
 
-# Computational grids
+
+<!--![](https://i.imgur.com/ImPfGXP.png) -->
+
+
 
 ## Visualize computational grids
 
@@ -82,66 +123,266 @@ plot(compregions$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="900px" />
+<img src="figure/grid-plain-1.png" alt="plot of chunk grid-plain" width="900px" />
 <p class="caption">plot of chunk grid-plain</p>
 </div>
 
-## Other types of grids
+### Generate regular grid computational regions
+- `chopin::par_make_gridset()` takes a spatial dataset to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 
 ```r
-# returns 5 by 5 grids
-compregions_q <-
+compregions <-
   chopin::par_make_gridset(
     ncpoints_tr,
-    mode = "grid_quantile",
-    padding = 1e4L,
-    quantiles = par_def_q(5L)
+    mode = "grid",
+    nx = 8L,
+    ny = 5L,
+    padding = 1e4L
   )
+```
 
-par(mfcol = c(1, 2))
-plot(compregions_q$original, main = "Original grids (quantiles)")
-plot(compregions_q$padded, main = "Padded grids (quantiles)")
+- The output of `par_make_gridset()` is a list object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The class of each element depends on the input dataset class. The figures below illustrate the grid polygons with and without overlaps.
+
+
+```r
+names(compregions)
+```
+
+```
+## [1] "original" "padded"
+```
+
+```r
+oldpar <- par()
+par(mfrow = c(2, 1))
+terra::plot(compregions$original, main = "Original grids")
+terra::plot(compregions$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/grid-others-1.png" alt="plot of chunk grid-others" width="900px" />
-<p class="caption">plot of chunk grid-others</p>
+<img src="figure/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="900px" />
+<p class="caption">plot of chunk compare-compregions</p>
 </div>
 
-## Clustered points
-Clustered points will produce larger merged grids in the results with `mode = "grid_advanced"`.
-
 ```r
-## advanced
-data("ncpoints", package = "chopin")
-ncpoints <- sf::st_as_sf(ncpoints, coords = 1:2, crs = "EPSG:5070")
-plot(ncpoints$geometry, col = "red", cex = 0.5)
+par(mfrow = c(1, 1))
+terra::plot(compregions$original, main = "Original grids")
+terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/grid-advanced-1.png" alt="plot of chunk grid-advanced" width="900px" />
-<p class="caption">plot of chunk grid-advanced</p>
+<img src="figure/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="900px" />
+<p class="caption">plot of chunk compare-compregions</p>
 </div>
 
+
+### Split the points by two 1D quantiles
+- `mode = "grid_quantile"` generates regular grid polygons with padding based on quantiles of the coordinates in each dimension.
+- When using this mode, users should define `quantiles` argument, which will be used to get the same number of quantiles in each dimension. A convenient way to define quantiles is to use `chopin::par_def_q()` function.
+
+
 ```r
-compregions_a <-
+grid_quantiles <-
   chopin::par_make_gridset(
-    ncpoints,
-    mode = "grid_advanced",
-    padding = 1e4L,
-    nx = 15L, ny = 8L,
-    grid_min_features = 20L
+    input = ncpoints_tr,
+    mode = "grid_quantile",
+    quantiles = chopin::par_def_q(4L),
+    padding = 1e4L
   )
-par(mfcol = c(1, 2))
-plot(compregions_a$original$geometry, main = "Original grids (advanced)")
-plot(compregions_a$padded$geometry, main = "Padded grids (advanced)")
+
+names(grid_quantiles)
+```
+
+```
+## [1] "original" "padded"
+```
+
+```r
+par(mfrow = c(2, 1))
+terra::plot(grid_quantiles$original, main = "Original grids")
+terra::plot(grid_quantiles$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/grid-advanced-2.png" alt="plot of chunk grid-advanced" width="900px" />
-<p class="caption">plot of chunk grid-advanced</p>
+<img src="figure/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="900px" />
+<p class="caption">plot of chunk split-points-grid</p>
+</div>
+
+```r
+par(mfrow = c(1, 1))
+terra::plot(grid_quantiles$original, main = "Original grids")
+terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+```
+
+<div class="figure">
+<img src="figure/split-points-grid-2.png" alt="plot of chunk split-points-grid" width="900px" />
+<p class="caption">plot of chunk split-points-grid</p>
 </div>
 
 
-## Notes
-- Computational grids are the exhaustive split of the entire study region. You should take a square buffer of each grid to clip the target raster or vector.
+### Merge the grids based on the number of points
+- `mode = "grid_advanced"` utilizes finer grids to merge the results from the finer grids into the coarser grids. This behavior can balance the computational load among the threads and reduce the overhead of parallelization. That said, this mode internally generates grids in `mode = "grid"` and merges them based on the number of points in each grid.
+- To determine the adjacency and merging behavior, minimum spanning tree is used. The function utilizes `igraph::mst()` and other graph summary functions under the hood. 
+- As a note, you could adjust the merging behavior by changing the arguments `grid_min_features` and `merge_max`.
+
+
+```r
+grid_advanced1 <-
+  chopin::par_make_gridset(
+    input = ncpoints_tr,
+    mode = "grid_advanced",
+    nx = 15L,
+    ny = 8L,
+    padding = 1e4L,
+    grid_min_features = 25L,
+    merge_max = 5L
+  )
+
+par(mfrow = c(2, 1))
+terra::plot(grid_advanced1$original, main = "Original grids")
+terra::plot(grid_advanced1$padded, main = "Padded grids")
+```
+
+<div class="figure">
+<img src="figure/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="900px" />
+<p class="caption">plot of chunk split-points-grid-adv</p>
+</div>
+
+```r
+par(mfrow = c(1, 1))
+terra::plot(grid_advanced1$original, main = "Merged grids (merge_max = 5)")
+terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+```
+
+<div class="figure">
+<img src="figure/split-points-grid-adv-2.png" alt="plot of chunk split-points-grid-adv" width="900px" />
+<p class="caption">plot of chunk split-points-grid-adv</p>
+</div>
+
+
+
+```r
+ncpoints$n <- 1
+n_points <- terra::zonal(terra::vect(ncpoints), terra::vect(grid_advanced1$original), fun = "sum")[["n"]]
+```
+
+```
+## Error in h(simpleError(msg, call)): error in evaluating the argument 'z' in selecting a method for function 'zonal': unable to find an inherited method for function 'vect' for signature '"SpatVector"'
+```
+
+```r
+grid_advanced1g <- grid_advanced1$original
+grid_advanced1g$n_points <- n_points
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'n_points' not found
+```
+
+```r
+terra::plot(grid_advanced1g, "n_points", main = "Number of points in each grid")
+```
+
+```
+## Error: [plot] n_points is not a name in x
+```
+
+#### Different values in `merge_max`
+- Keeping other arguments the same, we can see the difference in the number of merged grids by changing the `merge_max` argument.
+
+```r
+grid_advanced2 <-
+  chopin::par_make_gridset(
+    input = ncpoints,
+    mode = "grid_advanced",
+    nx = 15L,
+    ny = 8L,
+    padding = 1e4L,
+    grid_min_features = 25L,
+    merge_max = 8L
+  )
+
+par(mfrow = c(2, 1))
+terra::plot(grid_advanced2$original, main = "Original grids")
+```
+
+<div class="figure">
+<img src="figure/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="900px" />
+<p class="caption">plot of chunk split-points-grid-adv2</p>
+</div>
+
+```r
+terra::plot(grid_advanced2$padded, main = "Padded grids")
+```
+
+<div class="figure">
+<img src="figure/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="900px" />
+<p class="caption">plot of chunk split-points-grid-adv2</p>
+</div>
+
+```r
+par(mfrow = c(1, 1))
+terra::plot(grid_advanced2$original, main = "Merged grids (merge_max = 8)")
+terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+```
+
+<div class="figure">
+<img src="figure/split-points-grid-adv2-3.png" alt="plot of chunk split-points-grid-adv2" width="900px" />
+<p class="caption">plot of chunk split-points-grid-adv2</p>
+</div>
+
+
+#### `par_group_balanced()`
+- `par_group_balanced()` uses `anticlust` package to split the point set into the balanced clusters.
+- `par_group_grid()` makes a compatible object to the output of `par_make_gridset()` directly from the input points.
+
+
+```r
+group_bal_grid <-
+  chopin::par_group_grid(
+    points_in = ncpoints_tr,
+    ngroups = 10L,
+    padding = 1e4
+  )
+```
+
+```
+## Error in par_group_balanced(points_in, ngroups): lazy-load database '/ddn/gs1/home/songi2/r-libs/anticlust/R/anticlust.rdb' is corrupt
+```
+
+```r
+par(mfrow = c(2, 1))
+terra::plot(group_bal_grid$original, main = "Original grids")
+```
+
+```
+## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'group_bal_grid' not found
+```
+
+```r
+terra::plot(group_bal_grid$padded, main = "Padded grids")
+```
+
+```
+## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'group_bal_grid' not found
+```
+
+```r
+par(mfrow = c(1, 1))
+terra::plot(group_bal_grid$original, main = "Original grids")
+```
+
+```
+## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'group_bal_grid' not found
+```
+
+```r
+terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+```
+
+```
+## Error in .External.graphics(C_plotXY, xy, t, pch, lty, col, bg, cex, lwd, : plot.new has not been called yet
+```
+
+
+

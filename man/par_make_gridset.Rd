@@ -13,6 +13,7 @@ par_make_gridset(
   padding = NULL,
   unit = NULL,
   quantiles = NULL,
+  merge_max = NULL,
   ...
 )
 }
@@ -45,6 +46,9 @@ See https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in
 for the list of acceptable unit forms.}
 
 \item{quantiles}{numeric. Quantiles for \code{grid_quantile} mode.}
+
+\item{merge_max}{integer(1). Maximum number of grids to merge
+per merged set.}
 
 \item{...}{arguments passed to the internal function}
 }

@@ -20,6 +20,8 @@
 #'   See https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'   for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
+#' @param merge_max integer(1). Maximum number of grids to merge
+#'   per merged set.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
@@ -65,6 +67,7 @@ par_make_gridset <-
       padding = NULL,
       unit = NULL,
       quantiles = NULL,
+      merge_max = NULL,
       ...) {
     mode <- match.arg(mode)
 
@@ -92,7 +95,8 @@ par_make_gridset <-
         par_merge_grid(
           points_in = input,
           par_make_grid(input, nx, ny),
-          grid_min_features = grid_min_features
+          grid_min_features = grid_min_features,
+          merge_max = merge_max
         ),
         grid_quantile = par_cut_coords(
           x = input,
