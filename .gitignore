@@ -22,3 +22,5 @@ input
 
 # benchmark output qs files
 /*.qs
+/doc/
+/Meta/

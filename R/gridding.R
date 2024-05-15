@@ -165,7 +165,7 @@ par_make_gridset <-
 par_group_grid <-
   function(
     points_in = NULL,
-    ngroups = NULL,
+    ngroups,
     padding
   ) {
     if (missing(ngroups)) {

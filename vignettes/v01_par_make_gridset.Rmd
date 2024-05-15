@@ -1,6 +1,6 @@
 ---
 title: "Generate computational grids"
-date: "2024-05-14"
+date: "2024-05-15"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Generate computational grids}
@@ -18,6 +18,8 @@ library(chopin)
 library(dplyr)
 library(sf)
 library(terra)
+library(anticlust)
+library(igraph)
 options(sf_use_s2 = FALSE)
 ```
 
@@ -29,12 +31,12 @@ options(sf_use_s2 = FALSE)
 - Computational grids refer to a set of polygons that cover the entire spatial domain of interest. These grids are used to split the spatial domain into smaller pieces for parallel processing.
 - `chopin` provides functions to generate computational grids for parallel processing by `par_grid()` function.
 - The standard sequence of running `par_grid()` includes the following steps:
-    1. Generate computational grids with `par_make_gridset()` or `par_group_balanced()`-`par_group_grid()` sequence. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
+    1. Generate computational grids with `par_make_gridset()` or `par_group_grid()`. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
     2. Run `par_grid()` with the input dataset and the grid polygons.
 
 ## Types of computational grids and their generation
 
-- There are two approaches to generate computational grids. One is to use `par_make_gridset()` with one of three `mode`s and the other is to use `par_group_balanced()` with `par_group_grid()`. Thus, users have **four options** in total to generate computational grids.
+- There are two approaches to generate computational grids. One is to use `par_make_gridset()` with one of three `mode`s and the other is to use `par_group_grid()`. Thus, users have **four options** in total to generate computational grids.
 
 ### `par_make_gridset()`: standard interface
 - `par_make_gridset()` generates regular grid polygons with padding for parallel processing. Padding is the distance of overlapping between grid polygons, essentially from the buffer radius of the points when buffer polygons are concerned.
@@ -44,8 +46,8 @@ options(sf_use_s2 = FALSE)
     - `mode = "grid_advanced"`: generates regular grid polygons with padding based on the number of points in each grid and the number of points in the entire dataset. `nx` and `ny` arguments determine the number of columns and rows in the grid, then `merge_max` argument controls how many adjacent grids are merged into one grid. `grid_min_features` argument determines the minimum number of points in each grid, which means grids with fewer points than this value will be merged with adjacent grids. Adjusting these arguments can balance the computational load among the threads and reduce the overhead of parallelization.
 
 
-### `par_group_balanced()` and `par_group_grid()`: focusing on getting the balanced clusters
-- Expanding the exhaustive grid generation, `par_group_balanced()` generates rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing by converting it to the grid sets with `par_group_grid()`.
+### `par_group_grid()`: focusing on getting the balanced clusters
+- Expanding the exhaustive grid generation, `par_group_grid()` generates rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing by converting it to the grid sets with `par_group_grid()`.
 
 
 
@@ -60,7 +62,7 @@ plot(sf::st_geometry(ncsf))
 ```
 
 <div class="figure">
-<img src="figures/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="900px" />
+<img src="figures/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="600px" />
 <p class="caption">plot of chunk nc-gen-points</p>
 </div>
 
@@ -81,7 +83,7 @@ plot(sf::st_geometry(ncpoints))
 ```
 
 <div class="figure">
-<img src="figures/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="900px" />
+<img src="figures/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="600px" />
 <p class="caption">plot of chunk nc-gen-points</p>
 </div>
 
@@ -109,6 +111,16 @@ compregions <-
     padding = 1e4L
   )
 
+# a list object
+class(compregions)
+```
+
+```
+## [1] "list"
+```
+
+```r
+# length of 2
 names(compregions)
 ```
 
@@ -117,13 +129,13 @@ names(compregions)
 ```
 
 ```r
-par(mfcol = c(1, 2))
+par(mfrow = c(2, 1))
 plot(compregions$original, main = "Original grids")
 plot(compregions$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="900px" />
+<img src="figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="600px" />
 <p class="caption">plot of chunk grid-plain</p>
 </div>
 
@@ -160,7 +172,7 @@ terra::plot(compregions$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="900px" />
+<img src="figures/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="600px" />
 <p class="caption">plot of chunk compare-compregions</p>
 </div>
 
@@ -171,7 +183,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="900px" />
+<img src="figures/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="600px" />
 <p class="caption">plot of chunk compare-compregions</p>
 </div>
 
@@ -201,21 +213,21 @@ names(grid_quantiles)
 par(mfrow = c(2, 1))
 terra::plot(grid_quantiles$original, main = "Original grids")
 terra::plot(grid_quantiles$padded, main = "Padded grids")
-
-par(mfrow = c(1, 1))
-terra::plot(grid_qunatiles$original, main = "Original grids")
 ```
 
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'grid_qunatiles' not found
-```
+<div class="figure">
+<img src="figures/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="600px" />
+<p class="caption">plot of chunk split-points-grid</p>
+</div>
 
 ```r
+par(mfrow = c(1, 1))
+terra::plot(grid_quantiles$original, main = "Original grids")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figure/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="900px" />
+<img src="figures/split-points-grid-2.png" alt="plot of chunk split-points-grid" width="600px" />
 <p class="caption">plot of chunk split-points-grid</p>
 </div>
 
@@ -241,62 +253,40 @@ grid_advanced1 <-
 par(mfrow = c(2, 1))
 terra::plot(grid_advanced1$original, main = "Original grids")
 terra::plot(grid_advanced1$padded, main = "Padded grids")
-
-par(mfrow = c(1, 1))
-terra::plot(grid_qunatiles$original, main = "Merged grids (merge_max = 5)")
 ```
 
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'grid_qunatiles' not found
-```
+<div class="figure">
+<img src="figures/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="600px" />
+<p class="caption">plot of chunk split-points-grid-adv</p>
+</div>
 
 ```r
+par(mfrow = c(1, 1))
+terra::plot(grid_advanced1$original, main = "Merged grids (merge_max = 5)")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figure/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="900px" />
+<img src="figures/split-points-grid-adv-2.png" alt="plot of chunk split-points-grid-adv" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv</p>
 </div>
 
 
 
 ```r
-par(mfrow = c(1, 1))
-terra::plot(grid_advanced1$original, main = "Original grids")
-terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
-```
+ncpoints_tr$n <- 1
+n_points <- terra::zonal(ncpoints_tr, grid_advanced1$original, fun = "sum")[["n"]]
 
-<div class="figure">
-<img src="figure/unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2" width="900px" />
-<p class="caption">plot of chunk unnamed-chunk-2</p>
-</div>
-
-```r
-ncpoints$n <- 1
-n_points <- terra::zonal(terra::vect(ncpoints), terra::vect(grid_advanced1$original), fun = "sum")[["n"]]
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'z' in selecting a method for function 'zonal': unable to find an inherited method for function 'vect' for signature '"SpatVector"'
-```
-
-```r
 grid_advanced1g <- grid_advanced1$original
 grid_advanced1g$n_points <- n_points
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'n_points' not found
-```
-
-```r
 terra::plot(grid_advanced1g, "n_points", main = "Number of points in each grid")
 ```
 
-```
-## Error: [plot] n_points is not a name in x
-```
+<div class="figure">
+<img src="figures/split-points-count-1.png" alt="plot of chunk split-points-count" width="600px" />
+<p class="caption">plot of chunk split-points-count</p>
+</div>
 
 #### Different values in `merge_max`
 - Keeping other arguments the same, we can see the difference in the number of merged grids by changing the `merge_max` argument.
@@ -304,7 +294,7 @@ terra::plot(grid_advanced1g, "n_points", main = "Number of points in each grid")
 ```r
 grid_advanced2 <-
   chopin::par_make_gridset(
-    input = ncpoints,
+    input = ncpoints_tr,
     mode = "grid_advanced",
     nx = 15L,
     ny = 8L,
@@ -315,19 +305,11 @@ grid_advanced2 <-
 
 par(mfrow = c(2, 1))
 terra::plot(grid_advanced2$original, main = "Original grids")
-```
-
-<div class="figure">
-<img src="figure/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="900px" />
-<p class="caption">plot of chunk split-points-grid-adv2</p>
-</div>
-
-```r
 terra::plot(grid_advanced2$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figure/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="900px" />
+<img src="figures/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv2</p>
 </div>
 
@@ -338,62 +320,40 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figure/split-points-grid-adv2-3.png" alt="plot of chunk split-points-grid-adv2" width="900px" />
+<img src="figures/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv2</p>
 </div>
 
 
-#### `par_group_balanced()`
-- `par_group_balanced()` uses `anticlust` package to split the point set into the balanced clusters.
+#### `par_group_grid()`
+- `par_group_grid()` uses `anticlust` package to split the point set into the balanced clusters.
+    - In the background, `par_group_balanced()` is run first to generate the equally sized clusters from the input. Then, padding is applied to the extent of each cluster to be compatible with `par_grid()`, where both the original and the padded grids are used.
+    - Please note that `ngroups` argument value must be the **exact** divisor of the number of points. For example, in the example below, when one changes `ngroups` to `10L`, it will fail as the number of points is not divisible by 10.
+    - Consult the `anticlust` package for more details on the algorithm.
 - `par_group_grid()` makes a compatible object to the output of `par_make_gridset()` directly from the input points.
+- As illustrated in the figure below, the points will be split into `ngroups` clusters with the same number of points then processed in parallel by using the output object with `par_grid()`.
 
 
 ```r
 group_bal_grid <-
   chopin::par_group_grid(
     points_in = ncpoints_tr,
-    ngroups = 10L,
+    ngroups = 23L,
     padding = 1e4
   )
-```
+group_bal_grid$original$CGRIDID <- as.factor(group_bal_grid$original$CGRIDID)
 
-```
-## Error in par_group_balanced(points_in, ngroups): lazy-load database '/ddn/gs1/home/songi2/r-libs/anticlust/R/anticlust.rdb' is corrupt
-```
-
-```r
 par(mfrow = c(2, 1))
-terra::plot(group_bal_grid$original, main = "Original grids")
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'group_bal_grid' not found
-```
-
-```r
+terra::plot(group_bal_grid$original, "CGRIDID",
+            legend = FALSE,
+            main = "Assigned points (ngroups = 23)")
 terra::plot(group_bal_grid$padded, main = "Padded grids")
 ```
 
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'group_bal_grid' not found
-```
-
-```r
-par(mfrow = c(1, 1))
-terra::plot(group_bal_grid$original, main = "Original grids")
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'group_bal_grid' not found
-```
-
-```r
-terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
-```
-
-```
-## Error in .External.graphics(C_plotXY, xy, t, pch, lty, col, bg, cex, lwd, : plot.new has not been called yet
-```
+<div class="figure">
+<img src="figures/par-group-balanced-1.png" alt="plot of chunk par-group-balanced" width="600px" />
+<p class="caption">plot of chunk par-group-balanced</p>
+</div>
 
 
 
