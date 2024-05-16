@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2.20240423</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,7 +72,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Good practice of using `chopin` in HPC</h1>
             
-            <h4 data-toc-skip class="date">2024-04-24</h4>
+            <h4 data-toc-skip class="date">2024-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/NIEHS/chopin/blob/HEAD/vignettes/v00_good_practice_parallelization.Rmd" class="external-link"><code>vignettes/v00_good_practice_parallelization.Rmd</code></a></small>
       <div class="d-none name"><code>v00_good_practice_parallelization.Rmd</code></div>
@@ -86,8 +86,10 @@
 <ul>
 <li>Users can access multi-threaded central processing units and
 sufficient memory (i.e., at least 4GB/thread)</li>
-<li>Single-node calculation: as of version 0.3.0, <code>chopin</code>
-only supports single-node</li>
+<li>Single-node calculation: as of version 0.3.0, <code>chopin</code>,
+functions were tested in a single-node environment. Users should
+consider using <code>chopin</code> in a multi-node environment with
+caution.</li>
 </ul>
 </div>
 <div class="section level2">

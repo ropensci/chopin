@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2.20240423</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -164,7 +164,7 @@
 <li>Visual Studio Code (with R extension): download and open this document then press “Run Above” at the last code chunk.</li>
 <li>If you prefer command line (i.e., in Unix-like operating systems), run:</li>
 </ul>
-<pre class="shell"><code>git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
+<pre class="shell"><code>git clone https://github.com/NIEHS/chopin
 cd chopin
 Rscript -e \
 "
@@ -181,7 +181,7 @@ source(\"README_run.r\")
 </ul>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"Spatiotemporal-Exposures-and-Toxicology/chopin"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"NIEHS/chopin"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
@@ -271,7 +271,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   9.431   0.165   9.632</span></span></code></pre></div>
+<span><span class="co">#&gt;  11.842   0.324  12.208</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
@@ -368,7 +368,7 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 32</span></span>
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 33</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.541   1.260   3.200</span></span></code></pre></div>
+<span><span class="co">#&gt;  10.509   1.935   4.076</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">ncpoints_srtm_mthr</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"mean_par"</span></span>
 <span><span class="va">ncpoints_compar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints_srtm</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
@@ -407,7 +407,7 @@ source(\"README_run.r\")
 <span><span class="va">nc_data</span> <span class="op">&lt;-</span> <span class="va">path_nchrchy</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `county' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/RtmpMgu9Ju/temp_libpath83077453d9e66/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpJGd6wi/temp_libpath2cb30934092abf/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 100 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
@@ -416,7 +416,7 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
 <span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `tracts' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/RtmpMgu9Ju/temp_libpath83077453d9e66/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpJGd6wi/temp_libpath2cb30934092abf/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2672 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
@@ -444,7 +444,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.739   0.065   1.810</span></span>
+<span><span class="co">#&gt;   2.054   0.078   2.140</span></span>
 <span></span>
 <span><span class="co"># hierarchical parallelization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -460,7 +460,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.037   0.017   2.249</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.044   0.017   2.746</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -488,9 +488,9 @@ source(\"README_run.r\")
 <span><span class="co"># check if the raster files were exported as expected</span></span>
 <span><span class="va">testfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span>, pattern <span class="op">=</span> <span class="st">"*.tif$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">testfiles</span></span>
-<span><span class="co">#&gt; [1] "/tmp/RtmpJfLU9V/test1.tif" "/tmp/RtmpJfLU9V/test2.tif"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/RtmpJfLU9V/test3.tif" "/tmp/RtmpJfLU9V/test4.tif"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/RtmpJfLU9V/test5.tif"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/tmp/Rtmp7SJYAP/test1.tif" "/tmp/Rtmp7SJYAP/test2.tif"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/Rtmp7SJYAP/test3.tif" "/tmp/Rtmp7SJYAP/test4.tif"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/Rtmp7SJYAP/test5.tif"</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
@@ -504,7 +504,7 @@ source(\"README_run.r\")
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.305   0.503   0.841</span></span>
+<span><span class="co">#&gt;   1.727   0.603   1.119</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -516,32 +516,32 @@ source(\"README_run.r\")
 <tr class="odd">
 <td align="left">37037</td>
 <td align="right">136.80203</td>
-<td align="left">/tmp/RtmpJfLU9V/test1.tif</td>
+<td align="left">/tmp/Rtmp7SJYAP/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="left">37001</td>
 <td align="right">189.76170</td>
-<td align="left">/tmp/RtmpJfLU9V/test1.tif</td>
+<td align="left">/tmp/Rtmp7SJYAP/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="left">37057</td>
 <td align="right">231.16968</td>
-<td align="left">/tmp/RtmpJfLU9V/test1.tif</td>
+<td align="left">/tmp/Rtmp7SJYAP/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="left">37069</td>
 <td align="right">98.03845</td>
-<td align="left">/tmp/RtmpJfLU9V/test1.tif</td>
+<td align="left">/tmp/Rtmp7SJYAP/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="left">37155</td>
 <td align="right">41.23463</td>
-<td align="left">/tmp/RtmpJfLU9V/test1.tif</td>
+<td align="left">/tmp/Rtmp7SJYAP/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="left">37109</td>
 <td align="right">270.96933</td>
-<td align="left">/tmp/RtmpJfLU9V/test1.tif</td>
+<td align="left">/tmp/Rtmp7SJYAP/test1.tif</td>
 </tr>
 </tbody>
 </table>
@@ -611,7 +611,7 @@ source(\"README_run.r\")
 <span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pnts</span>, y <span class="op">=</span> <span class="va">rd1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.922   0.008   0.933</span></span>
+<span><span class="co">#&gt;   0.943   0.005   0.950</span></span>
 <span></span>
 <span><span class="co"># we use four threads that were configured above</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -632,7 +632,7 @@ source(\"README_run.r\")
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 7</span></span>
 <span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 8</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.988   0.472   0.524</span></span></code></pre></div>
+<span><span class="co">#&gt;   1.096   0.543   0.582</span></span></code></pre></div>
 <ul>
 <li>We will compare the results from the single-thread and multi-thread calculation.</li>
 </ul>

@@ -14,7 +14,7 @@ Each grid will be buffered by the radius."><!-- mathjax --><script src="https://
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2.20240423</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,6 +71,7 @@ Each grid will be buffered by the radius.</p>
 <span>  padding <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  unit <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  quantiles <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  merge_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -118,6 +119,11 @@ for the list of acceptable unit forms.</p></dd>
 
 <dt>quantiles</dt>
 <dd><p>numeric. Quantiles for <code>grid_quantile</code> mode.</p></dd>
+
+
+<dt>merge_max</dt>
+<dd><p>integer(1). Maximum number of grids to merge
+per merged set.</p></dd>
 
 
 <dt>...</dt>

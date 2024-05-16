@@ -12,7 +12,7 @@ the points and the raster are the same."><!-- mathjax --><script src="https://cd
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2.20240423</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,6 +68,7 @@ the points and the raster are the same.</p>
 <span>  func <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>  kernel <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bandwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  extent <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max_cells <span class="op">=</span> <span class="fl">2e+07</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -133,6 +134,14 @@ One of <code>"uniform"</code>, <code>"triweight"</code>, <code>"quartic"</code>,
 
 <dt>bandwidth</dt>
 <dd><p>numeric(1). Kernel bandwidth.</p></dd>
+
+
+<dt>extent</dt>
+<dd><p>numeric(4) or SpatExtent. Extent of clipping vector.
+It only works with <code>points</code> of character(1) file path.
+When using numeric(4), it should be in the order of
+<code>c(xmin, xmax, ymin, ymax)</code>. The coordinate system should be the same
+as the <code>points</code>.</p></dd>
 
 
 <dt>max_cells</dt>

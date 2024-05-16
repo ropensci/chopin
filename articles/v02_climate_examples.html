@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2.20240423</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -385,7 +385,7 @@ time or custom indices.</p>
 <span><span class="co"># mean: temporally marginal pixel mean (i.e., monthly -&gt; yearly)</span></span>
 <span><span class="co"># sum: temporally marginal pixel sum (i.e., monthly -&gt; yearly)</span></span>
 <span><span class="co"># Preprocessed data are stored in</span></span>
-<span><span class="fu">tictoc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"sum: 7 layers"</span><span class="op">)</span></span>
+<span><span class="fu">tictoc</span><span class="fu">::</span><span class="fu">tic</span><span class="op">(</span><span class="st">"sum: 7 layers"</span><span class="op">)</span></span>
 <span><span class="va">netcdf_read_sum</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">bandnames_sum</span>, <span class="va">bandnames_sum</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
@@ -395,7 +395,7 @@ time or custom indices.</p>
 <span>    <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/tapp.html" class="external-link">tapp</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">x</span>, win <span class="op">=</span> <span class="va">ext_mainland</span>, snap <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, index <span class="op">=</span> <span class="st">"years"</span>, fun <span class="op">=</span> <span class="st">"sum"</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span><span class="va">netcdf_read_sum</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span><span class="va">c</span>, <span class="va">netcdf_read_sum</span><span class="op">)</span></span>
-<span><span class="fu">tictoc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">tictoc</span><span class="fu">::</span><span class="fu">toc</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; sum: 7 layers: 177.974 sec elapsed</span></span></code></pre>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">netcdf_read_sum</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">bandnames_sum</span>, each <span class="op">=</span> <span class="fl">23</span><span class="op">)</span>, <span class="st">"_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2000</span><span class="op">:</span><span class="fl">2022</span>, <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span>
