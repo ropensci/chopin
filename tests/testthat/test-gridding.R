@@ -240,3 +240,114 @@ testthat::test_that("Grid merge is well done.", {
 
 })
 
+
+testthat::test_that("par_group_balanced returns the correct output", {
+  # Create test data
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+  nc <- terra::vect(ncpath)
+  nc_rp <- terra::spatSample(nc, 1000)
+
+  # Call the function
+  testthat::expect_no_error(
+    result <- par_group_balanced(nc_rp, n_clusters = 10)
+  )
+  testthat::expect_no_error(
+    result <- par_group_balanced(sf::st_as_sf(nc_rp), n_clusters = 10)
+  )
+
+  # Perform assertions
+  testthat::expect_true("CGRIDID" %in% names(result))
+  testthat::expect_true(is.numeric(result$CGRIDID))
+  testthat::expect_equal(length(unique(result$CGRIDID)), 10)
+
+  # error cases
+  testthat::expect_error(
+    par_group_balanced(nc_rp, n_clusters = "vingt")
+  )
+  testthat::expect_error(
+    par_group_balanced(nc_rp, n_clusters = 1L)
+  )
+
+})
+
+
+testthat::test_that("par_group_grid returns the correct output", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("anticlust")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  # Test case 1: Using the example from the documentation
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  nc <- sf::read_sf(ncpath)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  nc <- terra::vect(nc)
+  nc_rp <- terra::spatSample(nc, 1000)
+  testthat::expect_no_error(
+    gridset <-
+      par_group_grid(
+        points_in = nc_rp,
+        ngroups = 10L,
+        padding = 10000
+      )
+  )
+  testthat::expect_true("original" %in% names(gridset))
+  testthat::expect_true("padded" %in% names(gridset))
+  testthat::expect_s4_class(gridset$original, "SpatVector")
+  testthat::expect_s4_class(gridset$padded, "SpatVector")
+
+  # other cases
+  testthat::expect_no_error(
+    gridset <-
+      par_group_grid(
+        points_in = sf::st_as_sf(nc_rp),
+        ngroups = 10L,
+        padding = 10000
+      )
+  )
+  testthat::expect_message(
+    gridset2 <-
+      par_group_grid(
+        points_in = nc_rp,
+        ngroups = 10,
+        padding = "10000"
+      )
+  )
+  testthat::expect_error(
+    testthat::expect_warning(
+      gridset2 <-
+      par_group_grid(
+        points_in = nc_rp,
+        ngroups = 10,
+        padding = "eintausend"
+      )
+    )
+  )
+  testthat::expect_error(
+    par_group_grid(
+      points_in = nc_rp
+    )
+  )
+  testthat::expect_error(
+    par_group_grid(
+      points_in = nc_rp,
+      ngroups = 10L
+    )
+  )
+  testthat::expect_error(
+    par_group_grid(
+      points_in = nc_rp,
+      ngroups = 10L,
+      padding = NA
+    )
+  )
+  testthat::expect_error(
+    par_group_grid(
+      points_in = nc_rp,
+      ngroups = 10L
+    )
+  )
+
+})

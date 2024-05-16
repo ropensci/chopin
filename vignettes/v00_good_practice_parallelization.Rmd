@@ -15,7 +15,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## Assumptions
 - Users can access multi-threaded central processing units and sufficient memory (i.e., at least 4GB/thread)
-- Single-node calculation: as of version 0.3.0, `chopin` only supports single-node 
+- Single-node calculation: as of version 0.3.0, `chopin`, functions were tested in a single-node environment. Users should consider using `chopin` in a multi-node environment with caution.
 
 ## Basic workflow
 
@@ -41,4 +41,4 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 - Always run a small amount of data to estimate the total computational demand.
     - `profvis::profvis()` helps to summarize runtime per function call and memory usage 
 - For testing, use `future::plan(future::sequential)` to see single-thread. Keep `chopin::par_make_gridset` arguments the same then only take one or two grids using `lapply`. Preferably the hardest case will be tested to estimate the maximum peak memory usage per thread.
-- Submit a job with a proper amount of computational assets: each HPC management system offers tools to see statistics and task summaries. Use these records to plan asset allocation for the next time. 
+- Submit a job with a proper amount of computational assets: each HPC management system offers tools to see statistics and task summaries. Use these records to plan asset allocation for the next time.

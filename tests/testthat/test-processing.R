@@ -378,6 +378,3 @@ testthat::test_that("summarize_aw works as expected.", {
   testthat::expect_error(summarize_aw(as.list(ppb_t), nc, fld, "id"))
   testthat::expect_error(summarize_aw(ppb_t, list(1, 3), fld, "id"))
 })
-
-
-

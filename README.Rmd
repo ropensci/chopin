@@ -121,7 +121,7 @@ DiagrammeR::mermaid(mermaid_chart, width = 2500, height = 600)
 - If you prefer command line (i.e., in Unix-like operating systems), run:
 
 ```shell
-git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
+git clone https://github.com/NIEHS/chopin
 cd chopin
 Rscript -e \
 "
@@ -137,7 +137,7 @@ source(\"README_run.r\")
 
 ```r
 # install.packages("remotes")
-remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
+remotes::install_github("NIEHS/chopin")
 ```
 
 

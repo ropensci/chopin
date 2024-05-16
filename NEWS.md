@@ -1,3 +1,7 @@
+# 0.6.3
+- FIX: Missing argument passing in `par_make_gridset` with `mode = "grid_advanced"`
+- Vignette update: v01
+
 # 0.6.2
 - FIX: align input-output classes in `par_merge_grid`
 - IMPROVE: grid_advanced mode supports the maximum of merged unit grids

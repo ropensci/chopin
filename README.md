@@ -114,7 +114,7 @@ future::plan(future::multicore, workers = 4L)
     run:
 
 ``` shell
-git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
+git clone https://github.com/NIEHS/chopin
 cd chopin
 Rscript -e \
 "
@@ -130,7 +130,7 @@ source(\"README_run.r\")
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
+remotes::install_github("NIEHS/chopin")
 ```
 
 ## Examples
@@ -229,7 +229,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   9.431   0.165   9.632
+#>  11.842   0.324  12.208
 ```
 
 #### Generate regular grid computational regions
@@ -337,7 +337,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
 #>    user  system elapsed 
-#>   8.541   1.260   3.200
+#>  10.509   1.935   4.076
 ```
 
 ``` r
@@ -389,7 +389,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpMgu9Ju/temp_libpath83077453d9e66/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpJGd6wi/temp_libpath2cb30934092abf/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -398,7 +398,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpMgu9Ju/temp_libpath83077453d9e66/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpJGd6wi/temp_libpath2cb30934092abf/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -426,7 +426,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.739   0.065   1.810
+#>   2.054   0.078   2.140
 
 # hierarchical parallelization
 system.time(
@@ -442,7 +442,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.037   0.017   2.249
+#>   0.044   0.017   2.746
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -469,9 +469,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpJfLU9V/test1.tif" "/tmp/RtmpJfLU9V/test2.tif"
-#> [3] "/tmp/RtmpJfLU9V/test3.tif" "/tmp/RtmpJfLU9V/test4.tif"
-#> [5] "/tmp/RtmpJfLU9V/test5.tif"
+#> [1] "/tmp/Rtmp7SJYAP/test1.tif" "/tmp/Rtmp7SJYAP/test2.tif"
+#> [3] "/tmp/Rtmp7SJYAP/test3.tif" "/tmp/Rtmp7SJYAP/test4.tif"
+#> [5] "/tmp/Rtmp7SJYAP/test5.tif"
 ```
 
 ``` r
@@ -487,18 +487,18 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.305   0.503   0.841
+#>   1.727   0.603   1.119
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpJfLU9V/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpJfLU9V/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpJfLU9V/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpJfLU9V/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpJfLU9V/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpJfLU9V/test1.tif |
+| 37037 | 136.80203 | /tmp/Rtmp7SJYAP/test1.tif |
+| 37001 | 189.76170 | /tmp/Rtmp7SJYAP/test1.tif |
+| 37057 | 231.16968 | /tmp/Rtmp7SJYAP/test1.tif |
+| 37069 |  98.03845 | /tmp/Rtmp7SJYAP/test1.tif |
+| 37155 |  41.23463 | /tmp/Rtmp7SJYAP/test1.tif |
+| 37109 | 270.96933 | /tmp/Rtmp7SJYAP/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -576,7 +576,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.922   0.008   0.933
+#>   0.943   0.005   0.950
 
 # we use four threads that were configured above
 system.time(
@@ -597,7 +597,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   0.988   0.472   0.524
+#>   1.096   0.543   0.582
 ```
 
 -   We will compare the results from the single-thread and multi-thread

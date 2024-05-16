@@ -17,7 +17,8 @@ summarize_sedc(
 \item{point_from}{\code{SpatVector} object. Locations where
 the sum of SEDCs are calculated.}
 
-\item{point_to}{\code{SpatVector} object. Locations where each SEDC is calculated.}
+\item{point_to}{\code{SpatVector} object.
+Locations where each SEDC is calculated.}
 
 \item{id}{character(1). Name of the unique id field in \code{point_to}.}
 
@@ -71,7 +72,7 @@ summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 }
 \references{
 \itemize{
-\item \href{https://dx.doi.org/10.1021/es203152a}{Messier KP, Akita Y, & Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780. }
+\item \href{https://dx.doi.org/10.1021/es203152a}{Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780. }
 \item Wiesner C. (n.d.). \href{https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html}{Euclidean Sum of Exponentially Decaying Contributions Tutorial}
 }
 }

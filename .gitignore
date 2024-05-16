@@ -16,3 +16,11 @@
 
 # input
 input
+
+# future cache
+.future
+
+# benchmark output qs files
+/*.qs
+/doc/
+/Meta/

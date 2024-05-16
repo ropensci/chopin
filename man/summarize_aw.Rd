@@ -18,7 +18,7 @@ summarize_aw(
 \item{poly_weight}{A sf/SpatVector object from
 which weighted means will be calculated.}
 
-\item{target_fields}{character. Field names to calculate area-weighted .}
+\item{target_fields}{character. Field names to calculate area-weighted.}
 
 \item{id_poly_in}{character(1).
 The unique identifier of each polygon in \code{poly_in}.

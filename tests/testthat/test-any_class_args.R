@@ -31,4 +31,3 @@ testthat::test_that("classes are detected.", {
   testthat::expect_true(bear[[1]] == TRUE)
 
 })
-

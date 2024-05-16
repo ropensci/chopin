@@ -174,6 +174,11 @@ clip_ras_ext <- function(
 #' @param kernel character(1). Name of a kernel function
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
 #' @param bandwidth numeric(1). Kernel bandwidth.
+#' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
+#'   It only works with `points` of character(1) file path.
+#'   When using numeric(4), it should be in the order of
+#'   `c(xmin, xmax, ymin, ymax)`. The coordinate system should be the same
+#'   as the `points`.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
 #' @returns a data.frame object with mean value
@@ -206,20 +211,27 @@ extract_at_buffer <- function(
   func = "mean",
   kernel = NULL,
   bandwidth = NULL,
+  extent = NULL,
   max_cells = 2e7
 ) {
   # type check
-  if (!methods::is(points, "SpatVector")) {
-    if (!methods::is(points, "sf")) {
-      stop("Check class of the input points.\n")
-    }
-    points <- terra::vect(points)
+  if (!any(
+    sapply(
+      c("SpatVector", "sf", "character"),
+      methods::is,
+      object = points
+    )
+  )) {
+    stop("Check class of the input points.\n")
   }
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
       stop("Check class of the input raster.\n")
     }
+  }
+  if (dep_check(points) == "sf") {
+    points <- dep_switch(points)
   }
   if (!is.numeric(radius)) {
     stop("Check class of the input radius.\n")
@@ -229,6 +241,9 @@ extract_at_buffer <- function(
   }
   if (!is.numeric(qsegs)) {
     stop("qsegs should be numeric.\n")
+  }
+  if (is.character(points)) {
+    points <- try(terra::vect(points, extent = extent))
   }
 
   if (!is.null(kernel)) {
@@ -567,7 +582,8 @@ reproject_b2r <-
 #' @family Macros for calculation
 #' @param point_from `SpatVector` object. Locations where
 #'  the sum of SEDCs are calculated.
-#' @param point_to `SpatVector` object. Locations where each SEDC is calculated.
+#' @param point_to `SpatVector` object.
+#' Locations where each SEDC is calculated.
 #' @param id character(1). Name of the unique id field in `point_to`.
 #' @param sedc_bandwidth numeric(1).
 #' Distance at which the source concentration is reduced to
@@ -589,7 +605,7 @@ reproject_b2r <-
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, & Serre ML. (2012). 
+#' * [Messier KP, Akita Y, Serre ML. (2012).
 #'   Integrating Address Geocoding, Land Use
 #'   Regression, and Spatiotemporal Geostatistical Estimation
 #'   for Groundwater Tetrachloroethylene.
@@ -720,7 +736,7 @@ The result may not be accurate.\n",
 #' @param poly_in A sf/SpatVector object at weighted means will be calculated.
 #' @param poly_weight A sf/SpatVector object from
 #'  which weighted means will be calculated.
-#' @param target_fields character. Field names to calculate area-weighted .
+#' @param target_fields character. Field names to calculate area-weighted.
 #' @param id_poly_in character(1).
 #'  The unique identifier of each polygon in `poly_in`.
 #'  Default is `"ID"`.
