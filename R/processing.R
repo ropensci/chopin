@@ -708,9 +708,9 @@ The result may not be accurate.\n",
     # summary
     near_from_to <- near_from_to |>
       dplyr::as_tibble() |>
-      dplyr::left_join(data.frame(point_from)) |>
-      dplyr::left_join(data.frame(point_to)) |>
-      dplyr::left_join(dist_near_to_df) |>
+      dplyr::left_join(data.frame(point_from), by = "from_id") |>
+      dplyr::left_join(data.frame(point_to), by = "to_id") |>
+      dplyr::left_join(dist_near_to_df, by = c("from_id", "to_id")) |>
       # per the definition in
       # https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
       # exp(-3) is about 0.05
