@@ -29,5 +29,3 @@ testthat::test_that(
     )
   }
 )
-
-

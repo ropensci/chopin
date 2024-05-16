@@ -63,4 +63,3 @@ testthat::test_that("Clip extent is set properly", {
   testthat::expect_equal(nc_ext_terra_1, proper_xmin)
 
 })
-

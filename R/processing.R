@@ -230,6 +230,9 @@ extract_at_buffer <- function(
       stop("Check class of the input raster.\n")
     }
   }
+  if (dep_check(points) == "sf") {
+    points <- dep_switch(points)
+  }
   if (!is.numeric(radius)) {
     stop("Check class of the input radius.\n")
   }

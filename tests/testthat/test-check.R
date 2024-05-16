@@ -180,4 +180,3 @@ testthat::test_that("nc data is within the mainland US", {
   testthat::expect_error(is_within_ref(nc, list(1)))
 
 })
-
