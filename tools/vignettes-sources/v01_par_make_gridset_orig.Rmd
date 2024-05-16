@@ -241,6 +241,29 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 
+.
+```{r split-points-grid-adv3}
+grid_advanced3 <-
+  chopin::par_make_gridset(
+    input = ncpoints_tr,
+    mode = "grid_advanced",
+    nx = 15L,
+    ny = 8L,
+    padding = 1e4L,
+    grid_min_features = 25L,
+    merge_max = 3L
+  )
+
+par(mfrow = c(2, 1))
+terra::plot(grid_advanced3$original, main = "Original grids")
+terra::plot(grid_advanced3$padded, main = "Padded grids")
+
+par(mfrow = c(1, 1))
+terra::plot(grid_advanced3$original, main = "Merged grids (merge_max = 3)")
+terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+
+```
+
 #### `par_group_grid()`
 - `par_group_grid()` uses `anticlust` package to split the point set into the balanced clusters.
     - In the background, `par_group_balanced()` is run first to generate the equally sized clusters from the input. Then, padding is applied to the extent of each cluster to be compatible with `par_grid()`, where both the original and the padded grids are used.
