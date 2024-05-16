@@ -636,7 +636,9 @@ par_merge_grid <-
 #'   ncpoints, geom = c("X", "Y"),
 #'   keepgeom = FALSE, crs = "EPSG:5070"
 #' )
-#' par_group_balanced(ncp, 10)
+#' # 2,304 points / 12 = 192 points per cluster
+#' ncpbal <- par_group_balanced(ncp, 12)
+#' ncpbal
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
 #' @importFrom terra vect
