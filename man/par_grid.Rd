@@ -8,7 +8,7 @@ par_grid(
   grids,
   grid_target_id = NULL,
   debug = FALSE,
-  combine = dplyr::bind_rows,
+  combine = collapse::rowbind,
   fun_dist,
   ...
 )
@@ -16,7 +16,11 @@ par_grid(
 \arguments{
 \item{grids}{sf/SpatVector object. Computational grids.
 It takes a strict assumption that the grid input is
-an output of \code{par_make_gridset}}
+an output of \code{par_make_gridset}.
+If missing or NULL is entered, \code{par_make_gridset} is internally
+called. In this case, the \strong{first} element of the ellipsis argument
+\code{...} is considered \code{input} in \code{par_make_gridset} and \code{mode} is fixed
+as "grid"`. See \code{\link[=par_make_gridset]{par_make_gridset()}} for details.}
 
 \item{grid_target_id}{character(1) or numeric(2).
 Default is NULL. If NULL, all grid_ids are used.

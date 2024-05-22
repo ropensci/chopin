@@ -17,7 +17,7 @@
 # nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'   units::set_units is used for padding when sf object is used.
-#'   See https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'   See [link](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
 #'   for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 #' @param merge_max integer(1). Maximum number of grids to merge
@@ -107,10 +107,32 @@ par_make_gridset <-
 
     # register CRS
     if (dep_check(grid_reg) == "sf") {
-      grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
+      grid_reg <-
+        tryCatch(
+          sf::st_set_crs(grid_reg, sf::st_crs(input)),
+          error = function(e) {
+            sf::st_set_crs(
+              grid_reg,
+              sf::st_crs(
+                terra::crs(terra::vect(input, proxy = TRUE))
+              )
+            )
+          }
+        )
+      
+      # grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
-      terra::set.crs(grid_reg, terra::crs(input))
+      grid_reg <-
+        tryCatch(
+          terra::set.crs(grid_reg, terra::crs(input)),
+          error = function(e) {
+            terra::set.crs(
+              grid_reg,
+              terra::crs(terra::vect(input, proxy = TRUE))
+            )
+          }
+        )
       grid_reg_conv <- grid_reg
     }
 
@@ -171,7 +193,6 @@ par_group_grid <-
     if (missing(ngroups)) {
       stop("ngroups should be specified.\n")
     }
-
     if (!is.numeric(padding)) {
       message(
         "padding should be numeric. Try converting padding to numeric...\n"
@@ -184,6 +205,9 @@ par_group_grid <-
       ) {
         stop("padding is not convertible to numeric or converted to NA.\n")
       }
+    }
+    if (is.character(points_in)) {
+      points_in <- try(terra::vect(points_in, proxy = TRUE))
     }
     pgroups <- par_group_balanced(points_in, ngroups)
 
@@ -220,6 +244,7 @@ par_group_grid <-
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
 #' @param points_in `sf` or `SpatVector` object. Target points of computation.
+#'   character(1) of file path is also acceptable.
 #' @param ncutsx integer(1). The number of splits along x-axis.
 #' @param ncutsy integer(1). The number of splits along y-axis.
 #' @returns A `sf` or `SpatVector` object of computation grids with
@@ -252,20 +277,35 @@ par_make_grid <-
     ncutsx = NULL,
     ncutsy = NULL
   ) {
-    package_detected <- dep_check(points_in)
+    if (is.character(points_in)) {
+      points_in <- try(terra::vect(points_in, proxy = TRUE))
+      points_in <- sf::st_bbox(terra::ext(points_in))
+      package_detected <- "sf"
+    } else {
+      package_detected <- dep_check(points_in)
+    }
 
     grid_out <-
       switch(package_detected,
         sf = sf::st_make_grid(points_in, n = c(ncutsx, ncutsy)) |>
           as.data.frame() |>
           sf::st_as_sf(),
-        terra = terra::rast(points_in, nrows = ncutsy, ncols = ncutsx) |>
-          terra::as.polygons()
+        terra =
+        terra::rast(
+          terra::ext(points_in),
+          nrows = ncutsy,
+          ncols = ncutsx,
+          crs = terra::crs(points_in)
+        ) |>
+        terra::as.polygons()
       )
     # grid select
-    grid_out <- grid_out[points_in, ]
+    # grid_out <- grid_out[points_in, ]
+    ## TODO: grid_out is not using actual dataset; par_grid will handle that
+    ## in a way that returning NULL first then
+    ## filtering the list with lst[sapply(lst, function(x) !is.null(x)]
 
-    grid_out$CGRIDID <- seq(1, nrow(x = grid_out))
+    grid_out$CGRIDID <- seq_len(nrow(grid_out))
     return(grid_out)
   }
 
@@ -423,7 +463,6 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' sf::st_crs(dg_sample) <- sf::st_crs(dg)
 #' dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 #' plot(dg_merged$geometry)
-#' #### NOT RUN ####
 #' }
 #' @references
 #' * Polsby DD, Popper FJ. (1991).
@@ -622,7 +661,9 @@ par_merge_grid <-
 #' @description For balancing computational loads, the function uses
 #' the `anticlust` package to cluster the input points. The number of clusters
 #' is determined by the `num_cluster` argument. Each cluster will have
-#' equal number of points. Grids will be generated based on the cluster extents
+#' equal number of points. Grids will be generated based on the cluster
+#' extents. At the lower level, the function uses [terra::distance()]
+#' function to calculate the Euclidean distance between points.
 #' @note This function is only for two-dimensional points.
 #' The results will be inexhaustive grids.
 #' @param points_in `sf` or `SpatVector` object. Target points of computation.
@@ -642,7 +683,7 @@ par_merge_grid <-
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
 #' @importFrom terra vect
-#' @importFrom terra crds
+#' @importFrom terra distance
 #' @importFrom stats dist
 #' @export
 par_group_balanced <- function(
@@ -659,7 +700,7 @@ par_group_balanced <- function(
     points_in <- terra::vect(points_in)
   }
   # define dissimilarity based on Euclidean distance
-  dissim <- dist(terra::crds(points_in), method = "euclidean")
+  dissim <- terra::distance(points_in)
   cl <- anticlust::balanced_clustering(dissim, K = n_clusters)
   points_in$CGRIDID <- cl
   return(points_in)

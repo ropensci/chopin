@@ -58,7 +58,11 @@ par_fallback <-
 #' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of \code{par_make_gridset}
+#'  an output of \code{par_make_gridset}.
+#'  If missing or NULL is entered, `par_make_gridset` is internally
+#'  called. In this case, the **first** element of the ellipsis argument
+#'  `...` is considered `input` in `par_make_gridset` and `mode` is fixed
+#'  as "grid"`. See [par_make_gridset()] for details.
 #' @param grid_target_id character(1) or numeric(2).
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
@@ -126,6 +130,7 @@ par_fallback <-
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
 #' @importFrom dplyr bind_rows
+#' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @export
 par_grid <-
@@ -133,10 +138,26 @@ par_grid <-
     grids,
     grid_target_id = NULL,
     debug = FALSE,
-    combine = dplyr::bind_rows,
+    combine = collapse::rowbind,
     fun_dist,
     ...
   ) {
+    # grid generation if grids is NULL
+    if (is.null(grids) || missing(grids)) {
+      ellipsis <- list(...)
+      if (any(names(ellipsis) == "mode")) {
+        ellipsis[["mode"]] <- NULL
+      }
+      ellipsis$input <- ellipsis[[1]]
+      grids <-
+        rlang::inject(
+          par_make_gridset(
+            mode = "grid",
+            !!!ellipsis
+          )
+        )
+    }
+
     # grid id selection check
     if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
       stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
@@ -162,23 +183,33 @@ par_grid <-
 
     grids_target <-
       grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
-    grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
+    grids_target_list <-
+      base::split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
     results_distributed <-
       future.apply::future_lapply(
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
+          grid <- tryCatch(terra::vect(grid),
+            error = function(e) grid)
+
           args_input <- list(...)
-          if (dep_check(grid) != dep_check(args_input[[1]])) {
-            grid <- dep_switch(grid)
-          }
-          grid <- reproject_std(grid, terra::crs(args_input[[1]]))
           run_result <- tryCatch({
             ## Strongly assuming that
             # the first is "at", the second is "from"
-            args_input[[1]] <-
-              args_input[[1]][grid, ]
+            if (is.character(args_input[[1]])) {
+              # arg_assign_name <-
+              #   names(formals(fun_dist))[1]
+              args_input$extent <- terra::ext(grid)
+            } else {
+              if (dep_check(grid) != dep_check(args_input[[1]])) {
+                grid <- dep_switch(grid)
+              }
+              grid <- reproject_std(grid, terra::crs(args_input[[1]]))
+              args_input[[1]] <-
+                args_input[[1]][grid, ]
+            }
             if (methods::is(args_input[[2]], "SpatVector")) {
               gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid$CGRIDID, ]
               args_input[[2]] <- args_input[[2]][gpad_in, ]
@@ -199,17 +230,20 @@ par_grid <-
             return(res)
           },
           error = function(e) {
-            par_fallback(e, fun_dist, debug)
+            return(NULL)
+            # par_fallback(e, fun_dist, debug)
           })
 
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
         future.globals = FALSE,
         future.scheduling = 2
       )
-    results_distributed <- do.call(combine, results_distributed)
+    results_distributed <-
+      results_distributed[!sapply(results_distributed, is.null)]
+    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
 
     return(results_distributed)
   }

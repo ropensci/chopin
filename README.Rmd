@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
 [![R-CMD-check](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml)
+[![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
@@ -121,7 +122,7 @@ DiagrammeR::mermaid(mermaid_chart, width = 2500, height = 600)
 - If you prefer command line (i.e., in Unix-like operating systems), run:
 
 ```shell
-git clone https://github.com/NIEHS/chopin
+git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
 cd chopin
 Rscript -e \
 "
@@ -137,7 +138,7 @@ source(\"README_run.r\")
 
 ```r
 # install.packages("remotes")
-remotes::install_github("NIEHS/chopin")
+remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
 
 
@@ -247,7 +248,6 @@ terra::plot(compregions$padded, main = "Padded grids")
     - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis (`...`) arguments, as demonstrated below:
 ```{r}
 future::plan(future::multicore, workers = 4L)
-doFuture::registerDoFuture()
 
 system.time(
   ncpoints_srtm_mthr <-

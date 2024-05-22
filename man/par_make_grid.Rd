@@ -7,7 +7,8 @@
 par_make_grid(points_in = NULL, ncutsx = NULL, ncutsy = NULL)
 }
 \arguments{
-\item{points_in}{\code{sf} or \code{SpatVector} object. Target points of computation.}
+\item{points_in}{\code{sf} or \code{SpatVector} object. Target points of computation.
+character(1) of file path is also acceptable.}
 
 \item{ncutsx}{integer(1). The number of splits along x-axis.}
 

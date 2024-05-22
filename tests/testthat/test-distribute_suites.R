@@ -16,9 +16,10 @@ testthat::test_that("Processes are properly spawned and compute", {
             system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
   ncelev <-
     terra::unwrap(
-      readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+      readRDS(ncelevpath)
     )
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
@@ -30,7 +31,15 @@ testthat::test_that("Processes are properly spawned and compute", {
       lonlat = FALSE,
       as.points = TRUE
     )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
   ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
+  tdir <- tempdir()
+  target_file <- "ncrandpnts.gpkg"
+  test_fullpath <- file.path(tdir, target_file)
+  suppressWarnings(
+    terra::writeVector(ncsamp, test_fullpath, overwrite = TRUE)
+  )
 
   nccompreg <-
     par_make_gridset(
@@ -53,6 +62,28 @@ testthat::test_that("Processes are properly spawned and compute", {
         id = "pid"
       )
     )
+
+  # check: sf <-> terra conversion changes coordinate precision?
+  # this result omits 2 points which are exactly on the boundary.
+  testthat::expect_no_error(
+    resstr <-
+      suppressWarnings(
+        par_grid(
+          grids = NULL,
+          grid_target_id = NULL,
+          fun_dist = extract_at_buffer,
+          points = test_fullpath,
+          surf = ncelev,
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "kid",
+          nx = 6L,
+          ny = 4L,
+          padding = 3e4L
+        )
+      )
+  )
+
   ncpntsf <- sf::st_as_sf(ncpnts)
   testthat::expect_no_error(
     resk <-

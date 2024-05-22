@@ -54,7 +54,6 @@ scale = 15000, type = "Thomas")
 sf::st_crs(dg_sample) <- sf::st_crs(dg)
 dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 plot(dg_merged$geometry)
-#### NOT RUN ####
 }
 }
 \references{

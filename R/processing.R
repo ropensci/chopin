@@ -181,6 +181,7 @@ clip_ras_ext <- function(
 #'   as the `points`.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
+#' @param ... Placeholder.
 #' @returns a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -212,7 +213,8 @@ extract_at_buffer <- function(
   kernel = NULL,
   bandwidth = NULL,
   extent = NULL,
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
   # type check
   if (!any(
@@ -230,9 +232,6 @@ extract_at_buffer <- function(
       stop("Check class of the input raster.\n")
     }
   }
-  if (dep_check(points) == "sf") {
-    points <- dep_switch(points)
-  }
   if (!is.numeric(radius)) {
     stop("Check class of the input radius.\n")
   }
@@ -244,6 +243,10 @@ extract_at_buffer <- function(
   }
   if (is.character(points)) {
     points <- try(terra::vect(points, extent = extent))
+  } else {
+    if (dep_check(points) == "sf") {
+      points <- dep_switch(points)
+    }
   }
 
   if (!is.null(kernel)) {
@@ -288,7 +291,8 @@ extract_at_buffer_flat <- function(
   func = "mean",
   kernel = NULL,
   bandwidth = NULL,
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
@@ -329,7 +333,8 @@ extract_at_buffer_kernel <- function(
   func = stats::weighted.mean,
   kernel = NULL,
   bandwidth = NULL,
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
@@ -426,6 +431,7 @@ extract_at_buffer_kernel <- function(
 #'  For example, `"mean"` or `\(x, w) weighted.mean(x, w, na.rm = TRUE)`
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
+#' @param ... Placeholder.
 #' @returns a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -450,7 +456,8 @@ extract_at_poly <- function(
   surf = NULL,
   id = NULL,
   func = "mean",
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
   # type check
   if (!methods::is(polys, "SpatVector")) {
@@ -503,7 +510,7 @@ extract_at_poly <- function(
 #' @param mode one of `"polygon"`
 #'  (generic polygons to extract raster values with) or
 #'  `"buffer"` (point with buffer radius)
-#' @param ... various. Passed to extract_at_buffer.
+#' @param ... Placeholder.
 #'  See \code{?extract_at_buffer} for details.
 #' @returns A data.frame object with summarized raster values with
 #'  respect to the mode (polygon or buffer) and the function.
@@ -733,18 +740,24 @@ The result may not be accurate.\n",
 
 #' Area weighted summary using two polygon sf or SpatVector objects
 #' @family Macros for calculation
-#' @param poly_in A sf/SpatVector object at weighted means will be calculated.
-#' @param poly_weight A sf/SpatVector object from
+#' @param poly_in A sf/SpatVector object or file path of polygons detectable
+#'   with GDAL driver at weighted means will be calculated.
+#' @param poly_weight A sf/SpatVector object or file path of polygons from
 #'  which weighted means will be calculated.
 #' @param target_fields character. Field names to calculate area-weighted.
 #' @param id_poly_in character(1).
 #'  The unique identifier of each polygon in `poly_in`.
 #'  Default is `"ID"`.
 #' @param fun function(1). The function to calculate the weighted summary.
-#' Default is `stats::weighted.mean`. The function must have a `w` argument.
+#' Default is [`stats::weighted.mean`]. The function must have a `w` argument.
+#' @param extent numeric(4) or SpatExtent object. Extent of clipping `poly_in`.
+#' It only works with `poly_in` of character(1) file path.
+#' See [`terra::ext`] for more details. Coordinate systems should match.
 #' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `poly_in` and `poly_weight` are different classes,
 #'  `poly_weight` will be converted to the class of `poly_in`.
+#' @note If `poly_in` and `poly_weight` are characters, they will be
+#'   read as `terra::vect` objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' # package
@@ -760,7 +773,7 @@ The result may not be accurate.\n",
 #'
 #' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 #' summary(ppb_nc_aw)
-#' #### Example of summarize_aw ends ####
+#' #### Example of summarize_aw ends ###
 #' @importFrom terra expanse
 #' @importFrom rlang sym
 #' @importFrom dplyr where
@@ -778,19 +791,33 @@ summarize_aw <-
     poly_weight = NULL,
     target_fields = NULL,
     id_poly_in = "ID",
-    fun = stats::weighted.mean
+    fun = stats::weighted.mean,
+    extent = NULL
   ) {
     if (!any(
-      methods::is(poly_in, "sf"),
-      methods::is(poly_in, "SpatVector")
+      sapply(
+        c("SpatVector", "sf", "character"),
+        methods::is,
+        object = poly_in
+      )
     )) {
       stop("poly_in is in invalid class.\n")
     }
     if (!any(
-      methods::is(poly_weight, "sf"),
-      methods::is(poly_weight, "SpatVector")
+      sapply(
+        c("SpatVector", "sf", "character"),
+        methods::is,
+        object = poly_weight
+      )
     )) {
       stop("poly_weight is in invalid class.\n")
+    }
+
+    if (is.character(poly_in)) {
+      poly_in <- try(terra::vect(poly_in, ext = extent))
+    }
+    if (is.character(poly_weight)) {
+      poly_weight <- try(terra::vect(poly_weight))
     }
 
     summarize_aw_terra <-

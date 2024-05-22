@@ -9,7 +9,8 @@ extract_at_poly(
   surf = NULL,
   id = NULL,
   func = "mean",
-  max_cells = 2e+07
+  max_cells = 2e+07,
+  ...
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ For example, \code{"mean"} or \verb{\\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
 
 \item{max_cells}{integer(1). Maximum number of cells in memory.
 See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}
+
+\item{...}{Placeholder.}
 }
 \value{
 a data.frame object with function value

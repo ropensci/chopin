@@ -17,10 +17,20 @@
 #' ## END OF EXAMPLE
 #' @export
 dep_check <- function(input) {
-  if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
+  if (!any(class(input) %in%
+  c("sf", "stars", "SpatVector", "SpatRaster", "SpatVectorProxy"))
+  ) {
     stop("Input should be one of sf or Spat* object.\n")
   }
-  if (methods::is(input, "SpatVector") || methods::is(input, "SpatRaster")) {
+  if (
+    any(
+      vapply(
+        c("SpatVector", "SpatRaster", "SpatVectorProxy"),
+        FUN = function(x) methods::is(input, x),
+        FUN.VALUE = logical(1)
+      )
+    )
+  ) {
     return("terra")
   }
   return("sf")
