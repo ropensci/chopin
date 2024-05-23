@@ -172,8 +172,6 @@ plot(sf::st_geometry(ncsf))
 
 <img src="man/figures/README-read-nc-1.png" width="100%" />
 
-<!--![](https://i.imgur.com/ImPfGXP.png) -->
-
 #### Generate random points in NC
 
 -   Ten thousands random point locations were generated inside the
@@ -219,8 +217,6 @@ terra::plot(srtm)
 
 <img src="man/figures/README-load-srtm-1.png" width="100%" />
 
-<!-- ![](https://i.imgur.com/l08bz4j.png)-->
-
 ``` r
 ncpoints_tr <- terra::vect(ncpoints)
 system.time(
@@ -234,7 +230,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.976   0.328  12.346
+#>  11.833   0.293  12.174
 ```
 
 #### Generate regular grid computational regions
@@ -350,7 +346,7 @@ system.time(
 #> Warning: [buffer] empty SpatVector
 #> Warning: [buffer] empty SpatVector
 #>    user  system elapsed 
-#>  11.570   1.720   4.672
+#>  10.760   1.617   4.309
 ```
 
 ``` r
@@ -358,7 +354,8 @@ colnames(ncpoints_srtm_mthr)[2] <- "mean_par"
 ncpoints_compar <- merge(ncpoints_srtm, ncpoints_srtm_mthr)
 # Are the calculations equal?
 all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
-#> [1] TRUE
+#> [1] "Modes: numeric, character"              
+#> [2] "target is numeric, current is character"
 ```
 
 ``` r
@@ -402,7 +399,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpKSWG9j/temp_libpathd5adc5b6d7e82/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpC225hB/temp_libpath132d464f135b59/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -414,7 +411,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 ``` r
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpKSWG9j/temp_libpathd5adc5b6d7e82/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpC225hB/temp_libpath132d464f135b59/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -444,7 +441,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.967   0.031   2.005
+#>   2.059   0.027   2.094
 ```
 
 ``` r
@@ -462,7 +459,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.041   0.020   2.672
+#>   0.038   0.024   2.733
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -489,9 +486,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp3iN94w/test1.tif" "/tmp/Rtmp3iN94w/test2.tif"
-#> [3] "/tmp/Rtmp3iN94w/test3.tif" "/tmp/Rtmp3iN94w/test4.tif"
-#> [5] "/tmp/Rtmp3iN94w/test5.tif"
+#> [1] "/tmp/RtmpV5WUE9/test1.tif" "/tmp/RtmpV5WUE9/test2.tif"
+#> [3] "/tmp/RtmpV5WUE9/test3.tif" "/tmp/RtmpV5WUE9/test4.tif"
+#> [5] "/tmp/RtmpV5WUE9/test5.tif"
 ```
 
 ``` r
@@ -507,7 +504,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.725   0.539   1.087
+#>   1.764   0.568   1.110
 ```
 
 ``` r
@@ -516,12 +513,12 @@ knitr::kable(head(res))
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmp3iN94w/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmp3iN94w/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmp3iN94w/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmp3iN94w/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmp3iN94w/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmp3iN94w/test1.tif |
+| 37037 | 136.80203 | /tmp/RtmpV5WUE9/test1.tif |
+| 37001 | 189.76170 | /tmp/RtmpV5WUE9/test1.tif |
+| 37057 | 231.16968 | /tmp/RtmpV5WUE9/test1.tif |
+| 37069 |  98.03845 | /tmp/RtmpV5WUE9/test1.tif |
+| 37155 |  41.23463 | /tmp/RtmpV5WUE9/test1.tif |
+| 37109 | 270.96933 | /tmp/RtmpV5WUE9/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -599,7 +596,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.930   0.001   0.933
+#>   0.950   0.000   0.953
 ```
 
 ``` r
@@ -622,7 +619,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   1.126   0.584   0.599
+#>   1.256   0.622   0.660
 ```
 
 -   We will compare the results from the single-thread and multi-thread

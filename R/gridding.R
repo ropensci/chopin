@@ -503,7 +503,12 @@ par_merge_grid <-
 
     # 1. count #points in each grid
     n_points_in_grid <- lengths(sf::st_intersects(grid_pc, points_pc))
-    grid_lt_threshold <- (n_points_in_grid < grid_min_features)
+    grid_nonzero <- (n_points_in_grid > 0)
+    # grid_pc is the object that should be manipulated
+    grid_pc <- grid_pc[grid_nonzero, ]
+    grid_pc$workidc <- seq_len(nrow(grid_pc))
+    n_points_in_grid <- lengths(sf::st_intersects(grid_pc, points_pc))
+    grid_target <- (n_points_in_grid < grid_min_features)
 
     # 2. concatenate self and contiguity grid indices
     grid_self <- sf::st_relate(grid_pc, grid_pc, pattern = "2********")
@@ -513,9 +518,9 @@ par_merge_grid <-
     # 4. conditional 1: the number of points per grid exceed the threshold?
     if (
       any(
-        sum(grid_lt_threshold) < 2,
-        is.null(grid_lt_threshold),
-        is.na(grid_lt_threshold)
+        sum(grid_target) < 2,
+        is.null(grid_target),
+        is.na(grid_target)
       )
     ) {
       message(
@@ -526,24 +531,28 @@ par_merge_grid <-
           min(n_points_in_grid), grid_min_features
         )
       )
-      return(grid_in)
+      # changed to grid_pc (0.6.4)
+      return(grid_pc)
     }
+
     # leave only actual index rather than logical
-    grid_lt_threshold_idx <- seq(1, nrow(grid_pc))[grid_lt_threshold]
+    grid_lt_threshold_idx <- seq(1, nrow(grid_pc))[grid_target]
 
     # 5. filter out the ones that are below the threshold
     identified <- lapply(grid_selfrook,
                          function(x) sort(x[x %in% grid_lt_threshold_idx]))
-    identified <- identified[grid_lt_threshold]
+    # filtering self with the lower number of intersecting points
+    identified <- identified[grid_target]
     # 6. remove duplicate neighbor pairs
     identified <- unique(identified)
     # 7. remove singletons
     identified <-
-      identified[vapply(identified, FUN = length, FUN.VALUE = 0) > 1]
+      identified[vapply(identified, FUN = length, FUN.VALUE = numeric(1)) > 1]
     # 8. conditional 2: if there is no grid to merge
     if (length(identified) == 0) {
       message("No grid to merge.\n")
-      return(grid_in)
+      # changed to grid_pc (0.6.4)
+      return(grid_pc)
     }
     # 9. Minimum spanning tree: find the connected components
     identified_graph <-
@@ -556,10 +565,11 @@ par_merge_grid <-
       igraph::components()
 
     identified_graph_member <- identified_graph$membership
+    # to limit the maximum merge size
     identified_graph_member2 <- identified_graph_member
 
     # for assigning merged grid id (original)
-    merge_idx <- which(rownames(grid_pc) %in% names(identified_graph_member))
+    merge_idx <- which(grid_pc$workidc %in% names(identified_graph_member))
 
     # nolint start
     # post-process: split membership into (almost) equal sizes
@@ -584,6 +594,7 @@ par_merge_grid <-
         # conflicts with the original membership
         # I do believe this number will not be changed as 1e6+
         # computation grids are not practical
+        # split chunks length of merge_max
         graph_member_excess_split <-
           split(
             graph_member_excess_repl,
@@ -592,7 +603,7 @@ par_merge_grid <-
 
         graph_member_excess_split <-
           mapply(function(x, y) {
-              rep(vapply(y, FUN = as.numeric, FUN.VALUE = 0), length(x))
+              rep(vapply(y, FUN = as.numeric, FUN.VALUE = numeric(1)), length(x))
             }, graph_member_excess_split, names(graph_member_excess_split),
             SIMPLIFY = TRUE
           )
@@ -608,8 +619,10 @@ par_merge_grid <-
     # nolint end
     # 10. Assign membership information
     # Here we use the modified membership
+    # 0.6.4: identified_graph_member to its names
+    target_merge <- grid_pc$workidc[merge_idx]
     merge_member <-
-      split(rownames(grid_pc)[merge_idx], identified_graph_member)
+      split(target_merge, unname(identified_graph_member))
     # 11. Label the merged grids
     merge_member_label <-
       unlist(lapply(merge_member, function(x) paste(x, collapse = "_")))

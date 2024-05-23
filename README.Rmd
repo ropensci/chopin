@@ -172,7 +172,6 @@ ncsf <- sf::st_transform(ncsf, "EPSG:5070")
 plot(sf::st_geometry(ncsf))
 ```
 
-<!--![](https://i.imgur.com/ImPfGXP.png) -->
 
 #### Generate random points in NC
 - Ten thousands random point locations were generated inside the counties of North Carolina.
@@ -198,7 +197,6 @@ srtm
 terra::plot(srtm)
 ```
 
-<!-- ![](https://i.imgur.com/l08bz4j.png)-->
 
 ```{r srtm-extract-single}
 ncpoints_tr <- terra::vect(ncpoints)

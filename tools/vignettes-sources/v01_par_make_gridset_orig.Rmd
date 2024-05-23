@@ -84,6 +84,7 @@ ncpoints <-
     kappa = 1.25e-9
   )
 ncpoints <- sf::st_as_sf(ncpoints)
+ncpoints <- sf::st_set_crs(ncpoints, "EPSG:5070")
 ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
 plot(sf::st_geometry(ncpoints))
 
@@ -100,7 +101,6 @@ ncpoints_tr <- chopin::dep_switch(ncpoints)
 ## Visualize computational grids
 
 ```{r grid-plain}
-ncpoints_tr <- terra::vect(ncpoints)
 compregions <-
   chopin::par_make_gridset(
     ncpoints_tr,
@@ -241,7 +241,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 
-.
+
 ```{r split-points-grid-adv3}
 grid_advanced3 <-
   chopin::par_make_gridset(
