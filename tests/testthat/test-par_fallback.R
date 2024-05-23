@@ -16,14 +16,16 @@ testthat::test_that(
       par_fallback(
         err = foo1(dc, rdd, id = "site_id", mode = "buffer", radius = 5e4),
         fun = foo1,
-        debug = TRUE
+        debug = TRUE,
+        1
       )
     )
-    testthat::expect_no_error(
+    testthat::expect_error(
       par_fallback(
-        err = foo1(),
+        err = foo1(id = "site"),
         fun = foo2,
-        debug = FALSE
+        debug = FALSE,
+        1
       )
     )
   }

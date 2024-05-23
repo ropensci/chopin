@@ -239,7 +239,6 @@ par_grid <-
             return(res)
           },
           error = function(e) {
-            # return(NULL)
             par_fallback(e, fun_dist, debug, inputid = grid$CGRIDID)
           })
 
@@ -392,7 +391,7 @@ par_hierarchy <-
                 }
 
                 res <- rlang::inject(fun_dist(!!!args_input))
-                try(res <- as.data.frame(res))
+                res <- try(as.data.frame(res))
                 return(res)
               },
               error =
