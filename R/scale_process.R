@@ -3,31 +3,39 @@
 #' @param err Error status or message.
 #' @param fun function.
 #' @param debug logical(1). Print error messages (`TRUE`) or not (`FALSE`)
-#' @returns data.frame with one column
-#' @note This function assumes that the `fun` has an argument named
+#' @param inputid character(1). ID of the computational region.
+#'   For example, `par_make_gridset` output should have `"CGRIDID"`,
+#'   which will be included in the outcome data.frame.
+#'   If the function does not have an argument containing `"id"`,
+#'   the output will have a column named `"chopin_domain_id"`.
+#' @returns data.frame with domain id and error message.
+#' @note This function assumes that the `fun` has an argument containing
 #' `"id"`.
 #' @author Insang Song
 #' @examples
 #' err <- simpleError("No input.")
-#' par_fallback(err, extract_at, debug = TRUE)
+#' par_fallback(err, extract_at, debug = TRUE, 1)
 #' @export
 par_fallback <-
   function(
     err = NULL,
     fun = NULL,
-    debug = FALSE
+    debug = FALSE,
+    inputid = NULL
   ) {
     if (debug) {
       print(err)
     }
-    fallback <- data.frame(ID = NA)
+    fallback <- matrix(NA, nrow = length(inputid), ncol = 1)
+    fallback <- as.data.frame(fallback)
     fun_args <- formals(fun)
-    indx <- grepl("id", names(fun_args))
-    if (any(indx)) {
-      detected_id <- fun_args[indx]
-    } else {
-      detected_id <- "id"
+    indx <- grep("id", names(fun_args))
+    detected_id <- "CGRIDID"
+    if (length(indx) != 0) {
+      detected_id <- "chopin_domain_id"
     }
+    fallback$error_message <- paste(unlist(err), collapse = " ")
+    fallback[, 1] <- inputid
     colnames(fallback)[1] <- detected_id
     return(fallback)
   }
@@ -69,8 +77,6 @@ par_fallback <-
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param combine function. A function to combine results.
-#' Default is \code{dplyr::bind_rows}.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -138,7 +144,6 @@ par_grid <-
     grids,
     grid_target_id = NULL,
     debug = FALSE,
-    combine = collapse::rowbind,
     fun_dist,
     ...
   ) {
@@ -159,30 +164,33 @@ par_grid <-
     }
 
     # grid id selection check
-    if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
-      stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
-    }
+    grid_target_ids <- unlist(grids$original[["CGRIDID"]])
     if (is.numeric(grid_target_id)) {
       if (length(grid_target_id) != 2) {
         stop(
           "Numeric grid_target_id should be in a form of c(startid, endid).\n"
         )
       }
-      grid_target_ids <- unlist(grids$original[["CGRIDID"]])[grid_target_id]
-    }
-    # subset using grids and grid_id
-    if (is.null(grid_target_id)) {
-      grid_target_ids <- unlist(grids$original[["CGRIDID"]])
+      grid_target_ids <- seq(grid_target_id[1], grid_target_id[2], by = 1)
+      #grid_target_ids <- unlist(grids$original[["CGRIDID"]])[grid_target_id]
     }
     if (is.character(grid_target_id)) {
-      grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
-      grid_target_ids <-
-        c(which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
-          which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
+      # subset using grids and grid_id
+      if (grepl(":", grid_target_id)) {
+        grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
+        grid_id_parsed <- as.numeric(grid_id_parsed)
+        # cgridids <- unlist(grids$original[["CGRIDID"]])
+        grid_target_ids <-
+          seq(grid_id_parsed[1], grid_id_parsed[2], by = 1)
+          # c(which(cgridids == grid_id_parsed[1]),
+          #   which(cgridids == grid_id_parsed[2]))
+      } else {
+        stop("grid_target_id should be formed 'startid:endid'.\n")
+      }
     }
-
+    # cgridids <- unlist(grids$original[["CGRIDID"]])
     grids_target <-
-      grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
+      grids$original[grid_target_ids, ]
     grids_target_list <-
       base::split(grids_target, unlist(grids_target[["CGRIDID"]]))
 
@@ -191,16 +199,17 @@ par_grid <-
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
-          grid <- tryCatch(terra::vect(grid),
-            error = function(e) grid)
+          grid <-
+            tryCatch(
+              terra::vect(grid),
+              error = function(e) grid
+            )
 
           args_input <- list(...)
           run_result <- tryCatch({
             ## Strongly assuming that
             # the first is "at", the second is "from"
             if (is.character(args_input[[1]])) {
-              # arg_assign_name <-
-              #   names(formals(fun_dist))[1]
               args_input$extent <- terra::ext(grid)
             } else {
               if (dep_check(grid) != dep_check(args_input[[1]])) {
@@ -230,8 +239,8 @@ par_grid <-
             return(res)
           },
           error = function(e) {
-            return(NULL)
-            # par_fallback(e, fun_dist, debug)
+            # return(NULL)
+            par_fallback(e, fun_dist, debug, inputid = grid$CGRIDID)
           })
 
           return(run_result)
@@ -242,7 +251,7 @@ par_grid <-
         future.scheduling = 2
       )
     results_distributed <-
-      results_distributed[!sapply(results_distributed, is.null)]
+      results_distributed[!vapply(results_distributed, is.null, logical(1))]
     results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
 
     return(results_distributed)
@@ -284,7 +293,6 @@ par_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param combine function. The function to combine the results.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -341,7 +349,7 @@ par_grid <-
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
-#' @importFrom dplyr bind_rows
+#' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @export
 par_hierarchy <-
@@ -349,7 +357,6 @@ par_hierarchy <-
     regions,
     split_level = NULL,
     debug = FALSE,
-    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -360,7 +367,7 @@ par_hierarchy <-
     split_level <-
       ifelse(length(split_level) == nrow(regions),
              split_level,
-             unlist(regions[[split_level]]))
+             unique(unlist(regions[[split_level]])))
     regions_list <- base::split(split_level, split_level)
 
     results_distributed <-
@@ -373,13 +380,13 @@ par_hierarchy <-
               {
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
-                subregion <-
+                subregion_in <-
                   regions[startsWith(split_level, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"
                 args_input[[1]] <-
-                  args_input[[1]][subregion, ]
+                  args_input[[1]][subregion_in, ]
                 if (!"id" %in% names(formals(fun_dist))) {
                   args_input$id <- NULL
                 }
@@ -390,18 +397,22 @@ par_hierarchy <-
               },
               error =
               function(e) {
-                par_fallback(e, fun_dist, debug)
+                par_fallback(
+                  e, fun_dist, debug,
+                  inputid = if (is.null(subregion)) NA else subregion
+                )
               }
             )
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
         future.globals = FALSE,
         future.scheduling = 2
       )
-    results_distributed <- do.call(combine, results_distributed)
-
+    results_distributed <-
+      results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
     return(results_distributed)
   }
 
@@ -430,8 +441,6 @@ par_hierarchy <-
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param debug logical(1). Prints error messages
 #' if there were any errors during the calculation.
-#' @param combine function. The function to combine the results.
-#' Default is `dplyr::bind_rows`.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -486,7 +495,6 @@ par_multirasters <-
   function(
     filenames,
     debug = FALSE,
-    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -519,20 +527,17 @@ par_multirasters <-
             }
             )
           if (inherits(run_result, "try-error")) {
-            par_fallback(run_result, fun_dist, debug)
+            par_fallback(run_result[1], fun_dist, debug, inputid = path)
           }
         },
         future.seed = TRUE,
         future.packages =
-        c("chopin", "dplyr", "sf", "terra"),
+        c("chopin", "dplyr", "sf", "terra", "rlang"),
         future.globals = FALSE,
         future.scheduling = 2
-        # TODO: scheduling to (length(list) %/% nbrOfWorkers() + 1)
-        # "terra", "sf", "dplyr", "rlang",
-        #   "chopin", "future",
-        #   "exactextractr")
       )
-    results_distributed <- do.call(combine, results_distributed)
-
+    results_distributed <-
+      results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
     return(results_distributed)
   }

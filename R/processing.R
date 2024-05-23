@@ -218,9 +218,10 @@ extract_at_buffer <- function(
 ) {
   # type check
   if (!any(
-    sapply(
+    vapply(
       c("SpatVector", "sf", "character"),
-      methods::is,
+      FUN = methods::is,
+      FUN.VALUE = logical(1),
       object = points
     )
   )) {
@@ -795,18 +796,20 @@ summarize_aw <-
     extent = NULL
   ) {
     if (!any(
-      sapply(
+      vapply(
         c("SpatVector", "sf", "character"),
-        methods::is,
+        FUN = methods::is,
+        FUN.VALUE = logical(1),
         object = poly_in
       )
     )) {
       stop("poly_in is in invalid class.\n")
     }
     if (!any(
-      sapply(
+      vapply(
         c("SpatVector", "sf", "character"),
-        methods::is,
+        FUN = methods::is,
+        FUN.VALUE = logical(1),
         object = poly_weight
       )
     )) {

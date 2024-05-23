@@ -1,4 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 testthat::test_that("Processes are properly spawned and compute", {
   withr::local_package("terra")
@@ -65,7 +64,8 @@ testthat::test_that("Processes are properly spawned and compute", {
 
   # check: sf <-> terra conversion changes coordinate precision?
   # this result omits 2 points which are exactly on the boundary.
-  testthat::expect_no_error(
+  testthat::expect_no_error({
+    #plan(multicore, workers = 4L)
     resstr <-
       suppressWarnings(
         par_grid(
@@ -82,6 +82,8 @@ testthat::test_that("Processes are properly spawned and compute", {
           padding = 3e4L
         )
       )
+    #plan(sequential)
+  }
   )
 
   ncpntsf <- sf::st_as_sf(ncpnts)
@@ -184,7 +186,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   )
 
   testthat::expect_s3_class(resnas, "data.frame")
-  testthat::expect_true(anyNA(resnas))
+  testthat::expect_true("error_message" %in% names(resnas))
 
   testthat::expect_no_error(
     suppressWarnings(
@@ -199,7 +201,19 @@ testthat::test_that("Processes are properly spawned and compute", {
         )
     )
   )
-
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasz <-
+        par_grid(
+          grids = nccompreg,
+          grid_target_id = NULL,
+          fun_dist = terra::nearest,
+          x = ncpnts,
+          y = ncsamp,
+          id = "pid"
+        )
+    )
+  )
 })
 
 
@@ -234,6 +248,7 @@ testthat::test_that(
         as.points = TRUE
       )
     ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+    ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
     testthat::expect_no_error(
       res <-
@@ -267,7 +282,9 @@ testthat::test_that(
     testthat::expect_s3_class(res, "data.frame")
     testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
 
-    testthat::expect_no_error(
+    # straightforward error case
+    # invalid usage of fun_dist
+    testthat::expect_error(
       suppressWarnings(
         resnas <-
           par_hierarchy(
@@ -279,9 +296,6 @@ testthat::test_that(
           )
       )
     )
-
-    testthat::expect_s3_class(resnas, "data.frame")
-    testthat::expect_true(anyNA(resnas))
 
     testthat::expect_no_error(
       suppressWarnings(
@@ -327,7 +341,9 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # main test
-  pnts <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  pnts <- readRDS(
+    system.file("extdata/nc_random_point.rds", package = "chopin")
+  )
   pnts <- terra::vect(pnts)
   rd1 <-
     terra::vect(system.file("extdata/ncroads_first.gpkg", package = "chopin"))
@@ -356,8 +372,12 @@ testthat::test_that("generic function should be parallelized properly", {
         )
       )
   )
+  dd <- terra::extract(nccompreg$original, pnts)
+  ddt <- table(dd$CGRIDID)
+  nnullgrid <- (6L * 4L) - length(ddt)
+
   testthat::expect_s3_class(res, "data.frame")
-  testthat::expect_equal(nrow(res), nrow(pnts))
+  testthat::expect_equal(nrow(res), nrow(pnts) + nnullgrid)
 
 })
 

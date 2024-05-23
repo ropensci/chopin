@@ -1,3 +1,10 @@
+# 0.6.4
+- FIX: `grid_target_id` in `par_grid` accepts numeric or character input to filter grids
+- `par_fallback` is returning error_message field with actual error messages
+- `collapse` package is added to Imports (i.e., `rowbind` function is used in place of `dplyr::bind_rows`)
+- Tests were fixed following refactoring/updating `par_*` functions
+- `chopin` processing functions now support file path input with extents in `par_grid`
+
 # 0.6.3
 - FIX: Missing argument passing in `par_make_gridset` with `mode = "grid_advanced"`
 - Vignette update: v01

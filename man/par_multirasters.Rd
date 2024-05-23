@@ -4,13 +4,7 @@
 \alias{par_multirasters}
 \title{Process a given function over multiple large rasters}
 \usage{
-par_multirasters(
-  filenames,
-  debug = FALSE,
-  combine = dplyr::bind_rows,
-  fun_dist,
-  ...
-)
+par_multirasters(filenames, debug = FALSE, fun_dist, ...)
 }
 \arguments{
 \item{filenames}{character(n). A vector or list of
@@ -18,9 +12,6 @@ full file paths of raster files. n is the total number of raster files.}
 
 \item{debug}{logical(1). Prints error messages
 if there were any errors during the calculation.}
-
-\item{combine}{function. The function to combine the results.
-Default is \code{dplyr::bind_rows}.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 

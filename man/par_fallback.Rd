@@ -4,7 +4,7 @@
 \alias{par_fallback}
 \title{Parallelization error fallback}
 \usage{
-par_fallback(err = NULL, fun = NULL, debug = FALSE)
+par_fallback(err = NULL, fun = NULL, debug = FALSE, inputid = NULL)
 }
 \arguments{
 \item{err}{Error status or message.}
@@ -12,20 +12,26 @@ par_fallback(err = NULL, fun = NULL, debug = FALSE)
 \item{fun}{function.}
 
 \item{debug}{logical(1). Print error messages (\code{TRUE}) or not (\code{FALSE})}
+
+\item{inputid}{character(1). ID of the computational region.
+For example, \code{par_make_gridset} output should have \code{"CGRIDID"},
+which will be included in the outcome data.frame.
+If the function does not have an argument containing \code{"id"},
+the output will have a column named \code{"chopin_domain_id"}.}
 }
 \value{
-data.frame with one column
+data.frame with domain id and error message.
 }
 \description{
 Parallelization error fallback
 }
 \note{
-This function assumes that the \code{fun} has an argument named
+This function assumes that the \code{fun} has an argument containing
 \code{"id"}.
 }
 \examples{
 err <- simpleError("No input.")
-par_fallback(err, extract_at, debug = TRUE)
+par_fallback(err, extract_at, debug = TRUE, 1)
 }
 \seealso{
 Other Parallelization: 

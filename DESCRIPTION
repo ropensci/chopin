@@ -34,7 +34,8 @@ Imports:
     rlang (>= 0.4.9),
     sf (>= 1.0-10),
     stars (>= 0.6-0),
-    terra (>= 1.7-18)
+    terra (>= 1.7-18),
+    collapse
 Suggests: 
     callr,
     covr,

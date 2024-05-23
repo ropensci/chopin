@@ -1,4 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 testthat::test_that("Balanced group tests", {
   withr::local_package("sf")
