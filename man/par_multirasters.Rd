@@ -10,8 +10,9 @@ par_multirasters(filenames, debug = FALSE, fun_dist, ...)
 \item{filenames}{character(n). A vector or list of
 full file paths of raster files. n is the total number of raster files.}
 
-\item{debug}{logical(1). Prints error messages
-if there were any errors during the calculation.}
+\item{debug}{logical(1). Default is \code{FALSE}.
+If a unit computation fails, the error message and the file path
+where the error occurred will be included in the output.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 

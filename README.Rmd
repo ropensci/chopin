@@ -321,7 +321,7 @@ system.time(
   nc_elev_tr_distr <-
     chopin::par_hierarchy(
       regions = nc_county, # higher level geometry
-      split_level = "GEOID", # higher level unique id
+      regions_id = "GEOID", # higher level unique id
       fun_dist = chopin::extract_at,
       vector = nc_tracts, # lower level geometry
       raster = srtm,

@@ -167,7 +167,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   testthat::expect_true(is.list(nccompreg))
   testthat::expect_s4_class(nccompreg$original, "SpatVector")
   testthat::expect_s3_class(res, "data.frame")
-  
+
   testthat::expect_no_error(
     suppressWarnings(
       resnas <-
@@ -175,6 +175,7 @@ testthat::test_that("Processes are properly spawned and compute", {
           grids = nccompreg,
           grid_target_id = "1:10",
           fun_dist = extract_at_buffer,
+          debug = TRUE,
           points = ncpnts,
           surf = ncelev,
           qsegs = 90L,
@@ -249,12 +250,13 @@ testthat::test_that(
     ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
     ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
+    future::plan(future::multicore, workers = 4L)
     testthat::expect_no_error(
       res <-
         suppressWarnings(
           par_hierarchy(
             regions = nccnty,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = extract_at_poly,
             polys = nctrct,
             surf = ncelev,
@@ -263,12 +265,46 @@ testthat::test_that(
           )
         )
     )
+    testthat::expect_no_error(
+      residb <-
+        suppressWarnings(
+          par_hierarchy(
+            regions = nccnty,
+            regions_id = "GEOID",
+            unit_id = "GEOID",
+            debug = TRUE,
+            fun_dist = extract_at_poly,
+            polys = sf::st_as_sf(nctrct),
+            surf = ncelev,
+            id = "GEOID",
+            func = "mean"
+          )
+        )
+    )
+    testthat::expect_true(is.data.frame(residb))
+    testthat::expect_no_error(
+      residc <-
+        suppressWarnings(
+          par_hierarchy(
+            regions = nccnty,
+            regions_id = unlist(nccnty[["GEOID"]]),
+            unit_id = "GEOID",
+            debug = TRUE,
+            fun_dist = extract_at_poly,
+            polys = nctrct,
+            surf = ncelev,
+            id = "GEOID",
+            func = "mean"
+          )
+        )
+    )
+    testthat::expect_true(is.data.frame(residc))
 
     testthat::expect_error(
       suppressWarnings(
         par_hierarchy(
           regions = nccnty,
-          split_level = c(1, 2, 3),
+          regions_id = c(1, 2, 3),
           fun_dist = extract_at_poly,
           polys = nctrct,
           surf = ncelev,
@@ -284,12 +320,12 @@ testthat::test_that(
     # straightforward error case
     # invalid usage of fun_dist
     # halted at the first error
-    testthat::expect_no_error(
+    testthat::expect_error(
       suppressWarnings(
         resnas <-
           par_hierarchy(
             regions = nccnty,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = terra::nearest,
             polys = nctrct,
             surf = ncelev
@@ -303,12 +339,12 @@ testthat::test_that(
           par_hierarchy(
             regions = nccnty,
             debug = TRUE,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = extract_at_buffer,
             points = terra::centroids(nctrct),
             surf = ncelev,
             id = "GEOID",
-            radius = -1e3L
+            radius = 1e3L
           )
       )
     )
@@ -319,7 +355,7 @@ testthat::test_that(
           par_hierarchy(
             regions = nccnty,
             debug = TRUE,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = terra::nearest,
             x = nctrct,
             y = ncsamp
@@ -328,8 +364,6 @@ testthat::test_that(
     )
   }
 )
-
-
 
 
 testthat::test_that("generic function should be parallelized properly", {
@@ -358,7 +392,7 @@ testthat::test_that("generic function should be parallelized properly", {
       mode = "grid",
       nx = 6L,
       ny = 4L,
-      padding = 3e4L
+      padding = 5e4L
     )
   future::plan(future::multicore, workers = 6L)
   testthat::expect_no_error(
@@ -367,6 +401,7 @@ testthat::test_that("generic function should be parallelized properly", {
         par_grid(
           grids = nccompreg,
           fun_dist = terra::nearest,
+          debug = TRUE,
           x = pnts,
           y = rd1
         )
@@ -378,6 +413,21 @@ testthat::test_that("generic function should be parallelized properly", {
 
   testthat::expect_s3_class(res, "data.frame")
   testthat::expect_equal(nrow(res), nrow(pnts) + nnullgrid)
+
+  testthat::expect_no_error(
+    res_nodebug <-
+      suppressWarnings(
+        par_grid(
+          grids = nccompreg,
+          fun_dist = terra::nearest,
+          debug = FALSE,
+          x = pnts,
+          y = rd1
+        )
+      )
+  )
+  testthat::expect_s3_class(res_nodebug, "data.frame")
+  testthat::expect_equal(nrow(res_nodebug), nrow(pnts))
 
 })
 
@@ -431,7 +481,7 @@ testthat::test_that(
     testthat::expect_no_error(
       res <- par_multirasters(
         filenames = testfiles,
-        fun_dist = extract,
+        fun_dist = terra::extract,
         y = nccnty,
         x = ncelev,
         fun = mean
@@ -442,6 +492,7 @@ testthat::test_that(
     testthat::expect_condition(
       resnas <- par_multirasters(
         filenames = testfiles_corrupted,
+        debug = TRUE,
         fun_dist = extract_at_poly,
         polys = nccnty,
         surf = ncelev,
@@ -451,9 +502,13 @@ testthat::test_that(
     )
 
     testthat::expect_s3_class(resnas, "data.frame")
+    testthat::expect_equal(
+      nrow(resnas), nrow(nccnty) * (length(testfiles_corrupted) - 1) + 1
+    )
     testthat::expect_true(anyNA(resnas))
+
     testthat::expect_no_error(
-      par_multirasters(
+      dough <- par_multirasters(
         filenames = testfiles,
         fun_dist = terra::extract,
         y = nccnty,
@@ -462,11 +517,12 @@ testthat::test_that(
         fun = "mean"
       )
     )
+    testthat::expect_s3_class(dough, "data.frame")
 
     # error case
     future::plan(future::sequential)
     testthat::expect_condition(
-      resnasx <- par_multirasters(
+      nut <- par_multirasters(
         filenames = testfiles_corrupted,
         debug = TRUE,
         fun_dist = extract_at_poly,
@@ -476,5 +532,7 @@ testthat::test_that(
         func = "mean"
       )
     )
+    testthat::expect_s3_class(nut, "data.frame")
+
   }
 )

@@ -4000,7 +4000,7 @@ par_grid <-
 #' are spatially sparsely distributed.
 #' @param regions sf/SpatVector object.
 #'  Computational regions. Only polygons are accepted.
-#' @param split_level character(nrow(regions)) or character(1).
+#' @param regions_id character(nrow(regions)) or character(1).
 #'  The regions will be split by the common level value.
 #'  The level should be higher than the original data level.
 #'  A field name with the higher level information is also accepted.
@@ -4051,7 +4051,7 @@ par_grid <-
 #' res <-
 #'   par_hierarchy(
 #'     regions = nccnty,
-#'     split_level = "GEOID",
+#'     regions_id = "GEOID",
 #'     fun_dist = extract_at_poly,
 #'     polys = nctrct,
 #'     surf = ncelev,
@@ -4069,21 +4069,21 @@ par_grid <-
 par_hierarchy <-
   function(
     regions,
-    split_level = NULL,
+    regions_id = NULL,
     debug = FALSE,
     combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
 
-    if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
-      stop("The length of split_level is not valid.")
+    if (!any(length(regions_id) == 1, length(regions_id) == nrow(regions))) {
+      stop("The length of regions_id is not valid.")
     }
-    split_level <-
-      ifelse(length(split_level) == nrow(regions),
-             split_level,
-             unlist(regions[[split_level]]))
-    regions_list <- base::split(split_level, split_level)
+    regions_id <-
+      ifelse(length(regions_id) == nrow(regions),
+             regions_id,
+             unlist(regions[[regions_id]]))
+    regions_list <- base::split(regions_id, regions_id)
 
     results_distributed <-
       future.apply::future_lapply(
@@ -4096,7 +4096,7 @@ par_hierarchy <-
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
                 subregion <-
-                  regions[startsWith(split_level, subregion), ]
+                  regions[startsWith(regions_id, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"
@@ -4476,7 +4476,7 @@ testthat::test_that(
         suppressWarnings(
           par_hierarchy(
             regions = nccnty,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = extract_at_poly,
             polys = nctrct,
             surf = ncelev,
@@ -4490,7 +4490,7 @@ testthat::test_that(
       suppressWarnings(
         par_hierarchy(
           regions = nccnty,
-          split_level = c(1, 2, 3),
+          regions_id = c(1, 2, 3),
           fun_dist = extract_at_poly,
           polys = nctrct,
           surf = ncelev,
@@ -4508,7 +4508,7 @@ testthat::test_that(
         resnas <-
           par_hierarchy(
             regions = nccnty,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = terra::nearest,
             polys = nctrct,
             surf = ncelev
@@ -4525,7 +4525,7 @@ testthat::test_that(
           par_hierarchy(
             regions = nccnty,
             debug = TRUE,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = extract_at_buffer,
             points = terra::centroids(nctrct),
             surf = ncelev,
@@ -4541,7 +4541,7 @@ testthat::test_that(
           par_hierarchy(
             regions = nccnty,
             debug = TRUE,
-            split_level = "GEOID",
+            regions_id = "GEOID",
             fun_dist = terra::nearest,
             x = nctrct,
             y = ncsamp

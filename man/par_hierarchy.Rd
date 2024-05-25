@@ -4,19 +4,33 @@
 \alias{par_hierarchy}
 \title{Process a given function using a hierarchy in input data}
 \usage{
-par_hierarchy(regions, split_level = NULL, debug = FALSE, fun_dist, ...)
+par_hierarchy(
+  regions,
+  regions_id = NULL,
+  unit_id = NULL,
+  debug = FALSE,
+  fun_dist,
+  ...
+)
 }
 \arguments{
 \item{regions}{sf/SpatVector object.
 Computational regions. Only polygons are accepted.}
 
-\item{split_level}{character(nrow(regions)) or character(1).
+\item{regions_id}{character(nrow(regions)) or character(1).
 The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
 
-\item{debug}{logical(1). Prints error messages
-if there were any errors during the calculation.}
+\item{unit_id}{character(1). Default is NULL.
+If NULL, the lower level units will be split by the intersection
+between a higher level region and lower level units.
+Otherwise, the \strong{first} element of the ellipsis argument
+\code{...} is used to split the lower level units.}
+
+\item{debug}{logical(1). Default is \code{FALSE}
+If a unit computation fails, the error message and the \code{regions_id}
+value where the error occurred will be included in the output.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 
@@ -94,7 +108,7 @@ ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
 res <-
   par_hierarchy(
     regions = nccnty,
-    split_level = "GEOID",
+    regions_id = "GEOID",
     fun_dist = extract_at_poly,
     polys = nctrct,
     surf = ncelev,

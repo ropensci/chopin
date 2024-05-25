@@ -4,14 +4,12 @@
 \alias{par_fallback}
 \title{Parallelization error fallback}
 \usage{
-par_fallback(err = NULL, fun = NULL, debug = FALSE, inputid = NULL)
+par_fallback(err = NULL, fun = NULL, inputid = NULL)
 }
 \arguments{
 \item{err}{Error status or message.}
 
 \item{fun}{function.}
-
-\item{debug}{logical(1). Print error messages (\code{TRUE}) or not (\code{FALSE})}
 
 \item{inputid}{character(1). ID of the computational region.
 For example, \code{par_make_gridset} output should have \code{"CGRIDID"},

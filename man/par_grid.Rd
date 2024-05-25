@@ -20,8 +20,9 @@ Default is NULL. If NULL, all grid_ids are used.
 \code{"id_from:id_to"} format or
 \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
 
-\item{debug}{logical(1). Prints error messages
-if there were any errors during the calculation.}
+\item{debug}{logical(1). Default is \code{FALSE}. Otherwise,
+if a unit computation fails, the error message and the \code{CGRIDID}
+value where the error occurred will be included in the output.}
 
 \item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.}
 

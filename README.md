@@ -230,7 +230,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.833   0.293  12.174
+#>   9.925   0.197  10.149
 ```
 
 #### Generate regular grid computational regions
@@ -346,7 +346,7 @@ system.time(
 #> Warning: [buffer] empty SpatVector
 #> Warning: [buffer] empty SpatVector
 #>    user  system elapsed 
-#>  10.760   1.617   4.309
+#>   8.418   1.567   3.447
 ```
 
 ``` r
@@ -354,8 +354,7 @@ colnames(ncpoints_srtm_mthr)[2] <- "mean_par"
 ncpoints_compar <- merge(ncpoints_srtm, ncpoints_srtm_mthr)
 # Are the calculations equal?
 all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
-#> [1] "Modes: numeric, character"              
-#> [2] "target is numeric, current is character"
+#> [1] TRUE
 ```
 
 ``` r
@@ -399,7 +398,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpC225hB/temp_libpath132d464f135b59/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -411,7 +410,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 ``` r
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpC225hB/temp_libpath132d464f135b59/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -441,7 +440,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   2.059   0.027   2.094
+#>   1.798   0.082   1.886
 ```
 
 ``` r
@@ -450,7 +449,7 @@ system.time(
   nc_elev_tr_distr <-
     chopin::par_hierarchy(
       regions = nc_county, # higher level geometry
-      split_level = "GEOID", # higher level unique id
+      regions_id = "GEOID", # higher level unique id
       fun_dist = chopin::extract_at,
       vector = nc_tracts, # lower level geometry
       raster = srtm,
@@ -459,7 +458,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.038   0.024   2.733
+#>  10.452   2.020   4.324
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -486,9 +485,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpV5WUE9/test1.tif" "/tmp/RtmpV5WUE9/test2.tif"
-#> [3] "/tmp/RtmpV5WUE9/test3.tif" "/tmp/RtmpV5WUE9/test4.tif"
-#> [5] "/tmp/RtmpV5WUE9/test5.tif"
+#> [1] "/tmp/RtmpPWsyT6/test1.tif" "/tmp/RtmpPWsyT6/test2.tif"
+#> [3] "/tmp/RtmpPWsyT6/test3.tif" "/tmp/RtmpPWsyT6/test4.tif"
+#> [5] "/tmp/RtmpPWsyT6/test5.tif"
 ```
 
 ``` r
@@ -504,7 +503,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.764   0.568   1.110
+#>   1.554   0.633   1.027
 ```
 
 ``` r
@@ -513,12 +512,12 @@ knitr::kable(head(res))
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpV5WUE9/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpV5WUE9/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpV5WUE9/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpV5WUE9/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpV5WUE9/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpV5WUE9/test1.tif |
+| 37037 | 136.80203 | /tmp/RtmpPWsyT6/test1.tif |
+| 37001 | 189.76170 | /tmp/RtmpPWsyT6/test1.tif |
+| 37057 | 231.16968 | /tmp/RtmpPWsyT6/test1.tif |
+| 37069 |  98.03845 | /tmp/RtmpPWsyT6/test1.tif |
+| 37155 |  41.23463 | /tmp/RtmpPWsyT6/test1.tif |
+| 37109 | 270.96933 | /tmp/RtmpPWsyT6/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -596,7 +595,7 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.950   0.000   0.953
+#>   0.462   0.003   0.466
 ```
 
 ``` r
@@ -619,7 +618,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   1.256   0.622   0.660
+#>   0.776   0.562   0.521
 ```
 
 -   We will compare the results from the single-thread and multi-thread

@@ -2,7 +2,6 @@
 #' @family Parallelization
 #' @param err Error status or message.
 #' @param fun function.
-#' @param debug logical(1). Print error messages (`TRUE`) or not (`FALSE`)
 #' @param inputid character(1). ID of the computational region.
 #'   For example, `par_make_gridset` output should have `"CGRIDID"`,
 #'   which will be included in the outcome data.frame.
@@ -20,12 +19,8 @@ par_fallback <-
   function(
     err = NULL,
     fun = NULL,
-    debug = FALSE,
     inputid = NULL
   ) {
-    if (debug) {
-      print(err)
-    }
     fallback <- matrix(NA, nrow = length(inputid), ncol = 1)
     fallback <- as.data.frame(fallback)
     fun_args <- formals(fun)
@@ -75,8 +70,9 @@ par_fallback <-
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
-#' @param debug logical(1). Prints error messages
-#' if there were any errors during the calculation.
+#' @param debug logical(1). Default is `FALSE`. Otherwise,
+#'   if a unit computation fails, the error message and the `CGRIDID`
+#'   value where the error occurred will be included in the output.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -172,27 +168,22 @@ par_grid <-
         )
       }
       grid_target_ids <- seq(grid_target_id[1], grid_target_id[2], by = 1)
-      #grid_target_ids <- unlist(grids$original[["CGRIDID"]])[grid_target_id]
     }
     if (is.character(grid_target_id)) {
       # subset using grids and grid_id
       if (grepl(":", grid_target_id)) {
         grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
         grid_id_parsed <- as.numeric(grid_id_parsed)
-        # cgridids <- unlist(grids$original[["CGRIDID"]])
         grid_target_ids <-
           seq(grid_id_parsed[1], grid_id_parsed[2], by = 1)
-          # c(which(cgridids == grid_id_parsed[1]),
-          #   which(cgridids == grid_id_parsed[2]))
       } else {
         stop("grid_target_id should be formed 'startid:endid'.\n")
       }
     }
-    # cgridids <- unlist(grids$original[["CGRIDID"]])
-    grids_target <-
+    grids_target_in <-
       grids$original[grid_target_ids, ]
     grids_target_list <-
-      base::split(grids_target, unlist(grids_target[["CGRIDID"]]))
+      base::split(grids_target_in, unlist(grids_target_in[["CGRIDID"]]))
 
     results_distributed <-
       future.apply::future_lapply(
@@ -239,7 +230,11 @@ par_grid <-
             return(res)
           },
           error = function(e) {
-            par_fallback(e, fun_dist, debug, inputid = grid$CGRIDID)
+            if (debug) {
+              par_fallback(e, fun_dist, inputid = grid$CGRIDID)
+            } else {
+              return(NULL)
+            }
           })
 
           return(run_result)
@@ -286,12 +281,18 @@ par_grid <-
 #' are spatially sparsely distributed.
 #' @param regions sf/SpatVector object.
 #'  Computational regions. Only polygons are accepted.
-#' @param split_level character(nrow(regions)) or character(1).
+#' @param regions_id character(nrow(regions)) or character(1).
 #'  The regions will be split by the common level value.
 #'  The level should be higher than the original data level.
 #'  A field name with the higher level information is also accepted.
-#' @param debug logical(1). Prints error messages
-#' if there were any errors during the calculation.
+#' @param unit_id character(1). Default is NULL.
+#'   If NULL, the lower level units will be split by the intersection
+#'   between a higher level region and lower level units.
+#'   Otherwise, the **first** element of the ellipsis argument
+#'   `...` is used to split the lower level units.
+#' @param debug logical(1). Default is `FALSE`
+#'   If a unit computation fails, the error message and the `regions_id`
+#'   value where the error occurred will be included in the output.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -336,7 +337,7 @@ par_grid <-
 #' res <-
 #'   par_hierarchy(
 #'     regions = nccnty,
-#'     split_level = "GEOID",
+#'     regions_id = "GEOID",
 #'     fun_dist = extract_at_poly,
 #'     polys = nctrct,
 #'     surf = ncelev,
@@ -354,21 +355,25 @@ par_grid <-
 par_hierarchy <-
   function(
     regions,
-    split_level = NULL,
+    regions_id = NULL,
+    unit_id = NULL,
     debug = FALSE,
     fun_dist,
     ...
   ) {
 
-    if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
-      stop("The length of split_level is not valid.")
+    if (!any(length(regions_id) == 1, length(regions_id) == nrow(regions))) {
+      stop("The length of regions_id is not valid.")
     }
-    split_level <-
-      ifelse(length(split_level) == nrow(regions),
-             split_level,
-             unique(unlist(regions[[split_level]])))
-    regions_list <- base::split(split_level, split_level)
 
+    regions_idn <-
+      if (length(regions_id) == nrow(regions)) {
+        regions_id
+      } else {
+        unique(unname(unlist(regions[[regions_id]])))
+      }
+    regions_list <- as.list(regions_idn)
+    
     results_distributed <-
       future.apply::future_lapply(
         regions_list,
@@ -380,12 +385,19 @@ par_hierarchy <-
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
                 subregion_in <-
-                  regions[startsWith(split_level, subregion), ]
+                  regions[startsWith(regions_idn, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"
-                args_input[[1]] <-
-                  args_input[[1]][subregion_in, ]
+                if (is.null(unit_id)) {
+                  args_input[[1]] <-
+                    args_input[[1]][subregion_in, ]
+                } else {
+                  ain1 <- args_input[[1]]
+                  uid <- unname(unlist(ain1[[unit_id]]))
+                  ain11 <- ain1[grep(paste0("^", subregion), uid), ]
+                  args_input[[1]] <- ain11
+                }
                 if (!"id" %in% names(formals(fun_dist))) {
                   args_input$id <- NULL
                 }
@@ -396,17 +408,21 @@ par_hierarchy <-
               },
               error =
               function(e) {
-                par_fallback(
-                  e, fun_dist, debug,
-                  inputid = if (is.null(subregion)) NA else subregion
-                )
+                if (debug) {
+                  par_fallback(
+                    e, fun_dist,
+                    inputid = subregion
+                  )
+                } else {
+                  return(NULL)
+                }
               }
             )
           return(run_result)
         },
         future.seed = TRUE,
         future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
-        future.globals = FALSE,
+        future.globals = TRUE,
         future.scheduling = 2
       )
     results_distributed <-
@@ -438,8 +454,9 @@ par_hierarchy <-
 #'  to make subsets of input vector objects in advance.
 #' @param filenames character(n). A vector or list of
 #'  full file paths of raster files. n is the total number of raster files.
-#' @param debug logical(1). Prints error messages
-#' if there were any errors during the calculation.
+#' @param debug logical(1). Default is `FALSE`.
+#'   If a unit computation fails, the error message and the file path
+#'   where the error occurred will be included in the output.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -526,7 +543,11 @@ par_multirasters <-
             }
             )
           if (inherits(run_result, "try-error")) {
-            par_fallback(run_result[1], fun_dist, debug, inputid = path)
+            if (debug) {
+              par_fallback(run_result[1], fun_dist, inputid = path)
+            } else {
+              return(NULL)
+            }
           }
         },
         future.seed = TRUE,
