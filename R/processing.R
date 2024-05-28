@@ -578,6 +578,11 @@ reproject_b2r <-
 #'  the nearest points in threshold will be selected.
 #'  \code{2 * sedc_bandwidth} is applied if this value remains `NULL`.
 #' @param target_fields character. Field names to calculate SEDC.
+#' @param extent_from numeric(4) or SpatExtent. Extent of clipping `point_from`.
+#'   It only works with `point_from` of character(1) file path.
+#'   See [`terra::ext`] for more details. Coordinate systems should match.
+#' @param extent_to numeric(4) or SpatExtent. Extent of clipping `point_to`.
+#' @param ... Placeholder.
 #' @returns data.frame (tibble) object with input field names with
 #'  a suffix \code{"_sedc"} where the sums of EDC are stored.
 #'  Additional attributes are attached for the EDC information.
@@ -639,7 +644,8 @@ summarize_sedc <-
     threshold = NULL,
     target_fields = NULL,
     extent_from = NULL,
-    extent_to = NULL
+    extent_to = NULL,
+    ...
   ) {
 
     point_from <-
