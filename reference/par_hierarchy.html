@@ -4,11 +4,10 @@ which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
 (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
 future::multicore, future::multisession, future::cluster
-with doParallel::registerDoParallel will parallelize the work
-in each grid. For details of the terminology in future package,
+will parallelize the work by splitting lower level features into
+several higher level feature group.
+For details of the terminology in future package,
 refer to plan.
-This function assumes that users have one raster file and
-a sizable and spatially distributed target locations.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with
@@ -17,11 +16,10 @@ which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
 (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
 future::multicore, future::multisession, future::cluster
-with doParallel::registerDoParallel will parallelize the work
-in each grid. For details of the terminology in future package,
+will parallelize the work by splitting lower level features into
+several higher level feature group.
+For details of the terminology in future package,
 refer to plan.
-This function assumes that users have one raster file and
-a sizable and spatially distributed target locations.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with
@@ -36,7 +34,7 @@ multiple processes may result in errors.'><!-- mathjax --><script src="https://c
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.20240525</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,11 +80,10 @@ which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
 (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
 <a href="https://future.futureverse.org/reference/multicore.html" class="external-link">future::multicore</a>, <a href="https://future.futureverse.org/reference/multisession.html" class="external-link">future::multisession</a>, <a href="https://future.futureverse.org/reference/cluster.html" class="external-link">future::cluster</a>
-with <a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html" class="external-link">doParallel::registerDoParallel</a> will parallelize the work
-in each grid. For details of the terminology in <code>future</code> package,
+will parallelize the work by splitting lower level features into
+several higher level feature group.
+For details of the terminology in <code>future</code> package,
 refer to <a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a>.
-This function assumes that users have one raster file and
-a sizable and spatially distributed target locations.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with
@@ -97,9 +94,9 @@ multiple processes may result in errors.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par_hierarchy</span><span class="op">(</span></span>
 <span>  <span class="va">regions</span>,</span>
-<span>  split_level <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  regions_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  unit_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  debug <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  combine <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span>,</span>
 <span>  <span class="va">fun_dist</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -112,20 +109,25 @@ multiple processes may result in errors.</p>
 Computational regions. Only polygons are accepted.</p></dd>
 
 
-<dt>split_level</dt>
+<dt>regions_id</dt>
 <dd><p>character(nrow(regions)) or character(1).
 The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.</p></dd>
 
 
+<dt>unit_id</dt>
+<dd><p>character(1). Default is NULL.
+If NULL, the lower level units will be split by the intersection
+between a higher level region and lower level units.
+Otherwise, the <strong>first</strong> element of the ellipsis argument
+<code>...</code> is used to split the lower level units.</p></dd>
+
+
 <dt>debug</dt>
-<dd><p>logical(1). Prints error messages
-if there were any errors during the calculation.</p></dd>
-
-
-<dt>combine</dt>
-<dd><p>function. The function to combine the results.</p></dd>
+<dd><p>logical(1). Default is <code>FALSE</code>
+If a unit computation fails, the error message and the <code>regions_id</code>
+value where the error occurred will be included in the output.</p></dd>
 
 
 <dt>fun_dist</dt>

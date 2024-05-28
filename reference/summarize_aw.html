@@ -12,7 +12,7 @@ poly_weight will be converted to the class of poly_in."><!-- mathjax --><script 
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.20240525</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,18 +64,20 @@ poly_weight will be converted to the class of poly_in."><!-- mathjax --><script 
 <span>  poly_weight <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  target_fields <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id_poly_in <span class="op">=</span> <span class="st">"ID"</span>,</span>
-<span>  fun <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean</a></span></span>
+<span>  fun <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean</a></span>,</span>
+<span>  extent <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>poly_in</dt>
-<dd><p>A sf/SpatVector object at weighted means will be calculated.</p></dd>
+<dd><p>A sf/SpatVector object or file path of polygons detectable
+with GDAL driver at weighted means will be calculated.</p></dd>
 
 
 <dt>poly_weight</dt>
-<dd><p>A sf/SpatVector object from
+<dd><p>A sf/SpatVector object or file path of polygons from
 which weighted means will be calculated.</p></dd>
 
 
@@ -93,12 +95,23 @@ Default is <code>"ID"</code>.</p></dd>
 <dd><p>function(1). The function to calculate the weighted summary.
 Default is <code><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">stats::weighted.mean</a></code>. The function must have a <code>w</code> argument.</p></dd>
 
+
+<dt>extent</dt>
+<dd><p>numeric(4) or SpatExtent object. Extent of clipping <code>poly_in</code>.
+It only works with <code>poly_in</code> of character(1) file path.
+See <code><a href="https://rspatial.github.io/terra/reference/ext.html" class="external-link">terra::ext</a></code> for more details. Coordinate systems should match.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
 <p>A data.frame with all numeric fields of area-weighted means.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
+    <p>If <code>poly_in</code> and <code>poly_weight</code> are characters, they will be
+read as <code><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">terra::vect</a></code> objects.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -136,16 +149,16 @@ Default is <code><a href="https://rdrr.io/r/stats/weighted.mean.html" class="ext
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span> <span class="op">&lt;-</span> <span class="fu">summarize_aw</span><span class="op">(</span><span class="va">ppb</span>, <span class="va">nc</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BIR74"</span>, <span class="st">"BIR79"</span><span class="op">)</span>, <span class="st">"id"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    user  system elapsed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.342   0.000   0.343 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.672   0.008   0.714 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      BIR74             BIR79                  geometry  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :  265.1   Min.   :  348.3   POLYGON      :300  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 1919.6   1st Qu.: 2379.6   epsg:5070    :  0  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median : 3146.1   Median : 3863.8   +proj=aea ...:  0  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   : 4027.7   Mean   : 5194.1                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.: 4914.6   3rd Qu.: 6259.5                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :16721.9   Max.   :23772.3                      </span>
-<span class="r-in"><span><span class="co">#### Example of summarize_aw ends ####</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        id             BIR74             BIR79        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :  1.00   Min.   :  265.1   Min.   :  348.3  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 75.75   1st Qu.: 1919.6   1st Qu.: 2379.6  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :150.50   Median : 3146.1   Median : 3863.8  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :150.50   Mean   : 4027.7   Mean   : 5194.1  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:225.25   3rd Qu.: 4914.6   3rd Qu.: 6259.5  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :300.00   Max.   :16721.9   Max.   :23772.3  </span>
+<span class="r-in"><span><span class="co">#### Example of summarize_aw ends ###</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

@@ -12,7 +12,7 @@ the points and the raster are the same."><!-- mathjax --><script src="https://cd
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.20240525</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +64,9 @@ the points and the raster are the same.</p>
 <span>  surf <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  func <span class="op">=</span> <span class="st">"mean"</span>,</span>
-<span>  max_cells <span class="op">=</span> <span class="fl">2e+07</span></span>
+<span>  extent <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_cells <span class="op">=</span> <span class="fl">2e+07</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,9 +92,21 @@ compatible with <code><a href="https://isciences.gitlab.io/exactextractr/referen
 For example, <code>"mean"</code> or <code>\(x, w) weighted.mean(x, w, na.rm = TRUE)</code></p></dd>
 
 
+<dt>extent</dt>
+<dd><p>numeric(4) or SpatExtent. Extent of clipping vector.
+It only works with <code>polys</code> of character(1) file path.
+When using numeric(4), it should be in the order of
+<code>c(xmin, xmax, ymin, ymax)</code>. The coordinate system should be the same
+as the <code>polys</code>.</p></dd>
+
+
 <dt>max_cells</dt>
 <dd><p>integer(1). Maximum number of cells in memory.
 See <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract</a></code> for more details.</p></dd>
+
+
+<dt>...</dt>
+<dd><p>Placeholder.</p></dd>
 
 </dl></div>
     <div class="section level2">

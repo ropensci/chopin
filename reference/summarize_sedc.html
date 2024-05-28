@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.20240525</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,10 @@
 <span>  id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sedc_bandwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  target_fields <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  target_fields <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  extent_from <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  extent_to <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,6 +99,20 @@ the nearest points in threshold will be selected.
 
 <dt>target_fields</dt>
 <dd><p>character. Field names to calculate SEDC.</p></dd>
+
+
+<dt>extent_from</dt>
+<dd><p>numeric(4) or SpatExtent. Extent of clipping <code>point_from</code>.
+It only works with <code>point_from</code> of character(1) file path.
+See <code><a href="https://rspatial.github.io/terra/reference/ext.html" class="external-link">terra::ext</a></code> for more details. Coordinate systems should match.</p></dd>
+
+
+<dt>extent_to</dt>
+<dd><p>numeric(4) or SpatExtent. Extent of clipping <code>point_to</code>.</p></dd>
+
+
+<dt>...</dt>
+<dd><p>Placeholder.</p></dd>
 
 </dl></div>
     <div class="section level2">

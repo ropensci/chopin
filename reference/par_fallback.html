@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.3.20240515</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.20240525</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par_fallback</span><span class="op">(</span>err <span class="op">=</span> <span class="cn">NULL</span>, fun <span class="op">=</span> <span class="cn">NULL</span>, debug <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">par_fallback</span><span class="op">(</span>err <span class="op">=</span> <span class="cn">NULL</span>, fun <span class="op">=</span> <span class="cn">NULL</span>, inputid <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -69,19 +69,23 @@
 <dd><p>function.</p></dd>
 
 
-<dt>debug</dt>
-<dd><p>logical(1). Print error messages (<code>TRUE</code>) or not (<code>FALSE</code>)</p></dd>
+<dt>inputid</dt>
+<dd><p>character(1). ID of the computational region.
+For example, <code>par_make_gridset</code> output should have <code>"CGRIDID"</code>,
+which will be included in the outcome data.frame.
+If the function does not have an argument containing <code>"id"</code>,
+the output will have a column named <code>"chopin_domain_id"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>data.frame with one column</p>
+<p>data.frame with domain id and error message.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>This function assumes that the <code>fun</code> has an argument named
+    <p>This function assumes that the <code>fun</code> has an argument containing
 <code>"id"</code>.</p>
     </div>
     <div class="section level2">
@@ -104,10 +108,9 @@
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">err</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">simpleError</a></span><span class="op">(</span><span class="st">"No input."</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">par_fallback</span><span class="op">(</span><span class="va">err</span>, <span class="va">extract_at</span>, debug <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;simpleError: No input.&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   NA</span>
+<span class="r-in"><span><span class="fu">par_fallback</span><span class="op">(</span><span class="va">err</span>, <span class="va">extract_at</span>, inputid <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   chopin_domain_id error_message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                1     No input.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
