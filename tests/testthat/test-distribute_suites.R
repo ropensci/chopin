@@ -228,9 +228,10 @@ testthat::test_that(
     withr::local_options(list(sf_use_s2 = FALSE))
 
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- terra::vect(ncpath, layer = "county")
+    nccnty <- sf::st_read(ncpath, layer = "county")
+    # nccnty <- terra::vect(ncpath, layer = "county")
     nctrct <- sf::st_read(ncpath, layer = "tracts")
-    nctrct <- terra::vect(nctrct)
+    # nctrct <- terra::vect(nctrct)
     ncelev <-
       terra::unwrap(
         readRDS(
@@ -341,7 +342,7 @@ testthat::test_that(
             debug = TRUE,
             regions_id = "GEOID",
             fun_dist = extract_at_buffer,
-            points = terra::centroids(nctrct),
+            points = sf::st_centroid(nctrct),
             surf = ncelev,
             id = "GEOID",
             radius = 1e3L
