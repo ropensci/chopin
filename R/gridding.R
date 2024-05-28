@@ -386,13 +386,13 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
     vapply(
       x_quantiles[-c(1, length(x_quantiles))],
       FUN = function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x)))),
-      FUN.VALUE = 0
+      FUN.VALUE = numeric(1)
     )
   y_quantiles[-c(1, length(y_quantiles))] <-
     vapply(
       y_quantiles[-c(1, length(y_quantiles))],
       FUN = function(x) round(x, 4L - ceiling(log10(abs(x) - as.integer(x)))),
-      FUN.VALUE = 0
+      FUN.VALUE = numeric(1)
     )
 
   xy_quantiles <- expand.grid(

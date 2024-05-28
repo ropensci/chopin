@@ -29,7 +29,7 @@ This function assumes that the \code{fun} has an argument containing
 }
 \examples{
 err <- simpleError("No input.")
-par_fallback(err, extract_at, debug = TRUE, 1)
+par_fallback(err, extract_at, inputid = 1)
 }
 \seealso{
 Other Parallelization: 

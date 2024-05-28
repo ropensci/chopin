@@ -74,7 +74,7 @@ clip_vec_ext <- function(
     vapply(
       list(pnts, radius, target_input),
       FUN = is.null,
-      FUN.VALUE = TRUE
+      FUN.VALUE = logical(1)
     )
   )) {
     stop("One or more required arguments are NULL. Please check.\n")
@@ -136,7 +136,7 @@ clip_ras_ext <- function(
   if (any(
     vapply(list(pnts, radius, ras),
            FUN = is.null,
-           FUN.VALUE = TRUE)
+           FUN.VALUE = logical(1))
   )) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
@@ -216,17 +216,7 @@ extract_at_buffer <- function(
   max_cells = 2e7,
   ...
 ) {
-  # type check
-  if (!any(
-    vapply(
-      c("SpatVector", "sf", "character"),
-      FUN = methods::is,
-      FUN.VALUE = logical(1),
-      object = points
-    )
-  )) {
-    stop("Check class of the input points.\n")
-  }
+
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
@@ -236,19 +226,10 @@ extract_at_buffer <- function(
   if (!is.numeric(radius)) {
     stop("Check class of the input radius.\n")
   }
-  if (!is.character(id)) {
-    stop("id should be a character.\n")
-  }
   if (!is.numeric(qsegs)) {
     stop("qsegs should be numeric.\n")
   }
-  if (is.character(points)) {
-    points <- try(terra::vect(points, extent = extent))
-  } else {
-    if (dep_check(points) == "sf") {
-      points <- dep_switch(points)
-    }
-  }
+  points <- check_subject(points, extent = extent, subject_id = id)
 
   if (!is.null(kernel)) {
     extracted <-
@@ -430,6 +411,11 @@ extract_at_buffer_kernel <- function(
 #'  a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, `"mean"` or `\(x, w) weighted.mean(x, w, na.rm = TRUE)`
+#' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
+#'   It only works with `polys` of character(1) file path.
+#'   When using numeric(4), it should be in the order of
+#'   `c(xmin, xmax, ymin, ymax)`. The coordinate system should be the same
+#'   as the `polys`.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
 #' @param ... Placeholder.
@@ -457,25 +443,18 @@ extract_at_poly <- function(
   surf = NULL,
   id = NULL,
   func = "mean",
+  extent = NULL,
   max_cells = 2e7,
   ...
 ) {
-  # type check
-  if (!methods::is(polys, "SpatVector")) {
-    if (!methods::is(polys, "sf")) {
-      stop("Check class of the input points.\n")
-    }
-    polys <- terra::vect(polys)
-  }
+
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
       stop("Check class of the input raster.\n")
     }
   }
-  if (!is.character(id)) {
-    stop("id should be a character.\n")
-  }
+  polys <- check_subject(polys, extent = extent, subject_id = id)
   # reproject polygons to raster's crs
   polys <- reproject_b2r(polys, surf)
   # crop raster
@@ -531,7 +510,6 @@ extract_at <- function(
 
   mode <- match.arg(mode)
   stopifnot(is.character(id))
-  stopifnot(id %in% names(vector))
 
   extracted <-
     switch(mode,
@@ -659,8 +637,16 @@ summarize_sedc <-
     id = NULL,
     sedc_bandwidth = NULL,
     threshold = NULL,
-    target_fields = NULL
+    target_fields = NULL,
+    extent_from = NULL,
+    extent_to = NULL
   ) {
+
+    point_from <-
+      check_subject(point_from, extent = extent_from, subject_id = id)
+    point_to <-
+      check_subject(point_to, extent = extent_to, subject_id = id)
+
     # define sources, set SEDC exponential decay range
     len_point_from <- seq_len(nrow(point_from))
     len_point_to <- seq_len(nrow(point_to))
@@ -795,33 +781,9 @@ summarize_aw <-
     fun = stats::weighted.mean,
     extent = NULL
   ) {
-    if (!any(
-      vapply(
-        c("SpatVector", "sf", "character"),
-        FUN = methods::is,
-        FUN.VALUE = logical(1),
-        object = poly_in
-      )
-    )) {
-      stop("poly_in is in invalid class.\n")
-    }
-    if (!any(
-      vapply(
-        c("SpatVector", "sf", "character"),
-        FUN = methods::is,
-        FUN.VALUE = logical(1),
-        object = poly_weight
-      )
-    )) {
-      stop("poly_weight is in invalid class.\n")
-    }
 
-    if (is.character(poly_in)) {
-      poly_in <- try(terra::vect(poly_in, ext = extent))
-    }
-    if (is.character(poly_weight)) {
-      poly_weight <- try(terra::vect(poly_weight))
-    }
+    poly_in <- check_subject(poly_in, extent = extent, subject_id = id_poly_in)
+    poly_weight <- check_subject(poly_weight, extent = extent)
 
     summarize_aw_terra <-
       function(

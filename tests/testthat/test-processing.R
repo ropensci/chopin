@@ -329,7 +329,38 @@ testthat::test_that("extract_at runs well", {
 })
 
 
+testthat::test_that("Character input works", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
 
+  # starts from sf/stars
+  ncp <- system.file("extdata/nc_random_point.rds", package = "chopin") |>
+    readRDS()
+  ncpfile <- file.path(tempdir(), "ncp.shp")
+  sf::st_write(ncp, ncpfile)
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <- system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+  ncelev <- terra::unwrap(ncelev)
+
+  testthat::expect_no_error(
+    extract_at(ncpfile, ncelev, "pid", mode = "buffer", radius = 1e4L)
+  )
+  testthat::expect_no_error(
+    extract_at(ncpfile, ncelev, "pid", mode = "buffer", radius = 1e4L,
+               kernel = "epanechnikov", func = stats::weighted.mean,
+               bandwidth = 1.25e4L)
+  )
+  testthat::expect_no_error(
+    extract_at(nccnty, ncelev, "FIPS", mode = "polygon")
+  )
+
+
+})
 
 testthat::test_that("summarize_aw works as expected.", {
   withr::local_package("sf")

@@ -9,6 +9,7 @@ extract_at_poly(
   surf = NULL,
   id = NULL,
   func = "mean",
+  extent = NULL,
   max_cells = 2e+07,
   ...
 )
@@ -25,6 +26,12 @@ that are GDAL-compatible. A raster from which a summary will be calculated}
 a function taking two arguments that are
 compatible with \code{\link[exactextractr]{exact_extract}}.
 For example, \code{"mean"} or \verb{\\(x, w) weighted.mean(x, w, na.rm = TRUE)}}
+
+\item{extent}{numeric(4) or SpatExtent. Extent of clipping vector.
+It only works with \code{polys} of character(1) file path.
+When using numeric(4), it should be in the order of
+\code{c(xmin, xmax, ymin, ymax)}. The coordinate system should be the same
+as the \code{polys}.}
 
 \item{max_cells}{integer(1). Maximum number of cells in memory.
 See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}

@@ -10,7 +10,9 @@ summarize_sedc(
   id = NULL,
   sedc_bandwidth = NULL,
   threshold = NULL,
-  target_fields = NULL
+  target_fields = NULL,
+  extent_from = NULL,
+  extent_to = NULL
 )
 }
 \arguments{

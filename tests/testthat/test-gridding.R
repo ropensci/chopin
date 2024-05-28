@@ -112,7 +112,7 @@ testthat::test_that("Quantile cut tests", {
 })
 
 
-
+## grid split ####
 testthat::test_that("Grid split is well done.", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -171,7 +171,7 @@ testthat::test_that("Grid split is well done.", {
 
 })
 
-
+## grid merge ####
 testthat::test_that("Grid merge is well done.", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -236,10 +236,21 @@ testthat::test_that("Grid merge is well done.", {
         merge_max = 10L
       )
   )
+  testthat::expect_s4_class(gridmergedx, "SpatVector")
+  testthat::expect_message(
+    gridmergedx5 <-
+      par_merge_grid(
+        ncptr2,
+        griddedtr22$original,
+        10L,
+        merge_max = 5L
+      )
+  )
+  testthat::expect_s4_class(gridmergedx5, "SpatVector")
 
 })
 
-
+## par_group_balanced tests ####
 testthat::test_that("par_group_balanced returns the correct output", {
   # Create test data
   withr::local_package("sf")
@@ -273,6 +284,7 @@ testthat::test_that("par_group_balanced returns the correct output", {
 })
 
 
+## par_group_grid tests ####
 testthat::test_that("par_group_grid returns the correct output", {
   withr::local_package("sf")
   withr::local_package("terra")

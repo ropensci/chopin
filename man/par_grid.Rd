@@ -38,8 +38,8 @@ For entries of the results, consult the function used in
 }
 \description{
 \link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
-with \link[doParallel:registerDoParallel]{doParallel::registerDoParallel} will parallelize the work
-in each grid. For details of the terminology in \code{future} package,
+will parallelize the work in each grid.
+For details of the terminology in \code{future} package,
 refer to \link[future]{plan}. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process

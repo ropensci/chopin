@@ -1,3 +1,7 @@
+# 0.7.0
+- Type check function `check_subject` is added. This function is internal.
+- `vapply` argument `FUN.VALUE` fixed
+
 # 0.6.4
 - FIX: `grid_target_id` in `par_grid` accepts numeric or character input to filter grids
 - `par_fallback` is returning error_message field with actual error messages
