@@ -24,6 +24,7 @@ performs necessary conversions if needed.
 # Check a SpatVector object
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 ncsf <- sf::st_read(ncpath)
+extent <- c(-80, -77, 35, 36)
 check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
 
 # Check a character object

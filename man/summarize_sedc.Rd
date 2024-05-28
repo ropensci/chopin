@@ -12,7 +12,8 @@ summarize_sedc(
   threshold = NULL,
   target_fields = NULL,
   extent_from = NULL,
-  extent_to = NULL
+  extent_to = NULL,
+  ...
 )
 }
 \arguments{
@@ -33,6 +34,14 @@ the nearest points in threshold will be selected.
 \code{2 * sedc_bandwidth} is applied if this value remains \code{NULL}.}
 
 \item{target_fields}{character. Field names to calculate SEDC.}
+
+\item{extent_from}{numeric(4) or SpatExtent. Extent of clipping \code{point_from}.
+It only works with \code{point_from} of character(1) file path.
+See \code{\link[terra:ext]{terra::ext}} for more details. Coordinate systems should match.}
+
+\item{extent_to}{numeric(4) or SpatExtent. Extent of clipping \code{point_to}.}
+
+\item{...}{Placeholder.}
 }
 \value{
 data.frame (tibble) object with input field names with
