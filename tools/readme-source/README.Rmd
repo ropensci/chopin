@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
 [![R-CMD-check](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml)
+[![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
@@ -323,7 +324,7 @@ system.time(
   nc_elev_tr_distr <-
     chopin::par_hierarchy(
       regions = nc_county, # higher level geometry
-      split_level = "GEOID", # higher level unique id
+      regions_id = "GEOID", # higher level unique id
       fun_dist = chopin::extract_at,
       vector = nc_tracts, # lower level geometry
       raster = srtm,

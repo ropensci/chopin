@@ -9,13 +9,15 @@ summarize_aw(
   poly_weight = NULL,
   target_fields = NULL,
   id_poly_in = "ID",
-  fun = stats::weighted.mean
+  fun = stats::weighted.mean,
+  extent = NULL
 )
 }
 \arguments{
-\item{poly_in}{A sf/SpatVector object at weighted means will be calculated.}
+\item{poly_in}{A sf/SpatVector object or file path of polygons detectable
+with GDAL driver at weighted means will be calculated.}
 
-\item{poly_weight}{A sf/SpatVector object from
+\item{poly_weight}{A sf/SpatVector object or file path of polygons from
 which weighted means will be calculated.}
 
 \item{target_fields}{character. Field names to calculate area-weighted.}
@@ -25,7 +27,11 @@ The unique identifier of each polygon in \code{poly_in}.
 Default is \code{"ID"}.}
 
 \item{fun}{function(1). The function to calculate the weighted summary.
-Default is \code{stats::weighted.mean}. The function must have a \code{w} argument.}
+Default is \code{\link[stats:weighted.mean]{stats::weighted.mean}}. The function must have a \code{w} argument.}
+
+\item{extent}{numeric(4) or SpatExtent object. Extent of clipping \code{poly_in}.
+It only works with \code{poly_in} of character(1) file path.
+See \code{\link[terra:ext]{terra::ext}} for more details. Coordinate systems should match.}
 }
 \value{
 A data.frame with all numeric fields of area-weighted means.
@@ -33,6 +39,10 @@ A data.frame with all numeric fields of area-weighted means.
 \description{
 When \code{poly_in} and \code{poly_weight} are different classes,
 \code{poly_weight} will be converted to the class of \code{poly_in}.
+}
+\note{
+If \code{poly_in} and \code{poly_weight} are characters, they will be
+read as \code{terra::vect} objects.
 }
 \examples{
 # package
@@ -48,7 +58,7 @@ ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 
 system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 summary(ppb_nc_aw)
-#### Example of summarize_aw ends ####
+#### Example of summarize_aw ends ###
 }
 \seealso{
 Other Macros for calculation: 

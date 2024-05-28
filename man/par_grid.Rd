@@ -4,30 +4,25 @@
 \alias{par_grid}
 \title{Process a given function in the entire or partial computational grids}
 \usage{
-par_grid(
-  grids,
-  grid_target_id = NULL,
-  debug = FALSE,
-  combine = dplyr::bind_rows,
-  fun_dist,
-  ...
-)
+par_grid(grids, grid_target_id = NULL, debug = FALSE, fun_dist, ...)
 }
 \arguments{
 \item{grids}{sf/SpatVector object. Computational grids.
 It takes a strict assumption that the grid input is
-an output of \code{par_make_gridset}}
+an output of \code{par_make_gridset}.
+If missing or NULL is entered, \code{par_make_gridset} is internally
+called. In this case, the \strong{first} element of the ellipsis argument
+\code{...} is considered \code{input} in \code{par_make_gridset} and \code{mode} is fixed
+as "grid"`. See \code{\link[=par_make_gridset]{par_make_gridset()}} for details.}
 
 \item{grid_target_id}{character(1) or numeric(2).
 Default is NULL. If NULL, all grid_ids are used.
 \code{"id_from:id_to"} format or
 \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
 
-\item{debug}{logical(1). Prints error messages
-if there were any errors during the calculation.}
-
-\item{combine}{function. A function to combine results.
-Default is \code{dplyr::bind_rows}.}
+\item{debug}{logical(1). Default is \code{FALSE}. Otherwise,
+if a unit computation fails, the error message and the \code{CGRIDID}
+value where the error occurred will be included in the output.}
 
 \item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.}
 
@@ -43,8 +38,8 @@ For entries of the results, consult the function used in
 }
 \description{
 \link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
-with \link[doParallel:registerDoParallel]{doParallel::registerDoParallel} will parallelize the work
-in each grid. For details of the terminology in \code{future} package,
+will parallelize the work in each grid.
+For details of the terminology in \code{future} package,
 refer to \link[future]{plan}. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process

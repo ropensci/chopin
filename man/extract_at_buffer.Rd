@@ -16,7 +16,8 @@ extract_at_buffer(
   kernel = NULL,
   bandwidth = NULL,
   extent = NULL,
-  max_cells = 2e+07
+  max_cells = 2e+07,
+  ...
 )
 
 extract_at_buffer_flat(
@@ -28,7 +29,8 @@ extract_at_buffer_flat(
   func = "mean",
   kernel = NULL,
   bandwidth = NULL,
-  max_cells = 2e+07
+  max_cells = 2e+07,
+  ...
 )
 
 extract_at_buffer_kernel(
@@ -40,7 +42,8 @@ extract_at_buffer_kernel(
   func = stats::weighted.mean,
   kernel = NULL,
   bandwidth = NULL,
-  max_cells = 2e+07
+  max_cells = 2e+07,
+  ...
 )
 }
 \arguments{
@@ -73,6 +76,8 @@ as the \code{points}.}
 
 \item{max_cells}{integer(1). Maximum number of cells in memory.
 See \code{\link[exactextractr:exact_extract]{exactextractr::exact_extract}} for more details.}
+
+\item{...}{Placeholder.}
 }
 \value{
 a data.frame object with mean value

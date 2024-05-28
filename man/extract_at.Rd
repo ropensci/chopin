@@ -27,7 +27,7 @@ that are GDAL-compatible.}
 (generic polygons to extract raster values with) or
 \code{"buffer"} (point with buffer radius)}
 
-\item{...}{various. Passed to extract_at_buffer.
+\item{...}{Placeholder.
 See \code{?extract_at_buffer} for details.}
 }
 \value{

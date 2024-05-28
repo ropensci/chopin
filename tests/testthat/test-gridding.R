@@ -1,4 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 testthat::test_that("Balanced group tests", {
   withr::local_package("sf")
@@ -6,7 +5,7 @@ testthat::test_that("Balanced group tests", {
   withr::local_package("anticlust")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  rv <- terra::vect(matrix(rnorm(1000, 1e3, 350), ncol = 2))
+  rv <- terra::vect(matrix(rnorm(1000, 40, 10), ncol = 2), crs = "EPSG:4326")
   rs <- sf::st_as_sf(rv)
 
   testthat::expect_no_error(
@@ -113,7 +112,7 @@ testthat::test_that("Quantile cut tests", {
 })
 
 
-
+## grid split ####
 testthat::test_that("Grid split is well done.", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -172,7 +171,7 @@ testthat::test_that("Grid split is well done.", {
 
 })
 
-
+## grid merge ####
 testthat::test_that("Grid merge is well done.", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -218,7 +217,7 @@ testthat::test_that("Grid merge is well done.", {
                      mode = "grid",
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
-  testthat::expect_message(
+  testthat::expect_no_error(
     gridmerged2 <- par_merge_grid(ncptr2, griddedtr2$original, 15L)
   )
   testthat::expect_s4_class(gridmerged2, "SpatVector")
@@ -237,10 +236,21 @@ testthat::test_that("Grid merge is well done.", {
         merge_max = 10L
       )
   )
+  testthat::expect_s4_class(gridmergedx, "SpatVector")
+  testthat::expect_message(
+    gridmergedx5 <-
+      par_merge_grid(
+        ncptr2,
+        griddedtr22$original,
+        10L,
+        merge_max = 5L
+      )
+  )
+  testthat::expect_s4_class(gridmergedx5, "SpatVector")
 
 })
 
-
+## par_group_balanced tests ####
 testthat::test_that("par_group_balanced returns the correct output", {
   # Create test data
   withr::local_package("sf")
@@ -274,6 +284,7 @@ testthat::test_that("par_group_balanced returns the correct output", {
 })
 
 
+## par_group_grid tests ####
 testthat::test_that("par_group_grid returns the correct output", {
   withr::local_package("sf")
   withr::local_package("terra")

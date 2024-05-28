@@ -7,7 +7,7 @@
   "codeRepository": "https://github.com/NIEHS/chopin",
   "issueTracker": "https://github.com/NIEHS/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.6.2.20240423",
+  "version": "0.6.4.20240523",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -94,18 +94,6 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=doFuture"
-    },
-    {
-      "@type": "SoftwareApplication",
-      "identifier": "doParallel",
-      "name": "doParallel",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=doParallel"
     },
     {
       "@type": "SoftwareApplication",
@@ -343,11 +331,19 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=terra"
     },
+    "12": {
+      "@type": "SoftwareApplication",
+      "identifier": "collapse",
+      "name": "collapse",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=collapse"
+    },
     "SystemRequirements": null
   },
-  "fileSize": "26515.83KB",
-  "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
-  "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
-  "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],
-  "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental"
+  "fileSize": "653395.991KB"
 }

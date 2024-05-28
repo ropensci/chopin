@@ -2,32 +2,35 @@
 #' @family Parallelization
 #' @param err Error status or message.
 #' @param fun function.
-#' @param debug logical(1). Print error messages (`TRUE`) or not (`FALSE`)
-#' @returns data.frame with one column
-#' @note This function assumes that the `fun` has an argument named
+#' @param inputid character(1). ID of the computational region.
+#'   For example, `par_make_gridset` output should have `"CGRIDID"`,
+#'   which will be included in the outcome data.frame.
+#'   If the function does not have an argument containing `"id"`,
+#'   the output will have a column named `"chopin_domain_id"`.
+#' @returns data.frame with domain id and error message.
+#' @note This function assumes that the `fun` has an argument containing
 #' `"id"`.
 #' @author Insang Song
 #' @examples
 #' err <- simpleError("No input.")
-#' par_fallback(err, extract_at, debug = TRUE)
+#' par_fallback(err, extract_at, inputid = 1)
 #' @export
 par_fallback <-
   function(
     err = NULL,
     fun = NULL,
-    debug = FALSE
+    inputid = NULL
   ) {
-    if (debug) {
-      print(err)
-    }
-    fallback <- data.frame(ID = NA)
+    fallback <- matrix(NA, nrow = length(inputid), ncol = 1)
+    fallback <- as.data.frame(fallback)
     fun_args <- formals(fun)
-    indx <- grepl("id", names(fun_args))
-    if (any(indx)) {
-      detected_id <- fun_args[indx]
-    } else {
-      detected_id <- "id"
+    indx <- grep("id", names(fun_args))
+    detected_id <- "CGRIDID"
+    if (length(indx) != 0) {
+      detected_id <- "chopin_domain_id"
     }
+    fallback$error_message <- paste(unlist(err), collapse = " ")
+    fallback[, 1] <- inputid
     colnames(fallback)[1] <- detected_id
     return(fallback)
   }
@@ -37,8 +40,8 @@ par_fallback <-
 #' @family Parallelization
 #' @description
 #' [future::multicore], [future::multisession], [future::cluster]
-#' with [doParallel::registerDoParallel] will parallelize the work
-#' in each grid. For details of the terminology in \code{future} package,
+#' will parallelize the work in each grid.
+#' For details of the terminology in \code{future} package,
 #' refer to \link[future]{plan}. This function assumes that
 #' users have one raster file and a sizable and spatially distributed
 #' target locations. Each thread will process
@@ -58,15 +61,18 @@ par_fallback <-
 #' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of \code{par_make_gridset}
+#'  an output of \code{par_make_gridset}.
+#'  If missing or NULL is entered, `par_make_gridset` is internally
+#'  called. In this case, the **first** element of the ellipsis argument
+#'  `...` is considered `input` in `par_make_gridset` and `mode` is fixed
+#'  as "grid"`. See [par_make_gridset()] for details.
 #' @param grid_target_id character(1) or numeric(2).
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
 #'  \code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}
-#' @param debug logical(1). Prints error messages
-#' if there were any errors during the calculation.
-#' @param combine function. A function to combine results.
-#' Default is \code{dplyr::bind_rows}.
+#' @param debug logical(1). Default is `FALSE`. Otherwise,
+#'   if a unit computation fails, the error message and the `CGRIDID`
+#'   value where the error occurred will be included in the output.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -126,6 +132,7 @@ par_fallback <-
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
 #' @importFrom dplyr bind_rows
+#' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @export
 par_grid <-
@@ -133,52 +140,76 @@ par_grid <-
     grids,
     grid_target_id = NULL,
     debug = FALSE,
-    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
-    # grid id selection check
-    if (is.character(grid_target_id) && !grepl(":", grid_target_id)) {
-      stop("Character grid_target_id should be in a form of 'startid:endid'.\n")
+    # grid generation if grids is NULL
+    if (is.null(grids) || missing(grids)) {
+      ellipsis <- list(...)
+      if (any(names(ellipsis) == "mode")) {
+        ellipsis[["mode"]] <- NULL
+      }
+      ellipsis$input <- ellipsis[[1]]
+      grids <-
+        rlang::inject(
+          par_make_gridset(
+            mode = "grid",
+            !!!ellipsis
+          )
+        )
     }
+
+    # grid id selection check
+    grid_target_ids <- unlist(grids$original[["CGRIDID"]])
     if (is.numeric(grid_target_id)) {
       if (length(grid_target_id) != 2) {
         stop(
           "Numeric grid_target_id should be in a form of c(startid, endid).\n"
         )
       }
-      grid_target_ids <- unlist(grids$original[["CGRIDID"]])[grid_target_id]
-    }
-    # subset using grids and grid_id
-    if (is.null(grid_target_id)) {
-      grid_target_ids <- unlist(grids$original[["CGRIDID"]])
+      grid_target_ids <- seq(grid_target_id[1], grid_target_id[2], by = 1)
     }
     if (is.character(grid_target_id)) {
-      grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
-      grid_target_ids <-
-        c(which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[1]),
-          which(unlist(grids$original[["CGRIDID"]]) == grid_id_parsed[2]))
+      # subset using grids and grid_id
+      if (grepl(":", grid_target_id)) {
+        grid_id_parsed <- strsplit(grid_target_id, ":", fixed = TRUE)[[1]]
+        grid_id_parsed <- as.numeric(grid_id_parsed)
+        grid_target_ids <-
+          seq(grid_id_parsed[1], grid_id_parsed[2], by = 1)
+      } else {
+        stop("grid_target_id should be formed 'startid:endid'.\n")
+      }
     }
-
-    grids_target <-
-      grids$original[grid_target_ids %in% unlist(grids$original[["CGRIDID"]]), ]
-    grids_target_list <- split(grids_target, unlist(grids_target[["CGRIDID"]]))
+    grids_target_in <-
+      grids$original[grid_target_ids, ]
+    grids_target_list <-
+      base::split(grids_target_in, unlist(grids_target_in[["CGRIDID"]]))
 
     results_distributed <-
       future.apply::future_lapply(
         grids_target_list,
         function(grid) {
           sf::sf_use_s2(FALSE)
+          grid <-
+            tryCatch(
+              terra::vect(grid),
+              error = function(e) grid
+            )
+
           args_input <- list(...)
-          if (dep_check(grid) != dep_check(args_input[[1]])) {
-            grid <- dep_switch(grid)
-          }
-          grid <- reproject_std(grid, terra::crs(args_input[[1]]))
           run_result <- tryCatch({
             ## Strongly assuming that
             # the first is "at", the second is "from"
-            args_input[[1]] <-
-              args_input[[1]][grid, ]
+            if (is.character(args_input[[1]])) {
+              args_input$extent <- terra::ext(grid)
+            } else {
+              if (dep_check(grid) != dep_check(args_input[[1]])) {
+                grid <- dep_switch(grid)
+              }
+              grid <- reproject_std(grid, terra::crs(args_input[[1]]))
+              args_input[[1]] <-
+                args_input[[1]][grid, ]
+            }
             if (methods::is(args_input[[2]], "SpatVector")) {
               gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid$CGRIDID, ]
               args_input[[2]] <- args_input[[2]][gpad_in, ]
@@ -199,17 +230,23 @@ par_grid <-
             return(res)
           },
           error = function(e) {
-            par_fallback(e, fun_dist, debug)
+            if (debug) {
+              par_fallback(e, fun_dist, inputid = grid$CGRIDID)
+            } else {
+              return(NULL)
+            }
           })
 
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra"),
+        future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
         future.globals = FALSE,
         future.scheduling = 2
       )
-    results_distributed <- do.call(combine, results_distributed)
+    results_distributed <-
+      results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
 
     return(results_distributed)
   }
@@ -221,12 +258,11 @@ par_grid <-
 #'  which divides the entire study region into multiple subregions.
 #'  It is oftentimes reflected in an area code system
 #'  (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
-#' [future::multicore], [future::multisession], [future::cluster]
-#' with [doParallel::registerDoParallel] will parallelize the work
-#' in each grid. For details of the terminology in \code{future} package,
+#'  [future::multicore], [future::multisession], [future::cluster]
+#'  will parallelize the work by splitting lower level features into
+#'  several higher level feature group.
+#'  For details of the terminology in \code{future} package,
 #'  refer to \link[future]{plan}.
-#'  This function assumes that users have one raster file and
-#'  a sizable and spatially distributed target locations.
 #'  Each thread will process the number of lower level features
 #'  in each higher level feature. Please be advised that
 #'  accessing the same file simultaneously with
@@ -244,13 +280,18 @@ par_grid <-
 #' are spatially sparsely distributed.
 #' @param regions sf/SpatVector object.
 #'  Computational regions. Only polygons are accepted.
-#' @param split_level character(nrow(regions)) or character(1).
+#' @param regions_id character(nrow(regions)) or character(1).
 #'  The regions will be split by the common level value.
 #'  The level should be higher than the original data level.
 #'  A field name with the higher level information is also accepted.
-#' @param debug logical(1). Prints error messages
-#' if there were any errors during the calculation.
-#' @param combine function. The function to combine the results.
+#' @param unit_id character(1). Default is NULL.
+#'   If NULL, the lower level units will be split by the intersection
+#'   between a higher level region and lower level units.
+#'   Otherwise, the **first** element of the ellipsis argument
+#'   `...` is used to split the lower level units.
+#' @param debug logical(1). Default is `FALSE`
+#'   If a unit computation fails, the error message and the `regions_id`
+#'   value where the error occurred will be included in the output.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -295,7 +336,7 @@ par_grid <-
 #' res <-
 #'   par_hierarchy(
 #'     regions = nccnty,
-#'     split_level = "GEOID",
+#'     regions_id = "GEOID",
 #'     fun_dist = extract_at_poly,
 #'     polys = nctrct,
 #'     surf = ncelev,
@@ -307,28 +348,31 @@ par_grid <-
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject
 #' @importFrom rlang !!!
-#' @importFrom dplyr bind_rows
+#' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @export
 par_hierarchy <-
   function(
     regions,
-    split_level = NULL,
+    regions_id = NULL,
+    unit_id = NULL,
     debug = FALSE,
-    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
 
-    if (!any(length(split_level) == 1, length(split_level) == nrow(regions))) {
-      stop("The length of split_level is not valid.")
+    if (!any(length(regions_id) == 1, length(regions_id) == nrow(regions))) {
+      stop("The length of regions_id is not valid.")
     }
-    split_level <-
-      ifelse(length(split_level) == nrow(regions),
-             split_level,
-             unlist(regions[[split_level]]))
-    regions_list <- base::split(split_level, split_level)
 
+    regions_idn <-
+      if (length(regions_id) == nrow(regions)) {
+        regions_id
+      } else {
+        unique(unname(unlist(regions[[regions_id]])))
+      }
+    regions_list <- as.list(regions_idn)
+    
     results_distributed <-
       future.apply::future_lapply(
         regions_list,
@@ -339,35 +383,50 @@ par_hierarchy <-
               {
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
-                subregion <-
-                  regions[startsWith(split_level, subregion), ]
+                subregion_in <-
+                  regions[startsWith(regions_idn, subregion), ]
                 args_input <- list(...)
                 ## Strongly assuming that
                 # the first is "at", the second is "from"
-                args_input[[1]] <-
-                  args_input[[1]][subregion, ]
+                if (is.null(unit_id)) {
+                  args_input[[1]] <-
+                    args_input[[1]][subregion_in, ]
+                } else {
+                  ain1 <- args_input[[1]]
+                  uid <- unname(unlist(ain1[[unit_id]]))
+                  ain11 <- ain1[grep(paste0("^", subregion), uid), ]
+                  args_input[[1]] <- ain11
+                }
                 if (!"id" %in% names(formals(fun_dist))) {
                   args_input$id <- NULL
                 }
 
                 res <- rlang::inject(fun_dist(!!!args_input))
-                try(res <- as.data.frame(res))
+                res <- try(as.data.frame(res))
                 return(res)
               },
               error =
               function(e) {
-                par_fallback(e, fun_dist, debug)
+                if (debug) {
+                  par_fallback(
+                    e, fun_dist,
+                    inputid = subregion
+                  )
+                } else {
+                  return(NULL)
+                }
               }
             )
           return(run_result)
         },
         future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra"),
-        future.globals = FALSE,
+        future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
+        future.globals = TRUE,
         future.scheduling = 2
       )
-    results_distributed <- do.call(combine, results_distributed)
-
+    results_distributed <-
+      results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
     return(results_distributed)
   }
 
@@ -394,10 +453,9 @@ par_hierarchy <-
 #'  to make subsets of input vector objects in advance.
 #' @param filenames character(n). A vector or list of
 #'  full file paths of raster files. n is the total number of raster files.
-#' @param debug logical(1). Prints error messages
-#' if there were any errors during the calculation.
-#' @param combine function. The function to combine the results.
-#' Default is `dplyr::bind_rows`.
+#' @param debug logical(1). Default is `FALSE`.
+#'   If a unit computation fails, the error message and the file path
+#'   where the error occurred will be included in the output.
 #' @param fun_dist sf, terra, or chopin functions.
 #' @param ... Arguments passed to the argument \code{fun_dist}.
 #' The **second** place should get a vector or raster dataset from which
@@ -452,7 +510,6 @@ par_multirasters <-
   function(
     filenames,
     debug = FALSE,
-    combine = dplyr::bind_rows,
     fun_dist,
     ...
   ) {
@@ -485,20 +542,21 @@ par_multirasters <-
             }
             )
           if (inherits(run_result, "try-error")) {
-            par_fallback(run_result, fun_dist, debug)
+            if (debug) {
+              par_fallback(run_result[1], fun_dist, inputid = path)
+            } else {
+              return(NULL)
+            }
           }
         },
         future.seed = TRUE,
         future.packages =
-        c("chopin", "dplyr", "sf", "terra"),
+        c("chopin", "dplyr", "sf", "terra", "rlang"),
         future.globals = FALSE,
         future.scheduling = 2
-        # TODO: scheduling to (length(list) %/% nbrOfWorkers() + 1)
-        # "terra", "sf", "dplyr", "rlang",
-        #   "chopin", "future",
-        #   "exactextractr")
       )
-    results_distributed <- do.call(combine, results_distributed)
-
+    results_distributed <-
+      results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
     return(results_distributed)
   }

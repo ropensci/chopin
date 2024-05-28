@@ -17,10 +17,20 @@
 #' ## END OF EXAMPLE
 #' @export
 dep_check <- function(input) {
-  if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
+  if (!any(class(input) %in%
+  c("sf", "stars", "SpatVector", "SpatRaster", "SpatVectorProxy"))
+  ) {
     stop("Input should be one of sf or Spat* object.\n")
   }
-  if (methods::is(input, "SpatVector") || methods::is(input, "SpatRaster")) {
+  if (
+    any(
+      vapply(
+        c("SpatVector", "SpatRaster", "SpatVectorProxy"),
+        FUN = function(x) methods::is(input, x),
+        FUN.VALUE = logical(1)
+      )
+    )
+  ) {
     return("terra")
   }
   return("sf")
@@ -387,4 +397,56 @@ any_class_args <- function(
   args_scanned <- lapply(args, function(x) any(grepl(searchphrase, class(x))))
   args_scanned <- vapply(args_scanned, FUN = any, FUN.VALUE = logical(1))
   return(args_scanned)
+}
+
+
+
+#' Check the subject object and perform necessary conversions if needed.
+#' @description
+#' This function checks the class of the input object and
+#'   performs necessary conversions if needed.
+#' @keywords internal
+#' @param subject The input object to be checked.
+#' @param extent The extent of the subject object.
+#' @param subject_id Optional. The ID of the subject object.
+#' @returns The checked and converted subject object.
+#' @examples
+#' # Check a SpatVector object
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' ncsf <- sf::st_read(ncpath)
+#' extent <- c(-80, -77, 35, 36)
+#' check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
+#'
+#' # Check a character object
+#' check_subject(subject = ncpath, extent = extent, subject_id = "FIPS")
+#' @export
+check_subject <- function(
+  subject,
+  extent = NULL,
+  subject_id = NULL
+) {
+  # type check
+  if (!any(
+    vapply(
+      c("SpatVector", "sf", "character"),
+      FUN = methods::is,
+      FUN.VALUE = logical(1),
+      object = subject
+    )
+  )) {
+    stop("Check class of the input object.\n")
+  }
+  if (is.character(subject)) {
+    subject <- try(terra::vect(subject, extent = extent))
+  } else {
+    if (dep_check(subject) == "sf") {
+      subject <- dep_switch(subject)
+    }
+  }
+  if (!is.null(subject_id)) {
+    if (!subject_id %in% names(subject)) {
+      stop("id should exist in the input object\n")
+    }
+  }
+  return(subject)
 }

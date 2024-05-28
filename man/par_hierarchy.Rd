@@ -6,9 +6,9 @@
 \usage{
 par_hierarchy(
   regions,
-  split_level = NULL,
+  regions_id = NULL,
+  unit_id = NULL,
   debug = FALSE,
-  combine = dplyr::bind_rows,
   fun_dist,
   ...
 )
@@ -17,15 +17,20 @@ par_hierarchy(
 \item{regions}{sf/SpatVector object.
 Computational regions. Only polygons are accepted.}
 
-\item{split_level}{character(nrow(regions)) or character(1).
+\item{regions_id}{character(nrow(regions)) or character(1).
 The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
 
-\item{debug}{logical(1). Prints error messages
-if there were any errors during the calculation.}
+\item{unit_id}{character(1). Default is NULL.
+If NULL, the lower level units will be split by the intersection
+between a higher level region and lower level units.
+Otherwise, the \strong{first} element of the ellipsis argument
+\code{...} is used to split the lower level units.}
 
-\item{combine}{function. The function to combine the results.}
+\item{debug}{logical(1). Default is \code{FALSE}
+If a unit computation fails, the error message and the \code{regions_id}
+value where the error occurred will be included in the output.}
 
 \item{fun_dist}{sf, terra, or chopin functions.}
 
@@ -45,11 +50,10 @@ which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
 (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
 \link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
-with \link[doParallel:registerDoParallel]{doParallel::registerDoParallel} will parallelize the work
-in each grid. For details of the terminology in \code{future} package,
+will parallelize the work by splitting lower level features into
+several higher level feature group.
+For details of the terminology in \code{future} package,
 refer to \link[future]{plan}.
-This function assumes that users have one raster file and
-a sizable and spatially distributed target locations.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with
@@ -103,7 +107,7 @@ ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
 res <-
   par_hierarchy(
     regions = nccnty,
-    split_level = "GEOID",
+    regions_id = "GEOID",
     fun_dist = extract_at_poly,
     polys = nctrct,
     surf = ncelev,

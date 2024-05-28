@@ -74,7 +74,7 @@ clip_vec_ext <- function(
     vapply(
       list(pnts, radius, target_input),
       FUN = is.null,
-      FUN.VALUE = TRUE
+      FUN.VALUE = logical(1)
     )
   )) {
     stop("One or more required arguments are NULL. Please check.\n")
@@ -136,7 +136,7 @@ clip_ras_ext <- function(
   if (any(
     vapply(list(pnts, radius, ras),
            FUN = is.null,
-           FUN.VALUE = TRUE)
+           FUN.VALUE = logical(1))
   )) {
     stop("Any of required arguments are NULL. Please check.\n")
   }
@@ -181,6 +181,7 @@ clip_ras_ext <- function(
 #'   as the `points`.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
+#' @param ... Placeholder.
 #' @returns a data.frame object with mean value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -212,39 +213,23 @@ extract_at_buffer <- function(
   kernel = NULL,
   bandwidth = NULL,
   extent = NULL,
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
-  # type check
-  if (!any(
-    sapply(
-      c("SpatVector", "sf", "character"),
-      methods::is,
-      object = points
-    )
-  )) {
-    stop("Check class of the input points.\n")
-  }
+
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
       stop("Check class of the input raster.\n")
     }
   }
-  if (dep_check(points) == "sf") {
-    points <- dep_switch(points)
-  }
   if (!is.numeric(radius)) {
     stop("Check class of the input radius.\n")
-  }
-  if (!is.character(id)) {
-    stop("id should be a character.\n")
   }
   if (!is.numeric(qsegs)) {
     stop("qsegs should be numeric.\n")
   }
-  if (is.character(points)) {
-    points <- try(terra::vect(points, extent = extent))
-  }
+  points <- check_subject(points, extent = extent, subject_id = id)
 
   if (!is.null(kernel)) {
     extracted <-
@@ -288,7 +273,8 @@ extract_at_buffer_flat <- function(
   func = "mean",
   kernel = NULL,
   bandwidth = NULL,
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
@@ -329,7 +315,8 @@ extract_at_buffer_kernel <- function(
   func = stats::weighted.mean,
   kernel = NULL,
   bandwidth = NULL,
-  max_cells = 2e7
+  max_cells = 2e7,
+  ...
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
@@ -424,8 +411,14 @@ extract_at_buffer_kernel <- function(
 #'  a function taking two arguments that are
 #'  compatible with \code{\link[exactextractr]{exact_extract}}.
 #'  For example, `"mean"` or `\(x, w) weighted.mean(x, w, na.rm = TRUE)`
+#' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
+#'   It only works with `polys` of character(1) file path.
+#'   When using numeric(4), it should be in the order of
+#'   `c(xmin, xmax, ymin, ymax)`. The coordinate system should be the same
+#'   as the `polys`.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' See [`exactextractr::exact_extract`] for more details.
+#' @param ... Placeholder.
 #' @returns a data.frame object with function value
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -450,24 +443,18 @@ extract_at_poly <- function(
   surf = NULL,
   id = NULL,
   func = "mean",
-  max_cells = 2e7
+  extent = NULL,
+  max_cells = 2e7,
+  ...
 ) {
-  # type check
-  if (!methods::is(polys, "SpatVector")) {
-    if (!methods::is(polys, "sf")) {
-      stop("Check class of the input points.\n")
-    }
-    polys <- terra::vect(polys)
-  }
+
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
       stop("Check class of the input raster.\n")
     }
   }
-  if (!is.character(id)) {
-    stop("id should be a character.\n")
-  }
+  polys <- check_subject(polys, extent = extent, subject_id = id)
   # reproject polygons to raster's crs
   polys <- reproject_b2r(polys, surf)
   # crop raster
@@ -503,7 +490,7 @@ extract_at_poly <- function(
 #' @param mode one of `"polygon"`
 #'  (generic polygons to extract raster values with) or
 #'  `"buffer"` (point with buffer radius)
-#' @param ... various. Passed to extract_at_buffer.
+#' @param ... Placeholder.
 #'  See \code{?extract_at_buffer} for details.
 #' @returns A data.frame object with summarized raster values with
 #'  respect to the mode (polygon or buffer) and the function.
@@ -523,7 +510,6 @@ extract_at <- function(
 
   mode <- match.arg(mode)
   stopifnot(is.character(id))
-  stopifnot(id %in% names(vector))
 
   extracted <-
     switch(mode,
@@ -592,6 +578,11 @@ reproject_b2r <-
 #'  the nearest points in threshold will be selected.
 #'  \code{2 * sedc_bandwidth} is applied if this value remains `NULL`.
 #' @param target_fields character. Field names to calculate SEDC.
+#' @param extent_from numeric(4) or SpatExtent. Extent of clipping `point_from`.
+#'   It only works with `point_from` of character(1) file path.
+#'   See [`terra::ext`] for more details. Coordinate systems should match.
+#' @param extent_to numeric(4) or SpatExtent. Extent of clipping `point_to`.
+#' @param ... Placeholder.
 #' @returns data.frame (tibble) object with input field names with
 #'  a suffix \code{"_sedc"} where the sums of EDC are stored.
 #'  Additional attributes are attached for the EDC information.
@@ -651,8 +642,17 @@ summarize_sedc <-
     id = NULL,
     sedc_bandwidth = NULL,
     threshold = NULL,
-    target_fields = NULL
+    target_fields = NULL,
+    extent_from = NULL,
+    extent_to = NULL,
+    ...
   ) {
+
+    point_from <-
+      check_subject(point_from, extent = extent_from, subject_id = id)
+    point_to <-
+      check_subject(point_to, extent = extent_to, subject_id = NULL)
+
     # define sources, set SEDC exponential decay range
     len_point_from <- seq_len(nrow(point_from))
     len_point_to <- seq_len(nrow(point_to))
@@ -733,18 +733,24 @@ The result may not be accurate.\n",
 
 #' Area weighted summary using two polygon sf or SpatVector objects
 #' @family Macros for calculation
-#' @param poly_in A sf/SpatVector object at weighted means will be calculated.
-#' @param poly_weight A sf/SpatVector object from
+#' @param poly_in A sf/SpatVector object or file path of polygons detectable
+#'   with GDAL driver at weighted means will be calculated.
+#' @param poly_weight A sf/SpatVector object or file path of polygons from
 #'  which weighted means will be calculated.
 #' @param target_fields character. Field names to calculate area-weighted.
 #' @param id_poly_in character(1).
 #'  The unique identifier of each polygon in `poly_in`.
 #'  Default is `"ID"`.
 #' @param fun function(1). The function to calculate the weighted summary.
-#' Default is `stats::weighted.mean`. The function must have a `w` argument.
+#' Default is [`stats::weighted.mean`]. The function must have a `w` argument.
+#' @param extent numeric(4) or SpatExtent object. Extent of clipping `poly_in`.
+#' It only works with `poly_in` of character(1) file path.
+#' See [`terra::ext`] for more details. Coordinate systems should match.
 #' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `poly_in` and `poly_weight` are different classes,
 #'  `poly_weight` will be converted to the class of `poly_in`.
+#' @note If `poly_in` and `poly_weight` are characters, they will be
+#'   read as `terra::vect` objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' # package
@@ -760,7 +766,7 @@ The result may not be accurate.\n",
 #'
 #' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 #' summary(ppb_nc_aw)
-#' #### Example of summarize_aw ends ####
+#' #### Example of summarize_aw ends ###
 #' @importFrom terra expanse
 #' @importFrom rlang sym
 #' @importFrom dplyr where
@@ -778,20 +784,12 @@ summarize_aw <-
     poly_weight = NULL,
     target_fields = NULL,
     id_poly_in = "ID",
-    fun = stats::weighted.mean
+    fun = stats::weighted.mean,
+    extent = NULL
   ) {
-    if (!any(
-      methods::is(poly_in, "sf"),
-      methods::is(poly_in, "SpatVector")
-    )) {
-      stop("poly_in is in invalid class.\n")
-    }
-    if (!any(
-      methods::is(poly_weight, "sf"),
-      methods::is(poly_weight, "SpatVector")
-    )) {
-      stop("poly_weight is in invalid class.\n")
-    }
+
+    poly_in <- check_subject(poly_in, extent = extent, subject_id = id_poly_in)
+    poly_weight <- check_subject(poly_weight, extent = extent)
 
     summarize_aw_terra <-
       function(

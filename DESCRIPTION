@@ -1,6 +1,6 @@
 Package: chopin
 Title: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure
-Version: 0.6.3.20240515
+Version: 0.7.0.20240525
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -34,13 +34,13 @@ Imports:
     rlang (>= 0.4.9),
     sf (>= 1.0-10),
     stars (>= 0.6-0),
-    terra (>= 1.7-18)
+    terra (>= 1.7-18),
+    collapse
 Suggests: 
     callr,
     covr,
     DiagrammeR,
     doFuture,
-    doParallel,
     future,
     future.batchtools,
     future.callr,

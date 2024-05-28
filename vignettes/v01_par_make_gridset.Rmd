@@ -1,6 +1,6 @@
 ---
 title: "Generate computational grids"
-date: "2024-05-16"
+date: "2024-05-23"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Generate computational grids}
@@ -62,7 +62,7 @@ plot(sf::st_geometry(ncsf))
 ```
 
 <div class="figure">
-<img src="figures/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="600px" />
+<img src="vignettes/figures/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="600px" />
 <p class="caption">plot of chunk nc-gen-points</p>
 </div>
 
@@ -78,12 +78,13 @@ ncpoints <-
     kappa = 1.25e-9
   )
 ncpoints <- sf::st_as_sf(ncpoints)
+ncpoints <- sf::st_set_crs(ncpoints, "EPSG:5070")
 ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
 plot(sf::st_geometry(ncpoints))
 ```
 
 <div class="figure">
-<img src="figures/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="600px" />
+<img src="vignettes/figures/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="600px" />
 <p class="caption">plot of chunk nc-gen-points</p>
 </div>
 
@@ -101,7 +102,6 @@ ncpoints_tr <- chopin::dep_switch(ncpoints)
 
 
 ``` r
-ncpoints_tr <- terra::vect(ncpoints)
 compregions <-
   chopin::par_make_gridset(
     ncpoints_tr,
@@ -135,7 +135,7 @@ plot(compregions$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="600px" />
+<img src="vignettes/figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="600px" />
 <p class="caption">plot of chunk grid-plain</p>
 </div>
 
@@ -172,7 +172,7 @@ terra::plot(compregions$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="600px" />
+<img src="vignettes/figures/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="600px" />
 <p class="caption">plot of chunk compare-compregions</p>
 </div>
 
@@ -183,7 +183,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="600px" />
+<img src="vignettes/figures/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="600px" />
 <p class="caption">plot of chunk compare-compregions</p>
 </div>
 
@@ -216,7 +216,7 @@ terra::plot(grid_quantiles$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="600px" />
+<img src="vignettes/figures/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="600px" />
 <p class="caption">plot of chunk split-points-grid</p>
 </div>
 
@@ -227,7 +227,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-2.png" alt="plot of chunk split-points-grid" width="600px" />
+<img src="vignettes/figures/split-points-grid-2.png" alt="plot of chunk split-points-grid" width="600px" />
 <p class="caption">plot of chunk split-points-grid</p>
 </div>
 
@@ -256,7 +256,7 @@ terra::plot(grid_advanced1$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="600px" />
+<img src="vignettes/figures/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv</p>
 </div>
 
@@ -267,7 +267,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-adv-2.png" alt="plot of chunk split-points-grid-adv" width="600px" />
+<img src="vignettes/figures/split-points-grid-adv-2.png" alt="plot of chunk split-points-grid-adv" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv</p>
 </div>
 
@@ -284,7 +284,7 @@ terra::plot(grid_advanced1g, "n_points", main = "Number of points in each grid")
 ```
 
 <div class="figure">
-<img src="figures/split-points-count-1.png" alt="plot of chunk split-points-count" width="600px" />
+<img src="vignettes/figures/split-points-count-1.png" alt="plot of chunk split-points-count" width="600px" />
 <p class="caption">plot of chunk split-points-count</p>
 </div>
 
@@ -309,7 +309,7 @@ terra::plot(grid_advanced2$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
+<img src="vignettes/figures/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv2</p>
 </div>
 
@@ -320,12 +320,12 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
+<img src="vignettes/figures/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv2</p>
 </div>
 
 
-.
+
 
 ``` r
 grid_advanced3 <-
@@ -345,7 +345,7 @@ terra::plot(grid_advanced3$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-adv3-1.png" alt="plot of chunk split-points-grid-adv3" width="600px" />
+<img src="vignettes/figures/split-points-grid-adv3-1.png" alt="plot of chunk split-points-grid-adv3" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv3</p>
 </div>
 
@@ -356,7 +356,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 ```
 
 <div class="figure">
-<img src="figures/split-points-grid-adv3-2.png" alt="plot of chunk split-points-grid-adv3" width="600px" />
+<img src="vignettes/figures/split-points-grid-adv3-2.png" alt="plot of chunk split-points-grid-adv3" width="600px" />
 <p class="caption">plot of chunk split-points-grid-adv3</p>
 </div>
 
@@ -386,7 +386,7 @@ terra::plot(group_bal_grid$padded, main = "Padded grids")
 ```
 
 <div class="figure">
-<img src="figures/par-group-balanced-1.png" alt="plot of chunk par-group-balanced" width="600px" />
+<img src="vignettes/figures/par-group-balanced-1.png" alt="plot of chunk par-group-balanced" width="600px" />
 <p class="caption">plot of chunk par-group-balanced</p>
 </div>
 

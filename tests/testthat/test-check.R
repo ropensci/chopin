@@ -1,4 +1,3 @@
-# Generated from chopin_rmarkdown_litr.rmd: do not edit by hand
 
 testthat::test_that("What package does the input object belong?",
   {
@@ -179,4 +178,27 @@ testthat::test_that("nc data is within the mainland US", {
   testthat::expect_error(is_within_ref(list(1), mainland_box))
   testthat::expect_error(is_within_ref(nc, list(1)))
 
+})
+
+testthat::test_that("check_subject performs necessary conversions", {
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_sf <- sf::st_read(input_char)
+  checked_sf <- check_subject(input_sf, subject_id = "FIPS")
+  testthat::expect_equal(dep_check(checked_sf), "terra")
+
+  input_vect <- terra::vect(input_sf)
+  checked_vect <- check_subject(input_vect, subject_id = "FIPS")
+  testthat::expect_equal(dep_check(checked_vect), "terra")
+
+  checked_char <-
+    check_subject(
+      input_char, extent = NULL, subject_id = "FIPS"
+    )
+  testthat::expect_equal(dep_check(checked_char), "terra")
+
+  checked_ext <-
+    check_subject(
+      input_char, extent = c(-80, -77, 35, 36), subject_id = "FIPS"
+    )
+  testthat::expect_equal(dep_check(checked_ext), "terra")
 })

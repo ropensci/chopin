@@ -5,6 +5,8 @@
 
 [![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
 [![R-CMD-check](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml)
+[![Status at rOpenSci Software Peer
+Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
@@ -114,7 +116,7 @@ future::plan(future::multicore, workers = 4L)
     run:
 
 ``` shell
-git clone https://github.com/NIEHS/chopin
+git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
 cd chopin
 Rscript -e \
 "
@@ -130,7 +132,7 @@ source(\"README_run.r\")
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("NIEHS/chopin")
+remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
 ```
 
 ## Examples
@@ -170,8 +172,6 @@ plot(sf::st_geometry(ncsf))
 
 <img src="man/figures/README-read-nc-1.png" width="100%" />
 
-<!--![](https://i.imgur.com/ImPfGXP.png) -->
-
 #### Generate random points in NC
 
 -   Ten thousands random point locations were generated inside the
@@ -209,12 +209,13 @@ srtm
 #> name        : file928c3830468b 
 #> min value   :        -3589.291 
 #> max value   :         1946.400
+```
+
+``` r
 terra::plot(srtm)
 ```
 
 <img src="man/figures/README-load-srtm-1.png" width="100%" />
-
-<!-- ![](https://i.imgur.com/l08bz4j.png)-->
 
 ``` r
 ncpoints_tr <- terra::vect(ncpoints)
@@ -229,7 +230,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>  11.842   0.324  12.208
+#>   9.925   0.197  10.149
 ```
 
 #### Generate regular grid computational regions
@@ -260,7 +261,9 @@ compregions <-
 ``` r
 names(compregions)
 #> [1] "original" "padded"
+```
 
+``` r
 oldpar <- par()
 par(mfrow = c(2, 1))
 terra::plot(compregions$original, main = "Original grids")
@@ -288,7 +291,6 @@ terra::plot(compregions$padded, main = "Padded grids")
 
 ``` r
 future::plan(future::multicore, workers = 4L)
-doFuture::registerDoFuture()
 
 system.time(
   ncpoints_srtm_mthr <-
@@ -303,16 +305,16 @@ system.time(
       radius = 1e4L
     )
 )
-#> Your input function was successfully run at CGRIDID: 1
-#> Your input function was successfully run at CGRIDID: 2
-#> Your input function was successfully run at CGRIDID: 3
 #> Your input function was successfully run at CGRIDID: 4
 #> Your input function was successfully run at CGRIDID: 5
+#> Warning: [buffer] empty SpatVector
+#> Warning: [buffer] empty SpatVector
+#> Warning: [buffer] empty SpatVector
 #> Your input function was successfully run at CGRIDID: 6
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
-#> Your input function was successfully run at CGRIDID: 9
 #> Your input function was successfully run at CGRIDID: 10
+#> Warning: [buffer] empty SpatVector
 #> Your input function was successfully run at CGRIDID: 11
 #> Your input function was successfully run at CGRIDID: 12
 #> Your input function was successfully run at CGRIDID: 13
@@ -336,8 +338,15 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 31
 #> Your input function was successfully run at CGRIDID: 32
 #> Your input function was successfully run at CGRIDID: 33
+#> Your input function was successfully run at CGRIDID: 34
+#> Warning: [buffer] empty SpatVector
+#> Your input function was successfully run at CGRIDID: 37
+#> Your input function was successfully run at CGRIDID: 38
+#> Your input function was successfully run at CGRIDID: 39
+#> Warning: [buffer] empty SpatVector
+#> Warning: [buffer] empty SpatVector
 #>    user  system elapsed 
-#>  10.509   1.935   4.076
+#>   8.418   1.567   3.447
 ```
 
 ``` r
@@ -389,23 +398,28 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpJGd6wi/temp_libpath2cb30934092abf/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
+```
+
+``` r
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpJGd6wi/temp_libpath2cb30934092abf/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
+```
 
+``` r
 # reproject to Conus Albers Equal Area
 nc_county <- sf::st_transform(nc_county, "EPSG:5070")
 nc_tracts <- sf::st_transform(nc_tracts, "EPSG:5070")
@@ -426,14 +440,16 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   2.054   0.078   2.140
+#>   1.798   0.082   1.886
+```
 
+``` r
 # hierarchical parallelization
 system.time(
   nc_elev_tr_distr <-
     chopin::par_hierarchy(
       regions = nc_county, # higher level geometry
-      split_level = "GEOID", # higher level unique id
+      regions_id = "GEOID", # higher level unique id
       fun_dist = chopin::extract_at,
       vector = nc_tracts, # lower level geometry
       raster = srtm,
@@ -442,7 +458,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.044   0.017   2.746
+#>  10.452   2.020   4.324
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
@@ -469,9 +485,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp7SJYAP/test1.tif" "/tmp/Rtmp7SJYAP/test2.tif"
-#> [3] "/tmp/Rtmp7SJYAP/test3.tif" "/tmp/Rtmp7SJYAP/test4.tif"
-#> [5] "/tmp/Rtmp7SJYAP/test5.tif"
+#> [1] "/tmp/RtmpPWsyT6/test1.tif" "/tmp/RtmpPWsyT6/test2.tif"
+#> [3] "/tmp/RtmpPWsyT6/test3.tif" "/tmp/RtmpPWsyT6/test4.tif"
+#> [5] "/tmp/RtmpPWsyT6/test5.tif"
 ```
 
 ``` r
@@ -487,18 +503,21 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   1.727   0.603   1.119
+#>   1.554   0.633   1.027
+```
+
+``` r
 knitr::kable(head(res))
 ```
 
 | GEOID |      mean | base_raster               |
 |:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/Rtmp7SJYAP/test1.tif |
-| 37001 | 189.76170 | /tmp/Rtmp7SJYAP/test1.tif |
-| 37057 | 231.16968 | /tmp/Rtmp7SJYAP/test1.tif |
-| 37069 |  98.03845 | /tmp/Rtmp7SJYAP/test1.tif |
-| 37155 |  41.23463 | /tmp/Rtmp7SJYAP/test1.tif |
-| 37109 | 270.96933 | /tmp/Rtmp7SJYAP/test1.tif |
+| 37037 | 136.80203 | /tmp/RtmpPWsyT6/test1.tif |
+| 37001 | 189.76170 | /tmp/RtmpPWsyT6/test1.tif |
+| 37057 | 231.16968 | /tmp/RtmpPWsyT6/test1.tif |
+| 37069 |  98.03845 | /tmp/RtmpPWsyT6/test1.tif |
+| 37155 |  41.23463 | /tmp/RtmpPWsyT6/test1.tif |
+| 37109 | 270.96933 | /tmp/RtmpPWsyT6/test1.tif |
 
 ``` r
 # remove temporary raster files
@@ -576,8 +595,10 @@ system.time(
   restr <- terra::nearest(x = pnts, y = rd1)
 )
 #>    user  system elapsed 
-#>   0.943   0.005   0.950
+#>   0.462   0.003   0.466
+```
 
+``` r
 # we use four threads that were configured above
 system.time(
   res <-
@@ -597,7 +618,7 @@ system.time(
 #> Your input function was successfully run at CGRIDID: 7
 #> Your input function was successfully run at CGRIDID: 8
 #>    user  system elapsed 
-#>   1.096   0.543   0.582
+#>   0.776   0.562   0.521
 ```
 
 -   We will compare the results from the single-thread and multi-thread
