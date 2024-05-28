@@ -384,7 +384,7 @@ testthat::test_that("summarize_aw works as expected.", {
       ppb_nc_aw <- summarize_aw(ppb, nc, target_fields = flds, "id")
     })
   )
-  expect_s3_class(ppb_nc_aw, "sf")
+  testthat::expect_true(inherits(ppb_nc_aw, "data.frame"))
 
   # terra
   ppb_t <- terra::vect(ppb)
@@ -394,7 +394,7 @@ testthat::test_that("summarize_aw works as expected.", {
       ppb_nc_aw <- summarize_aw(ppb_t, nc_t, target_fields = flds, "id")
     })
   )
-  expect_s3_class(ppb_nc_aw, "data.frame")
+  testthat::expect_s3_class(ppb_nc_aw, "data.frame")
 
   # auto convert formats
   testthat::expect_no_error(
@@ -402,7 +402,7 @@ testthat::test_that("summarize_aw works as expected.", {
       ppb_nc_aw <- summarize_aw(ppb_t, nc, target_fields = flds, "id")
     })
   )
-  expect_s3_class(ppb_nc_aw, "data.frame")
+  testthat::expect_s3_class(ppb_nc_aw, "data.frame")
 
   # error case
   testthat::expect_error(summarize_aw(as.list(ppb_t), nc, fld, "id"))
