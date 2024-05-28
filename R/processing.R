@@ -651,7 +651,7 @@ summarize_sedc <-
     point_from <-
       check_subject(point_from, extent = extent_from, subject_id = id)
     point_to <-
-      check_subject(point_to, extent = extent_to, subject_id = id)
+      check_subject(point_to, extent = extent_to, subject_id = NULL)
 
     # define sources, set SEDC exponential decay range
     len_point_from <- seq_len(nrow(point_from))
