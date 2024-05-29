@@ -1,6 +1,5 @@
 ---
 title: "Extracting Weather/Climate Geospatial Data with `chopin`"
-date: "2024-03-11"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Extracting Weather/Climate Geospatial Data with `chopin`}

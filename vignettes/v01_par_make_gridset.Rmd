@@ -1,6 +1,5 @@
 ---
 title: "Generate computational grids"
-date: "2024-05-23"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Generate computational grids}
@@ -9,11 +8,25 @@ vignette: >
 ---
 
 
+```{r setup, include = TRUE, echo = FALSE}
+knitr::opts_knit$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  eval = TRUE,
+  # root.dir = file.path(Sys.getenv("HOME"), "projects/chopin"),
+  comment = "#>",
+  fig.path = "gridset-ex-",
+  out.width = "900px"
+)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, out.width = "600px",
+  fig.path = "vignettes/figures/", fig.lp = "")
+# knitr::fig_path(".png", options = list(fig.path = "vignettes/figures/v01-"))
+```
 
 
-
-
-``` r
+```{r}
 library(chopin)
 library(dplyr)
 library(sf)
@@ -53,20 +66,12 @@ options(sf_use_s2 = FALSE)
 
 ### Random points in NC
 - For demonstration of `par_make_gridset()`, we use moderately clustered point locations generated inside the counties of North Carolina.
-
-``` r
+```{r nc-gen-points}
 ncpoly <- system.file("shape/nc.shp", package = "sf")
 ncsf <- sf::read_sf(ncpoly)
 ncsf <- sf::st_transform(ncsf, "EPSG:5070")
 plot(sf::st_geometry(ncsf))
-```
 
-<div class="figure">
-<img src="vignettes/figures/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="600px" />
-<p class="caption">plot of chunk nc-gen-points</p>
-</div>
-
-``` r
 set.seed(202404)
 library(spatstat.random)
 ncpoints <-
@@ -81,16 +86,10 @@ ncpoints <- sf::st_as_sf(ncpoints)
 ncpoints <- sf::st_set_crs(ncpoints, "EPSG:5070")
 ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
 plot(sf::st_geometry(ncpoints))
-```
 
-<div class="figure">
-<img src="vignettes/figures/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="600px" />
-<p class="caption">plot of chunk nc-gen-points</p>
-</div>
-
-``` r
 # convert to terra SpatVector
 ncpoints_tr <- chopin::dep_switch(ncpoints)
+
 ```
 
 
@@ -100,8 +99,7 @@ ncpoints_tr <- chopin::dep_switch(ncpoints)
 
 ## Visualize computational grids
 
-
-``` r
+```{r grid-plain}
 compregions <-
   chopin::par_make_gridset(
     ncpoints_tr,
@@ -113,36 +111,17 @@ compregions <-
 
 # a list object
 class(compregions)
-```
-
-```
-## [1] "list"
-```
-
-``` r
 # length of 2
 names(compregions)
-```
 
-```
-## [1] "original" "padded"
-```
-
-``` r
 par(mfrow = c(2, 1))
 plot(compregions$original, main = "Original grids")
 plot(compregions$padded, main = "Padded grids")
 ```
 
-<div class="figure">
-<img src="vignettes/figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="600px" />
-<p class="caption">plot of chunk grid-plain</p>
-</div>
-
 ### Generate regular grid computational regions
 - `chopin::par_make_gridset()` takes a spatial dataset to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
-
-``` r
+```{r gen-compregions}
 compregions <-
   chopin::par_make_gridset(
     ncpoints_tr,
@@ -155,45 +134,27 @@ compregions <-
 
 - The output of `par_make_gridset()` is a list object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The class of each element depends on the input dataset class. The figures below illustrate the grid polygons with and without overlaps.
 
-
-``` r
+```{r compare-compregions, fig.width = 8, fig.height = 8}
 names(compregions)
-```
 
-```
-## [1] "original" "padded"
-```
-
-``` r
 oldpar <- par()
 par(mfrow = c(2, 1))
 terra::plot(compregions$original, main = "Original grids")
 terra::plot(compregions$padded, main = "Padded grids")
-```
 
-<div class="figure">
-<img src="vignettes/figures/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="600px" />
-<p class="caption">plot of chunk compare-compregions</p>
-</div>
-
-``` r
 par(mfrow = c(1, 1))
 terra::plot(compregions$original, main = "Original grids")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
-```
 
-<div class="figure">
-<img src="vignettes/figures/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="600px" />
-<p class="caption">plot of chunk compare-compregions</p>
-</div>
+
+```
 
 
 ### Split the points by two 1D quantiles
 - `mode = "grid_quantile"` generates regular grid polygons with padding based on quantiles of the coordinates in each dimension.
 - When using this mode, users should define `quantiles` argument, which will be used to get the same number of quantiles in each dimension. A convenient way to define quantiles is to use `chopin::par_def_q()` function.
 
-
-``` r
+```{r split-points-grid}
 grid_quantiles <-
   chopin::par_make_gridset(
     input = ncpoints_tr,
@@ -203,33 +164,15 @@ grid_quantiles <-
   )
 
 names(grid_quantiles)
-```
-
-```
-## [1] "original" "padded"
-```
-
-``` r
 par(mfrow = c(2, 1))
 terra::plot(grid_quantiles$original, main = "Original grids")
 terra::plot(grid_quantiles$padded, main = "Padded grids")
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="600px" />
-<p class="caption">plot of chunk split-points-grid</p>
-</div>
-
-``` r
 par(mfrow = c(1, 1))
 terra::plot(grid_quantiles$original, main = "Original grids")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-2.png" alt="plot of chunk split-points-grid" width="600px" />
-<p class="caption">plot of chunk split-points-grid</p>
-</div>
+```
 
 
 ### Merge the grids based on the number of points
@@ -237,8 +180,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 - To determine the adjacency and merging behavior, minimum spanning tree is used. The function utilizes `igraph::mst()` and other graph summary functions under the hood. 
 - As a note, you could adjust the merging behavior by changing the arguments `grid_min_features` and `merge_max`.
 
-
-``` r
+```{r split-points-grid-adv}
 grid_advanced1 <-
   chopin::par_make_gridset(
     input = ncpoints_tr,
@@ -253,45 +195,33 @@ grid_advanced1 <-
 par(mfrow = c(2, 1))
 terra::plot(grid_advanced1$original, main = "Original grids")
 terra::plot(grid_advanced1$padded, main = "Padded grids")
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="600px" />
-<p class="caption">plot of chunk split-points-grid-adv</p>
-</div>
-
-``` r
 par(mfrow = c(1, 1))
 terra::plot(grid_advanced1$original, main = "Merged grids (merge_max = 5)")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+
 ```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-adv-2.png" alt="plot of chunk split-points-grid-adv" width="600px" />
-<p class="caption">plot of chunk split-points-grid-adv</p>
-</div>
 
+```{r split-points-count}
 
-
-``` r
 ncpoints_tr$n <- 1
-n_points <- terra::zonal(ncpoints_tr, grid_advanced1$original, fun = "sum")[["n"]]
+n_points <-
+  terra::zonal(
+    ncpoints_tr,
+    grid_advanced1$original,
+    fun = "sum")[["n"]]
 
 grid_advanced1g <- grid_advanced1$original
 grid_advanced1g$n_points <- n_points
 
 terra::plot(grid_advanced1g, "n_points", main = "Number of points in each grid")
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-count-1.png" alt="plot of chunk split-points-count" width="600px" />
-<p class="caption">plot of chunk split-points-count</p>
-</div>
+```
 
 #### Different values in `merge_max`
 - Keeping other arguments the same, we can see the difference in the number of merged grids by changing the `merge_max` argument.
-
-``` r
+```{r split-points-grid-adv2}
 grid_advanced2 <-
   chopin::par_make_gridset(
     input = ncpoints_tr,
@@ -306,28 +236,16 @@ grid_advanced2 <-
 par(mfrow = c(2, 1))
 terra::plot(grid_advanced2$original, main = "Original grids")
 terra::plot(grid_advanced2$padded, main = "Padded grids")
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
-<p class="caption">plot of chunk split-points-grid-adv2</p>
-</div>
-
-``` r
 par(mfrow = c(1, 1))
 terra::plot(grid_advanced2$original, main = "Merged grids (merge_max = 8)")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
+
 ```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="600px" />
-<p class="caption">plot of chunk split-points-grid-adv2</p>
-</div>
 
 
-
-
-``` r
+```{r split-points-grid-adv3}
 grid_advanced3 <-
   chopin::par_make_gridset(
     input = ncpoints_tr,
@@ -342,23 +260,12 @@ grid_advanced3 <-
 par(mfrow = c(2, 1))
 terra::plot(grid_advanced3$original, main = "Original grids")
 terra::plot(grid_advanced3$padded, main = "Padded grids")
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-adv3-1.png" alt="plot of chunk split-points-grid-adv3" width="600px" />
-<p class="caption">plot of chunk split-points-grid-adv3</p>
-</div>
-
-``` r
 par(mfrow = c(1, 1))
 terra::plot(grid_advanced3$original, main = "Merged grids (merge_max = 3)")
 terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
-```
 
-<div class="figure">
-<img src="vignettes/figures/split-points-grid-adv3-2.png" alt="plot of chunk split-points-grid-adv3" width="600px" />
-<p class="caption">plot of chunk split-points-grid-adv3</p>
-</div>
+```
 
 #### `par_group_grid()`
 - `par_group_grid()` uses `anticlust` package to split the point set into the balanced clusters.
@@ -368,8 +275,8 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 - `par_group_grid()` makes a compatible object to the output of `par_make_gridset()` directly from the input points.
 - As illustrated in the figure below, the points will be split into `ngroups` clusters with the same number of points then processed in parallel by using the output object with `par_grid()`.
 
+```{r par-group-balanced}
 
-``` r
 group_bal_grid <-
   chopin::par_group_grid(
     points_in = ncpoints_tr,
@@ -383,12 +290,8 @@ terra::plot(group_bal_grid$original, "CGRIDID",
             legend = FALSE,
             main = "Assigned points (ngroups = 23)")
 terra::plot(group_bal_grid$padded, main = "Padded grids")
-```
 
-<div class="figure">
-<img src="vignettes/figures/par-group-balanced-1.png" alt="plot of chunk par-group-balanced" width="600px" />
-<p class="caption">plot of chunk par-group-balanced</p>
-</div>
+```
 
 
 
