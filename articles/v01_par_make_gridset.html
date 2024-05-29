@@ -72,7 +72,6 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Generate computational grids</h1>
             
-            <h4 data-toc-skip class="date">2024-05-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/NIEHS/chopin/blob/HEAD/vignettes/v01_par_make_gridset.Rmd" class="external-link"><code>vignettes/v01_par_make_gridset.Rmd</code></a></small>
       <div class="d-none name"><code>v01_par_make_gridset.Rmd</code></div>
@@ -186,11 +185,7 @@ North Carolina.</li>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">read_sf</a></span><span class="op">(</span><span class="va">ncpoly</span><span class="op">)</span></span>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncsf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/nc-gen-points-1.png" alt="plot of chunk nc-gen-points" width="600px"><p class="caption">
-plot of chunk nc-gen-points
-</p>
-</div>
+<p><img src="articles/figures/nc-gen-points-1.png" width="600px"></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">202404</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://spatstat.org/" class="external-link">spatstat.random</a></span><span class="op">)</span></span>
@@ -206,11 +201,7 @@ plot of chunk nc-gen-points
 <span><span class="va">ncpoints</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crs.html" class="external-link">st_set_crs</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
 <span><span class="va">ncpoints</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"PID-%05d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rspatial.github.io/terra/reference/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/nc-gen-points-2.png" alt="plot of chunk nc-gen-points" width="600px"><p class="caption">
-plot of chunk nc-gen-points
-</p>
-</div>
+<p><img src="articles/figures/nc-gen-points-2.png" width="600px"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># convert to terra SpatVector</span></span>
 <span><span class="va">ncpoints_tr</span> <span class="op">&lt;-</span> <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="../reference/dep_switch.html">dep_switch</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span></span></code></pre></div>
@@ -241,11 +232,7 @@ plot of chunk nc-gen-points
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/grid-plain-1.png" alt="plot of chunk grid-plain" width="600px"><p class="caption">
-plot of chunk grid-plain
-</p>
-</div>
+<p><img src="articles/figures/grid-plain-1.png" width="600px"></p>
 <div class="section level3">
 <h3 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
 </h3>
@@ -282,20 +269,12 @@ illustrate the grid polygons with and without overlaps.</li>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/compare-compregions-1.png" alt="plot of chunk compare-compregions" width="600px"><p class="caption">
-plot of chunk compare-compregions
-</p>
-</div>
+<p><img src="articles/figures/compare-compregions-1.png" width="600px"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_tr</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/compare-compregions-2.png" alt="plot of chunk compare-compregions" width="600px"><p class="caption">
-plot of chunk compare-compregions
-</p>
-</div>
+<p><img src="articles/figures/compare-compregions-2.png" width="600px"></p>
 </div>
 <div class="section level3">
 <h3 id="split-the-points-by-two-1d-quantiles">Split the points by two 1D quantiles<a class="anchor" aria-label="anchor" href="#split-the-points-by-two-1d-quantiles"></a>
@@ -325,20 +304,12 @@ dimension. A convenient way to define quantiles is to use
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_quantiles</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_quantiles</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-1.png" alt="plot of chunk split-points-grid" width="600px"><p class="caption">
-plot of chunk split-points-grid
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-1.png" width="600px"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_quantiles</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_tr</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-2.png" alt="plot of chunk split-points-grid" width="600px"><p class="caption">
-plot of chunk split-points-grid
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-2.png" width="600px"></p>
 </div>
 <div class="section level3">
 <h3 id="merge-the-grids-based-on-the-number-of-points">Merge the grids based on the number of points<a class="anchor" aria-label="anchor" href="#merge-the-grids-based-on-the-number-of-points"></a>
@@ -373,33 +344,25 @@ arguments <code>grid_min_features</code> and
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced1</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-adv-1.png" alt="plot of chunk split-points-grid-adv" width="600px"><p class="caption">
-plot of chunk split-points-grid-adv
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-adv-1.png" width="600px"></p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Merged grids (merge_max = 5)"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_tr</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-adv-2.png" alt="plot of chunk split-points-grid-adv" width="600px"><p class="caption">
-plot of chunk split-points-grid-adv
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-adv-2.png" width="600px"></p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoints_tr</span><span class="op">$</span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
-<span><span class="va">n_points</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/zonal.html" class="external-link">zonal</a></span><span class="op">(</span><span class="va">ncpoints_tr</span>, <span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span>, fun <span class="op">=</span> <span class="st">"sum"</span><span class="op">)</span><span class="op">[[</span><span class="st">"n"</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">n_points</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/zonal.html" class="external-link">zonal</a></span><span class="op">(</span></span>
+<span>    <span class="va">ncpoints_tr</span>,</span>
+<span>    <span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span>,</span>
+<span>    fun <span class="op">=</span> <span class="st">"sum"</span><span class="op">)</span><span class="op">[[</span><span class="st">"n"</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">grid_advanced1g</span> <span class="op">&lt;-</span> <span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span></span>
 <span><span class="va">grid_advanced1g</span><span class="op">$</span><span class="va">n_points</span> <span class="op">&lt;-</span> <span class="va">n_points</span></span>
 <span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced1g</span>, <span class="st">"n_points"</span>, main <span class="op">=</span> <span class="st">"Number of points in each grid"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-count-1.png" alt="plot of chunk split-points-count" width="600px"><p class="caption">
-plot of chunk split-points-count
-</p>
-</div>
+<p><img src="articles/figures/split-points-count-1.png" width="600px"></p>
 <div class="section level4">
 <h4 id="different-values-in-merge_max">Different values in <code>merge_max</code><a class="anchor" aria-label="anchor" href="#different-values-in-merge_max"></a>
 </h4>
@@ -423,20 +386,12 @@ argument.</li>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced2</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced2</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-adv2-1.png" alt="plot of chunk split-points-grid-adv2" width="600px"><p class="caption">
-plot of chunk split-points-grid-adv2
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-adv2-1.png" width="600px"></p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced2</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Merged grids (merge_max = 8)"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_tr</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-adv2-2.png" alt="plot of chunk split-points-grid-adv2" width="600px"><p class="caption">
-plot of chunk split-points-grid-adv2
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-adv2-2.png" width="600px"></p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">grid_advanced3</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="../reference/par_make_gridset.html">par_make_gridset</a></span><span class="op">(</span></span>
@@ -452,20 +407,12 @@ plot of chunk split-points-grid-adv2
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced3</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced3</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-adv3-1.png" alt="plot of chunk split-points-grid-adv3" width="600px"><p class="caption">
-plot of chunk split-points-grid-adv3
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-adv3-1.png" width="600px"></p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">grid_advanced3</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Merged grids (merge_max = 3)"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_tr</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/split-points-grid-adv3-2.png" alt="plot of chunk split-points-grid-adv3" width="600px"><p class="caption">
-plot of chunk split-points-grid-adv3
-</p>
-</div>
+<p><img src="articles/figures/split-points-grid-adv3-2.png" width="600px"></p>
 </div>
 <div class="section level4">
 <h4 id="par_group_grid">
@@ -513,11 +460,7 @@ processed in parallel by using the output object with
 <span>            legend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>            main <span class="op">=</span> <span class="st">"Assigned points (ngroups = 23)"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">group_bal_grid</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="articles/figures/par-group-balanced-1.png" alt="plot of chunk par-group-balanced" width="600px"><p class="caption">
-plot of chunk par-group-balanced
-</p>
-</div>
+<p><img src="articles/figures/par-group-balanced-1.png" width="600px"></p>
 </div>
 </div>
 </div>
