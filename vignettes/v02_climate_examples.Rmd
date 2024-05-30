@@ -534,13 +534,8 @@ This example uses 1,204,934 1-km grid points in the southeastern United States t
 stt <- tigris::states(year = 2020)
 targ_states <- c("NC", "SC", "GA", "FL", "AL", "MS", "TN", "LA", "AR")
 stt_targ <- stt[stt$STUSPS %in% targ_states, ]
-plot(stt_targ$geometry)
 ```
 
-<div class="figure">
-<img src="figures/climate-se-states.png" alt="plot of southeastern states" width="100%" />
-<p class="caption">plot of chunk se-states</p>
-</div>
 
 ```r
 stt_t <- sf::st_transform(stt_targ, "EPSG:5070")
@@ -753,11 +748,6 @@ bgsf_9grids <- bgsf_main %>%
     quantiles = chopin::par_def_q(3L)
   )
 
-par(mfcol = c(1, 2))
-plot(terra::vect(bgsf_9grids_plain$padded), main = "Plain")
-plot(bgsf_9grids$padded, main = "Quantile")
-par(mfcol = c(1, 1))
-
 
 doFuture::registerDoFuture()
 future::plan(multicore, workers = 9L)
@@ -776,7 +766,6 @@ system.time(
     )
 )
 ```
-![](figures/climate-ex-grid-comparison.png)
 
 ```
 #> Your input function was successfully run at CGRIDID: 1

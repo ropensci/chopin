@@ -225,7 +225,12 @@ testthat::test_that(
     withr::local_package("future")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
-    withr::local_options(list(sf_use_s2 = FALSE))
+    withr::local_options(
+      list(
+        sf_use_s2 = FALSE,
+        future.resolve.recursive = 2L
+      )
+    )
 
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- sf::st_read(ncpath, layer = "county")
@@ -251,7 +256,7 @@ testthat::test_that(
     ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
     ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
-    future::plan(future::multicore, workers = 4L)
+    future::plan(future::sequential)
     testthat::expect_no_error(
       res <-
         suppressWarnings(
