@@ -37,6 +37,7 @@ clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
 \seealso{
 Other Helper functions: 
 \code{\link{any_class_args}()},
+\code{\link{check_dist_incorrect}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{crs_check}()},
 \code{\link{datamod}()},

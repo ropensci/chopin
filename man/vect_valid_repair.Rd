@@ -38,6 +38,7 @@ nc_valid <- vect_valid_repair(nc)
 \seealso{
 Other Helper functions: 
 \code{\link{any_class_args}()},
+\code{\link{check_dist_incorrect}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
 \code{\link{crs_check}()},
@@ -56,3 +57,4 @@ Other Helper functions:
 Insang Song
 }
 \concept{Helper functions}
+\keyword{internal}

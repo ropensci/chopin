@@ -444,11 +444,13 @@ testthat::test_that(
     withr::local_package("terra")
     withr::local_package("sf")
     withr::local_package("future")
+    withr::local_package("mirai")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
+        future.plan = "multisession",
         future.resolve.recursive = 2L
       )
     )
@@ -456,11 +458,12 @@ testthat::test_that(
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- terra::vect(ncpath, layer = "county")
     ncelev <-
-      terra::unwrap(
-        readRDS(
-          system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
-        )
-      )
+      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+    # terra::unwrap(
+    #   readRDS(
+    #     system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+    #   )
+    # )
     terra::crs(ncelev) <- "EPSG:5070"
     names(ncelev) <- c("srtm15")
     tdir <- tempdir(check = TRUE)
@@ -475,10 +478,12 @@ testthat::test_that(
       res <- par_multirasters(
         filenames = testfiles,
         fun_dist = extract_at_poly,
-        polys = nccnty,
+        debug = FALSE,
+        polys = ncpath,
         surf = ncelev,
         id = "GEOID",
-        func = "mean"
+        func = "mean",
+        radius = 50000L
       )
     )
     testthat::expect_s3_class(res, "data.frame")

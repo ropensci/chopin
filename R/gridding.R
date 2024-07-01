@@ -22,6 +22,7 @@
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 #' @param merge_max integer(1). Maximum number of grids to merge
 #'   per merged set.
+#' @param return_wkt logical(1). Return WKT format.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
@@ -51,11 +52,8 @@
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original)
 #' plot(nc_comp_region$padded)
-#' @importFrom sf st_crs
-#' @importFrom sf st_set_crs
-#' @importFrom terra crs
-#' @importFrom terra set.crs
-#' @importFrom terra buffer
+#' @importFrom sf st_crs st_set_crs st_as_text
+#' @importFrom terra crs set.crs buffer geom
 #' @export
 par_make_gridset <-
   function(
@@ -68,6 +66,7 @@ par_make_gridset <-
       unit = NULL,
       quantiles = NULL,
       merge_max = NULL,
+      return_wkt = FALSE,
       ...) {
     mode <- match.arg(mode)
 
@@ -119,7 +118,7 @@ par_make_gridset <-
             )
           }
         )
-      
+
       # grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
@@ -149,6 +148,16 @@ par_make_gridset <-
     grid_results <-
       list(original = grid_reg,
            padded = grid_reg_pad)
+    if (return_wkt) {
+      if (dep_check(grid_reg) == "sf") {
+        grid_results$original <- sf::st_as_text(grid_results$original$geometry)
+        grid_results$padded <- sf::st_as_text(grid_results$padded$geometry)
+      } else {
+        grid_results$original <- terra::geom(grid_results$original, wkt = TRUE)
+        grid_results$padded <- terra::geom(grid_results$padded, wkt = TRUE)
+      }
+    }
+
     return(grid_results)
 
   }

@@ -77,18 +77,18 @@ clip_vec_ext <- function(
       FUN.VALUE = logical(1)
     )
   )) {
-    stop("One or more required arguments are NULL. Please check.\n")
+    cli::cli_abort("One or more required arguments are NULL. Please check.\n")
   }
   detected_pnts <- dep_check(pnts)
   detected_target <- dep_check(target_input)
 
   if (detected_pnts != detected_target) {
-    warning("Inputs are not the same class.\n")
+    cli::cli_warn("Inputs are not the same class.\n")
     target_input <- dep_switch(target_input)
   }
 
   ext_input <- get_clip_ext(pnts, radius)
-  cat("Clip target features with the input feature extent...\n")
+  cli::cli_inform("Clip target features with the input feature extent...\n")
   if (detected_pnts == "sf") {
     cae <- ext_input |>
       sf::st_intersection(x = target_input)
@@ -138,7 +138,7 @@ clip_ras_ext <- function(
            FUN = is.null,
            FUN.VALUE = logical(1))
   )) {
-    stop("Any of required arguments are NULL. Please check.\n")
+    cli::cli_abort("Any of required arguments are NULL. Please check.\n")
   }
   ext_input <- get_clip_ext(pnts, radius) |>
     terra::vect()
@@ -220,14 +220,14 @@ extract_at_buffer <- function(
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
-      stop("Check class of the input raster.\n")
+      cli::cli_abort("Check class of the input raster.\n")
     }
   }
   if (!is.numeric(radius)) {
-    stop("Check class of the input radius.\n")
+    cli::cli_abort("Check class of the input radius.\n")
   }
   if (!is.numeric(qsegs)) {
-    stop("qsegs should be numeric.\n")
+    cli::cli_abort("qsegs should be numeric.\n")
   }
   points <- check_subject(points, extent = extent, subject_id = id)
 
@@ -451,7 +451,7 @@ extract_at_poly <- function(
   if (!methods::is(surf, "SpatRaster")) {
     surf <- try(terra::rast(surf))
     if (inherits(surf, "try-error")) {
-      stop("Check class of the input raster.\n")
+      cli::cli_abort("Check class of the input raster.\n")
     }
   }
   polys <- check_subject(polys, extent = extent, subject_id = id)
@@ -667,7 +667,7 @@ summarize_sedc <-
 
     cn_overlap <- intersect(names(point_from), names(point_to))
     if (length(cn_overlap) > 0) {
-      warning(
+      cli::cli_warn(
         sprintf(
           "There are %d fields with the same name.
 The result may not be accurate.\n",
@@ -752,21 +752,6 @@ The result may not be accurate.\n",
 #' @note If `poly_in` and `poly_weight` are characters, they will be
 #'   read as `terra::vect` objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples
-#' # package
-#' library(sf)
-#' sf_use_s2(FALSE)
-#' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
-#' nc <- sf::st_transform(nc, 5070)
-#' pp <- sf::st_sample(nc, size = 300)
-#' pp <- sf::st_as_sf(pp)
-#' pp[["id"]] <- seq(1, nrow(pp))
-#' sf::st_crs(pp) <- "EPSG:5070"
-#' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
-#'
-#' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
-#' summary(ppb_nc_aw)
-#' #### Example of summarize_aw ends ###
 #' @importFrom terra expanse
 #' @importFrom rlang sym
 #' @importFrom dplyr where
@@ -777,8 +762,7 @@ The result may not be accurate.\n",
 #' @importFrom terra intersect
 #' @importFrom sf st_interpolate_aw
 #' @importFrom stats weighted.mean
-#' @export
-summarize_aw <-
+summarize_aw_old <-
   function(
     poly_in = NULL,
     poly_weight = NULL,
@@ -836,4 +820,144 @@ summarize_aw <-
         )
     )
 
+  }
+
+
+## 0.8.0
+#' @title Area weighted summary using two polygon objects
+#' @family Macros for calculation
+#' @param x A sf object or file path of polygons detectable
+#'   with GDAL driver at weighted means will be calculated.
+#' @param y A sf object or file path of polygons from
+#'  which weighted means will be calculated.
+#' @param target_fields character. Field names to calculate area-weighted.
+#' @param id_x character(1).
+#'  The unique identifier of each polygon in `x`.
+#'  Default is `"ID"`.
+#' @param fun function(1). The function to calculate the weighted summary.
+#' Default is [`stats::weighted.mean`]. The function must have a `w` argument.
+#' @param extent numeric(4) or SpatExtent object. Extent of clipping `x`.
+#' It only works with `x` of character(1) file path.
+#' See [`terra::ext`] for more details. Coordinate systems should match.
+#' @returns A data.frame with all numeric fields of area-weighted means.
+#' @description When `x` and `y` are different classes,
+#'  `poly_weight` will be converted to the class of `x`.
+#' @note If `x` and `y` are characters, they will be
+#'   read as `sf` objects.
+#' @author Insang Song \email{geoissong@@gmail.com}
+#' @name summarize_aw
+#' @examples
+#' # package
+#' library(sf)
+#' sf_use_s2(FALSE)
+#' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+#' nc <- sf::st_transform(nc, 5070)
+#' pp <- sf::st_sample(nc, size = 300)
+#' pp <- sf::st_as_sf(pp)
+#' pp[["id"]] <- seq(1, nrow(pp))
+#' sf::st_crs(pp) <- "EPSG:5070"
+#' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
+#'
+#' system.time(ppb_nc_aw <- summarize_aw_sf(ppb, nc, c("BIR74", "BIR79"), "id"))
+#' summary(ppb_nc_aw)
+#'
+#' # terra examples
+#' library(terra)
+#' library(sf)
+#' options(sf_use_s2 = FALSE)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' elev <- system.file("ex/elev.tif", package = "terra")
+#' nc <- terra::vect(ncpath)
+#' elev <- terra::rast(elev)
+#' pp <- terra::sample(nc, size = 300)
+#' pp <- terra::project(pp, crs(elev))
+#' pp <- terra::as.points(pp)
+#' pp[["id"]] <- seq(1, nrow(pp))
+#' ppb <- terra::buffer(pp, 20000)
+#'
+#' system.time(ppb_nc_aw <- summarize_aw_terra(ppb, nc, c("BIR74", "BIR79"), "id"))
+#' summary(ppb_nc_aw)
+#' @importFrom rlang sym
+#' @importFrom dplyr where group_by summarize across ungroup
+#' @importFrom terra intersect expanse area
+#' @importFrom sf st_interpolate_aw
+#' @importFrom stats weighted.mean
+#' @export
+summarize_aw <- function(...) {
+  UseMethod("summarize_aw")
+}
+
+#' @rdname summarize_aw
+#' @name summarize_aw
+#' @export
+summarize_aw.default <-
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = stats::weighted.mean,
+    extent = NULL
+  ) {
+    cli::cli_abort("generic function.")
+  }
+
+#' @rdname summarize_aw
+#' @name summarize_aw
+#' @export
+summarize_aw.sf <-
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = stats::weighted.mean,
+    extent = NULL
+  ) {
+    x <- check_subject(x, extent = extent, subject_id = id_x)
+    y <- check_subject(y, extent = extent)
+
+    poly_intersected <- sf::st_intersection(x, y)
+    poly_intersected[["area_segment_"]] <-
+      sf::st_area(poly_intersected)
+    poly_intersected <- data.frame(poly_intersected) |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~fun(., w = area_segment_)
+        )
+      ) |>
+      dplyr::ungroup()
+    return(poly_intersected)
+  }
+
+#' @rdname summarize_aw
+#' @name summarize_aw
+#' @export
+summarize_aw.SpatVector <-
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = stats::weighted.mean,
+    extent = NULL
+  ) {
+    x <- check_subject(x, extent = extent, subject_id = id_x)
+    y <- check_subject(y, extent = extent)
+
+    poly_intersected <- terra::intersect(x, y)
+    poly_intersected[["area_segment_"]] <-
+      terra::expanse(poly_intersected)
+    poly_intersected <- data.frame(poly_intersected) |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~fun(., w = area_segment_)
+        )
+      ) |>
+      dplyr::ungroup()
+    return(poly_intersected)
   }

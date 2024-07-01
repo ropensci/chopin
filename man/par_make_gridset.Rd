@@ -14,6 +14,7 @@ par_make_gridset(
   unit = NULL,
   quantiles = NULL,
   merge_max = NULL,
+  return_wkt = FALSE,
   ...
 )
 }
@@ -49,6 +50,8 @@ for the list of acceptable unit forms.}
 
 \item{merge_max}{integer(1). Maximum number of grids to merge
 per merged set.}
+
+\item{return_wkt}{logical(1). Return WKT format.}
 
 \item{...}{arguments passed to the internal function}
 }

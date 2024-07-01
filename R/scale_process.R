@@ -14,7 +14,6 @@
 #' @examples
 #' err <- simpleError("No input.")
 #' par_fallback(err, extract_at, inputid = 1)
-#' @export
 par_fallback <-
   function(
     err = NULL,
@@ -372,7 +371,7 @@ par_hierarchy <-
         unique(unname(unlist(regions[[regions_id]])))
       }
     regions_list <- as.list(regions_idn)
-    
+
     results_distributed <-
       future.apply::future_lapply(
         regions_list,
@@ -502,8 +501,9 @@ par_hierarchy <-
 #'   func = "mean"
 #' )
 #' }
-#' @importFrom future.apply future_lapply
+#' @importFrom future future
 #' @importFrom terra rast
+#' @importFrom mirai mirai call_mirai
 #' @importFrom rlang inject
 #' @export
 par_multirasters <-
@@ -514,49 +514,81 @@ par_multirasters <-
     ...
   ) {
 
-    file_list <- split(filenames, filenames)
-    results_distributed <-
-      future.apply::future_lapply(
-        file_list,
-        function(path) {
-          run_result <-
-            try({
-              args_input <- list(...)
-              vect_target_tr <- any_class_args(args_input, "SpatVector")
-              vect_target_sf <- any_class_args(args_input, "sf")
-              vect_target <- (vect_target_tr | vect_target_sf)
-              vect_ext <- args_input[vect_target]
-              vect_ext <- terra::ext(vect_ext[[1]])
+    file_list <- filenames#split(filenames, filenames)
+    results <- vector("list", length = length(filenames))
+    args_input <- list(...)
 
-              rast_target <- which(any_class_args(args_input, "SpatRaster"))
-              args_input[[rast_target]] <-
-                terra::rast(x = path, win = vect_ext)
+    # results_distributed <-
+    #   future.apply::future_lapply(
+    #     file_list,
+    #     function(path) {
+          # run_result <-
+    for (i in seq_along(filenames)) {
+      results[[i]] <-
+        backend_worker(
+          {
+            tryCatch({
+              args_input <- args_input
+              debug <- debug
+              filenames <- filenames
+              vect_target <- vapply(args_input, inherits, logical(1), c("SpatVector", "sf"))
+              # vect_target_tr <- any_class_args(args_input, "SpatVector")
+              # vect_target_sf <- any_class_args(args_input, "sf")
+              # vect_target <- (vect_target_tr | vect_target_sf)
+              
+              # if (!all(vect_target)) {
+              #   vect_ext <- terra::vect()
+              # } else {
+              #   vect_ext <- args_input[vect_target]
+              #   vect_ext <- terra::ext(vect_ext[[1]])
+              # }
+
+              rast_target <- vapply(args_input, inherits, logical(1), "SpatRaster")
+              rast_target <- which(rast_target)
+              #rast_target <- which(any_class_args(args_input, "SpatRaster"))
+              args_input$surf <-#[[rast_target]] <-
+                terra::rast(x = file_list[i])
               if (!"id" %in% names(formals(fun_dist))) {
                 args_input$id <- NULL
               }
 
               res <- rlang::inject(fun_dist(!!!args_input))
               try(res <- as.data.frame(res))
-              res$base_raster <- path
+              res$base_raster <- filenames[i]
               return(res)
+            }, error = function(e) {
+              data.frame(base_raster = filenames[i], error_message = paste(unlist(e), collapse = " "))
+              #if (debug) {
+                #par_fallback(e, fun_dist, inputid = filenames[i])
+              #} else {
+              #  return(NULL)
+              #}
             }
-            )
-          if (inherits(run_result, "try-error")) {
-            if (debug) {
-              par_fallback(run_result[1], fun_dist, inputid = path)
-            } else {
-              return(NULL)
-            }
-          }
-        },
-        future.seed = TRUE,
-        future.packages =
-        c("chopin", "dplyr", "sf", "terra", "rlang"),
-        future.globals = FALSE,
-        future.scheduling = 2
-      )
-    results_distributed <-
-      results_distributed[!vapply(results_distributed, is.null, logical(1))]
-    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
-    return(results_distributed)
+          )
+          }, environment()
+        )
+        cli::cli_inform(c(i = sprintf("Your input function at %s is dispatched.\n", filenames[i])))
+    }
+    # return(results)
+    # TODO: mirai-centered approach; future should call value()
+    #results_l <- results
+    results <- Map(function(x) mirai::call_mirai(x)[["data"]], results)
+    # return(results_l)
+    results <-
+      results[!vapply(results, is.null, logical(1))]
+    results <- collapse::rowbind(results, fill = TRUE)
+    return(results)
+          # if (inherits(run_result, "try-error")) {
+          # }
+      #   },
+      #   future.seed = TRUE,
+      #   future.packages =
+      #   c("chopin", "dplyr", "sf", "terra", "rlang"),
+      #   future.globals = FALSE,
+      #   future.scheduling = 2
+      # )
+    # results_distributed <-
+    #   results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    # results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
+    # return(results_distributed)
   }
