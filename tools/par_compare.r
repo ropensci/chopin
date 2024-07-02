@@ -228,3 +228,45 @@ rr <- par_grid_furrr(
 )
 
 )
+
+pkgs <- c("chopin", "terra", "sf", "stars", "tictoc", "dplyr", "exactextractr")
+invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
+options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
+
+trcts <- tigris::tracts(year = 2021, state = NULL, cb = TRUE)
+landscan <- terra::rast("~/Downloads/landscan-usa-2021-night-assets/landscan-usa-2021-night/landscan-usa-2021-conus-night.tif")
+
+system.time(
+  exactextractr::exact_extract(
+    landscan,
+    trcts,
+    fun = "sum",
+    stack_apply = TRUE,
+    force_df = TRUE,
+    append_cols = "GEOID",
+    max_cells_in_memory = 2.14e9
+  )
+)
+
+trcts0 <- trcts[!trcts$STUSPS %in% c("VI", "AS", "AK", "HI", "PR", "GU", "MP"), ]
+
+tictoc::tic("4core")
+  doFuture::registerDoFuture()
+  plan(multicore, workers = 4L)
+  grds <-
+  chopin::par_make_gridset(
+    trcts0,
+    mode = "grid_quantile",
+    quantiles = par_def_q(2L),
+    padding = 1e3
+  )
+  grds_ext <-
+  chopin::par_grid(
+    grids = grds,
+    fun_dist = chopin::extract_at_poly,
+    poly = trcts0,
+    surf = landscan,
+    id = "GEOID",
+    func = "sum"
+  )
+tictoc::toc()
