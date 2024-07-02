@@ -83,7 +83,7 @@ sf::sf_use_s2(FALSE)
     raster-oriented one, they might visit the vector-oriented flowchart
     at each end of the raster-oriented flowchart.
     -   `par_grid`: parallelize over artificial grid polygons that are
-        generated from the maximum extent of inputs. `par_make_gridset`
+        generated from the maximum extent of inputs. `par_pad_grid`
         is used to generate the grid polygons before running this
         function.
     -   `par_hierarchy`: parallelize over hierarchy coded in identifier
@@ -235,7 +235,7 @@ system.time(
 
 #### Generate regular grid computational regions
 
--   `chopin::par_make_gridset` takes a spatial dataset to generate
+-   `chopin::par_pad_grid` takes a spatial dataset to generate
     regular grid polygons with `nx` and `ny` arguments with padding.
     Users will have both overlapping (by the degree of `radius`) and
     non-overlapping grids, both of which will be utilized to split
@@ -244,7 +244,7 @@ system.time(
 
 ``` r
 compregions <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     ncpoints_tr,
     mode = "grid",
     nx = 8L,
@@ -559,7 +559,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 # generate grids
 nccompreg <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     input = pnts,
     mode = "grid",
     nx = 4L,
@@ -573,7 +573,7 @@ nccompreg <-
     per iteration and used to calculate the distance from each point to
     the nearest primary road. Padded grids and their overlapping areas
     will look different according to `padding` argument in
-    `chopin::par_make_gridset`.
+    `chopin::par_pad_grid`.
 
 ``` r
 # plot
@@ -639,7 +639,7 @@ all.equal(resj$distance.x, resj$distance.y)
         interstates then homes in such grids will not get any distance
         to the nearest interstate.
     -   Such problems can be avoided by choosing `nx`, `ny`, and
-        `padding` values in `par_make_gridset` meticulously.
+        `padding` values in `par_pad_grid` meticulously.
 
 ## Why parallelization is slower than the ordinary function run?
 

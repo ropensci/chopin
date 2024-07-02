@@ -41,7 +41,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   )
 
   nccompreg <-
-    par_make_gridset(
+    par_pad_grid(
       input = ncpnts,
       mode = "grid",
       nx = 6L,
@@ -393,7 +393,7 @@ testthat::test_that("generic function should be parallelized properly", {
   # expect
 
   nccompreg <-
-    par_make_gridset(
+    par_pad_grid(
       input = pnts,
       mode = "grid",
       nx = 6L,

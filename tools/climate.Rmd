@@ -95,7 +95,7 @@ exsinglep <-
 
 system.time(
   exgrid <-
-    chopin::par_make_gridset(
+    chopin::par_pad_grid(
       popplacep,
       mode = "grid",
       padding = 1e4,
@@ -105,7 +105,7 @@ system.time(
 )
 
 exgrid <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     popplacep2,
     mode = "grid",
     padding = 1e4,

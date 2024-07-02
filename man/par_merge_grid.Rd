@@ -31,7 +31,7 @@ A \code{sf} or \code{SpatVector} object of computation grids.
 Merge boundary-sharing (in "Rook" contiguity) grids with
 fewer target features than the threshold.
 This function strongly assumes that the input
-is returned from the par_make_grid,
+is returned from the \code{\link{par_make_grid}},
 which has \code{"CGRIDID"} as the unique id field.
 }
 \note{
@@ -39,7 +39,6 @@ This function will not work properly if \code{grid_in} has
 more than one million grids.
 }
 \examples{
-\dontrun{
 library(sf)
 library(igraph)
 library(dplyr)
@@ -55,7 +54,6 @@ sf::st_crs(dg_sample) <- sf::st_crs(dg)
 dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 plot(dg_merged$geometry)
 }
-}
 \references{
 \itemize{
 \item Polsby DD, Popper FJ. (1991).
@@ -69,11 +67,11 @@ Other Parallelization:
 \code{\link{par_cut_coords}()},
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
-\code{\link{par_make_gridset}()},
-\code{\link{par_multirasters}()}
+\code{\link{par_multirasters}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()}
 }
 \author{
 Insang Song

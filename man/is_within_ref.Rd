@@ -24,7 +24,7 @@ ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- sf::read_sf(ncpath)
 nc <- sf::st_transform(nc, "EPSG:4326")
 mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-mainland_box <- ext2poly(mainland_vec, output_class = "sf")
+mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
 within_res <- is_within_ref(nc, mainland_box)
 within_res
 }
@@ -38,7 +38,7 @@ Other Helper functions:
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{par_def_q}()},

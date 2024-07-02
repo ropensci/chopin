@@ -33,7 +33,7 @@ reference:
   - vect_valid_repair
   - any_class_args
   - datamod
-  - ext2poly
+  - ext_to_poly
   - get_clip_ext
   - crs_check
 

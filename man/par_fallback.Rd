@@ -12,7 +12,7 @@ par_fallback(err = NULL, fun = NULL, inputid = NULL)
 \item{fun}{function.}
 
 \item{inputid}{character(1). ID of the computational region.
-For example, \code{par_make_gridset} output should have \code{"CGRIDID"},
+For example, \code{par_pad_grid} output should have \code{"CGRIDID"},
 which will be included in the outcome data.frame.
 If the function does not have an argument containing \code{"id"},
 the output will have a column named \code{"chopin_domain_id"}.}
@@ -35,14 +35,15 @@ par_fallback(err, extract_at, inputid = 1)
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
 \code{\link{par_grid}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
-\code{\link{par_multirasters}()}
+\code{\link{par_multirasters}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()}
 }
 \author{
 Insang Song
 }
 \concept{Parallelization}
+\keyword{internal}

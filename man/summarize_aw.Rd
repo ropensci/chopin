@@ -3,12 +3,22 @@
 \name{summarize_aw}
 \alias{summarize_aw}
 \alias{summarize_aw,SpatVector,SpatVector-method}
+\alias{summarize_aw,character,character-method}
 \alias{summarize_aw,sf,sf-method}
 \title{Area weighted summary using two polygon objects}
 \usage{
 summarize_aw(x, y, ...)
 
 \S4method{summarize_aw}{SpatVector,SpatVector}(
+  x = NULL,
+  y = NULL,
+  target_fields = NULL,
+  id_x = "ID",
+  fun = stats::weighted.mean,
+  extent = NULL
+)
+
+\S4method{summarize_aw}{character,character}(
   x = NULL,
   y = NULL,
   target_fields = NULL,
@@ -96,7 +106,6 @@ summary(ppb_nc_aw)
 Other Macros for calculation: 
 \code{\link{extract_at}()},
 \code{\link{extract_at_buffer}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw_old}()},
 \code{\link{summarize_sedc}()}

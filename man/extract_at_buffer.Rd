@@ -3,8 +3,8 @@
 \name{extract_at_buffer}
 \alias{extract_at_buffer}
 \alias{extract_at_buffer_flat}
-\alias{extract_at_buffer_kernel}
-\title{Extract summarized values from raster with points and a buffer radius}
+\title{Extract summarized values from raster with points and a buffer radius
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}}
 \usage{
 extract_at_buffer(
   points = NULL,
@@ -27,19 +27,6 @@ extract_at_buffer_flat(
   id = NULL,
   qsegs = NULL,
   func = "mean",
-  kernel = NULL,
-  bandwidth = NULL,
-  max_cells = 2e+07,
-  ...
-)
-
-extract_at_buffer_kernel(
-  points = NULL,
-  surf = NULL,
-  radius = NULL,
-  id = NULL,
-  qsegs = NULL,
-  func = stats::weighted.mean,
   kernel = NULL,
   bandwidth = NULL,
   max_cells = 2e+07,
@@ -111,7 +98,6 @@ extract_at_buffer(rpnt, rrast, 4, "pid")
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_aw_old}()},

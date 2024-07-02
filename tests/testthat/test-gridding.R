@@ -9,19 +9,19 @@ testthat::test_that("Balanced group tests", {
   rs <- sf::st_as_sf(rv)
 
   testthat::expect_no_error(
-    par_group_balanced(rv, 10)
+    par_pad_balanced(rv, 10)
   )
   testthat::expect_no_error(
-    par_group_balanced(rs, 10)
+    par_pad_balanced(rs, 10)
   )
 
   testthat::expect_error(
-    par_group_balanced(rv, "NUMBER")
+    par_pad_balanced(rv, "NUMBER")
   )
   testthat::expect_error(
-    par_group_balanced(rv, 1L)
+    par_pad_balanced(rv, 1L)
   )
-  testthat::expect_true(any("CGRIDID" %in% names(par_group_balanced(rv, 10))))
+  testthat::expect_true(any("CGRIDID" %in% names(par_pad_balanced(rv, 10))))
 
   # gridded
   testthat::expect_no_error(
@@ -125,24 +125,24 @@ testthat::test_that("Grid split is well done.", {
   nc <- sf::st_transform(nc, "EPSG:5070")
 
   testthat::expect_no_error(
-    par_make_gridset(nc, mode = "grid", padding = 3e4L)
+    par_pad_grid(nc, mode = "grid", padding = 3e4L)
   )
-  ncgrid <- par_make_gridset(nc, mode = "grid", padding = 3e4L)
+  ncgrid <- par_pad_grid(nc, mode = "grid", padding = 3e4L)
   testthat::expect_s3_class(ncgrid$original, "sf")
 
   nctr <- terra::vect(nc)
   testthat::expect_no_error(
-    par_make_gridset(nctr, mode = "grid", padding = 3e4L)
+    par_pad_grid(nctr, mode = "grid", padding = 3e4L)
   )
-  ncgridtr <- par_make_gridset(nctr, mode = "grid", padding = 3e4L)
+  ncgridtr <- par_pad_grid(nctr, mode = "grid", padding = 3e4L)
   testthat::expect_s4_class(ncgridtr$original, "SpatVector")
 
   testthat::expect_error(
-    par_make_gridset(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
+    par_pad_grid(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
   )
   testthat::expect_error(
     suppressWarnings(
-      par_make_gridset(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
+      par_pad_grid(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
     )
   )
 
@@ -152,7 +152,7 @@ testthat::test_that("Grid split is well done.", {
 
   # Points
   testthat::expect_no_warning(
-    par_make_gridset(
+    par_pad_grid(
       ncp,
       mode = "grid_advanced",
       padding = 3e4L,
@@ -161,7 +161,7 @@ testthat::test_that("Grid split is well done.", {
   )
   # Points
   testthat::expect_no_error(
-    par_make_gridset(
+    par_pad_grid(
       ncp,
       mode = "grid_quantile",
       padding = 3e4L,
@@ -189,7 +189,7 @@ testthat::test_that("Grid merge is well done.", {
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1600L))
 
   gridded <-
-    par_make_gridset(ncrp,
+    par_pad_grid(ncrp,
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
@@ -200,7 +200,7 @@ testthat::test_that("Grid merge is well done.", {
 
   ncptr <- terra::vect(ncrp)
   griddedtr <-
-    par_make_gridset(ncptr,
+    par_pad_grid(ncptr,
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
@@ -213,7 +213,7 @@ testthat::test_that("Grid merge is well done.", {
   data("ncpoints", package = "chopin")
   ncptr2 <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = TRUE)
   griddedtr2 <-
-    par_make_gridset(ncptr2,
+    par_pad_grid(ncptr2,
                      mode = "grid",
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
@@ -223,7 +223,7 @@ testthat::test_that("Grid merge is well done.", {
   testthat::expect_s4_class(gridmerged2, "SpatVector")
 
   griddedtr22 <-
-    par_make_gridset(ncptr2,
+    par_pad_grid(ncptr2,
                      mode = "grid",
                      nx = 40L, ny = 20L,
                      padding = 1e4L)
@@ -250,8 +250,8 @@ testthat::test_that("Grid merge is well done.", {
 
 })
 
-## par_group_balanced tests ####
-testthat::test_that("par_group_balanced returns the correct output", {
+## par_pad_balanced tests ####
+testthat::test_that("par_pad_balanced returns the correct output", {
   # Create test data
   withr::local_package("sf")
   withr::local_package("terra")
@@ -262,10 +262,10 @@ testthat::test_that("par_group_balanced returns the correct output", {
 
   # Call the function
   testthat::expect_no_error(
-    result <- par_group_balanced(nc_rp, n_clusters = 10)
+    result <- par_pad_balanced(nc_rp, n_clusters = 10)
   )
   testthat::expect_no_error(
-    result <- par_group_balanced(sf::st_as_sf(nc_rp), n_clusters = 10)
+    result <- par_pad_balanced(sf::st_as_sf(nc_rp), n_clusters = 10)
   )
 
   # Perform assertions
@@ -275,10 +275,10 @@ testthat::test_that("par_group_balanced returns the correct output", {
 
   # error cases
   testthat::expect_error(
-    par_group_balanced(nc_rp, n_clusters = "vingt")
+    par_pad_balanced(nc_rp, n_clusters = "vingt")
   )
   testthat::expect_error(
-    par_group_balanced(nc_rp, n_clusters = 1L)
+    par_pad_balanced(nc_rp, n_clusters = 1L)
   )
 
 })

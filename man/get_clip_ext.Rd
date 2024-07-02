@@ -40,7 +40,7 @@ Other Helper functions:
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
 \code{\link{par_def_q}()},
@@ -52,3 +52,4 @@ Other Helper functions:
 Insang Song
 }
 \concept{Helper functions}
+\keyword{internal}

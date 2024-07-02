@@ -160,7 +160,7 @@ litr::add_vignettes("../tools/vignettes-sources/v00_good_practice_parallelizatio
 ### Vignettes 2
 
 ```{r vig2, eval = TRUE}
-litr::add_vignettes("../tools/vignettes-sources/v01_par_make_gridset.Rmd")
+litr::add_vignettes("../tools/vignettes-sources/v01_par_pad_grid.Rmd")
 ```
 
 
@@ -1124,7 +1124,7 @@ chopin::extract_at(
 #' # run: nx and ny should strictly be integers
 #' # In the example below, nx is 12L, not 12.
 #' nc_comp_region <-
-#'   par_make_gridset(
+#'   par_pad_grid(
 #'     nc,
 #'     mode = "grid",
 #'     nx = 12L, ny = 8L,
@@ -1138,7 +1138,7 @@ chopin::extract_at(
 #' @importFrom terra set.crs
 #' @importFrom terra buffer
 #' @export
-par_make_gridset <-
+par_pad_grid <-
   function(
       input,
       mode = c("grid", "grid_advanced", "grid_quantile"),
@@ -1211,13 +1211,13 @@ par_make_gridset <-
   }
 
 
-#' Extension of par_group_balanced for padded grids
-#' @description This function is an extension of `par_group_balanced`
+#' Extension of par_pad_balanced for padded grids
+#' @description This function is an extension of `par_pad_balanced`
 #' to be compatible with `par_grid`, for which a set of padded grids
 #' of the extent of input point subsets
 #' (as recorded in the field named `"CGRIDID"`)
 #' is generated out of input points along with the output of
-#' `par_group_balanced`.
+#' `par_pad_balanced`.
 #' @family Parallelization
 #' @param points_in `sf` or `SpatVector` object.
 #' @param ngroups integer(1). The number of groups.
@@ -1264,7 +1264,7 @@ par_group_grid <-
         stop("padding is not convertible to numeric or converted to NA.\n")
       }
     }
-    pgroups <- par_group_balanced(points_in, ngroups)
+    pgroups <- par_pad_balanced(points_in, ngroups)
 
     grid_p <- lapply(
       split(pgroups, pgroups$CGRIDID),
@@ -1756,14 +1756,14 @@ plot(ncr)
 #'   ncpoints, geom = c("X", "Y"),
 #'   keepgeom = FALSE, crs = "EPSG:5070"
 #' )
-#' par_group_balanced(ncp, 10)
+#' par_pad_balanced(ncp, 10)
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
 #' @importFrom terra vect
 #' @importFrom terra crds
 #' @importFrom stats dist
 #' @export
-par_group_balanced <- function(
+par_pad_balanced <- function(
   points_in = NULL,
   n_clusters = NULL
 ) {
@@ -1786,7 +1786,7 @@ par_group_balanced <- function(
 
 ```
 
-```{r par_group_balanced-remainders, eval = FALSE, include = FALSE}
+```{r par_pad_balanced-remainders, eval = FALSE, include = FALSE}
 # extent to polygon
 # convex hulls and voronoi polygons: unbalanced; abandoned
 # clust <- split(points_in, points_in$clust)
@@ -1816,19 +1816,19 @@ testthat::test_that("Balanced group tests", {
   rs <- sf::st_as_sf(rv)
 
   testthat::expect_no_error(
-    par_group_balanced(rv, 10)
+    par_pad_balanced(rv, 10)
   )
   testthat::expect_no_error(
-    par_group_balanced(rs, 10)
+    par_pad_balanced(rs, 10)
   )
 
   testthat::expect_error(
-    par_group_balanced(rv, "NUMBER")
+    par_pad_balanced(rv, "NUMBER")
   )
   testthat::expect_error(
-    par_group_balanced(rv, 1L)
+    par_pad_balanced(rv, 1L)
   )
-  testthat::expect_true(any("CGRIDID" %in% names(par_group_balanced(rv, 10))))
+  testthat::expect_true(any("CGRIDID" %in% names(par_pad_balanced(rv, 10))))
 
   # gridded
   testthat::expect_no_error(
@@ -1954,24 +1954,24 @@ testthat::test_that("Grid split is well done.", {
   nc <- sf::st_transform(nc, "EPSG:5070")
 
   testthat::expect_no_error(
-    par_make_gridset(nc, mode = "grid", padding = 3e4L)
+    par_pad_grid(nc, mode = "grid", padding = 3e4L)
   )
-  ncgrid <- par_make_gridset(nc, mode = "grid", padding = 3e4L)
+  ncgrid <- par_pad_grid(nc, mode = "grid", padding = 3e4L)
   testthat::expect_s3_class(ncgrid$original, "sf")
 
   nctr <- terra::vect(nc)
   testthat::expect_no_error(
-    par_make_gridset(nctr, mode = "grid", padding = 3e4L)
+    par_pad_grid(nctr, mode = "grid", padding = 3e4L)
   )
-  ncgridtr <- par_make_gridset(nctr, mode = "grid", padding = 3e4L)
+  ncgridtr <- par_pad_grid(nctr, mode = "grid", padding = 3e4L)
   testthat::expect_s4_class(ncgridtr$original, "SpatVector")
 
   testthat::expect_error(
-    par_make_gridset(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
+    par_pad_grid(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L)
   )
   testthat::expect_error(
     suppressWarnings(
-      par_make_gridset(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
+      par_pad_grid(nctr, mode = "grid", nx = 4L, ny = 10L, padding = "july")
     )
   )
 
@@ -1981,7 +1981,7 @@ testthat::test_that("Grid split is well done.", {
 
   # Points
   testthat::expect_no_warning(
-    par_make_gridset(
+    par_pad_grid(
       ncp,
       mode = "grid_advanced",
       padding = 3e4L,
@@ -1990,7 +1990,7 @@ testthat::test_that("Grid split is well done.", {
   )
   # Points
   testthat::expect_no_error(
-    par_make_gridset(
+    par_pad_grid(
       ncp,
       mode = "grid_quantile",
       padding = 3e4L,
@@ -2020,7 +2020,7 @@ testthat::test_that("Grid merge is well done.", {
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1600L))
 
   gridded <-
-    par_make_gridset(ncrp,
+    par_pad_grid(ncrp,
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
@@ -2031,7 +2031,7 @@ testthat::test_that("Grid merge is well done.", {
 
   ncptr <- terra::vect(ncrp)
   griddedtr <-
-    par_make_gridset(ncptr,
+    par_pad_grid(ncptr,
                      mode = "grid",
                      nx = 8L, ny = 5L,
                      padding = 1e4L)
@@ -2044,7 +2044,7 @@ testthat::test_that("Grid merge is well done.", {
   data("ncpoints", package = "chopin")
   ncptr2 <- terra::vect(ncpoints, geom = c("X", "Y"), keepgeom = TRUE)
   griddedtr2 <-
-    par_make_gridset(ncptr2,
+    par_pad_grid(ncptr2,
                      mode = "grid",
                      nx = 20L, ny = 12L,
                      padding = 1e4L)
@@ -2054,7 +2054,7 @@ testthat::test_that("Grid merge is well done.", {
   testthat::expect_s4_class(gridmerged2, "SpatVector")
 
   griddedtr22 <-
-    par_make_gridset(ncptr2,
+    par_pad_grid(ncptr2,
                      mode = "grid",
                      nx = 40L, ny = 20L,
                      padding = 1e4L)
@@ -2089,8 +2089,8 @@ testthat::test_that("Grid merge is well done.", {
 #' library(terra)
 #' numext1 <- c(-100, -70, 30, 40)
 #' names(numext1) <- c("xmin", "xmax", "ymin", "ymax")
-#' ext2poly(numext1, "sf")
-#' ext2poly(numext1, "terra")
+#' ext_to_poly(numext1, "sf")
+#' ext_to_poly(numext1, "terra")
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_bbox
 #' @importFrom sf st_set_crs
@@ -2098,7 +2098,7 @@ testthat::test_that("Grid merge is well done.", {
 #' @importFrom terra ext
 #' @importFrom terra set.crs
 #' @export
-ext2poly <- function(
+ext_to_poly <- function(
     extent = NULL,
     output_class = c("sf", "terra"),
     crs = "EPSG:4326") {
@@ -2140,8 +2140,8 @@ testthat::test_that("input extent is converted to a polygon", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
-  mainland_box <- ext2poly(mainland_vec, output_class = "sf")
-  mainland_box_t <- ext2poly(mainland_vec, output_class = "terra")
+  mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
+  mainland_box_t <- ext_to_poly(mainland_vec, output_class = "terra")
   mainland_vec_un <- unname(mainland_vec)
 
   testthat::expect_s3_class(mainland_box, "sf")
@@ -2149,10 +2149,10 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
   # error cases
   testthat::expect_error(
-    ext2poly(mainland_vec_un, output_class = "sf")
+    ext_to_poly(mainland_vec_un, output_class = "sf")
   )
   testthat::expect_error(
-    ext2poly(mainland_vec_un, output_class = "GeoDataFrames")
+    ext_to_poly(mainland_vec_un, output_class = "GeoDataFrames")
   )
 })
 
@@ -2183,7 +2183,7 @@ testthat::test_that("input extent is converted to a polygon", {
 #'
 #' refextnum <- c(-100, -60, 20, 40)
 #' names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
-#' refext <- ext2poly(refextnum)
+#' refext <- ext_to_poly(refextnum)
 #' is_bbox_within_reference(nc, refext)
 #' @importFrom sf st_as_sfc
 #' @importFrom sf st_crs
@@ -3043,7 +3043,7 @@ testthat::test_that("crs_check is working as expected", {
 #' nc <- sf::read_sf(ncpath)
 #' nc <- sf::st_transform(nc, "EPSG:4326")
 #' mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-#' mainland_box <- ext2poly(mainland_vec, output_class = "sf")
+#' mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
 #' within_res <- is_within_ref(nc, mainland_box)
 #' within_res
 #' @importFrom methods is
@@ -3096,7 +3096,7 @@ testthat::test_that("nc data is within the mainland US", {
   nc <- sf::read_sf(ncpath)
   nc <- sf::st_transform(nc, "EPSG:4326")
   mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-  mainland_box <- ext2poly(mainland_vec, output_class = "sf")
+  mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
   within_res <- is_within_ref(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
 
@@ -3814,7 +3814,7 @@ testthat::test_that(
 #' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of \code{par_make_gridset}
+#'  an output of \code{par_pad_grid}
 #' @param grid_target_id character(1) or numeric(2).
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
@@ -3859,7 +3859,7 @@ testthat::test_that(
 #'   )
 #' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 #' nccompreg <-
-#'   par_make_gridset(
+#'   par_pad_grid(
 #'     input = ncpnts,
 #'     mode = "grid",
 #'     nx = 6L,
@@ -4298,7 +4298,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 
   nccompreg <-
-    par_make_gridset(
+    par_pad_grid(
       input = ncpnts,
       mode = "grid",
       nx = 6L,
@@ -4576,7 +4576,7 @@ testthat::test_that("generic function should be parallelized properly", {
   # expect
 
   nccompreg <-
-    par_make_gridset(
+    par_pad_grid(
       input = pnts,
       mode = "grid",
       nx = 6L,
@@ -4729,7 +4729,7 @@ testthat::test_that(
 #' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of \code{par_make_gridset}
+#'  an output of \code{par_pad_grid}
 #' @param grid_target_id character(1) or numeric(2).
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
@@ -4774,7 +4774,7 @@ testthat::test_that(
 #'   )
 #' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 #' nccompreg <-
-#'   par_make_gridset(
+#'   par_pad_grid(
 #'     input = ncpnts,
 #'     mode = "grid",
 #'     nx = 6L,
@@ -4923,7 +4923,7 @@ adhoc <- function() {
   names(ncelev) <- c("srtm15")
 
   nccompreg <-
-    par_make_gridset(
+    par_pad_grid(
       input = ncpnts,
       mode = "grid",
       nx = 6L,
@@ -4966,7 +4966,7 @@ adhoc2 <- function() {
   names(ncelev) <- c("srtm15")
 
   nccompreg <-
-    par_make_gridset(
+    par_pad_grid(
       input = ncpnts,
       mode = 'grid',
       nx = 6L,

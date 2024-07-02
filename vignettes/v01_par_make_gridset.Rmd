@@ -44,16 +44,16 @@ options(sf_use_s2 = FALSE)
 - Computational grids refer to a set of polygons that cover the entire spatial domain of interest. These grids are used to split the spatial domain into smaller pieces for parallel processing.
 - `chopin` provides functions to generate computational grids for parallel processing by `par_grid()` function.
 - The standard sequence of running `par_grid()` includes the following steps:
-    1. Generate computational grids with `par_make_gridset()` or `par_group_grid()`. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
+    1. Generate computational grids with `par_pad_grid()` or `par_group_grid()`. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
     2. Run `par_grid()` with the input dataset and the grid polygons.
 
 ## Types of computational grids and their generation
 
-- There are two approaches to generate computational grids. One is to use `par_make_gridset()` with one of three `mode`s and the other is to use `par_group_grid()`. Thus, users have **four options** in total to generate computational grids.
+- There are two approaches to generate computational grids. One is to use `par_pad_grid()` with one of three `mode`s and the other is to use `par_group_grid()`. Thus, users have **four options** in total to generate computational grids.
 
-### `par_make_gridset()`: standard interface
-- `par_make_gridset()` generates regular grid polygons with padding for parallel processing. Padding is the distance of overlapping between grid polygons, essentially from the buffer radius of the points when buffer polygons are concerned.
-- `par_make_gridset()` supports three internal `mode`s:
+### `par_pad_grid()`: standard interface
+- `par_pad_grid()` generates regular grid polygons with padding for parallel processing. Padding is the distance of overlapping between grid polygons, essentially from the buffer radius of the points when buffer polygons are concerned.
+- `par_pad_grid()` supports three internal `mode`s:
     - `mode = "grid"`: generates regular grid polygons with padding, `nx` and `ny` arguments determine the number of columns and rows in the grid, respectively.
     - `mode = "grid_quantile"`: generates regular grid polygons with padding based on quantiles of the number of points in each grid. The grids will look irregular and the points per grid will be more balanced than the `grid` mode.
     - `mode = "grid_advanced"`: generates regular grid polygons with padding based on the number of points in each grid and the number of points in the entire dataset. `nx` and `ny` arguments determine the number of columns and rows in the grid, then `merge_max` argument controls how many adjacent grids are merged into one grid. `grid_min_features` argument determines the minimum number of points in each grid, which means grids with fewer points than this value will be merged with adjacent grids. Adjusting these arguments can balance the computational load among the threads and reduce the overhead of parallelization.
@@ -65,7 +65,7 @@ options(sf_use_s2 = FALSE)
 
 
 ### Random points in NC
-- For demonstration of `par_make_gridset()`, we use moderately clustered point locations generated inside the counties of North Carolina.
+- For demonstration of `par_pad_grid()`, we use moderately clustered point locations generated inside the counties of North Carolina.
 ```{r nc-gen-points}
 ncpoly <- system.file("shape/nc.shp", package = "sf")
 ncsf <- sf::read_sf(ncpoly)
@@ -101,7 +101,7 @@ ncpoints_tr <- chopin::dep_switch(ncpoints)
 
 ```{r grid-plain}
 compregions <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     ncpoints_tr,
     mode = "grid",
     nx = 8L,
@@ -120,10 +120,10 @@ plot(compregions$padded, main = "Padded grids")
 ```
 
 ### Generate regular grid computational regions
-- `chopin::par_make_gridset()` takes a spatial dataset to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
+- `chopin::par_pad_grid()` takes a spatial dataset to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 ```{r gen-compregions}
 compregions <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     ncpoints_tr,
     mode = "grid",
     nx = 8L,
@@ -132,7 +132,7 @@ compregions <-
   )
 ```
 
-- The output of `par_make_gridset()` is a list object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The class of each element depends on the input dataset class. The figures below illustrate the grid polygons with and without overlaps.
+- The output of `par_pad_grid()` is a list object with two elements named `original` (non-overlapping grid polygons) and `padded` (overlapping by `padding`). The class of each element depends on the input dataset class. The figures below illustrate the grid polygons with and without overlaps.
 
 ```{r compare-compregions, fig.width = 8, fig.height = 8}
 names(compregions)
@@ -156,7 +156,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 ```{r split-points-grid}
 grid_quantiles <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     input = ncpoints_tr,
     mode = "grid_quantile",
     quantiles = chopin::par_def_q(4L),
@@ -182,7 +182,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 ```{r split-points-grid-adv}
 grid_advanced1 <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     input = ncpoints_tr,
     mode = "grid_advanced",
     nx = 15L,
@@ -223,7 +223,7 @@ terra::plot(grid_advanced1g, "n_points", main = "Number of points in each grid")
 - Keeping other arguments the same, we can see the difference in the number of merged grids by changing the `merge_max` argument.
 ```{r split-points-grid-adv2}
 grid_advanced2 <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     input = ncpoints_tr,
     mode = "grid_advanced",
     nx = 15L,
@@ -247,7 +247,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 ```{r split-points-grid-adv3}
 grid_advanced3 <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     input = ncpoints_tr,
     mode = "grid_advanced",
     nx = 15L,
@@ -269,10 +269,10 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 #### `par_group_grid()`
 - `par_group_grid()` uses `anticlust` package to split the point set into the balanced clusters.
-    - In the background, `par_group_balanced()` is run first to generate the equally sized clusters from the input. Then, padding is applied to the extent of each cluster to be compatible with `par_grid()`, where both the original and the padded grids are used.
+    - In the background, `par_pad_balanced()` is run first to generate the equally sized clusters from the input. Then, padding is applied to the extent of each cluster to be compatible with `par_grid()`, where both the original and the padded grids are used.
     - Please note that `ngroups` argument value must be the **exact** divisor of the number of points. For example, in the example below, when one changes `ngroups` to `10L`, it will fail as the number of points is not divisible by 10.
     - Consult the `anticlust` package for more details on the algorithm.
-- `par_group_grid()` makes a compatible object to the output of `par_make_gridset()` directly from the input points.
+- `par_group_grid()` makes a compatible object to the output of `par_pad_grid()` directly from the input points.
 - As illustrated in the figure below, the points will be split into `ngroups` clusters with the same number of points then processed in parallel by using the output object with `par_grid()`.
 
 ```{r par-group-balanced}

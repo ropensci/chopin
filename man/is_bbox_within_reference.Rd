@@ -32,7 +32,7 @@ nc <- sf::st_transform(nc, "EPSG:4326")
 
 refextnum <- c(-100, -60, 20, 40)
 names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
-refext <- ext2poly(refextnum)
+refext <- ext_to_poly(refextnum)
 is_bbox_within_reference(nc, refext)
 }
 \seealso{
@@ -45,7 +45,7 @@ Other Helper functions:
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
 \code{\link{is_within_ref}()},
 \code{\link{par_def_q}()},

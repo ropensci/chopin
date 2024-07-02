@@ -24,8 +24,9 @@ set_backend <- function(backend = "mirai") {
 #' @param ... Additional arguments to be passed to the backend function.
 #' @importFrom mirai mirai
 #' @importFrom future future
+#' @importFrom cli cli_abort
 #' @returns The result of the backend function call.
-backend_worker <-
+.backend_worker <-
   function(...) {
     backend <- getOption("chopin.backend")
     if (backend == "mirai") {
@@ -33,6 +34,24 @@ backend_worker <-
     } else if (backend == "future") {
       future::future(..., seed = TRUE, lazy = TRUE)
     } else {
-      stop("Unknown backend")
+      cli::cli_abort("Unknown backend")
+    }
+  }
+
+
+#' Internal function for collecting parallel worker results
+#' @keywords internal
+#' @param worker Unresolved parallel worker
+#' @importFrom mirai call_mirai
+#' @importFrom future value
+#' @importFrom cli cli_abort
+.backend_collector <-
+  function(worker) {
+    if (inherits(worker, "mirai")) {
+      mirai::call_mirai(worker)[["data"]]
+    } else if (inherits(worker, "future")) {
+      future::value(worker)
+    } else {
+      cli::cli_abort("Unknown worker")
     }
   }

@@ -2,50 +2,157 @@
 % Please edit documentation in R/processing.R
 \name{extract_at}
 \alias{extract_at}
+\alias{extract_at,SpatRaster,sf-method}
+\alias{extract_at,character,character-method}
+\alias{extract_at,SpatRaster,character-method}
+\alias{extract_at,SpatRaster,SpatVector-method}
+\alias{extract_at,character,sf-method}
+\alias{extract_at,character,SpatVector-method}
 \title{Extract raster values with point buffers or polygons}
 \usage{
 extract_at(
-  vector = NULL,
-  raster = NULL,
+  x,
+  y,
+  id = NULL,
+  func = NULL,
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  ...
+)
+
+\S4method{extract_at}{SpatRaster,sf}(
+  x = NULL,
+  y = NULL,
   id = NULL,
   func = "mean",
-  mode = c("polygon", "buffer"),
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  ...
+)
+
+\S4method{extract_at}{character,character}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  ...
+)
+
+\S4method{extract_at}{SpatRaster,character}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  ...
+)
+
+\S4method{extract_at}{SpatRaster,SpatVector}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  ...
+)
+
+\S4method{extract_at}{character,sf}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  ...
+)
+
+\S4method{extract_at}{character,SpatVector}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = 3e+07,
   ...
 )
 }
 \arguments{
-\item{vector}{\code{sf}/\code{SpatVector} object.}
-
-\item{raster}{\code{SpatRaster} object. or file path(s) with extensions
+\item{x}{\code{SpatRaster} object. or file path(s) with extensions
 that are GDAL-compatible.}
+
+\item{y}{\code{sf}/\code{SpatVector} object or file path.}
 
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{func}{function taking one numeric vector argument.}
 
-\item{mode}{one of \code{"polygon"}
-(generic polygons to extract raster values with) or
-\code{"buffer"} (point with buffer radius)}
+\item{extent}{numeric(4) or SpatExtent. Extent of clipping vector.
+It only works with \code{points} of character(1) file path.}
 
-\item{...}{Placeholder.
-See \code{?extract_at_buffer} for details.}
+\item{radius}{numeric(1). Buffer radius.}
+
+\item{...}{Placeholder.}
 }
 \value{
 A data.frame object with summarized raster values with
 respect to the mode (polygon or buffer) and the function.
 }
 \description{
-Extract raster values with point buffers or polygons
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \examples{
-## See ?extract_at_poly and ?extract_at_buffer
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+nc <- terra::vect(ncpath)
+nc <- terra::project(nc, "EPSG:5070")
+rrast <- terra::rast(nc, nrow = 100, ncol = 220)
+ncr <- terra::rasterize(nc, rrast)
+terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
+rpnt$pid <- sprintf("ID-\%02d", seq(1, 16))
+
+extract_at(rrast, rpnt, "pid", "mean", radius = 10)
+extract_at(rrast, nc, "NAME", "mean")
+extract_at(rrast, ncpath, "NAME", "mean")
 }
 \seealso{
 \link{extract_at_poly}, \link{extract_at_buffer}
 
 Other Macros for calculation: 
 \code{\link{extract_at_buffer}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_aw_old}()},

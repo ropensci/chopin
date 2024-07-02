@@ -1,5 +1,6 @@
 #' Kernel functions
 #' @family Macros for calculation
+#' @keywords internal
 #' @param kernel Kernel type. One of
 #' `"uniform"`, `"quartic"`, `"triweight"`, and `"epanechnikov"`
 #' @param d Distance
@@ -18,7 +19,6 @@
 #' kernelfunction(v_dist, bw_dist2, "quartic")
 #' kernelfunction(v_dist, bw_dist2, "triweight")
 #' kernelfunction(v_dist, bw_dist2, "epanechnikov")
-#' @export
 kernelfunction <-
   function(
     d,
@@ -44,11 +44,12 @@ kernelfunction <-
 #' @family Helper functions
 #' @description Clip input vector by
 #'  the expected maximum extent of computation.
+#' @keywords internal
 #' @author Insang Song
-#' @param pnts `sf` or `SpatVector` object
+#' @param x `sf` or `SpatVector` object to be clipped
+#' @param y `sf` or `SpatVector` object
 #' @param radius `numeric(1)`. Circular buffer radius.
 #'  this value will be automatically multiplied by 1.1
-#' @param target_input `sf` or `SpatVector` object to be clipped
 #' @returns A clipped `sf` or `SpatVector` object.
 #' @examples
 #' library(sf)
@@ -64,34 +65,33 @@ kernelfunction <-
 #' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
 #' @importFrom sf st_intersection
 #' @importFrom terra intersect
-#' @export
 clip_vec_ext <- function(
-  pnts,
-  radius,
-  target_input
+  x,
+  y,
+  radius
 ) {
   if (any(
     vapply(
-      list(pnts, radius, target_input),
+      list(x, y, radius),
       FUN = is.null,
       FUN.VALUE = logical(1)
     )
   )) {
     cli::cli_abort("One or more required arguments are NULL. Please check.\n")
   }
-  detected_pnts <- dep_check(pnts)
-  detected_target <- dep_check(target_input)
+  detected_pnts <- dep_check(y)
+  detected_target <- dep_check(x)
 
   if (detected_pnts != detected_target) {
     cli::cli_warn("Inputs are not the same class.\n")
-    target_input <- dep_switch(target_input)
+    target_input <- dep_switch(x)
   }
 
-  ext_input <- get_clip_ext(pnts, radius)
+  ext_input <- get_clip_ext(y, radius)
   cli::cli_inform("Clip target features with the input feature extent...\n")
   if (detected_pnts == "sf") {
-    cae <- ext_input |>
-      sf::st_intersection(x = target_input)
+    cae <-
+      sf::st_intersection(x = target_input, y = ext_input)
   }
   if (detected_pnts == "terra") {
     cae <- terra::intersect(target_input, ext_input)
@@ -102,12 +102,13 @@ clip_vec_ext <- function(
 
 #' Clip input raster with a buffered vector extent.
 #' @family Helper functions
+#' @keywords internal
 #' @description Clip input raster by the expected maximum extent of
 #' computation.
-#' @param pnts `sf` or `SpatVector` object
+#' @param x `SpatRaster` object to be clipped
+#' @param y `sf` or `SpatVector` object
 #' @param radius numeric(1). buffer radius.
-#' This value will be automatically multiplied by 1.25
-#' @param ras `SpatRaster` object to be clipped
+#' This value will be automatically multiplied by 1.1
 #' @param nqsegs `integer(1)`. the number of points per a quarter circle
 #' @returns A clipped `SpatRaster` object.
 #' @author Insang Song
@@ -116,38 +117,39 @@ clip_vec_ext <- function(
 #'
 #' ras_rand <- terra::rast(nrow = 20, ncol = 20)
 #' terra::values(ras_rand) <- runif(400L)
-#' ras_rand_p <-
+#' vec_rand_p <-
 #'   data.frame(
 #'     x = c(3, 5, 3.2, 8),
 #'     y = c(12, 10, 15, 12),
 #'     z = c(0, 1, 2, 3)
 #'   )
-#' ras_rand_p <- terra::vect(ras_rand_p, geom = c("x", "y"))
-#' clip_ras_ext(ras_rand_p, 1.5, ras_rand)
+#' ras_rand_p <- terra::vect(vec_rand_p, geom = c("x", "y"))
+#' clip_ras_ext(x = ras_rand, y = vec_rand_p, radius = 1.5)
 #' @importFrom terra vect
 #' @importFrom terra crop
-#' @export
 clip_ras_ext <- function(
-  pnts = NULL,
+  x = NULL,
+  y = NULL,
   radius = NULL,
-  ras = NULL,
   nqsegs = 180L
 ) {
   if (any(
-    vapply(list(pnts, radius, ras),
+    vapply(list(y, radius, x),
            FUN = is.null,
            FUN.VALUE = logical(1))
   )) {
     cli::cli_abort("Any of required arguments are NULL. Please check.\n")
   }
-  ext_input <- get_clip_ext(pnts, radius) |>
-    terra::vect()
+  radius <- 1.1 * radius
+  ext_input <- get_clip_ext(y, radius)
+  ext_input <- terra::vect(ext_input)
 
-  cae <- terra::crop(ras, ext_input, snap = "out")
+  cae <- terra::crop(x, ext_input, snap = "out")
   return(cae)
 }
 
 #' Extract summarized values from raster with points and a buffer radius
+#' `r lifecycle::badge("superseded")`
 #' @family Macros for calculation
 #' @description For simplicity, it is assumed that the coordinate systems of
 #'  the points and the raster are the same.
@@ -304,37 +306,26 @@ extract_at_buffer_flat <- function(
 
 
 # Subfunction: extract at buffers with kernel weight
-#' @rdname extract_at_buffer
-#' @export
-extract_at_buffer_kernel <- function(
-  points = NULL,
-  surf = NULL,
-  radius = NULL,
-  id = NULL,
-  qsegs = NULL,
+#' Post-extraction kernel weighting
+#' @keywords internal
+#' @noRd
+.kernel_weighting <- function(
+  x,
+  y,
+  id,
+  extracted,
   func = stats::weighted.mean,
   kernel = NULL,
   bandwidth = NULL,
   max_cells = 2e7,
   ...
 ) {
-  # generate buffers
-  bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-  bufs <- reproject_b2r(bufs, surf)
-
-  # crop raster
-  if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
-    bufs_extent <- terra::ext(bufs)
-    surf_cropped <- terra::crop(surf, bufs_extent, snap = "out")
-  } else {
-    surf_cropped <- surf
-  }
 
   name_surf_val <-
-    ifelse(terra::nlyr(surf_cropped) == 1,
-           "value", names(surf_cropped))
+    ifelse(terra::nlyr(x) == 1,
+           "value", names(x))
   # convert to data.frame
-  coords_df <- as.data.frame(points, geom = "XY")
+  coords_df <- as.data.frame(y, geom = "XY")
   # apply strict order
   coords_df <-
     coords_df[, grep(sprintf("^(%s|%s|%s)", id, "x", "y"), names(coords_df))]
@@ -343,29 +334,14 @@ extract_at_buffer_kernel <- function(
   # for linter purpose
   xorig <- NULL
   yorig <- NULL
-  x <- NULL
-  y <- NULL
   pairdist <- NULL
   w_kernel <- NULL
   coverage_fraction <- NULL
 
-  # extract raster values
-  surf_at_bufs <-
-    exactextractr::exact_extract(
-      x = surf_cropped,
-      y = sf::st_as_sf(bufs),
-      force_df = TRUE,
-      stack_apply = FALSE,
-      include_cols = id,
-      progress = FALSE,
-      include_area = TRUE,
-      include_xy = TRUE,
-      max_cells_in_memory = max_cells
-    )
   # post-processing
-  surf_at_bufs <- do.call(rbind, surf_at_bufs)
-  surf_at_bufs_summary <-
-    surf_at_bufs |>
+  extracted <- do.call(rbind, extracted)
+  extracted_summary <-
+    extracted |>
     dplyr::left_join(coords_df, by = id) |>
     # averaging with kernel weights
     dplyr::mutate(
@@ -373,7 +349,7 @@ extract_at_buffer_kernel <- function(
         x = cbind(xorig, yorig),
         y = cbind(x, y),
         pairwise = TRUE,
-        lonlat = terra::is.lonlat(points)
+        lonlat = terra::is.lonlat(x)
       ),
       w_kernel = kernelfunction(pairdist, bandwidth, kernel),
       w_kernelarea = w_kernel * coverage_fraction
@@ -384,91 +360,59 @@ extract_at_buffer_kernel <- function(
     ) |>
     dplyr::ungroup()
   # restore the original identifier
-  colnames(surf_at_bufs_summary)[1] <- id
-  return(surf_at_bufs_summary)
+  colnames(extracted_summary)[1] <- id
+  return(extracted_summary)
 }
 
 
 #' @title Extract summarized values from raster with generic polygons
-#' @family Macros for calculation
-#' @description For simplicity, it is assumed that the coordinate systems of
-#'  the points and the raster are the same.
-#' @note
-#' When `Sys.setenv("CHOPIN_FORCE_CROP" = "TRUE")` is set, the raster will be
-#' cropped to the extent of the polygons (with `snap` = `"out"`).
-#' To note, the function is designed to work with the `exactextractr` package.
-#' Arguments of `exactextractr::exact_extract` are set as below
-#' (default otherwise listed except for max_cells_in_memory,
-#' which is set in the `max_cells` argument):
-#' * `force_df` = `TRUE`
-#' * `stack_apply` = `TRUE`
-#' * `progress` = `FALSE`
-#' @param polys `sf`/`SpatVector` object. Polygons.
-#' @param surf `SpatRaster` object or file path(s) with extensions
-#' that are GDAL-compatible. A raster from which a summary will be calculated
-#' @param id character(1). Unique identifier of each point.
-#' @param func a generic function name in string or
-#'  a function taking two arguments that are
-#'  compatible with \code{\link[exactextractr]{exact_extract}}.
-#'  For example, `"mean"` or `\(x, w) weighted.mean(x, w, na.rm = TRUE)`
-#' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
-#'   It only works with `polys` of character(1) file path.
-#'   When using numeric(4), it should be in the order of
-#'   `c(xmin, xmax, ymin, ymax)`. The coordinate system should be the same
-#'   as the `polys`.
-#' @param max_cells integer(1). Maximum number of cells in memory.
-#' See [`exactextractr::exact_extract`] for more details.
-#' @param ... Placeholder.
-#' @returns a data.frame object with function value
-#' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples
-#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc <- terra::vect(ncpath)
-#' nc <- terra::project(nc, "EPSG:5070")
-#' rrast <- terra::rast(nc, nrow = 100, ncol = 220)
-#' ncr <- terra::rasterize(nc, rrast)
-#' terra::values(rrast) <- rgamma(2.2e4, 4, 2)
-#' rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
-#' rpnt$pid <- sprintf("ID-%02d", seq(1, 16))
-#' rpoly <-
-#'   terra::buffer(rpnt, 5, capstyle = "square", joinstyle = "bevel")
-#' extract_at_poly(rpoly, rrast, "pid")
-#' @importFrom methods is
-#' @importFrom rlang sym
-#' @importFrom dplyr across
-#' @importFrom exactextractr exact_extract
-#' @export
-extract_at_poly <- function(
-  polys = NULL,
-  surf = NULL,
+#' @keywords internal
+#' @noRd
+.extract_at <- function(
+  x = NULL,
+  y = NULL,
   id = NULL,
   func = "mean",
   extent = NULL,
-  max_cells = 2e7,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  bandwidth = NULL,
+  max_cells = NULL,
   ...
 ) {
+  x <-
+    .check_raster(
+      x,
+      extent = extent
+    )
 
-  if (!methods::is(surf, "SpatRaster")) {
-    surf <- try(terra::rast(surf))
-    if (inherits(surf, "try-error")) {
-      cli::cli_abort("Check class of the input raster.\n")
-    }
-  }
-  polys <- check_subject(polys, extent = extent, subject_id = id)
+  y <-
+    .check_subject(
+      y,
+      extent = extent,
+      out_class = out_class,
+      subject_id = id
+    )
   # reproject polygons to raster's crs
-  polys <- reproject_b2r(polys, surf)
-  # crop raster
-  if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
-    polys_extent <- terra::ext(polys)
-    surf_cropped <- terra::crop(surf, polys_extent, snap = "out")
-  } else {
-    surf_cropped <- surf
+  y <- reproject_b2r(vector = y, raster = x)
+  if (dep_check(y) == "terra") {
+    y <- dep_switch(y)
   }
 
-  extracted_poly <-
+  if (!is.null(radius)) {
+    ygeom <- tolower(as.character(sf::st_geometry_type(y)))
+    if (!all(grepl("point", ygeom))) {
+      cli::cli_warn(
+        "Buffer is set with non-point geometries."
+      )
+    }
+    y <- sf::st_buffer(y, radius, nQuadSegs = 90L)
+  }
+  extracted <-
     exactextractr::exact_extract(
-      x = surf_cropped,
-      y = sf::st_as_sf(polys),
+      x = x,
+      y = y,
       fun = func,
       force_df = TRUE,
       stack_apply = TRUE,
@@ -476,62 +420,278 @@ extract_at_poly <- function(
       progress = FALSE,
       max_cells_in_memory = max_cells
     )
-  return(extracted_poly)
+
+  if (!is.null(kernel)) {
+    stopifnot(!is.null(bandwidth))
+    cli::cli_inform("Detected kernel function. Applying kernel weighting...")
+    extracted <-
+      .kernel_weighting(
+        x = x,
+        y = y,
+        id = id,
+        extracted = extracted,
+        func = func,
+        kernel = kernel,
+        bandwidth = bandwidth
+      )
+  }
+  return(extracted)
 }
 
 
 #' Extract raster values with point buffers or polygons
+#'
+#' `r lifecycle::badge("experimental")`
+#'
 #' @family Macros for calculation
-#' @param vector `sf`/`SpatVector` object.
-#' @param raster `SpatRaster` object. or file path(s) with extensions
+#' @param x `SpatRaster` object. or file path(s) with extensions
 #' that are GDAL-compatible.
+#' @param y `sf`/`SpatVector` object or file path.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
-#' @param mode one of `"polygon"`
-#'  (generic polygons to extract raster values with) or
-#'  `"buffer"` (point with buffer radius)
+#' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
+#'  It only works with `points` of character(1) file path.
+#' @param radius numeric(1). Buffer radius.
 #' @param ... Placeholder.
-#'  See \code{?extract_at_buffer} for details.
 #' @returns A data.frame object with summarized raster values with
 #'  respect to the mode (polygon or buffer) and the function.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @seealso [extract_at_poly], [extract_at_buffer]
 #' @examples
-#' ## See ?extract_at_poly and ?extract_at_buffer
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+#'
+#' nc <- terra::vect(ncpath)
+#' nc <- terra::project(nc, "EPSG:5070")
+#' rrast <- terra::rast(nc, nrow = 100, ncol = 220)
+#' ncr <- terra::rasterize(nc, rrast)
+#' terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+#' rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
+#' rpnt$pid <- sprintf("ID-%02d", seq(1, 16))
+#'
+#' extract_at(rrast, rpnt, "pid", "mean", radius = 10)
+#' extract_at(rrast, nc, "NAME", "mean")
+#' extract_at(rrast, ncpath, "NAME", "mean")
 #' @export
-extract_at <- function(
-  vector = NULL,
-  raster = NULL,
-  id = NULL,
-  func = "mean",
-  mode = c("polygon", "buffer"),
-  ...
-) {
+setGeneric("extract_at",
+  function(
+    x, y,
+    id = NULL,
+    func = NULL,
+    extent = NULL,
+    radius = NULL,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth = NULL,
+    max_cells = 3e+07,
+    ...
+  ) {}
+)
 
-  mode <- match.arg(mode)
-  stopifnot(is.character(id))
 
-  extracted <-
-    switch(mode,
-      polygon =
-      extract_at_poly(
-        polys = vector,
-        surf = raster,
-        id = id,
-        func = func,
-        ...
-      ),
-      buffer =
-      extract_at_buffer(
-        points = vector,
-        surf = raster,
-        id = id,
-        func = func,
-        ...
-      )
+#' @rdname extract_at
+#' @export
+setMethod(
+  "extract_at",
+  signature(
+    x = "SpatRaster",
+    y = "sf"
+  ),
+  function(
+    x = NULL,
+    y = NULL,
+    id = NULL,
+    func = "mean",
+    extent = NULL,
+    radius = NULL,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth = NULL,
+    max_cells = 3e+07,
+    ...
+  ) {
+    .extract_at(
+      x = x, y = y, id = id, func = func,
+      extent = extent,
+      radius = radius,
+      out_class = out_class,
+      kernel = kernel,
+      bandwidth = bandwidth,
+      max_cells = max_cells
     )
-  return(extracted)
-}
+  }
+)
+
+
+
+#' @rdname extract_at
+#' @export
+setMethod(
+  "extract_at",
+  signature(
+    x = "character",
+    y = "character"
+  ),
+  function(
+    x = NULL,
+    y = NULL,
+    id = NULL,
+    func = "mean",
+    extent = NULL,
+    radius = NULL,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth = NULL,
+    max_cells = 3e+07,
+    ...
+  ) {
+    .extract_at(
+      x = x, y = y, id = id, func = func,
+      extent = extent,
+      radius = radius,
+      out_class = out_class,
+      kernel = kernel,
+      bandwidth = bandwidth,
+      max_cells = max_cells
+    )
+  }
+)
+
+
+#' @rdname extract_at
+#' @export
+setMethod(
+  "extract_at",
+  signature(
+    x = "SpatRaster",
+    y = "character"
+  ),
+  function(
+    x = NULL,
+    y = NULL,
+    id = NULL,
+    func = "mean",
+    extent = NULL,
+    radius = NULL,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth = NULL,
+    max_cells = 3e+07,
+    ...
+  ) {
+    .extract_at(
+      x = x, y = y, id = id, func = func,
+      extent = extent,
+      radius = radius,
+      out_class = out_class,
+      kernel = kernel,
+      bandwidth = bandwidth,
+      max_cells = max_cells
+    )
+  }
+)
+
+#' @rdname extract_at
+#' @export
+setMethod(
+  "extract_at",
+  signature(
+    x = "SpatRaster",
+    y = "SpatVector"
+  ),
+  function(
+    x = NULL,
+    y = NULL,
+    id = NULL,
+    func = "mean",
+    extent = NULL,
+    radius = NULL,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth = NULL,
+    max_cells = 3e+07,
+    ...
+  ) {
+    .extract_at(
+      x = x, y = y, id = id, func = func,
+      extent = extent,
+      radius = radius,
+      out_class = out_class,
+      kernel = kernel,
+      bandwidth = bandwidth,
+      max_cells = max_cells
+    )
+  }
+)
+
+
+#' @rdname extract_at
+#' @export
+setMethod(
+  "extract_at",
+  signature(
+    x = "character",
+    y = "sf"
+  ),
+  function(
+    x = NULL,
+    y = NULL,
+    id = NULL,
+    func = "mean",
+    extent,
+    radius,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth,
+    max_cells,
+    ...
+  ) {
+    .extract_at(
+      x = x, y = y, id = id, func = func,
+      extent = extent,
+      radius = radius,
+      out_class = out_class,
+      kernel = kernel,
+      bandwidth = bandwidth,
+      max_cells = max_cells
+    )
+  }
+)
+
+
+
+#' @rdname extract_at
+#' @export
+setMethod(
+  "extract_at",
+  signature(
+    x = "character",
+    y = "SpatVector"
+  ),
+  function(
+    x = NULL,
+    y = NULL,
+    id = NULL,
+    func = "mean",
+    extent,
+    radius,
+    out_class = "sf",
+    kernel = NULL,
+    bandwidth,
+    max_cells = 3e+07,
+    ...
+  ) {
+    .extract_at(
+      x = x, y = y, id = id, func = func,
+      extent = extent,
+      radius = radius,
+      out_class = out_class,
+      kernel = kernel,
+      bandwidth = bandwidth,
+      max_cells = max_cells
+    )
+  }
+)
 
 #' @title Align vector CRS to raster's
 #' @family Helper functions
@@ -551,7 +711,6 @@ extract_at <- function(
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
-#' @export
 reproject_b2r <-
   function(
     vector = NULL,
@@ -601,7 +760,7 @@ reproject_b2r <-
 #'   Regression, and Spatiotemporal Geostatistical Estimation
 #'   for Groundwater Tetrachloroethylene.
 #'   _Environmental Science & Technology_ 46(5), 2772-2780.
-#'   ](https://dx.doi.org/10.1021/es203152a)
+#'   ](https://doi.org/10.1021/es203152a)
 #' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying
 #'   Contributions Tutorial](
 #'   https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
@@ -649,9 +808,9 @@ summarize_sedc <-
   ) {
 
     point_from <-
-      check_subject(point_from, extent = extent_from, subject_id = id)
+      .check_subject(point_from, extent = extent_from, subject_id = id)
     point_to <-
-      check_subject(point_to, extent = extent_to, subject_id = NULL)
+      .check_subject(point_to, extent = extent_to, subject_id = NULL)
 
     # define sources, set SEDC exponential decay range
     len_point_from <- seq_len(nrow(point_from))
@@ -669,10 +828,9 @@ summarize_sedc <-
     if (length(cn_overlap) > 0) {
       cli::cli_warn(
         sprintf(
-          "There are %d fields with the same name.
-The result may not be accurate.\n",
-          length(cn_overlap)
-        )
+          "There are %d fields with the same name.", length(cn_overlap)
+        ),
+        "The result may be inaccurate.\n"
       )
     }
     point_from$from_id <- len_point_from
@@ -732,6 +890,7 @@ The result may not be accurate.\n",
 
 
 #' Area weighted summary using two polygon sf or SpatVector objects
+#' `r lifecycle::badge("superseded")`
 #' @family Macros for calculation
 #' @param poly_in A sf/SpatVector object or file path of polygons detectable
 #'   with GDAL driver at weighted means will be calculated.
@@ -772,8 +931,8 @@ summarize_aw_old <-
     extent = NULL
   ) {
 
-    poly_in <- check_subject(poly_in, extent = extent, subject_id = id_poly_in)
-    poly_weight <- check_subject(poly_weight, extent = extent)
+    poly_in <- .check_subject(poly_in, extent = extent, subject_id = id_poly_in)
+    poly_weight <- .check_subject(poly_weight, extent = extent)
 
     summarize_aw_terra <-
       function(
@@ -879,10 +1038,6 @@ summarize_aw_old <-
 #' )
 #' summary(ppb_nc_aw)
 #'
-NULL
-
-#' @rdname summarize_aw
-#' @export
 setGeneric("summarize_aw", function(x, y, ...) {
   standardGeneric("summarize_aw")
 })
@@ -893,48 +1048,87 @@ setGeneric("summarize_aw", function(x, y, ...) {
 #' @importFrom terra intersect expanse area
 #' @importFrom stats weighted.mean
 #' @export
-setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"), function(
-  x = NULL,
-  y = NULL,
-  target_fields = NULL,
-  id_x = "ID",
-  fun = stats::weighted.mean,
-  extent = NULL
-) {
+setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"),
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = stats::weighted.mean,
+    extent = NULL
+  ) {
 
-  x <- check_subject(x, extent = extent, subject_id = id_x)
-  y <- check_subject(y, extent = extent)
+    x <- .check_subject(x, extent = extent, subject_id = id_x)
+    y <- .check_subject(y, extent = extent)
 
-  poly_intersected <- terra::intersect(x, y)
-  poly_intersected[["area_segment_"]] <-
-    terra::expanse(poly_intersected)
-  poly_intersected <- data.frame(poly_intersected) |>
-    dplyr::group_by(!!rlang::sym(id_x)) |>
-    dplyr::summarize(
-      dplyr::across(
-        dplyr::all_of(target_fields),
-        ~fun(., w = area_segment_)
-      )
-    ) |>
-    dplyr::ungroup()
-  return(poly_intersected)
-})
+    poly_intersected <- terra::intersect(x, y)
+    poly_intersected[["area_segment_"]] <-
+      terra::expanse(poly_intersected)
+    poly_intersected <- data.frame(poly_intersected) |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~fun(., w = area_segment_)
+        )
+      ) |>
+      dplyr::ungroup()
+    return(poly_intersected)
+  }
+)
+
+#' @rdname summarize_aw
+#' @importFrom rlang sym
+#' @importFrom dplyr where group_by summarize across ungroup
+#' @importFrom terra intersect expanse area
+#' @importFrom stats weighted.mean
+#' @export
+setMethod("summarize_aw", signature(x = "character", y = "character"),
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = stats::weighted.mean,
+    extent = NULL
+  ) {
+
+    x <- .check_subject(x, extent = extent, subject_id = id_x)
+    y <- .check_subject(y, extent = extent)
+
+    poly_intersected <- terra::intersect(x, y)
+    poly_intersected[["area_segment_"]] <-
+      terra::expanse(poly_intersected)
+    poly_intersected <- data.frame(poly_intersected) |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~fun(., w = area_segment_)
+        )
+      ) |>
+      dplyr::ungroup()
+    return(poly_intersected)
+  }
+)
 
 
 #' @rdname summarize_aw
 #' @importFrom sf st_interpolate_aw
 #' @export
-setMethod("summarize_aw", signature(x = "sf", y = "sf"), function(
-  x = NULL,
-  y = NULL,
-  target_fields = NULL,
-  id_x = "ID",
-  fun = NULL,
-  extent = NULL
-) {
-  x <- check_subject(x, extent = extent, subject_id = id_x)
-  y <- check_subject(y, extent = extent)
+setMethod("summarize_aw", signature(x = "sf", y = "sf"),
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = NULL,
+    extent = NULL
+  ) {
+    x <- .check_subject(x, extent = extent, subject_id = id_x)
+    y <- .check_subject(y, extent = extent)
 
-  poly_intersected <- sf::st_interpolate_aw(x, y)
-  return(poly_intersected)
-})
+    poly_intersected <- sf::st_interpolate_aw(x, y)
+    return(poly_intersected)
+  }
+)

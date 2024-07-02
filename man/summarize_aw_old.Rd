@@ -2,7 +2,8 @@
 % Please edit documentation in R/processing.R
 \name{summarize_aw_old}
 \alias{summarize_aw_old}
-\title{Area weighted summary using two polygon sf or SpatVector objects}
+\title{Area weighted summary using two polygon sf or SpatVector objects
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}}
 \usage{
 summarize_aw_old(
   poly_in = NULL,
@@ -48,7 +49,6 @@ read as \code{terra::vect} objects.
 Other Macros for calculation: 
 \code{\link{extract_at}()},
 \code{\link{extract_at_buffer}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_sedc}()}

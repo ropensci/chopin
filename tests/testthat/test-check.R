@@ -97,8 +97,8 @@ testthat::test_that("input extent is converted to a polygon", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
-  mainland_box <- ext2poly(mainland_vec, output_class = "sf")
-  mainland_box_t <- ext2poly(mainland_vec, output_class = "terra")
+  mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
+  mainland_box_t <- ext_to_poly(mainland_vec, output_class = "terra")
   mainland_vec_un <- unname(mainland_vec)
 
   testthat::expect_s3_class(mainland_box, "sf")
@@ -106,10 +106,10 @@ testthat::test_that("input extent is converted to a polygon", {
   testthat::expect_s4_class(mainland_box_t, "SpatVector")
   # error cases
   testthat::expect_error(
-    ext2poly(mainland_vec_un, output_class = "sf")
+    ext_to_poly(mainland_vec_un, output_class = "sf")
   )
   testthat::expect_error(
-    ext2poly(mainland_vec_un, output_class = "GeoDataFrames")
+    ext_to_poly(mainland_vec_un, output_class = "GeoDataFrames")
   )
 })
 
@@ -170,7 +170,7 @@ testthat::test_that("nc data is within the mainland US", {
   nc <- sf::read_sf(ncpath)
   nc <- sf::st_transform(nc, "EPSG:4326")
   mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-  mainland_box <- ext2poly(mainland_vec, output_class = "sf")
+  mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
   within_res <- is_within_ref(nc, mainland_box)
   testthat::expect_equal(within_res, TRUE)
 

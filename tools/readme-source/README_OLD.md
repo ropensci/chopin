@@ -110,10 +110,10 @@ system.time(
 ```
 
 ### Generate regular grid computational regions
-- `chopin::par_make_gridset` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
+- `chopin::par_pad_grid` takes locations to generate regular grid polygons with `nx` and `ny` arguments with padding. Users will have both overlapping (by the degree of `radius`) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.
 ``` r
 compregions <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     ncpoints_tr,
     mode = "grid",
     nx = 8L,
@@ -379,7 +379,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 
 nccompreg <-
-  par_make_gridset(
+  par_pad_grid(
     input = pnts,
     mode = "grid",
     nx = 6L,

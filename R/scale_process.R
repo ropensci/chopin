@@ -3,7 +3,7 @@
 #' @param err Error status or message.
 #' @param fun function.
 #' @param inputid character(1). ID of the computational region.
-#'   For example, `par_make_gridset` output should have `"CGRIDID"`,
+#'   For example, `par_pad_grid` output should have `"CGRIDID"`,
 #'   which will be included in the outcome data.frame.
 #'   If the function does not have an argument containing `"id"`,
 #'   the output will have a column named `"chopin_domain_id"`.
@@ -14,6 +14,7 @@
 #' @examples
 #' err <- simpleError("No input.")
 #' par_fallback(err, extract_at, inputid = 1)
+#' @keywords internal
 par_fallback <-
   function(
     err = NULL,
@@ -60,11 +61,11 @@ par_fallback <-
 #' are spatially sparsely distributed.
 #' @param grids sf/SpatVector object. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of \code{par_make_gridset}.
-#'  If missing or NULL is entered, `par_make_gridset` is internally
+#'  an output of \code{par_pad_grid}.
+#'  If missing or NULL is entered, `par_pad_grid` is internally
 #'  called. In this case, the **first** element of the ellipsis argument
-#'  `...` is considered `input` in `par_make_gridset` and `mode` is fixed
-#'  as "grid"`. See [par_make_gridset()] for details.
+#'  `...` is considered `input` in `par_pad_grid` and `mode` is fixed
+#'  as "grid"`. See [par_pad_grid()] for details.
 #' @param grid_target_id character(1) or numeric(2).
 #'  Default is NULL. If NULL, all grid_ids are used.
 #'  \code{"id_from:id_to"} format or
@@ -108,7 +109,7 @@ par_fallback <-
 #'   )
 #' ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 #' nccompreg <-
-#'   par_make_gridset(
+#'   par_pad_grid(
 #'     input = ncpnts,
 #'     mode = "grid",
 #'     nx = 6L,
@@ -133,6 +134,7 @@ par_fallback <-
 #' @importFrom dplyr bind_rows
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
+#' @importFrom cli cli_abort cli_inform
 #' @export
 par_grid <-
   function(
@@ -151,7 +153,7 @@ par_grid <-
       ellipsis$input <- ellipsis[[1]]
       grids <-
         rlang::inject(
-          par_make_gridset(
+          par_pad_grid(
             mode = "grid",
             !!!ellipsis
           )
@@ -162,7 +164,7 @@ par_grid <-
     grid_target_ids <- unlist(grids$original[["CGRIDID"]])
     if (is.numeric(grid_target_id)) {
       if (length(grid_target_id) != 2) {
-        stop(
+        cli::cli_abort(
           "Numeric grid_target_id should be in a form of c(startid, endid).\n"
         )
       }
@@ -176,7 +178,7 @@ par_grid <-
         grid_target_ids <-
           seq(grid_id_parsed[1], grid_id_parsed[2], by = 1)
       } else {
-        stop("grid_target_id should be formed 'startid:endid'.\n")
+        cli::cli_abort("grid_target_id should be formed 'startid:endid'.\n")
       }
     }
     grids_target_in <-
@@ -184,10 +186,10 @@ par_grid <-
     grids_target_list <-
       base::split(grids_target_in, unlist(grids_target_in[["CGRIDID"]]))
 
-    results_distributed <-
-      future.apply::future_lapply(
-        grids_target_list,
-        function(grid) {
+    # results_distributed <-
+    #   future.apply::future_lapply(
+    #     grids_target_list,
+    #     function(grid) {
           sf::sf_use_s2(FALSE)
           grid <-
             tryCatch(
@@ -218,7 +220,7 @@ par_grid <-
             }
 
             res <- rlang::inject(fun_dist(!!!args_input))
-            cat(
+            cli::cli_inform(
               sprintf(
                 "Your input function was successfully run at CGRIDID: %s\n",
                 as.character(unlist(grid[["CGRIDID"]]))
@@ -236,18 +238,23 @@ par_grid <-
             }
           })
 
-          return(run_result)
-        },
-        future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
-        future.globals = FALSE,
-        future.scheduling = 2
-      )
-    results_distributed <-
-      results_distributed[!vapply(results_distributed, is.null, logical(1))]
-    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
+    #       return(run_result)
+    #     },
+    #     future.seed = TRUE,
+    #     future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
+    #     future.globals = FALSE,
+    #     future.scheduling = 2
+    #   )
+    # results_distributed <-
+    #   results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    # results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
+    # return(results_distributed)
+    results <- Map(function(x) .backend_collector(x), results)
+    results <-
+      results[!vapply(results, is.null, logical(1))]
+    results <- collapse::rowbind(results, fill = TRUE)
+    return(results)
 
-    return(results_distributed)
   }
 
 
@@ -349,6 +356,7 @@ par_grid <-
 #' @importFrom rlang !!!
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
+#' @importFrom cli cli_abort cli_inform
 #' @export
 par_hierarchy <-
   function(
@@ -360,8 +368,8 @@ par_hierarchy <-
     ...
   ) {
 
-    if (!any(length(regions_id) == 1, length(regions_id) == nrow(regions))) {
-      stop("The length of regions_id is not valid.")
+    if (!length(regions_id) %in% c(1, nrow(regions))) {
+      cli::cli_abort("The length of regions_id is not valid.")
     }
 
     regions_idn <-
@@ -372,19 +380,24 @@ par_hierarchy <-
       }
     regions_list <- as.list(regions_idn)
 
-    results_distributed <-
-      future.apply::future_lapply(
-        regions_list,
-        function(subregion) {
+    results <- regions_list
+    # results_distributed <-
+      # future.apply::future_lapply(
+      #   regions_list,
+      #   function(subregion) {
           sf::sf_use_s2(FALSE)
-          run_result <-
+      for (i in seq_len(length(regions_list))) {
+        args_input <- list(...)
+        results[[i]] <-
+          .backend_worker(
+            {
             tryCatch(
               {
                 # TODO: padded subregion to deal with
                 # edge cases; how to determine padding?
                 subregion_in <-
-                  regions[startsWith(regions_idn, subregion), ]
-                args_input <- list(...)
+                  regions[startsWith(regions_idn, regions_list[[i]]), ]
+                
                 ## Strongly assuming that
                 # the first is "at", the second is "from"
                 if (is.null(unit_id)) {
@@ -416,17 +429,29 @@ par_hierarchy <-
                 }
               }
             )
-          return(run_result)
-        },
-        future.seed = TRUE,
-        future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
-        future.globals = TRUE,
-        future.scheduling = 2
-      )
-    results_distributed <-
-      results_distributed[!vapply(results_distributed, is.null, logical(1))]
-    results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
-    return(results_distributed)
+            }, environment()
+          )
+        cli::cli_inform(
+          c(i = sprintf("Your input function at %s is dispatched.\n", subregion))
+        )
+      }
+          # return(run_result)
+      #   },
+      #   future.seed = TRUE,
+      #   future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
+      #   future.globals = TRUE,
+      #   future.scheduling = 2
+      # )
+    # results_distributed <-
+    #   results_distributed[!vapply(results_distributed, is.null, logical(1))]
+    # results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
+    results <- Map(function(x) .backend_collector(x), results)
+
+    results <-
+      results[!vapply(results, is.null, logical(1))]
+    results <- collapse::rowbind(results, fill = TRUE)
+
+    return(results)
   }
 
 
@@ -505,6 +530,8 @@ par_hierarchy <-
 #' @importFrom terra rast
 #' @importFrom mirai mirai call_mirai
 #' @importFrom rlang inject
+#' @importFrom collapse rowbind
+#' @importFrom cli cli_inform
 #' @export
 par_multirasters <-
   function(
@@ -525,7 +552,7 @@ par_multirasters <-
           # run_result <-
     for (i in seq_along(filenames)) {
       results[[i]] <-
-        backend_worker(
+        .backend_worker(
           {
             tryCatch({
               args_input <- args_input
@@ -572,7 +599,7 @@ par_multirasters <-
     # return(results)
     # TODO: mirai-centered approach; future should call value()
     #results_l <- results
-    results <- Map(function(x) mirai::call_mirai(x)[["data"]], results)
+    results <- Map(function(x) .backend_collector(x), results)
     # return(results_l)
     results <-
       results[!vapply(results, is.null, logical(1))]

@@ -99,12 +99,12 @@ system.time(
 
 ### Multi-thread processing
 - Given that the data are distributed across North Carolina, we will consider splitting the points into subregions by grids.
-- `scomps` package has `par_make_gridset` to help splitting the entire study region.
-    - Please note that `par_make_gridset` will accept `padding` argument, by which users can get _padded_ grids to avoid missing raster cells from original unit grid boundaries.
+- `scomps` package has `par_pad_grid` to help splitting the entire study region.
+    - Please note that `par_pad_grid` will accept `padding` argument, by which users can get _padded_ grids to avoid missing raster cells from original unit grid boundaries.
 
 ```{r generate-compregion}
 compregions <-
-    chopin::par_make_gridset(
+    chopin::par_pad_grid(
         ncpoints_tr,
         mode = "grid",
         nx = 8L,
@@ -121,7 +121,7 @@ plot(compregions$padded, main = "Padded grids")
 par(oldpar)
 ```
 
-In the figure above, the padded grids have overlaps one another. `par_make_gridset` automatically expand a little more than the input argument `padding`.
+In the figure above, the padded grids have overlaps one another. `par_pad_grid` automatically expand a little more than the input argument `padding`.
 
 Now, we will distribute the computational process for these grids.
 
@@ -281,7 +281,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 
 nccompreg <-
-    chopin::par_make_gridset(
+    chopin::par_pad_grid(
                              input = pnts,
                              mode = "grid",
                              nx = 6L,

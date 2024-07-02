@@ -239,7 +239,7 @@ tic()
 doFuture::registerDoFuture()
 future::plan(future::multicore, workers = 8L)
 grid_init <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     popplacep2,
     mode = "grid",
     padding = 1e4,
@@ -352,7 +352,7 @@ popplaceb2 <- sf::st_transform(popplaceb, crs = terra::crs(bilssds))
 ```
 
 
-> \[!IMPORTANT\] `chopin::par_make_gridset` works the best with point datasets since each grid will clip the input features when parallelized. Polygon inputs will result in duplicate values in the output and lead to take longer to complete.
+> \[!IMPORTANT\] `chopin::par_pad_grid` works the best with point datasets since each grid will clip the input features when parallelized. Polygon inputs will result in duplicate values in the output and lead to take longer to complete.
 
 
 ## Grid parallelization
@@ -361,7 +361,7 @@ In the same vein as the TerraClimate data, we will use the `chopin` package to p
 ```{r prism-grid-compare}
 
 exgrid <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     popplacep2,
     mode = "grid",
     padding = 1e4,
@@ -431,7 +431,7 @@ system.time(
 
 
 exgrid5k <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     popplacep2,
     mode = "grid",
     padding = 5e4,
@@ -496,7 +496,7 @@ single_2m <-
 toc()
 
 stt_gbg <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     stt_g,
     mode = "grid",
     padding = 5e3,
@@ -606,7 +606,7 @@ gc()
 ```
 
 
-For balancing computation time, we will split the block groups into nine subsets to parallelize. Note that `mode = "grid_quantile"` is used in `par_make_gridset` to balance the number of block groups per grid. When `input` argument of `par_make_gridset` is polygons, a few polygons will have duplicate rows in the output data.frame since block groups overlapping each grid will be selected.
+For balancing computation time, we will split the block groups into nine subsets to parallelize. Note that `mode = "grid_quantile"` is used in `par_pad_grid` to balance the number of block groups per grid. When `input` argument of `par_pad_grid` is polygons, a few polygons will have duplicate rows in the output data.frame since block groups overlapping each grid will be selected.
 
 ```{r fine-raster-cdl-2, eval = FALSE}
 pkgs <-
@@ -622,12 +622,12 @@ bgsf_main <- bgsf %>%
 # balancing the number of features assigned per workers
 # by splitting block groups by splitting centroids
 bgsf_9grids_plain <- bgsf_main %>%
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     mode = "grid",
     nx = 3L, ny = 3L, padding = 1e4
   )
 bgsf_9grids <- bgsf_main %>%
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     mode = "grid_quantile",
     padding = 1e4,
     quantiles = chopin::par_def_q(3L)

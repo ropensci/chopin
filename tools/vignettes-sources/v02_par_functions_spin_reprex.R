@@ -60,7 +60,7 @@ system.time(
 
 ## ----generate-compregion------------------------------------------------------
 compregions <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     ncpoints_tr,
     mode = "grid",
     nx = 8L,
@@ -199,7 +199,7 @@ rd1 <- terra::project(rd1, "EPSG:5070")
 
 
 nccompreg <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     input = pnts,
     mode = "grid",
     nx = 6L,

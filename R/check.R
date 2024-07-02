@@ -44,6 +44,7 @@ dep_check <- function(input) {
 #' it will be considered raster in this package.
 #' @author Insang Song
 #' @returns character(1). One of `"vector"` or `"raster"`.
+#' @importFrom cli cli_abort
 #' @examples
 #' library(sf)
 #' library(terra)
@@ -63,12 +64,22 @@ datamod <- function(input) {
       c("sf", "stars", "SpatVector", "SpatRaster")
     )
   ) {
-    stop("Input should be one of sf or Spat* object.\n")
+    cli::cli_abort("Input should be one of sf or Spat* object.\n")
   }
-  if (inherits(input, c("sf", "SpatVector"))) {
+  if (
+    inherits(
+      input,
+      c("sf", "SpatVector", "SpatVectorProxy", "SpatVectorCollection")
+    )
+  ) {
     return("vector")
   }
-  if (inherits(input, c("stars", "SpatRaster"))) {
+  if (
+    inherits(
+      input,
+      c("stars", "SpatRaster", "SpatRasterDataset", "SpatRasterCollection")
+    )
+  ) {
     return("raster")
   }
 }
@@ -185,23 +196,25 @@ vect_valid_repair <- function(input_vector) {
 #' library(terra)
 #' numext1 <- c(-100, -70, 30, 40)
 #' names(numext1) <- c("xmin", "xmax", "ymin", "ymax")
-#' ext2poly(numext1, "sf")
-#' ext2poly(numext1, "terra")
+#' ext_to_poly(numext1, "sf")
+#' ext_to_poly(numext1, "terra")
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_bbox
 #' @importFrom sf st_set_crs
 #' @importFrom terra vect
 #' @importFrom terra ext
 #' @importFrom terra set.crs
-ext2poly <- function(
+ext_to_poly <- function(
     extent = NULL,
     output_class = c("sf", "terra"),
     crs = "EPSG:4326") {
   output_class <- match.arg(output_class)
-  if (methods::is(extent, "numeric")) {
+  if (is.numeric(extent)) {
     if (is.null(attr(extent, "names"))) {
-      stop("Your extent is an unnamed numeric vector.
-Please define names xmin/xmax/ymin/ymax explicitly.\n")
+      cli::cli_abort(
+        "Your extent is an unnamed numeric vector.",
+        "Please define names xmin/xmax/ymin/ymax explicitly."
+      )
     }
     extent <- switch(
       output_class,
@@ -250,7 +263,7 @@ Please define names xmin/xmax/ymin/ymax explicitly.\n")
 #'
 #' refextnum <- c(-100, -60, 20, 40)
 #' names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
-#' refext <- ext2poly(refextnum)
+#' refext <- ext_to_poly(refextnum)
 #' is_bbox_within_reference(nc, refext)
 #' @importFrom sf st_as_sfc st_crs st_bbox st_transform st_within
 is_bbox_within_reference <- function(
@@ -258,12 +271,16 @@ is_bbox_within_reference <- function(
   reference = NULL
 ) {
   reference <- sf::st_as_sfc(sf::st_bbox(reference))
-  print(sf::st_crs(reference))
+  cli::cli_inform(
+    "Full CRS:",
+    sf::st_crs(reference),
+    "--- CRS ---"
+  )
 
   data_query_bb <-
     sf::st_as_sfc(sf::st_bbox(data_query),
                   crs = sf::st_crs(data_query))
-  print(sf::st_crs(data_query_bb))
+
   query_matched <- sf::st_transform(data_query_bb, sf::st_crs(reference))
   check_result <- as.logical(unlist(sf::st_within(query_matched, reference)))
   return(check_result)
@@ -291,20 +308,24 @@ crs_check <- function(x = NULL) {
   ref_class <- c("sf", "stars", "SpatVector",
                  "SpatRaster", "SpatRasterDataset")
 
-  if (!any(ref_class %in% class(x))) {
-    stop("Input is invalid.\n")
+  if (!inherits(x, ref_class)) {
+    cli::cli_abort("Input is invalid.\n")
   }
   class_type <- dep_check(x)
   if (class_type == "sf" && is.na(sf::st_crs(x))) {
-    stop("No CRS is defined in the input.
-    Please consult the metadata or the data source.\n")
+    cli::cli_abort(
+      "No CRS is defined in the input.",
+      "Please consult the metadata or the data source."
+    )
   }
   if (class_type == "terra" && any(is.na(terra::crs(x)), terra::crs(x) == "")) {
-    stop("No CRS is defined in the input.
-    Please consult the metadata or the data source.\n")
+    cli::cli_abort(
+      "No CRS is defined in the input.",
+      "Please consult the metadata or the data source."
+    )
   }
 
-  if (methods::is(x, "sf") || methods::is(x, "stars")) {
+  if (inherits(x, c("sf", "stars"))) {
     crs_wkt <- sf::st_crs(x)
   } else {
     crs_wkt <- terra::crs(x)
@@ -326,7 +347,7 @@ crs_check <- function(x = NULL) {
 #' nc <- sf::read_sf(ncpath)
 #' nc <- sf::st_transform(nc, "EPSG:4326")
 #' mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-#' mainland_box <- ext2poly(mainland_vec, output_class = "sf")
+#' mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
 #' within_res <- is_within_ref(nc, mainland_box)
 #' within_res
 #' @importFrom methods is
@@ -341,7 +362,7 @@ is_within_ref <- function(input_object, reference) {
     methods::is(input_object, "SpatVector"),
     methods::is(input_object, "SpatRaster")
   )) {
-    stop("Input is invalid.\n")
+    cli::cli_abort("Input is invalid.\n")
   }
 
   if (!any(
@@ -350,7 +371,7 @@ is_within_ref <- function(input_object, reference) {
     methods::is(reference, "SpatVector"),
     methods::is(reference, "SpatRaster")
   )) {
-    stop("Reference is invalid.\n")
+    cli::cli_abort("Reference is invalid.\n")
   }
 
   bbox_input <- input_object |>
@@ -402,23 +423,45 @@ any_class_args <- function(
 #' This function checks the class of the input object and
 #'   performs necessary conversions if needed.
 #' @keywords internal
-#' @param subject The input object to be checked.
-#' @param extent The extent of the subject object.
-#' @param subject_id Optional. The ID of the subject object.
+#' @param subject sf/SpatVector/character. The input object to be checked.
+#' @param subject_id character(1). ID field of the subject object.
+#' @param extent numeric(4). The extent of the subject object.
+#'   This object is order and name-sensitive depending on `out_class`.
+#'   For `out_class = "sf"`, the numeric vector should be named
+#'   `c("xmin", "ymin", "xmax", "ymax")`.
+#'   For `out_class = "terra"`, the numeric vector should be ordered
+#'  `c(xmin, xmax, ymin, ymax)`.
+#' @param out_class character(1). The class of the output object.
+#'   Should be one of `c("sf", "terra")`.
 #' @returns The checked and converted subject object.
+#' @importFrom terra vect
+#' @importFrom sf st_read st_as_text st_as_sfc st_bbox
+#' @importFrom cli cli_abort cli_inform
 #' @examples
 #' # Check a SpatVector object
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' ncsf <- sf::st_read(ncpath)
+#' nc <- terra::vect(ncpath)
 #' extent <- c(-80, -77, 35, 36)
-#' check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
+#' .check_subject(subject = nc, extent = extent, subject_id = "FIPS")
+#'
+#' # Check a sf object
+#' ncsf <- sf::st_read(ncpath)
+#' extent <- extent[c(1, 3, 2, 4)]
+#' names(extent) <- c("xmin", "ymin", "xmax", "ymax")
+#' .check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
 #'
 #' # Check a character object
-#' check_subject(subject = ncpath, extent = extent, subject_id = "FIPS")
-check_subject <- function(
+#' .check_subject(
+#'   subject = ncpath,
+#'   extent = extent,
+#'   out_class = "terra",
+#'   subject_id = "FIPS"
+#' )
+.check_subject <- function(
   subject,
+  subject_id,
   extent = NULL,
-  subject_id = NULL
+  out_class = "sf"
 ) {
   # type check
   if (!any(
@@ -426,33 +469,105 @@ check_subject <- function(
   )) {
     cli::cli_abort("Check class of the input object.\n")
   }
+
+  # character ingestion
   if (is.character(subject)) {
-    cli::cli_inform("Input is a character. Trying to read with terra.")
-    subject <- try(terra::vect(subject, extent = extent))
-  } else {
-    if (dep_check(subject) == "sf") {
-      cli::cli_inform("Input is an sf object. Trying to convert to terra.")
-      subject <- dep_switch(subject)
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort("out_class should be one of sf or terra.\n")
     }
+    cli::cli_inform(
+      sprintf("Input is a character. Trying to read with %s", out_class)
+    )
+    subject <-
+      switch(
+        out_class,
+        terra = try(terra::vect(subject, extent = extent)),
+        sf =
+        try(
+          sf::st_read(
+            subject,
+            wkt_filter = sf::st_as_text(sf::st_as_sfc(sf::st_bbox(extent)))
+          )
+        )
+      )
   }
-  if (!is.null(subject_id)) {
+
+  # ID check
+  if (!missing(subject_id)) {
+    stopifnot(is.character(subject_id))
     if (!subject_id %in% names(subject)) {
-      cli::abort("id should exist in the input object\n")
+      cli::cli_abort("id should exist in the input object\n")
     }
   }
   return(subject)
 }
 
 
-# check if alphahull points reported the distance to
-# the nearest computational grid boundary
-#' @title Check if alphahull points reported the distance to
-#'   the nearest computational grid boundary
+#' Check Raster Input
+#'
+#' This function checks the input object to ensure
+#' it is a valid raster object or a character path to a raster file.
+#' It also provides warnings and informative messages based on the input type.
+#'
+#' @param input The input object to be checked. It can be either
+#'   a SpatRaster object or a character path to a raster file.
+#' @param extent The extent of the raster. Defaults to NULL.
+#'
+#' @return The validated input object.
+#'
+#' @examples
+#' .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
+#'
+#' @importFrom terra rast time
+#' @importFrom cli cli_abort cli_inform cli_warn
+#' @keywords internal
+.check_raster <- function(
+  input,
+  extent = NULL
+) {
+  # type check
+  if (
+    !inherits(input, c("SpatRaster", "character"))
+  ) {
+    if (inherits(input, "SpatRasterCollection")) {
+      cli::cli_abort(
+        "SpatRasterCollection is not directly supported.",
+        "Convert it into SpatRaster object to process."
+      )
+    }
+    cli::cli_abort("Check class of the input object.\n")
+  }
+
+  # character ingestion
+  if (is.character(input)) {
+    cli::cli_inform(
+      sprintf("Input is a character. Trying to read it with terra::rast...")
+    )
+    input <-
+      try(terra::rast(input, extent = extent))
+  }
+
+  # to be future-proof
+  if (!all(is.na(terra::time(input)))) {
+    cli::cli_warn(
+      "The input contains time information.",
+      "Each time point is treated as a layer."
+    )
+  }
+  return(input)
+}
+
+
+
+#' Check the distance calculated at a unit grid would be suspicious
 #' @family Helper functions
 #' @description This function checks if the alphahull points reported
 #'  the distance to the nearest computational grid boundary.
+#' @details Alpha hull refers to the parametrized exterior boundary
+#'   of a set of points. This function checks if the distance to the nearest
+#'   computational grid boundary is reported in the alphahull points.
 #' @param points SpatVector point object.
-#' @param grid plain grid (i.e., not padded from [`par_make_gridset`])
+#' @param grid plain grid (i.e., not padded from [`par_pad_grid`])
 #' @param dist_calc Calculated distance.
 #' @returns logical vector.
 #' @importFrom alphahull ahull

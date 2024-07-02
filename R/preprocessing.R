@@ -22,14 +22,14 @@
 #' sf_rand <- dep_switch(vec_rand)
 #' sf_rand
 #' # should return sf object
-#' @importFrom terra vect
-#' @importFrom terra rast
+#' @importFrom terra vect rast
 #' @importFrom sf st_as_sf
 #' @importFrom stars st_as_stars
-#' @export
+#' @importFrom cli cli_abort
+#' @keywords internal
 dep_switch <- function(input) {
-  if (!any(class(input) %in% c("sf", "stars", "SpatVector", "SpatRaster"))) {
-    stop("Input should be one of sf or Spat* object.\n")
+  if (!inherits(input, c("sf", "stars", "SpatVector", "SpatRaster"))) {
+    cli::cli_abort("Input should be one of sf or Spat* object.\n")
   }
   cls_input <- dep_check(input)
   type_input <- datamod(input)
@@ -71,7 +71,7 @@ dep_switch <- function(input) {
 #' @importFrom terra ext
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc
-#' @export
+#' @keywords internal
 get_clip_ext <- function(
   pnts,
   radius

@@ -194,7 +194,7 @@ bils <- list.files("input", "bil$", recursive = TRUE, full.names = TRUE)
 
 
 stt_gbg <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     stt_g,
     mode = "grid",
     padding = 5e3,
@@ -254,7 +254,7 @@ tictoc::tic("4core")
   doFuture::registerDoFuture()
   plan(multicore, workers = 4L)
   grds <-
-  chopin::par_make_gridset(
+  chopin::par_pad_grid(
     trcts0,
     mode = "grid_quantile",
     quantiles = par_def_q(2L),

@@ -43,7 +43,7 @@ Other Helper functions:
 \code{\link{crs_check}()},
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
@@ -56,3 +56,4 @@ Other Helper functions:
 Insang Song
 }
 \concept{Helper functions}
+\keyword{internal}

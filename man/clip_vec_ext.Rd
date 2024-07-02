@@ -4,15 +4,15 @@
 \alias{clip_vec_ext}
 \title{Clip to the buffered extent of input vector}
 \usage{
-clip_vec_ext(pnts, radius, target_input)
+clip_vec_ext(x, y, radius)
 }
 \arguments{
-\item{pnts}{\code{sf} or \code{SpatVector} object}
+\item{x}{\code{sf} or \code{SpatVector} object to be clipped}
+
+\item{y}{\code{sf} or \code{SpatVector} object}
 
 \item{radius}{\code{numeric(1)}. Circular buffer radius.
 this value will be automatically multiplied by 1.1}
-
-\item{target_input}{\code{sf} or \code{SpatVector} object to be clipped}
 }
 \value{
 A clipped \code{sf} or \code{SpatVector} object.
@@ -43,7 +43,7 @@ Other Helper functions:
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
@@ -56,3 +56,4 @@ Other Helper functions:
 Insang Song
 }
 \concept{Helper functions}
+\keyword{internal}

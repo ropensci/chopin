@@ -2,15 +2,14 @@
 % Please edit documentation in R/check.R
 \name{check_dist_incorrect}
 \alias{check_dist_incorrect}
-\title{Check if alphahull points reported the distance to
-the nearest computational grid boundary}
+\title{Check the distance calculated at a unit grid would be suspicious}
 \usage{
 check_dist_incorrect(points, grid, dist_calc)
 }
 \arguments{
 \item{points}{SpatVector point object.}
 
-\item{grid}{plain grid (i.e., not padded from \code{\link{par_make_gridset}})}
+\item{grid}{plain grid (i.e., not padded from \code{\link{par_pad_grid}})}
 
 \item{dist_calc}{Calculated distance.}
 }
@@ -21,6 +20,11 @@ logical vector.
 This function checks if the alphahull points reported
 the distance to the nearest computational grid boundary.
 }
+\details{
+Alpha hull refers to the parametrized exterior boundary
+of a set of points. This function checks if the distance to the nearest
+computational grid boundary is reported in the alphahull points.
+}
 \seealso{
 Other Helper functions: 
 \code{\link{any_class_args}()},
@@ -30,7 +34,7 @@ Other Helper functions:
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},

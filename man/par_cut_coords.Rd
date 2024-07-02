@@ -46,11 +46,11 @@ sum(table(qcv$CGRIDID)) # should be 1000
 Other Parallelization: 
 \code{\link{par_fallback}()},
 \code{\link{par_grid}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
-\code{\link{par_multirasters}()}
+\code{\link{par_multirasters}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()}
 }
 \concept{Parallelization}

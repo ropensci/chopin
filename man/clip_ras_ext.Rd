@@ -4,15 +4,15 @@
 \alias{clip_ras_ext}
 \title{Clip input raster with a buffered vector extent.}
 \usage{
-clip_ras_ext(pnts = NULL, radius = NULL, ras = NULL, nqsegs = 180L)
+clip_ras_ext(x = NULL, y = NULL, radius = NULL, nqsegs = 180L)
 }
 \arguments{
-\item{pnts}{\code{sf} or \code{SpatVector} object}
+\item{x}{\code{SpatRaster} object to be clipped}
+
+\item{y}{\code{sf} or \code{SpatVector} object}
 
 \item{radius}{numeric(1). buffer radius.
-This value will be automatically multiplied by 1.25}
-
-\item{ras}{\code{SpatRaster} object to be clipped}
+This value will be automatically multiplied by 1.1}
 
 \item{nqsegs}{\code{integer(1)}. the number of points per a quarter circle}
 }
@@ -28,14 +28,14 @@ library(terra)
 
 ras_rand <- terra::rast(nrow = 20, ncol = 20)
 terra::values(ras_rand) <- runif(400L)
-ras_rand_p <-
+vec_rand_p <-
   data.frame(
     x = c(3, 5, 3.2, 8),
     y = c(12, 10, 15, 12),
     z = c(0, 1, 2, 3)
   )
-ras_rand_p <- terra::vect(ras_rand_p, geom = c("x", "y"))
-clip_ras_ext(ras_rand_p, 1.5, ras_rand)
+ras_rand_p <- terra::vect(vec_rand_p, geom = c("x", "y"))
+clip_ras_ext(x = ras_rand, y = vec_rand_p, radius = 1.5)
 }
 \seealso{
 Other Helper functions: 
@@ -46,7 +46,7 @@ Other Helper functions:
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
+\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
 \code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
@@ -59,3 +59,4 @@ Other Helper functions:
 Insang Song
 }
 \concept{Helper functions}
+\keyword{internal}
