@@ -822,9 +822,9 @@ summarize_aw_old <-
 
   }
 
-
 #' @title Area weighted summary using two polygon objects
 #' @rdname summarize_aw
+#' @name summarize_aw
 #' @family Macros for calculation
 #' @param x A sf object or file path of polygons detectable
 #'   with GDAL driver at weighted means will be calculated.
@@ -883,64 +883,58 @@ NULL
 
 #' @rdname summarize_aw
 #' @export
-summarize_aw <- function(x, y, ...) {
-  UseMethod("summarize_aw", x)
-}
-
-
+setGeneric("summarize_aw", function(x, y, ...) {
+  standardGeneric("summarize_aw")
+})
 
 #' @rdname summarize_aw
-#' @method summarize_aw SpatVector
 #' @importFrom rlang sym
 #' @importFrom dplyr where group_by summarize across ungroup
 #' @importFrom terra intersect expanse area
 #' @importFrom stats weighted.mean
 #' @export
-summarize_aw.SpatVector <-
-  function(
-    x = NULL,
-    y = NULL,
-    target_fields = NULL,
-    id_x = "ID",
-    fun = stats::weighted.mean,
-    extent = NULL
-  ) {
+setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"), function(
+  x = NULL,
+  y = NULL,
+  target_fields = NULL,
+  id_x = "ID",
+  fun = stats::weighted.mean,
+  extent = NULL
+) {
 
-    x <- check_subject(x, extent = extent, subject_id = id_x)
-    y <- check_subject(y, extent = extent)
+  x <- check_subject(x, extent = extent, subject_id = id_x)
+  y <- check_subject(y, extent = extent)
 
-    poly_intersected <- terra::intersect(x, y)
-    poly_intersected[["area_segment_"]] <-
-      terra::expanse(poly_intersected)
-    poly_intersected <- data.frame(poly_intersected) |>
-      dplyr::group_by(!!rlang::sym(id_x)) |>
-      dplyr::summarize(
-        dplyr::across(
-          dplyr::all_of(target_fields),
-          ~fun(., w = area_segment_)
-        )
-      ) |>
-      dplyr::ungroup()
-    return(poly_intersected)
-  }
+  poly_intersected <- terra::intersect(x, y)
+  poly_intersected[["area_segment_"]] <-
+    terra::expanse(poly_intersected)
+  poly_intersected <- data.frame(poly_intersected) |>
+    dplyr::group_by(!!rlang::sym(id_x)) |>
+    dplyr::summarize(
+      dplyr::across(
+        dplyr::all_of(target_fields),
+        ~fun(., w = area_segment_)
+      )
+    ) |>
+    dplyr::ungroup()
+  return(poly_intersected)
+})
 
 
 #' @rdname summarize_aw
-#' @method summarize_aw sf
 #' @importFrom sf st_interpolate_aw
 #' @export
-summarize_aw.sf <-
-  function(
-    x = NULL,
-    y = NULL,
-    target_fields = NULL,
-    id_x = "ID",
-    fun = NULL,
-    extent = NULL
-  ) {
-    x <- check_subject(x, extent = extent, subject_id = id_x)
-    y <- check_subject(y, extent = extent)
+setMethod("summarize_aw", signature(x = "sf", y = "sf"), function(
+  x = NULL,
+  y = NULL,
+  target_fields = NULL,
+  id_x = "ID",
+  fun = NULL,
+  extent = NULL
+) {
+  x <- check_subject(x, extent = extent, subject_id = id_x)
+  y <- check_subject(y, extent = extent)
 
-    poly_intersected <- sf::st_interpolate_aw(x, y)
-    return(poly_intersected)
-  }
+  poly_intersected <- sf::st_interpolate_aw(x, y)
+  return(poly_intersected)
+})
