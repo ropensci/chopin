@@ -45,6 +45,7 @@ Other Macros for calculation:
 \code{\link{extract_at}()},
 \code{\link{extract_at_buffer}()},
 \code{\link{extract_at_poly}()},
+\code{\link{summarize_aw_old}()},
 \code{\link{summarize_sedc}()}
 }
 \concept{Macros for calculation}

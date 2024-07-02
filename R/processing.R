@@ -823,8 +823,8 @@ summarize_aw_old <-
   }
 
 
-## 0.8.0
 #' @title Area weighted summary using two polygon objects
+#' @rdname summarize_aw
 #' @family Macros for calculation
 #' @param x A sf object or file path of polygons detectable
 #'   with GDAL driver at weighted means will be calculated.
@@ -845,7 +845,6 @@ summarize_aw_old <-
 #' @note If `x` and `y` are characters, they will be
 #'   read as `sf` objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @name summarize_aw
 #' @examples
 #' # package
 #' library(sf)
@@ -858,7 +857,7 @@ summarize_aw_old <-
 #' sf::st_crs(pp) <- "EPSG:5070"
 #' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 #'
-#' system.time(ppb_nc_aw <- summarize_aw_sf(ppb, nc, c("BIR74", "BIR79"), "id"))
+#' system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
 #' summary(ppb_nc_aw)
 #'
 #' # terra examples
@@ -869,71 +868,33 @@ summarize_aw_old <-
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
 #' elev <- terra::rast(elev)
-#' pp <- terra::sample(nc, size = 300)
+#' pp <- terra::spatSample(nc, size = 300)
 #' pp <- terra::project(pp, crs(elev))
 #' pp <- terra::as.points(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' ppb <- terra::buffer(pp, 20000)
 #'
-#' system.time(ppb_nc_aw <- summarize_aw_terra(ppb, nc, c("BIR74", "BIR79"), "id"))
+#' system.time(
+#'   ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id")
+#' )
 #' summary(ppb_nc_aw)
+#'
+NULL
+
+#' @rdname summarize_aw
+#' @export
+summarize_aw <- function(x, y, ...) {
+  UseMethod("summarize_aw", x)
+}
+
+
+
+#' @rdname summarize_aw
+#' @method summarize_aw SpatVector
 #' @importFrom rlang sym
 #' @importFrom dplyr where group_by summarize across ungroup
 #' @importFrom terra intersect expanse area
-#' @importFrom sf st_interpolate_aw
 #' @importFrom stats weighted.mean
-#' @export
-summarize_aw <- function(...) {
-  UseMethod("summarize_aw")
-}
-
-#' @rdname summarize_aw
-#' @name summarize_aw
-#' @export
-summarize_aw.default <-
-  function(
-    x = NULL,
-    y = NULL,
-    target_fields = NULL,
-    id_x = "ID",
-    fun = stats::weighted.mean,
-    extent = NULL
-  ) {
-    cli::cli_abort("generic function.")
-  }
-
-#' @rdname summarize_aw
-#' @name summarize_aw
-#' @export
-summarize_aw.sf <-
-  function(
-    x = NULL,
-    y = NULL,
-    target_fields = NULL,
-    id_x = "ID",
-    fun = stats::weighted.mean,
-    extent = NULL
-  ) {
-    x <- check_subject(x, extent = extent, subject_id = id_x)
-    y <- check_subject(y, extent = extent)
-
-    poly_intersected <- sf::st_intersection(x, y)
-    poly_intersected[["area_segment_"]] <-
-      sf::st_area(poly_intersected)
-    poly_intersected <- data.frame(poly_intersected) |>
-      dplyr::group_by(!!rlang::sym(id_x)) |>
-      dplyr::summarize(
-        dplyr::across(
-          dplyr::all_of(target_fields),
-          ~fun(., w = area_segment_)
-        )
-      ) |>
-      dplyr::ungroup()
-    return(poly_intersected)
-  }
-
-#' @rdname summarize_aw
-#' @name summarize_aw
 #' @export
 summarize_aw.SpatVector <-
   function(
@@ -944,6 +905,7 @@ summarize_aw.SpatVector <-
     fun = stats::weighted.mean,
     extent = NULL
   ) {
+
     x <- check_subject(x, extent = extent, subject_id = id_x)
     y <- check_subject(y, extent = extent)
 
@@ -959,5 +921,26 @@ summarize_aw.SpatVector <-
         )
       ) |>
       dplyr::ungroup()
+    return(poly_intersected)
+  }
+
+
+#' @rdname summarize_aw
+#' @method summarize_aw sf
+#' @importFrom sf st_interpolate_aw
+#' @export
+summarize_aw.sf <-
+  function(
+    x = NULL,
+    y = NULL,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = NULL,
+    extent = NULL
+  ) {
+    x <- check_subject(x, extent = extent, subject_id = id_x)
+    y <- check_subject(y, extent = extent)
+
+    poly_intersected <- sf::st_interpolate_aw(x, y)
     return(poly_intersected)
   }

@@ -92,7 +92,8 @@ Other Macros for calculation:
 \code{\link{extract_at}()},
 \code{\link{extract_at_buffer}()},
 \code{\link{extract_at_poly}()},
-\code{\link{kernelfunction}()}
+\code{\link{kernelfunction}()},
+\code{\link{summarize_aw_old}()}
 }
 \author{
 Insang Song
