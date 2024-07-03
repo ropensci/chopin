@@ -611,12 +611,12 @@ testthat::test_that("CRS is transformed when it is not standard", {
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #'
-#' nc_valid <- vect_valid_repair(nc)
+#' nc_valid <- vect_validate(nc)
 #' }
 #' @importFrom terra makeValid
 #' @importFrom sf st_make_valid
 #' @export
-vect_valid_repair <- function(input_vector) {
+vect_validate <- function(input_vector) {
   detected <- dep_check(input_vector)
 
   validated <- switch(detected,
@@ -639,10 +639,10 @@ testthat::test_that("vector validity check is cleared", {
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
 
-  testthat::expect_no_error(vect_valid_repair(nc))
+  testthat::expect_no_error(vect_validate(nc))
 
   nct <- terra::vect(nc)
-  testthat::expect_no_error(vect_valid_repair(nct))
+  testthat::expect_no_error(vect_validate(nct))
 })
 
 ```
@@ -1036,7 +1036,7 @@ estimate_demands <- function(
   ## print summary of results
 }
 
-nc_valid <- vect_valid_repair(nc)
+nc_valid <- vect_validate(nc)
 
 
 ## check data-memory consumption
@@ -2368,7 +2368,7 @@ extract_at_buffer_flat <- function(
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-  bufs <- reproject_b2r(bufs, surf)
+  bufs <- reproject_to_raster(bufs, surf)
   # crop raster
   if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
     bufs_extent <- terra::ext(bufs)
@@ -2409,7 +2409,7 @@ extract_at_buffer_kernel <- function(
 ) {
   # generate buffers
   bufs <- terra::buffer(points, width = radius, quadsegs = qsegs)
-  bufs <- reproject_b2r(bufs, surf)
+  bufs <- reproject_to_raster(bufs, surf)
 
   # crop raster
   if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
@@ -2608,7 +2608,7 @@ extract_at_poly <- function(
     stop("id should be a character.\n")
   }
   # reproject polygons to raster's crs
-  polys <- reproject_b2r(polys, surf)
+  polys <- reproject_to_raster(polys, surf)
   # crop raster
   if (Sys.getenv("CHOPIN_FORCE_CROP") == "TRUE") {
     polys_extent <- terra::ext(polys)
@@ -2702,12 +2702,12 @@ extract_at <- function(
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
 #' elev <- terra::rast(elev)
-#' reproject_b2r(nc, elev)
+#' reproject_to_raster(nc, elev)
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
 #' @export
-reproject_b2r <-
+reproject_to_raster <-
   function(
     vector = NULL,
     raster = NULL
@@ -2744,7 +2744,7 @@ testthat::test_that("extract_at runs well", {
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
-  testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
+  testthat::expect_no_error(reproject_to_raster(nccnty4326, ncelev))
 
   # test two modes
   testthat::expect_no_error(

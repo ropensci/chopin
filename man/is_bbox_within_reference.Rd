@@ -35,26 +35,9 @@ names(refextnum) <- c("xmin", "xmax", "ymin", "ymax")
 refext <- ext_to_poly(refextnum)
 is_bbox_within_reference(nc, refext)
 }
-\seealso{
-Other Helper functions: 
-\code{\link{any_class_args}()},
-\code{\link{check_dist_incorrect}()},
-\code{\link{clip_ras_ext}()},
-\code{\link{clip_vec_ext}()},
-\code{\link{crs_check}()},
-\code{\link{datamod}()},
-\code{\link{dep_check}()},
-\code{\link{dep_switch}()},
-\code{\link{ext_to_poly}()},
-\code{\link{get_clip_ext}()},
-\code{\link{is_within_ref}()},
-\code{\link{par_def_q}()},
-\code{\link{reproject_b2r}()},
-\code{\link{reproject_std}()},
-\code{\link{vect_valid_repair}()}
-}
 \author{
 Insang Song \email{geoissong@gmail.com}
 }
-\concept{Helper functions}
+\concept{Helper functions
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 \keyword{internal}

@@ -84,10 +84,10 @@ testthat::test_that("vector validity check is cleared", {
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
 
-  testthat::expect_no_error(vect_valid_repair(nc))
+  testthat::expect_no_error(vect_validate(nc))
 
   nct <- terra::vect(nc)
-  testthat::expect_no_error(vect_valid_repair(nct))
+  testthat::expect_no_error(vect_validate(nct))
 })
 
 

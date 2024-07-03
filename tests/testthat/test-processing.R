@@ -118,7 +118,7 @@ testthat::test_that("extract_at runs well", {
   ncelev <- terra::unwrap(ncelev)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
-  testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
+  testthat::expect_no_error(reproject_to_raster(nccnty4326, ncelev))
 
   # test two modes
   testthat::expect_no_error(

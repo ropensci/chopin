@@ -135,7 +135,8 @@ It only works with \code{points} of character(1) file path.}
 \item{kernel}{character(1). Name of a kernel function
 One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
 
-\item{kernel_func}{function. Kernel function to apply to the extracted values.}
+\item{kernel_func}{function.
+Kernel function to apply to the extracted values.}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 
@@ -188,7 +189,6 @@ extract_at(
 Other Macros for calculation: 
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
-\code{\link{summarize_aw_old}()},
 \code{\link{summarize_sedc}()}
 }
 \author{

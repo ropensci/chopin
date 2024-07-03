@@ -619,3 +619,9 @@ par_multirasters <-
     # results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
     # return(results_distributed)
   }
+
+## TODO: par_dispatcher taking original and padded unit grid to preprocess
+##   in standardGeneric and setMethods to deal with x and y class signatures
+##   and passing x and y to the main processing function (assuming that
+##   it has x and y arguments). Argument name matching
+##   and remapping function may be a good addition to this.

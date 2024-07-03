@@ -30,11 +30,10 @@ Other Helper functions:
 \code{\link{dep_switch}()},
 \code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
-\code{\link{is_bbox_within_reference}()},
 \code{\link{is_within_ref}()},
-\code{\link{reproject_b2r}()},
 \code{\link{reproject_std}()},
-\code{\link{vect_valid_repair}()}
+\code{\link{reproject_to_raster}()},
+\code{\link{vect_validate}()}
 }
 \concept{Helper functions}
 \keyword{internal}

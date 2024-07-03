@@ -40,7 +40,8 @@ Other Parallelization:
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()},
 \code{\link{par_pad_balanced}()},
-\code{\link{par_pad_grid}()}
+\code{\link{par_pad_grid}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song

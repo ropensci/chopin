@@ -121,7 +121,6 @@ summary(ppb_nc_aw)
 Other Macros for calculation: 
 \code{\link{extract_at}()},
 \code{\link{kernelfunction}()},
-\code{\link{summarize_aw_old}()},
 \code{\link{summarize_sedc}()}
 }
 \author{

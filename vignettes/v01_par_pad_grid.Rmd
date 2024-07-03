@@ -44,8 +44,9 @@ options(sf_use_s2 = FALSE)
 - Computational grids refer to a set of polygons that cover the entire spatial domain of interest. These grids are used to split the spatial domain into smaller pieces for parallel processing.
 - `chopin` provides functions to generate computational grids for parallel processing by `par_grid()` function.
 - The standard sequence of running `par_grid()` includes the following steps:
-    1. Generate computational grids with `par_pad_grid()` or `par_group_grid()`. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
+    1. Generate computational grids with `par_pad_grid()` or `par_pad_balanced()`. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
     2. Run `par_grid()` with the input dataset and the grid polygons.
+- Original and padded grids will be used to split the main input with the original grid and the target dataset for computation with the padded grid, respectively.
 
 ## Types of computational grids and their generation
 
@@ -59,8 +60,8 @@ options(sf_use_s2 = FALSE)
     - `mode = "grid_advanced"`: generates regular grid polygons with padding based on the number of points in each grid and the number of points in the entire dataset. `nx` and `ny` arguments determine the number of columns and rows in the grid, then `merge_max` argument controls how many adjacent grids are merged into one grid. `grid_min_features` argument determines the minimum number of points in each grid, which means grids with fewer points than this value will be merged with adjacent grids. Adjusting these arguments can balance the computational load among the threads and reduce the overhead of parallelization.
 
 
-### `par_group_grid()`: focusing on getting the balanced clusters
-- Expanding the exhaustive grid generation, `par_group_grid()` generates rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing by converting it to the grid sets with `par_group_grid()`.
+### `par_pad_balanced()`: focusing on getting the balanced clusters
+- `par_pad_balanced()` generates rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing by converting it to the grid sets with `par_pad_balanced()`.
 
 
 
@@ -88,7 +89,7 @@ ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
 plot(sf::st_geometry(ncpoints))
 
 # convert to terra SpatVector
-ncpoints_tr <- chopin::dep_switch(ncpoints)
+ncpoints_tr <- terra::vect(ncpoints)
 
 ```
 
@@ -159,7 +160,7 @@ grid_quantiles <-
   chopin::par_pad_grid(
     input = ncpoints_tr,
     mode = "grid_quantile",
-    quantiles = chopin::par_def_q(4L),
+    quantiles = chopin:::par_def_q(4L),
     padding = 1e4L
   )
 
@@ -267,18 +268,18 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 ```
 
-#### `par_group_grid()`
-- `par_group_grid()` uses `anticlust` package to split the point set into the balanced clusters.
+#### `par_make_balanced()`
+- `par_make_balanced()` uses `anticlust` package to split the point set into the balanced clusters.
     - In the background, `par_pad_balanced()` is run first to generate the equally sized clusters from the input. Then, padding is applied to the extent of each cluster to be compatible with `par_grid()`, where both the original and the padded grids are used.
     - Please note that `ngroups` argument value must be the **exact** divisor of the number of points. For example, in the example below, when one changes `ngroups` to `10L`, it will fail as the number of points is not divisible by 10.
     - Consult the `anticlust` package for more details on the algorithm.
-- `par_group_grid()` makes a compatible object to the output of `par_pad_grid()` directly from the input points.
+- `par_pad_balanced()` makes a compatible object to the output of `par_pad_grid()` directly from the input points.
 - As illustrated in the figure below, the points will be split into `ngroups` clusters with the same number of points then processed in parallel by using the output object with `par_grid()`.
 
 ```{r par-group-balanced}
-
+# ngroups should be the exact divisor of the number of points!
 group_bal_grid <-
-  chopin::par_group_grid(
+  chopin::par_pad_balanced(
     points_in = ncpoints_tr,
     ngroups = 23L,
     padding = 1e4
@@ -292,6 +293,3 @@ terra::plot(group_bal_grid$original, "CGRIDID",
 terra::plot(group_bal_grid$padded, main = "Padded grids")
 
 ```
-
-
-

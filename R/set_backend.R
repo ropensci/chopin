@@ -34,7 +34,7 @@ set_backend <- function(backend = "mirai") {
     } else if (backend == "future") {
       future::future(..., seed = TRUE, lazy = TRUE)
     } else {
-      cli::cli_abort("Unknown backend")
+      cli::cli_abort("This backend is not supported.")
     }
   }
 
@@ -49,7 +49,7 @@ set_backend <- function(backend = "mirai") {
   function(worker) {
     if (inherits(worker, "mirai")) {
       mirai::call_mirai(worker)[["data"]]
-    } else if (inherits(worker, "future")) {
+    } else if (inherits(worker, "Future")) {
       future::value(worker)
     } else {
       cli::cli_abort("Unknown worker")

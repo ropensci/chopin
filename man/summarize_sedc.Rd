@@ -91,8 +91,7 @@ summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 Other Macros for calculation: 
 \code{\link{extract_at}()},
 \code{\link{kernelfunction}()},
-\code{\link{summarize_aw}()},
-\code{\link{summarize_aw_old}()}
+\code{\link{summarize_aw}()}
 }
 \author{
 Insang Song

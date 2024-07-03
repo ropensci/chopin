@@ -40,113 +40,6 @@ kernelfunction <-
 
   }
 
-#' Clip to the buffered extent of input vector
-#' @family Helper functions
-#' @description Clip input vector by
-#'  the expected maximum extent of computation.
-#' @keywords internal
-#' @author Insang Song
-#' @param x `sf` or `SpatVector` object to be clipped
-#' @param y `sf` or `SpatVector` object
-#' @param radius `numeric(1)`. Circular buffer radius.
-#'  this value will be automatically multiplied by 1.1
-#' @returns A clipped `sf` or `SpatVector` object.
-#' @examples
-#' library(sf)
-#' library(stars)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-#' bcsd <- stars::read_stars(bcsd_path)
-#' bcsd <- sf::st_as_sf(bcsd)
-#' bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
-#' bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
-#' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
-#' @importFrom sf st_intersection
-#' @importFrom terra intersect
-clip_vec_ext <- function(
-  x,
-  y,
-  radius
-) {
-  if (any(
-    vapply(
-      list(x, y, radius),
-      FUN = is.null,
-      FUN.VALUE = logical(1)
-    )
-  )) {
-    cli::cli_abort("One or more required arguments are NULL. Please check.\n")
-  }
-  detected_pnts <- dep_check(y)
-  detected_target <- dep_check(x)
-
-  if (detected_pnts != detected_target) {
-    cli::cli_warn("Inputs are not the same class.\n")
-    target_input <- dep_switch(x)
-  }
-
-  ext_input <- get_clip_ext(y, radius)
-  cli::cli_inform("Clip target features with the input feature extent...\n")
-  if (detected_pnts == "sf") {
-    cae <-
-      sf::st_intersection(x = target_input, y = ext_input)
-  }
-  if (detected_pnts == "terra") {
-    cae <- terra::intersect(target_input, ext_input)
-  }
-
-  return(cae)
-}
-
-#' Clip input raster with a buffered vector extent.
-#' @family Helper functions
-#' @keywords internal
-#' @description Clip input raster by the expected maximum extent of
-#' computation.
-#' @param x `SpatRaster` object to be clipped
-#' @param y `sf` or `SpatVector` object
-#' @param radius numeric(1). buffer radius.
-#' This value will be automatically multiplied by 1.1
-#' @param nqsegs `integer(1)`. the number of points per a quarter circle
-#' @returns A clipped `SpatRaster` object.
-#' @author Insang Song
-#' @examples
-#' library(terra)
-#'
-#' ras_rand <- terra::rast(nrow = 20, ncol = 20)
-#' terra::values(ras_rand) <- runif(400L)
-#' vec_rand_p <-
-#'   data.frame(
-#'     x = c(3, 5, 3.2, 8),
-#'     y = c(12, 10, 15, 12),
-#'     z = c(0, 1, 2, 3)
-#'   )
-#' ras_rand_p <- terra::vect(vec_rand_p, geom = c("x", "y"))
-#' clip_ras_ext(x = ras_rand, y = vec_rand_p, radius = 1.5)
-#' @importFrom terra vect
-#' @importFrom terra crop
-clip_ras_ext <- function(
-  x = NULL,
-  y = NULL,
-  radius = NULL,
-  nqsegs = 180L
-) {
-  if (any(
-    vapply(list(y, radius, x),
-           FUN = is.null,
-           FUN.VALUE = logical(1))
-  )) {
-    cli::cli_abort("Any of required arguments are NULL. Please check.\n")
-  }
-  radius <- 1.1 * radius
-  ext_input <- get_clip_ext(y, radius)
-  ext_input <- terra::vect(ext_input)
-
-  cae <- terra::crop(x, ext_input, snap = "out")
-  return(cae)
-}
 
 
 # Subfunction: extract at buffers with kernel weight
@@ -222,7 +115,8 @@ clip_ras_ext <- function(
   colnames(extracted_summary)[1] <- id
   return(extracted_summary)
 }
-
+# TODO: look into the behavior of kernel_func when w is not an explicit
+#   argument.
 
 #' @title Extract summarized values from raster with generic polygons
 #' @keywords internal
@@ -255,7 +149,7 @@ clip_ras_ext <- function(
       subject_id = id
     )
   # reproject polygons to raster's crs
-  y <- reproject_b2r(vector = y, raster = x)
+  y <- reproject_to_raster(vector = y, raster = x)
   if (dep_check(y) == "terra") {
     y <- dep_switch(y)
   }
@@ -307,6 +201,7 @@ clip_ras_ext <- function(
 }
 
 
+## extract_at ####
 #' Extract raster values with point buffers or polygons
 #'
 #' `r lifecycle::badge("experimental")`
@@ -330,7 +225,8 @@ clip_ras_ext <- function(
 #' @param out_class character(1). Output class. One of `sf` or `terra`.
 #' @param kernel character(1). Name of a kernel function
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
-#' @param kernel_func function. Kernel function to apply to the extracted values.
+#' @param kernel_func function.
+#'   Kernel function to apply to the extracted values.
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' @param ... Placeholder.
@@ -591,35 +487,6 @@ setMethod(
   }
 )
 
-#' @title Align vector CRS to raster's
-#' @family Helper functions
-#' @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
-#' @param raster `SpatRaster` object
-#' @returns Reprojected object in the same class as \code{vector}
-#' @author Insang Song
-#' @examples
-#' library(terra)
-#' library(sf)
-#' options(sf_use_s2 = FALSE)
-#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' elev <- system.file("ex/elev.tif", package = "terra")
-#' nc <- terra::vect(ncpath)
-#' elev <- terra::rast(elev)
-#' reproject_b2r(nc, elev)
-#' @importFrom sf st_transform
-#' @importFrom terra project
-#' @importFrom terra crs
-reproject_b2r <-
-  function(
-    vector = NULL,
-    raster = NULL
-  ) {
-    detected_vec <- dep_check(vector)
-    switch(detected_vec,
-           sf = sf::st_transform(vector, terra::crs(raster)),
-           terra = terra::project(vector, terra::crs(raster)))
-  }
-
 
 #' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 #' @family Macros for calculation
@@ -787,98 +654,7 @@ summarize_sedc <-
   }
 
 
-#' Area weighted summary using two polygon sf or SpatVector objects
-#' `r lifecycle::badge("superseded")`
-#' @family Macros for calculation
-#' @param poly_in A sf/SpatVector object or file path of polygons detectable
-#'   with GDAL driver at weighted means will be calculated.
-#' @param poly_weight A sf/SpatVector object or file path of polygons from
-#'  which weighted means will be calculated.
-#' @param target_fields character. Field names to calculate area-weighted.
-#' @param id_poly_in character(1).
-#'  The unique identifier of each polygon in `poly_in`.
-#'  Default is `"ID"`.
-#' @param fun function(1). The function to calculate the weighted summary.
-#' Default is [`stats::weighted.mean`]. The function must have a `w` argument.
-#' @param extent numeric(4) or SpatExtent object. Extent of clipping `poly_in`.
-#' It only works with `poly_in` of character(1) file path.
-#' See [`terra::ext`] for more details. Coordinate systems should match.
-#' @returns A data.frame with all numeric fields of area-weighted means.
-#' @description When `poly_in` and `poly_weight` are different classes,
-#'  `poly_weight` will be converted to the class of `poly_in`.
-#' @note If `poly_in` and `poly_weight` are characters, they will be
-#'   read as `terra::vect` objects.
-#' @author Insang Song \email{geoissong@@gmail.com}
-#' @importFrom terra expanse
-#' @importFrom rlang sym
-#' @importFrom dplyr where
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarize
-#' @importFrom dplyr across
-#' @importFrom dplyr ungroup
-#' @importFrom terra intersect
-#' @importFrom sf st_interpolate_aw
-#' @importFrom stats weighted.mean
-summarize_aw_old <-
-  function(
-    poly_in = NULL,
-    poly_weight = NULL,
-    target_fields = NULL,
-    id_poly_in = "ID",
-    fun = stats::weighted.mean,
-    extent = NULL
-  ) {
-
-    poly_in <- .check_subject(poly_in, extent = extent, subject_id = id_poly_in)
-    poly_weight <- .check_subject(poly_weight, extent = extent)
-
-    summarize_aw_terra <-
-      function(
-        poly_in = NULL,
-        poly_weight = NULL,
-        target_fields = NULL,
-        id_poly_in = id_poly_in
-      ) {
-        poly_intersected <- terra::intersect(poly_in, poly_weight)
-        poly_intersected[["area_segment_"]] <-
-          terra::expanse(poly_intersected)
-        poly_intersected <- data.frame(poly_intersected) |>
-          dplyr::group_by(!!rlang::sym(id_poly_in)) |>
-          dplyr::summarize(
-            dplyr::across(
-              dplyr::all_of(target_fields),
-              ~fun(., w = area_segment_)
-            )
-          ) |>
-          dplyr::ungroup()
-        return(poly_intersected)
-      }
-
-    class_poly_in <- dep_check(poly_in)
-    class_poly_weight <- dep_check(poly_weight)
-
-    if (class_poly_in != class_poly_weight) {
-      poly_weight <- dep_switch(poly_weight)
-    }
-
-    switch(class_poly_in,
-      sf =
-        suppressWarnings(
-          sf::st_interpolate_aw(
-            poly_weight[, target_fields],
-            poly_in, extensive = FALSE
-          )
-        ),
-      terra =
-        summarize_aw_terra(
-          poly_in, poly_weight,
-          target_fields = target_fields,
-          id_poly_in = id_poly_in
-        )
-    )
-
-  }
-
+## summarize_aw ####
 #' @title Area weighted summary using two polygon objects
 #' @rdname summarize_aw
 #' @name summarize_aw

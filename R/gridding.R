@@ -22,7 +22,8 @@
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 #' @param merge_max integer(1). Maximum number of grids to merge
 #'   per merged set.
-#' @param return_wkt logical(1). Return WKT format.
+#' @param return_wkt logical(1). Return WKT format. When `TRUE`,
+#'   the return value will be a list of two WKT strings.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
@@ -38,9 +39,11 @@
 #' @examples
 #' # data
 #' library(sf)
+#' sf_use_s2(FALSE)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' nc <- read_sf(ncpath)
 #' nc <- st_transform(nc, "EPSG:5070")
+#'
 #' # run: nx and ny should strictly be integers
 #' # In the example below, nx is 12L, not 12.
 #' nc_comp_region <-
@@ -52,6 +55,16 @@
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original)
 #' plot(nc_comp_region$padded)
+#'
+#' nc_comp_region_wkt <-
+#'   par_pad_grid(
+#'     nc,
+#'     mode = "grid",
+#'     nx = 12L, ny = 8L,
+#'     padding = 10000,
+#'     return_wkt = TRUE)
+#' nc_comp_region_wkt$original
+#' nc_comp_region_wkt$padded
 #' @importFrom sf st_crs st_set_crs st_as_text
 #' @importFrom terra crs set.crs buffer geom
 #' @importFrom cli cli_inform cli_abort
@@ -150,14 +163,19 @@ par_pad_grid <-
     grid_results <-
       list(original = grid_reg,
            padded = grid_reg_pad)
+
     if (return_wkt) {
-      if (dep_check(grid_reg) == "sf") {
-        grid_results$original <- sf::st_as_text(grid_results$original$geometry)
-        grid_results$padded <- sf::st_as_text(grid_results$padded$geometry)
-      } else {
-        grid_results$original <- terra::geom(grid_results$original, wkt = TRUE)
-        grid_results$padded <- terra::geom(grid_results$padded, wkt = TRUE)
-      }
+      grid_results <-
+        Map(
+          function(x) {
+            if (dep_check(grid_reg) == "sf") {
+              sf::st_as_text(x$geometry)
+            } else {
+              terra::geom(x, wkt = TRUE)
+            }
+          },
+          grid_results
+        )
     }
 
     return(grid_results)
@@ -718,3 +736,51 @@ par_make_balanced <- function(
   points_in$CGRIDID <- cl
   return(points_in)
 }
+
+
+#' Split grid list to a nested list of row-wise data frames
+#' @family Parallelization
+#' @param gridlist list. Output of [`par_pad_grid`] or [`par_pad_balanced`]
+#' @details If the input is a data frame, the function will return a list of
+#' two data frames: `original` and `padded`. If the input is a WKT vector,
+#' the function will return a list of two WKT strings: `original` and `padded`.
+#' @returns A nested list of data frames or WKT strings.
+#' @examples
+#' library(sf)
+#' library(terra)
+#' sf_use_s2(FALSE)
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' nc <- read_sf(ncpath)
+#' nc <- st_transform(nc, "EPSG:5070")
+#' nc_comp_region <-
+#'  par_pad_grid(
+#'   nc,
+#'   mode = "grid",
+#'   nx = 12L, ny = 8L,
+#'   padding = 10000)
+#' par_split_list(nc_comp_region)
+#' @export
+par_split_list <-
+  function(gridlist) {
+    isdf <- inherits(gridlist[[1]], "data.frame")
+    lenlist <-
+      if (isdf) {
+        nrow(gridlist[[1]])
+      } else {
+        # WKT vector case
+        length(gridlist[[1]])
+      }
+    list_nest <- vector("list", length = lenlist)
+    for (i in seq_len(lenlist)) {
+      if (isdf) {
+        list_nest[[i]] <-
+          list(original = gridlist[[1]][i, ],
+               padded = gridlist[[2]][i, ])
+      } else {
+        list_nest[[i]] <-
+          list(original = gridlist[[1]][i],
+               padded = gridlist[[2]][i])
+      }
+    }
+    return(list_nest)
+  }

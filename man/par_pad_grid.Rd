@@ -51,7 +51,8 @@ for the list of acceptable unit forms.}
 \item{merge_max}{integer(1). Maximum number of grids to merge
 per merged set.}
 
-\item{return_wkt}{logical(1). Return WKT format.}
+\item{return_wkt}{logical(1). Return WKT format. When \code{TRUE},
+the return value will be a list of two WKT strings.}
 
 \item{...}{arguments passed to the internal function}
 }
@@ -72,9 +73,11 @@ Each grid will be buffered by the radius.
 \examples{
 # data
 library(sf)
+sf_use_s2(FALSE)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:5070")
+
 # run: nx and ny should strictly be integers
 # In the example below, nx is 12L, not 12.
 nc_comp_region <-
@@ -86,6 +89,16 @@ nc_comp_region <-
 par(mfcol = c(1, 2))
 plot(nc_comp_region$original)
 plot(nc_comp_region$padded)
+
+nc_comp_region_wkt <-
+  par_pad_grid(
+    nc,
+    mode = "grid",
+    nx = 12L, ny = 8L,
+    padding = 10000,
+    return_wkt = TRUE)
+nc_comp_region_wkt$original
+nc_comp_region_wkt$padded
 }
 \seealso{
 \link{par_cut_coords}, \link{par_merge_grid}
@@ -98,7 +111,8 @@ Other Parallelization:
 \code{\link{par_make_grid}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()},
-\code{\link{par_pad_balanced}()}
+\code{\link{par_pad_balanced}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song

@@ -32,6 +32,66 @@ dep_check <- function(input) {
   return("sf")
 }
 
+#' Switch spatial data class
+#' @family Helper functions
+#' @description Convert class between `sf`/`stars`-`terra`
+#' @author Insang Song
+#' @param input Spat* in terra or sf object.
+#' @returns Data converted to the other package class
+#' (if sf, terra; if terra, sf)
+#' @examples
+#' library(sf)
+#' library(stars)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' ## generate a random raster
+#' ras_rand <- terra::rast(nrow = 30, ncol = 30)
+#' terra::values(ras_rand) <- runif(900)
+#' stars_rand <- dep_switch(ras_rand)
+#' stars_rand
+#' # should return stars object
+#'
+#' vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
+#' sf_rand <- dep_switch(vec_rand)
+#' sf_rand
+#' # should return sf object
+#' @importFrom terra vect rast
+#' @importFrom sf st_as_sf
+#' @importFrom stars st_as_stars
+#' @importFrom cli cli_abort cli_inform
+#' @keywords internal
+dep_switch <- function(input) {
+  if (!inherits(input, c("sf", "stars", "SpatVector", "SpatRaster"))) {
+    cli::cli_abort("Input should be one of sf or Spat* object.\n")
+  }
+  cls_input <- dep_check(input)
+  type_input <- datamod(input)
+  # search strings. can be expanded.
+  candidates <- c("sf", "terra")
+  cli::cli_inform(
+    sprintf(
+      "Switch %s class to %s...",
+      cls_input, setdiff(candidates, cls_input)
+    )
+  )
+
+  switched <-
+    switch(cls_input,
+      sf = switch(type_input,
+        vector = terra::vect(input),
+        raster = terra::rast(input)
+      ),
+      terra = switch(type_input,
+        vector = sf::st_as_sf(input),
+        raster = stars::st_as_stars(input)
+      )
+    )
+
+  return(switched)
+}
+
+
 
 #' Return the input's GIS data model type
 #' @family Helper functions
@@ -140,7 +200,40 @@ reproject_std <-
       terra = terra::project(x = input, y = crs_standard)
     )
     return(input_transformed)
-}
+  }
+
+
+
+#' @title Align vector CRS to raster's
+#' @family Helper functions
+#' @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
+#' @param raster `SpatRaster` object
+#' @returns Reprojected object in the same class as \code{vector}
+#' @author Insang Song
+#' @examples
+#' library(terra)
+#' library(sf)
+#' options(sf_use_s2 = FALSE)
+#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+#' elev <- system.file("ex/elev.tif", package = "terra")
+#' nc <- terra::vect(ncpath)
+#' elev <- terra::rast(elev)
+#' reproject_to_raster(nc, elev)
+#' @importFrom sf st_transform
+#' @importFrom terra project
+#' @importFrom terra crs
+reproject_to_raster <-
+  function(
+    vector = NULL,
+    raster = NULL
+  ) {
+    detected_vec <- dep_check(vector)
+    switch(detected_vec,
+           sf = sf::st_transform(vector, terra::crs(raster)),
+           terra = terra::project(vector, terra::crs(raster)))
+  }
+
+
 
 #' Validate and repair input vector data
 #' @family Helper functions
@@ -164,11 +257,11 @@ reproject_std <-
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #'
-#' nc_valid <- vect_valid_repair(nc)
+#' nc_valid <- vect_validate(nc)
 #' }
 #' @importFrom terra makeValid
 #' @importFrom sf st_make_valid
-vect_valid_repair <- function(input_vector) {
+vect_validate <- function(input_vector) {
   detected <- dep_check(input_vector)
 
   validated <- switch(detected,
@@ -210,11 +303,13 @@ ext_to_poly <- function(
     crs = "EPSG:4326") {
   output_class <- match.arg(output_class)
   if (is.numeric(extent)) {
-    if (is.null(attr(extent, "names"))) {
-      cli::cli_abort(
-        "Your extent is an unnamed numeric vector.",
-        "Please define names xmin/xmax/ymin/ymax explicitly."
-      )
+    if (output_class == "sf") {
+      if (is.null(attr(extent, "names"))) {
+        cli::cli_abort(
+          "Your extent is an unnamed numeric vector.",
+          "Please define names xmin/xmax/ymin/ymax explicitly."
+        )
+      }
     }
     extent <- switch(
       output_class,
@@ -242,6 +337,7 @@ ext_to_poly <- function(
 
 #' Check if the data extent is inside the reference bounding box
 #' @family Helper functions
+#' `r lifecycle::badge("deprecated")`
 #' @keywords internal
 #' @description One of the most common errors in spatial computation is rooted
 #' in the entirely or partly incomparable spatial extents of input datasets.
@@ -273,7 +369,7 @@ is_bbox_within_reference <- function(
   reference <- sf::st_as_sfc(sf::st_bbox(reference))
   cli::cli_inform(
     "Full CRS:",
-    sf::st_crs(reference),
+    as.character(sf::st_crs(reference)),
     "--- CRS ---"
   )
 
@@ -330,7 +426,9 @@ crs_check <- function(x = NULL) {
   } else {
     crs_wkt <- terra::crs(x)
   }
-
+  cli::cli_inform(
+    sprintf("CRS:\n%s\n--- Returned CRS ---", as.character(crs_wkt))
+  )
   return(crs_wkt)
 }
 

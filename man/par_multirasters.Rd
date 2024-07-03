@@ -90,7 +90,8 @@ Other Parallelization:
 \code{\link{par_make_grid}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_pad_balanced}()},
-\code{\link{par_pad_grid}()}
+\code{\link{par_pad_grid}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

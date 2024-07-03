@@ -1,62 +1,3 @@
-#' Switch spatial data class
-#' @family Helper functions
-#' @description Convert class between `sf`/`stars`-`terra`
-#' @author Insang Song
-#' @param input Spat* in terra or sf object.
-#' @returns Data converted to the other package class
-#' (if sf, terra; if terra, sf)
-#' @examples
-#' library(sf)
-#' library(stars)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' ## generate a random raster
-#' ras_rand <- terra::rast(nrow = 30, ncol = 30)
-#' terra::values(ras_rand) <- runif(900)
-#' stars_rand <- dep_switch(ras_rand)
-#' stars_rand
-#' # should return stars object
-#'
-#' vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
-#' sf_rand <- dep_switch(vec_rand)
-#' sf_rand
-#' # should return sf object
-#' @importFrom terra vect rast
-#' @importFrom sf st_as_sf
-#' @importFrom stars st_as_stars
-#' @importFrom cli cli_abort cli_inform
-#' @keywords internal
-dep_switch <- function(input) {
-  if (!inherits(input, c("sf", "stars", "SpatVector", "SpatRaster"))) {
-    cli::cli_abort("Input should be one of sf or Spat* object.\n")
-  }
-  cls_input <- dep_check(input)
-  type_input <- datamod(input)
-  # search strings. can be expanded.
-  candidates <- c("sf", "terra")
-  cli::cli_inform(
-    sprintf(
-      "Switch %s class to %s...",
-      cls_input, setdiff(candidates, cls_input)
-    )
-  )
-
-  switched <-
-    switch(cls_input,
-      sf = switch(type_input,
-        vector = terra::vect(input),
-        raster = terra::rast(input)
-      ),
-      terra = switch(type_input,
-        vector = sf::st_as_sf(input),
-        raster = stars::st_as_stars(input)
-      )
-    )
-
-  return(switched)
-}
-
 #' Setting the clipping extent
 #' @family Helper functions
 #' @description Return clipping extent with buffer radius.
@@ -99,4 +40,113 @@ get_clip_ext <- function(
     ext_input <- sf::st_as_sfc(ext_input)
   }
   return(ext_input)
+}
+
+
+#' Clip to the buffered extent of input vector
+#' @family Helper functions
+#' @description Clip input vector by
+#'  the expected maximum extent of computation.
+#' @keywords internal
+#' @author Insang Song
+#' @param x `sf` or `SpatVector` object to be clipped
+#' @param y `sf` or `SpatVector` object
+#' @param radius `numeric(1)`. Circular buffer radius.
+#'  this value will be automatically multiplied by 1.1
+#' @returns A clipped `sf` or `SpatVector` object.
+#' @examples
+#' library(sf)
+#' library(stars)
+#' library(terra)
+#' options(sf_use_s2 = FALSE)
+#'
+#' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
+#' bcsd <- stars::read_stars(bcsd_path)
+#' bcsd <- sf::st_as_sf(bcsd)
+#' bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
+#' bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
+#' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
+#' @importFrom sf st_intersection
+#' @importFrom terra intersect
+clip_vec_ext <- function(
+  x,
+  y,
+  radius
+) {
+  if (any(
+    vapply(
+      list(x, y, radius),
+      FUN = is.null,
+      FUN.VALUE = logical(1)
+    )
+  )) {
+    cli::cli_abort("One or more required arguments are NULL. Please check.\n")
+  }
+  detected_pnts <- dep_check(y)
+  detected_target <- dep_check(x)
+
+  if (detected_pnts != detected_target) {
+    cli::cli_warn("Inputs are not the same class.\n")
+    target_input <- dep_switch(x)
+  }
+
+  ext_input <- get_clip_ext(y, radius)
+  cli::cli_inform("Clip target features with the input feature extent...\n")
+  if (detected_pnts == "sf") {
+    cae <-
+      sf::st_intersection(x = target_input, y = ext_input)
+  }
+  if (detected_pnts == "terra") {
+    cae <- terra::intersect(target_input, ext_input)
+  }
+
+  return(cae)
+}
+
+#' Clip input raster with a buffered vector extent.
+#' @family Helper functions
+#' @keywords internal
+#' @description Clip input raster by the expected maximum extent of
+#' computation.
+#' @param x `SpatRaster` object to be clipped
+#' @param y `sf` or `SpatVector` object
+#' @param radius numeric(1). buffer radius.
+#' This value will be automatically multiplied by 1.1
+#' @param nqsegs `integer(1)`. the number of points per a quarter circle
+#' @returns A clipped `SpatRaster` object.
+#' @author Insang Song
+#' @examples
+#' library(terra)
+#'
+#' ras_rand <- terra::rast(nrow = 20, ncol = 20)
+#' terra::values(ras_rand) <- runif(400L)
+#' vec_rand_p <-
+#'   data.frame(
+#'     x = c(3, 5, 3.2, 8),
+#'     y = c(12, 10, 15, 12),
+#'     z = c(0, 1, 2, 3)
+#'   )
+#' ras_rand_p <- terra::vect(vec_rand_p, geom = c("x", "y"))
+#' clip_ras_ext(x = ras_rand, y = vec_rand_p, radius = 1.5)
+#' @importFrom terra vect
+#' @importFrom terra crop
+clip_ras_ext <- function(
+  x = NULL,
+  y = NULL,
+  radius = NULL,
+  nqsegs = 180L
+) {
+  if (any(
+    vapply(list(y, radius, x),
+           FUN = is.null,
+           FUN.VALUE = logical(1))
+  )) {
+    cli::cli_abort("Any of required arguments are NULL. Please check.\n")
+  }
+  radius <- 1.1 * radius
+  ext_input <- get_clip_ext(y, radius)
+  ext_input <- terra::vect(ext_input)
+
+  cae <- terra::crop(x, ext_input, snap = "out")
+  return(cae)
 }
