@@ -48,7 +48,6 @@ read as \code{terra::vect} objects.
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_buffer}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_sedc}()}

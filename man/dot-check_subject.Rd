@@ -12,10 +12,7 @@
 \item{subject_id}{character(1). ID field of the subject object.}
 
 \item{extent}{numeric(4). The extent of the subject object.
-This object is order and name-sensitive depending on \code{out_class}.
-For \code{out_class = "sf"}, the numeric vector should be named
-\code{c("xmin", "ymin", "xmax", "ymax")}.
-For \code{out_class = "terra"}, the numeric vector should be ordered
+Numeric vector should be put in order of
 \code{c(xmin, xmax, ymin, ymax)}.}
 
 \item{out_class}{character(1). The class of the output object.
@@ -37,8 +34,6 @@ extent <- c(-80, -77, 35, 36)
 
 # Check a sf object
 ncsf <- sf::st_read(ncpath)
-extent <- extent[c(1, 3, 2, 4)]
-names(extent) <- c("xmin", "ymin", "xmax", "ymax")
 .check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
 
 # Check a character object

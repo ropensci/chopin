@@ -24,6 +24,7 @@ summarize_aw(x, y, ...)
   target_fields = NULL,
   id_x = "ID",
   fun = stats::weighted.mean,
+  out_class = "terra",
   extent = NULL
 )
 
@@ -37,10 +38,10 @@ summarize_aw(x, y, ...)
 )
 }
 \arguments{
-\item{x}{A sf object or file path of polygons detectable
+\item{x}{A sf/SpatVector object or file path of polygons detectable
 with GDAL driver at weighted means will be calculated.}
 
-\item{y}{A sf object or file path of polygons from
+\item{y}{A sf/SpatVector object or file path of polygons from
 which weighted means will be calculated.}
 
 \item{target_fields}{character. Field names to calculate area-weighted.}
@@ -49,8 +50,12 @@ which weighted means will be calculated.}
 The unique identifier of each polygon in \code{x}.
 Default is \code{"ID"}.}
 
-\item{fun}{function(1). The function to calculate the weighted summary.
-Default is \code{\link[stats:weighted.mean]{stats::weighted.mean}}. The function must have a \code{w} argument.}
+\item{fun}{function(1)/character(1).
+The function to calculate the weighted summary.
+Default is \code{\link[stats:weighted.mean]{stats::weighted.mean}}. The function must have a \code{w}
+argument. If both \code{x} and \code{y} are \code{sf}, it should be one of
+\code{c("sum", "mean")}. It will determine \code{extensive} argument in
+\code{\link[sf:interpolate_aw]{sf::st_interpolate_aw}}.}
 
 \item{extent}{numeric(4) or SpatExtent object. Extent of clipping \code{x}.
 It only works with \code{x} of character(1) file path.
@@ -79,7 +84,13 @@ pp[["id"]] <- seq(1, nrow(pp))
 sf::st_crs(pp) <- "EPSG:5070"
 ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 
-system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
+system.time(
+  ppb_nc_aw <-
+    summarize_aw(
+      ppb, nc, c("BIR74", "BIR79"),
+      "id", fun = "sum"
+    )
+)
 summary(ppb_nc_aw)
 
 # terra examples
@@ -97,7 +108,11 @@ pp[["id"]] <- seq(1, nrow(pp))
 ppb <- terra::buffer(pp, 20000)
 
 system.time(
-  ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id")
+  ppb_nc_aw <-
+    summarize_aw(
+      ppb, nc, c("BIR74", "BIR79"), "id",
+      fun = sum
+    )
 )
 summary(ppb_nc_aw)
 
@@ -105,7 +120,6 @@ summary(ppb_nc_aw)
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_buffer}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw_old}()},
 \code{\link{summarize_sedc}()}

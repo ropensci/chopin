@@ -426,10 +426,7 @@ any_class_args <- function(
 #' @param subject sf/SpatVector/character. The input object to be checked.
 #' @param subject_id character(1). ID field of the subject object.
 #' @param extent numeric(4). The extent of the subject object.
-#'   This object is order and name-sensitive depending on `out_class`.
-#'   For `out_class = "sf"`, the numeric vector should be named
-#'   `c("xmin", "ymin", "xmax", "ymax")`.
-#'   For `out_class = "terra"`, the numeric vector should be ordered
+#'   Numeric vector should be put in order of
 #'  `c(xmin, xmax, ymin, ymax)`.
 #' @param out_class character(1). The class of the output object.
 #'   Should be one of `c("sf", "terra")`.
@@ -437,6 +434,7 @@ any_class_args <- function(
 #' @importFrom terra vect
 #' @importFrom sf st_read st_as_text st_as_sfc st_bbox
 #' @importFrom cli cli_abort cli_inform
+#' @importFrom stats setNames
 #' @examples
 #' # Check a SpatVector object
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
@@ -446,8 +444,6 @@ any_class_args <- function(
 #'
 #' # Check a sf object
 #' ncsf <- sf::st_read(ncpath)
-#' extent <- extent[c(1, 3, 2, 4)]
-#' names(extent) <- c("xmin", "ymin", "xmax", "ymax")
 #' .check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
 #'
 #' # Check a character object
@@ -457,50 +453,56 @@ any_class_args <- function(
 #'   out_class = "terra",
 #'   subject_id = "FIPS"
 #' )
-.check_subject <- function(
-  subject,
-  subject_id,
-  extent = NULL,
-  out_class = "sf"
-) {
-  # type check
-  if (!any(
-    inherits(subject, c("SpatVector", "sf", "character"))
-  )) {
-    cli::cli_abort("Check class of the input object.\n")
-  }
-
-  # character ingestion
-  if (is.character(subject)) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort("out_class should be one of sf or terra.\n")
+.check_subject <-
+  function(
+    subject,
+    subject_id,
+    extent = NULL,
+    out_class = "sf"
+  ) {
+    # type check
+    if (!any(
+      inherits(subject, c("SpatVector", "sf", "character"))
+    )) {
+      cli::cli_abort("Check class of the input object.\n")
     }
-    cli::cli_inform(
-      sprintf("Input is a character. Trying to read with %s", out_class)
-    )
-    subject <-
-      switch(
-        out_class,
-        terra = try(terra::vect(subject, extent = extent)),
-        sf =
-        try(
-          sf::st_read(
-            subject,
-            wkt_filter = sf::st_as_text(sf::st_as_sfc(sf::st_bbox(extent)))
-          )
-        )
+
+    # character ingestion
+    if (is.character(subject)) {
+      if (!out_class %in% c("sf", "terra")) {
+        cli::cli_abort("out_class should be one of sf or terra.\n")
+      }
+      cli::cli_inform(
+        sprintf("Input is a character. Trying to read with %s", out_class)
       )
-  }
-
-  # ID check
-  if (!missing(subject_id)) {
-    stopifnot(is.character(subject_id))
-    if (!subject_id %in% names(subject)) {
-      cli::cli_abort("id should exist in the input object\n")
+      if (out_class == "sf") {
+        extent <- if (is.null(extent)) {
+          character(0)
+        } else {
+          extent <- extent[c(1, 3, 2, 4)]
+          extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
+          sf::st_as_text(sf::st_as_sfc(sf::st_bbox(extent)))
+        }
+      }
+      # nolint start
+      subject <-
+        switch(
+          out_class,
+          terra = try(terra::vect(subject, extent = extent)),
+          sf = try(sf::st_read(subject, wkt_filter = extent))
+        )
+      # nolint end
     }
+
+    # ID check
+    if (!missing(subject_id)) {
+      stopifnot(is.character(subject_id))
+      if (!subject_id %in% names(subject)) {
+        cli::cli_abort("id should exist in the input object\n")
+      }
+    }
+    return(subject)
   }
-  return(subject)
-}
 
 
 #' Check Raster Input
@@ -512,8 +514,10 @@ any_class_args <- function(
 #' @param input The input object to be checked. It can be either
 #'   a SpatRaster object or a character path to a raster file.
 #' @param extent The extent of the raster. Defaults to NULL.
+#'   Numeric vector should be put in order of
+#'  `c(xmin, xmax, ymin, ymax)`.
 #'
-#' @return The validated input object.
+#' @returns The validated input object.
 #'
 #' @examples
 #' .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))

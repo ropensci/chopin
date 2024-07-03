@@ -10,7 +10,9 @@
 \item{input}{The input object to be checked. It can be either
 a SpatRaster object or a character path to a raster file.}
 
-\item{extent}{The extent of the raster. Defaults to NULL.}
+\item{extent}{The extent of the raster. Defaults to NULL.
+Numeric vector should be put in order of
+\code{c(xmin, xmax, ymin, ymax)}.}
 }
 \value{
 The validated input object.

@@ -43,7 +43,6 @@ kernelfunction(v_dist, bw_dist2, "epanechnikov")
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_buffer}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_aw_old}()},
 \code{\link{summarize_sedc}()}

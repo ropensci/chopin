@@ -90,7 +90,6 @@ summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_buffer}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_aw_old}()}

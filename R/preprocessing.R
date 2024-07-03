@@ -25,7 +25,7 @@
 #' @importFrom terra vect rast
 #' @importFrom sf st_as_sf
 #' @importFrom stars st_as_stars
-#' @importFrom cli cli_abort
+#' @importFrom cli cli_abort cli_inform
 #' @keywords internal
 dep_switch <- function(input) {
   if (!inherits(input, c("sf", "stars", "SpatVector", "SpatRaster"))) {
@@ -33,6 +33,14 @@ dep_switch <- function(input) {
   }
   cls_input <- dep_check(input)
   type_input <- datamod(input)
+  # search strings. can be expanded.
+  candidates <- c("sf", "terra")
+  cli::cli_inform(
+    sprintf(
+      "Switch %s class to %s...",
+      cls_input, setdiff(candidates, cls_input)
+    )
+  )
 
   switched <-
     switch(cls_input,

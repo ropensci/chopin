@@ -19,6 +19,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -33,6 +34,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -47,6 +49,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -61,6 +64,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -75,6 +79,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -89,6 +94,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -103,6 +109,7 @@ extract_at(
   radius = NULL,
   out_class = "sf",
   kernel = NULL,
+  kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
   ...
@@ -123,6 +130,17 @@ It only works with \code{points} of character(1) file path.}
 
 \item{radius}{numeric(1). Buffer radius.}
 
+\item{out_class}{character(1). Output class. One of \code{sf} or \code{terra}.}
+
+\item{kernel}{character(1). Name of a kernel function
+One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
+
+\item{kernel_func}{function. Kernel function to apply to the extracted values.}
+
+\item{bandwidth}{numeric(1). Kernel bandwidth.}
+
+\item{max_cells}{integer(1). Maximum number of cells in memory.}
+
 \item{...}{Placeholder.}
 }
 \value{
@@ -131,6 +149,17 @@ respect to the mode (polygon or buffer) and the function.
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+\details{
+Inputs are preprocessed in different ways depending on the class.
+\itemize{
+\item Vector inputs in \code{y}: \code{sf} is preferred, thus character and \code{SpatVector}
+inputs will be converted to \code{sf} object. If \code{radius} is not NULL,
+\code{sf::st_buffer} is used to generate circular buffers as subsequent
+raster-vector overlay is done with \code{exactextractr::exact_extract}.
+\item Raster input in \code{x}: \code{SpatRaster} is preferred. If the input is not
+\code{SpatRaster}, it will be converted to \code{SpatRaster} object.
+}
 }
 \examples{
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
@@ -144,15 +173,19 @@ terra::values(rrast) <- rgamma(2.2e4, 4, 2)
 rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
 rpnt$pid <- sprintf("ID-\%02d", seq(1, 16))
 
-extract_at(rrast, rpnt, "pid", "mean", radius = 10)
+extract_at(rrast, rpnt, "pid", "mean", radius = 1000)
 extract_at(rrast, nc, "NAME", "mean")
 extract_at(rrast, ncpath, "NAME", "mean")
+extract_at(
+  rrast, ncpath, "NAME", "mean",
+  kernel = "epanechnikov",
+  bandwidth = 1e5
+)
 }
 \seealso{
 \link{extract_at_poly}, \link{extract_at_buffer}
 
 Other Macros for calculation: 
-\code{\link{extract_at_buffer}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_aw_old}()},
