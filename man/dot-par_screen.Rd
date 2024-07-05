@@ -4,7 +4,7 @@
 \alias{.par_screen}
 \title{Prescreen input data for parallelization}
 \usage{
-.par_screen(type, input, input_id = NULL, out_class = NULL, grid_ = NULL)
+.par_screen(type, input, input_id = NULL, out_class = "terra", .window = NULL)
 }
 \arguments{
 \item{type}{character(1). "raster" or "vector".}
@@ -15,9 +15,9 @@
 will not check the object with an ID column.}
 
 \item{out_class}{character(1). Default is NULL, but should be one of
-\code{c("sf", "terra")}.}
+\code{c("sf", "terra")}. Default is "terra".}
 
-\item{grid_}{numeric(4)/SpatExtent/st_bbox object. Loading window.}
+\item{.window}{numeric(4)/SpatExtent/st_bbox object. Loading window.}
 }
 \description{
 This function takes input object and type character to ingest

@@ -91,7 +91,7 @@ par_pad_grid <-
       cli::cli_abort("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
-      cli::cli_inform(
+      cli::cli_alert_info(
         "padding should be numeric. Try converting padding to numeric..."
       )
       padding <- as.numeric(padding)
@@ -169,7 +169,7 @@ par_pad_grid <-
         Map(
           function(x) {
             if (dep_check(grid_reg) == "sf") {
-              sf::st_as_text(x$geometry)
+              sf::st_as_text(x[[attr(x, "sf_column")]])
             } else {
               terra::geom(x, wkt = TRUE)
             }
@@ -191,15 +191,15 @@ par_pad_grid <-
 #'   is generated out of input points along with the output of
 #'   `par_make_balanced`.
 #' @family Parallelization
-#' @param points_in `sf` or `SpatVector` object.
+#' @param points_in `sf` or `SpatVector` object. Point geometries.
 #' @param ngroups integer(1). The number of groups.
 #' @param padding numeric(1). A extrusion factor to make buffer to
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 #' @returns A list of two,
-#'  * \code{original}: exhaustive and non-overlapping
+#'  * `original`: exhaustive and non-overlapping
 #'  grid polygons in the class of input
-#'  * \code{padded}: a square buffer of each polygon in
-#'  \code{original}. Used for computation.
+#'  * `padded`: a square buffer of each polygon in `original`.
+#'  Used for computation.
 #' @author Insang Song
 #' @examples
 #' library(terra)
@@ -237,7 +237,7 @@ par_pad_balanced <-
       }
     }
     if (is.character(points_in)) {
-      points_in <- try(terra::vect(points_in, proxy = TRUE))
+      points_in <- try(terra::vect(points_in, proxy = TRUE), silent = TRUE)
     }
     pgroups <- par_make_balanced(points_in, ngroups)
 
@@ -298,7 +298,6 @@ par_pad_balanced <-
 #' plot(nc_gr, add = TRUE)
 #' @importFrom terra rast as.polygons
 #' @importFrom sf st_as_sf st_make_grid
-#' @export
 par_make_grid <-
   function(
     points_in = NULL,
@@ -327,14 +326,59 @@ par_make_grid <-
         ) |>
         terra::as.polygons()
       )
-    # grid select
-    ## TODO: grid_out is not using actual dataset; par_grid will handle that
-    ## in a way that returning NULL first then
-    ## filtering the list with lst[sapply(lst, function(x) !is.null(x)]
 
     grid_out$CGRIDID <- seq_len(nrow(grid_out))
     return(grid_out)
   }
+
+
+#' Generate groups based on balanced clustering
+#' @description For balancing computational loads, the function uses
+#' the `anticlust` package to cluster the input points. The number of clusters
+#' is determined by the `num_cluster` argument. Each cluster will have
+#' equal number of points. Grids will be generated based on the cluster
+#' extents. At the lower level, the function uses [terra::distance()]
+#' function to calculate the Euclidean distance between points.
+#' @note This function is only for two-dimensional points.
+#' The results will be irregular grids with or without overlapping parts.
+#' @param points_in `sf` or `SpatVector` object. Target points of computation.
+#' @param n_clusters integer(1). The number of clusters.
+#' @returns `SpatVector` object with a field `"CGRIDID"`.
+#' @examples
+#' library(terra)
+#' library(anticlust)
+#' data(ncpoints, package = "chopin")
+#' ncp <- terra::vect(
+#'   ncpoints, geom = c("X", "Y"),
+#'   keepgeom = FALSE, crs = "EPSG:5070"
+#' )
+#' # 2,304 points / 12 = 192 points per cluster
+#' ncpbal <- par_make_balanced(ncp, 12)
+#' ncpbal
+#' @author Insang Song
+#' @importFrom anticlust balanced_clustering
+#' @importFrom terra vect distance
+#' @importFrom stats dist
+#' @importFrom cli cli_abort
+par_make_balanced <- function(
+  points_in = NULL,
+  n_clusters = NULL
+) {
+  if (!is.numeric(n_clusters)) {
+    cli::cli_abort(c("x" = "n_clusters should be numeric."))
+  }
+  if (n_clusters < 2) {
+    cli::cli_abort(c("x" = "n_clusters should be greater than 1."))
+  }
+  if (dep_check(points_in) == "sf") {
+    points_in <- terra::vect(points_in)
+  }
+  # define dissimilarity based on Euclidean distance
+  dissim <- terra::distance(points_in)
+  cl <- anticlust::balanced_clustering(dissim, K = n_clusters)
+  points_in$CGRIDID <- cl
+  return(points_in)
+}
 
 
 #' Quantile definition
@@ -347,7 +391,7 @@ par_make_grid <-
 #' par_def_q(5L)
 par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
-    cli::cli_abort("steps should be greater than 1.")
+    cli::cli_abort(c("x" = "steps should be greater than 1."))
   }
   quantiles <- seq(0, 1, length.out = steps + 1)
   return(quantiles)
@@ -402,7 +446,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
     y <- invect[, 2]
   }
   if (length(x) != length(y)) {
-    cli::cli_abort("x and y should have the same length.")
+    cli::cli_abort(c("x" = "x and y should have the same length."))
   }
   x_quantiles <- stats::quantile(x, probs = quantiles)
   y_quantiles <- stats::quantile(y, probs = quantiles)
@@ -539,14 +583,14 @@ par_merge_grid <-
         is.na(grid_target)
       )
     ) {
-      cli::cli_inform(
-        sprintf(
-          "Threshold is too low. Return the original grid.
-           Please try higher threshold.
-           Minimum number of points in grids: %d, your threshold: %d\n",
-          min(n_points_in_grid), grid_min_features
-        )
-      )
+      cli::cli_inform(c("i" =
+          sprintf(
+            "Threshold is too low. Return the original grid.
+            Please try higher threshold.
+            Minimum number of points in grids: %d, your threshold: %d\n",
+            min(n_points_in_grid), grid_min_features
+          )
+      ))
       # changed to grid_pc (0.6.4)
       return(grid_pc)
     }
@@ -566,17 +610,17 @@ par_merge_grid <-
       identified[vapply(identified, FUN = length, FUN.VALUE = numeric(1)) > 1]
     # 8. conditional 2: if there is no grid to merge
     if (length(identified) == 0) {
-      cli::cli_inform("No grid to merge.\n")
+      cli::cli_alert_info("No grid to merge.\n")
       # changed to grid_pc (0.6.4)
       return(grid_pc)
     }
     # 9. Minimum spanning tree: find the connected components
     identified_graph <-
       lapply(identified, function(x) t(utils::combn(x, 2))) |>
-      Reduce(f = rbind, x = _) |>
+      Reduce(f = rbind) |>
       unique() |>
-      apply(X = _, 2, as.character) |>
-      igraph::graph_from_edgelist(el = _, directed = 0) |>
+      apply(MARGIN = 2, FUN = as.character) |>
+      igraph::graph_from_edgelist(directed = FALSE) |>
       igraph::mst() |>
       igraph::components()
 
@@ -676,8 +720,12 @@ par_merge_grid <-
     if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
           any(par_merge_gridd_pptest < 0.3)) {
       cli::cli_inform(
-        "The reduced computational regions have too complex shapes.",
-        "Consider increasing thresholds or using the original grids."
+        c("i" =
+            paste0(
+              "The reduced computational regions have too complex shapes.\n",
+              "Consider increasing thresholds or using the original grids.\n"
+            )
+        )
       )
     }
     if (dep_check(points_in) != dep_check(grid_out)) {
@@ -687,55 +735,6 @@ par_merge_grid <-
     return(grid_out)
   }
 
-
-#' Generate groups based on balanced clustering
-#' @description For balancing computational loads, the function uses
-#' the `anticlust` package to cluster the input points. The number of clusters
-#' is determined by the `num_cluster` argument. Each cluster will have
-#' equal number of points. Grids will be generated based on the cluster
-#' extents. At the lower level, the function uses [terra::distance()]
-#' function to calculate the Euclidean distance between points.
-#' @note This function is only for two-dimensional points.
-#' The results will be irregular grids with or without overlapping parts.
-#' @param points_in `sf` or `SpatVector` object. Target points of computation.
-#' @param n_clusters integer(1). The number of clusters.
-#' @returns `SpatVector` object with a field `"CGRIDID"`.
-#' @examples
-#' library(terra)
-#' library(anticlust)
-#' data(ncpoints, package = "chopin")
-#' ncp <- terra::vect(
-#'   ncpoints, geom = c("X", "Y"),
-#'   keepgeom = FALSE, crs = "EPSG:5070"
-#' )
-#' # 2,304 points / 12 = 192 points per cluster
-#' ncpbal <- par_make_balanced(ncp, 12)
-#' ncpbal
-#' @author Insang Song
-#' @importFrom anticlust balanced_clustering
-#' @importFrom terra vect distance
-#' @importFrom stats dist
-#' @importFrom cli cli_abort
-#' @export
-par_make_balanced <- function(
-  points_in = NULL,
-  n_clusters = NULL
-) {
-  if (!is.numeric(n_clusters)) {
-    cli::cli_abort("n_clusters should be numeric.")
-  }
-  if (n_clusters < 2) {
-    cli::cli_abort("n_clusters should be greater than 1.")
-  }
-  if (dep_check(points_in) == "sf") {
-    points_in <- terra::vect(points_in)
-  }
-  # define dissimilarity based on Euclidean distance
-  dissim <- terra::distance(points_in)
-  cl <- anticlust::balanced_clustering(dissim, K = n_clusters)
-  points_in$CGRIDID <- cl
-  return(points_in)
-}
 
 
 #' Split grid list to a nested list of row-wise data frames

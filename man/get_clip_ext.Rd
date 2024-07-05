@@ -4,12 +4,14 @@
 \alias{get_clip_ext}
 \title{Setting the clipping extent}
 \usage{
-get_clip_ext(pnts, radius)
+get_clip_ext(pnts, radius, extrusion = 1.1)
 }
 \arguments{
 \item{pnts}{One of sf or SpatVector object. Target points of computation.}
 
 \item{radius}{numeric(1). Buffer radius. It is assumed to be in meters}
+
+\item{extrusion}{numeric(1). The extent extrusion factor.}
 }
 \value{
 A terra::ext or sfc_POLYGON object of the computation extent.
@@ -32,7 +34,6 @@ get_clip_ext(nc_vect, 2.5e4)
 }
 \seealso{
 Other Helper functions: 
-\code{\link{any_class_args}()},
 \code{\link{check_dist_incorrect}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
@@ -41,8 +42,9 @@ Other Helper functions:
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
 \code{\link{ext_to_poly}()},
-\code{\link{is_within_ref}()},
+\code{\link{is_bbox_within_reference}()},
 \code{\link{par_def_q}()},
+\code{\link{par_map_args}()},
 \code{\link{reproject_std}()},
 \code{\link{reproject_to_raster}()},
 \code{\link{vect_validate}()}

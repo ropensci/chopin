@@ -37,6 +37,7 @@ extract_at(
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 
@@ -52,6 +53,7 @@ extract_at(
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 
@@ -67,6 +69,7 @@ extract_at(
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 
@@ -82,6 +85,7 @@ extract_at(
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 
@@ -97,6 +101,7 @@ extract_at(
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 
@@ -105,13 +110,14 @@ extract_at(
   y = NULL,
   id = NULL,
   func = "mean",
-  extent = NULL,
-  radius = NULL,
+  extent,
+  radius,
   out_class = "sf",
   kernel = NULL,
   kernel_func = stats::weighted.mean,
-  bandwidth = NULL,
+  bandwidth,
   max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 }

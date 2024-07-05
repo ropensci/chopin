@@ -10,10 +10,12 @@
 \item{input}{The input object to be checked}
 }
 \value{
-A character string indicating the class of the input object ("raster" or "vector")
+A character string indicating the class of
+the input object ("raster" or "vector")
 }
 \description{
-This function checks the class of an input object and returns "raster" if it is a raster object,
+This function checks the class of an input object and
+returns "raster" if it is a raster object,
 or "vector" if it is a vector object.
 }
 \keyword{internal}

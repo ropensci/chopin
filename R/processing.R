@@ -133,6 +133,7 @@ kernelfunction <-
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = NULL,
+  .standalone = TRUE,
   ...
 ) {
   x <-
@@ -141,17 +142,19 @@ kernelfunction <-
       extent = extent
     )
 
-  y <-
-    .check_subject(
-      y,
-      extent = extent,
-      out_class = out_class,
-      subject_id = id
-    )
-  # reproject polygons to raster's crs
-  y <- reproject_to_raster(vector = y, raster = x)
-  if (dep_check(y) == "terra") {
-    y <- dep_switch(y)
+  if (.standalone) {
+    y <-
+      .check_vector(
+        y,
+        extent = extent,
+        out_class = out_class,
+        subject_id = id
+      )
+    # reproject polygons to raster's crs
+    y <- reproject_to_raster(vector = y, raster = x)
+    if (dep_check(y) == "terra") {
+      y <- dep_switch(y)
+    }
   }
 
   if (!is.null(radius)) {
@@ -292,6 +295,7 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
@@ -302,7 +306,8 @@ setMethod(
       kernel = kernel,
       kernel_func = kernel_func,
       bandwidth = bandwidth,
-      max_cells = max_cells
+      max_cells = max_cells,
+      .standalone = .standalone
     )
   }
 )
@@ -328,6 +333,7 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
@@ -338,7 +344,8 @@ setMethod(
       kernel = kernel,
       kernel_func = kernel_func,
       bandwidth = bandwidth,
-      max_cells = max_cells
+      max_cells = max_cells,
+      .standalone = .standalone
     )
   }
 )
@@ -364,6 +371,7 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
@@ -374,7 +382,8 @@ setMethod(
       kernel = kernel,
       kernel_func = kernel_func,
       bandwidth = bandwidth,
-      max_cells = max_cells
+      max_cells = max_cells,
+      .standalone = .standalone
     )
   }
 )
@@ -399,6 +408,7 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
@@ -409,7 +419,8 @@ setMethod(
       kernel = kernel,
       kernel_func = kernel_func,
       bandwidth = bandwidth,
-      max_cells = max_cells
+      max_cells = max_cells,
+      .standalone = TRUE
     )
   }
 )
@@ -435,6 +446,7 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
@@ -445,7 +457,8 @@ setMethod(
       kernel = kernel,
       kernel_func = kernel_func,
       bandwidth = bandwidth,
-      max_cells = max_cells
+      max_cells = max_cells,
+      .standalone = .standalone
     )
   }
 )
@@ -472,6 +485,7 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth,
     max_cells = 3e+07,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
@@ -482,7 +496,8 @@ setMethod(
       kernel = kernel,
       kernel_func = kernel_func,
       bandwidth = bandwidth,
-      max_cells = max_cells
+      max_cells = max_cells,
+      .standalone = .standalone
     )
   }
 )
@@ -573,9 +588,9 @@ summarize_sedc <-
   ) {
 
     point_from <-
-      .check_subject(point_from, extent = extent_from, subject_id = id)
+      .check_vector(point_from, extent = extent_from, subject_id = id)
     point_to <-
-      .check_subject(point_to, extent = extent_to, subject_id = NULL)
+      .check_vector(point_to, extent = extent_to, subject_id = NULL)
 
     # define sources, set SEDC exponential decay range
     len_point_from <- seq_len(nrow(point_from))
@@ -746,8 +761,8 @@ setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"),
     extent = NULL
   ) {
 
-    x <- .check_subject(x, extent = extent, subject_id = id_x)
-    y <- .check_subject(y, extent = extent)
+    x <- .check_vector(x, extent = extent, subject_id = id_x)
+    y <- .check_vector(y, extent = extent)
 
     poly_intersected <- terra::intersect(x, y)
     poly_intersected[["area_segment_"]] <-
@@ -783,11 +798,11 @@ setMethod("summarize_aw", signature(x = "character", y = "character"),
   ) {
 
     x <-
-      .check_subject(
+      .check_vector(
         x, extent = extent, subject_id = id_x, out_class = out_class
       )
     y <-
-      .check_subject(y, extent = extent, out_class = out_class)
+      .check_vector(y, extent = extent, out_class = out_class)
 
     area_norm <- terra::expanse(y[1, ])
     poly_intersected <- terra::intersect(x, y)
@@ -821,8 +836,8 @@ setMethod("summarize_aw", signature(x = "sf", y = "sf"),
   ) {
     fun <- match.arg(fun, c("mean", "sum"))
     extensive <- (fun == "sum")
-    x <- .check_subject(x, extent = extent, subject_id = id_x)
-    y <- .check_subject(y, extent = extent)
+    x <- .check_vector(x, extent = extent, subject_id = id_x)
+    y <- .check_vector(y, extent = extent)
 
     if (!is.null(target_fields)) {
       y <- y[, target_fields]

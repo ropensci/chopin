@@ -133,7 +133,7 @@ remotes::install_github("NIEHS/chopin")
 - Examples will navigate `par_grid`, `par_hierarchy`, and `par_multirasters` functions in `chopin` to parallelize geospatial operations.
 ```{r load-packages}
 # check and install packages to run examples
-pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "mirai")
+pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai")
 # install packages if anything is unavailable
 rlang::check_installed(pkgs)
 
@@ -142,13 +142,11 @@ library(dplyr)
 library(sf)
 library(terra)
 library(future)
+library(future.mirai)
 library(mirai)
 
 # disable spherical geometries
 sf::sf_use_s2(FALSE)
-
-# backend parallel processor: default is "mirai"
-options(chopin.backend = "mirai")
 
 # parallelization-safe random number generator
 set.seed(2024, kind = "L'Ecuyer-CMRG")
@@ -215,8 +213,8 @@ compregions <-
   chopin::par_pad_grid(
     ncpoints,
     mode = "grid",
-    nx = 8L,
-    ny = 5L,
+    nx = 2L,
+    ny = 2L,
     padding = 1e4L
   )
 ```
@@ -239,8 +237,7 @@ terra::plot(compregions$padded, main = "Padded grids")
 - `chopin::par_*` functions are flexible in terms of supporting generic spatial operations in `sf` and `terra`, especially where two datasets are involved.
     - Users can inject generic functions' arguments (parameters) by writing them in the ellipsis (`...`) arguments, as demonstrated below:
 ```{r}
-mirai::daemons(4)
-# future::plan(future::multicore, workers = 4L)
+future::plan(future.mirai::mirai_multisession, workers = 4L)
 
 system.time(
   ncpoints_srtm_mthr <-
@@ -251,7 +248,6 @@ system.time(
       x = srtm,
       y = ncpoints,
       id = "pid",
-      mode = "buffer",
       radius = 1e4L
     )
 )
@@ -332,7 +328,7 @@ system.time(
 
 ```{r prep-multiraster}
 # nccnty <- sf::st_read(nc_data, layer = "county")
-ncelev <- path_srtm
+ncelev <- terra::rast(srtm)
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")
 tdir <- tempdir()
@@ -385,16 +381,15 @@ file.remove(testfiles)
 path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
 
 # Generate 5000 random points
-pnts <- sf::st_sample(ncsf, 5000)
+pnts <- sf::st_sample(nc_county, 5000)
 pnts <- sf::st_as_sf(pnts)
 # assign identifiers
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
-pnts <- terra::vect(pnts)
-rd1 <- terra::vect(path_ncrd1)
+rd1 <- sf::st_read(path_ncrd1)
 
 # reproject
-pntst <- terra::project(pnts, "EPSG:5070")
-rd1t <- terra::project(rd1, "EPSG:5070")
+pntst <- sf::st_transform(pnts, "EPSG:5070")
+rd1t <- sf::st_transform(rd1, "EPSG:5070")
 
 # generate grids
 nccompreg <-
@@ -428,17 +423,21 @@ legend(1.02e6, 1.72e6,
 ```{r compare-generic}
 # terra::nearest run
 system.time(
-  restr <- terra::nearest(x = pntst, y = rd1t)
+  restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
+
+pnt_path <- file.path(tdir, "pntst.gpkg")
+sf::st_write(pntst, pnt_path)
 
 # we use four threads that were configured above
 system.time(
-  res <-
+  resd <-
     chopin::par_grid(
       grids = nccompreg,
       fun_dist = terra::nearest,
-      x = sf::st_as_sf(pnts),
-      y = rd1
+      x = pnt_path,
+      y = path_ncrd1,
+      pad_y = TRUE
     )
 )
 ```
@@ -446,7 +445,7 @@ system.time(
 - We will compare the results from the single-thread and multi-thread calculation.
 
 ```{r compare-distance}
-resj <- merge(restr, res, by = c("from_x", "from_y"))
+resj <- merge(restr, resd, by = c("from_x", "from_y"))
 all.equal(resj$distance.x, resj$distance.y)
 ```
 

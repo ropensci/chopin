@@ -9,6 +9,5 @@
 ## usethis namespace: start
 #' @importFrom lifecycle deprecated
 ## usethis namespace: end
-NULL
 "_PACKAGE"
 #nolint end

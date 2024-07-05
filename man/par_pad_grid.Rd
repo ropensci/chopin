@@ -105,7 +105,6 @@ nc_comp_region_wkt$padded
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},

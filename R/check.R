@@ -4,7 +4,7 @@
 #' @description Detect whether the input object is sf or Spat* object.
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
-#' @returns A character object; one of `"terra"` and `"sf"`
+#' @returns A character object; one of `"character"`, `"terra"` and `"sf"`
 #' @examples
 #' library(sf)
 #' library(terra)
@@ -19,10 +19,15 @@ dep_check <- function(input) {
   if (
     !inherits(
       input,
-      c("sf", "stars", "SpatVector", "SpatRaster", "SpatVectorProxy")
+      c("sf", "stars",
+        "SpatVector", "SpatRaster", "SpatVectorProxy",
+        "character")
     )
   ) {
     cli::cli_abort("Input should be one of sf or Spat* object.\n")
+  }
+  if (inherits(input, "character")) {
+    return("character")
   }
   if (
     inherits(input, c("SpatVector", "SpatRaster", "SpatVectorProxy"))
@@ -121,7 +126,8 @@ datamod <- function(input) {
   if (
     !inherits(
       input,
-      c("sf", "stars", "SpatVector", "SpatRaster")
+      c("sf", "stars", "SpatVector", "SpatRaster",
+        "SpatVectorProxy", "SpatRasterDataset", "SpatRasterCollection")
     )
   ) {
     cli::cli_abort("Input should be one of sf or Spat* object.\n")
@@ -169,11 +175,8 @@ datamod <- function(input) {
 #'
 #' nc_vect <- terra::vect(nc_sf)
 #' reproject_std(nc_vect, base_crs)
-#' @importFrom sf st_crs
-#' @importFrom sf st_transform
-#' @importFrom terra crs
-#' @importFrom terra project
-#' @export
+#' @importFrom sf st_crs st_transform
+#' @importFrom terra crs project
 reproject_std <-
   function(
     input,
@@ -191,21 +194,24 @@ reproject_std <-
       sf = sf::st_crs(crs_standard)$epsg,
       terra = terra::crs(crs_standard, describe = TRUE)$code
     )
-    if (input_crs == standard_crs) {
-      return(input)
+    if (input_crs != standard_crs) {
+      cli::cli_inform(
+        sprintf("Reprojecting input:...\n\n--- CRS ---\n%s\n", standard_crs)
+      )
+      input <- switch(
+        bound_package,
+        sf = sf::st_transform(input, sf::st_crs(crs_standard)),
+        terra = terra::project(x = input, y = crs_standard)
+      )
     }
-    input_transformed <- switch(
-      bound_package,
-      sf = sf::st_transform(input, sf::st_crs(crs_standard)),
-      terra = terra::project(x = input, y = crs_standard)
-    )
-    return(input_transformed)
+    return(input)
   }
 
 
 
 #' @title Align vector CRS to raster's
 #' @family Helper functions
+#' @keywords internal soft-deprecated
 #' @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
 #' @param raster `SpatRaster` object
 #' @returns Reprojected object in the same class as \code{vector}
@@ -237,7 +243,7 @@ reproject_to_raster <-
 
 #' Validate and repair input vector data
 #' @family Helper functions
-#' @keywords internal
+#' @keywords internal soft-validated
 #' @description It tries repairing input vector data.
 #' Vector validity violation usually appears in polygon data with
 #' self-crossing or
@@ -275,7 +281,7 @@ vect_validate <- function(input_vector) {
 
 #' Generate a rectangular polygon from extent
 #' @family Helper functions
-#' @keywords internal
+#' @keywords internal soft-deprecated
 #' @param extent input extent.
 #'  A numeric vector with xmin/xmax/ymin/ymax,
 #'  [sf::st_bbox] or [terra::ext] outputs.
@@ -291,12 +297,8 @@ vect_validate <- function(input_vector) {
 #' names(numext1) <- c("xmin", "xmax", "ymin", "ymax")
 #' ext_to_poly(numext1, "sf")
 #' ext_to_poly(numext1, "terra")
-#' @importFrom sf st_as_sf
-#' @importFrom sf st_bbox
-#' @importFrom sf st_set_crs
-#' @importFrom terra vect
-#' @importFrom terra ext
-#' @importFrom terra set.crs
+#' @importFrom sf st_as_sf st_bbox st_set_crs
+#' @importFrom terra vect ext set.crs
 ext_to_poly <- function(
     extent = NULL,
     output_class = c("sf", "terra"),
@@ -306,8 +308,10 @@ ext_to_poly <- function(
     if (output_class == "sf") {
       if (is.null(attr(extent, "names"))) {
         cli::cli_abort(
-          "Your extent is an unnamed numeric vector.",
-          "Please define names xmin/xmax/ymin/ymax explicitly."
+          paste0(
+            "Your extent is an unnamed numeric vector.\n",
+            "Please define names xmin/xmax/ymin/ymax explicitly.\n"
+          )
         )
       }
     }
@@ -337,8 +341,7 @@ ext_to_poly <- function(
 
 #' Check if the data extent is inside the reference bounding box
 #' @family Helper functions
-#' `r lifecycle::badge("deprecated")`
-#' @keywords internal
+#' @keywords internal soft-deprecated
 #' @description One of the most common errors in spatial computation is rooted
 #' in the entirely or partly incomparable spatial extents of input datasets.
 #' This function returns whether your data is inside the target computational
@@ -368,9 +371,12 @@ is_bbox_within_reference <- function(
 ) {
   reference <- sf::st_as_sfc(sf::st_bbox(reference))
   cli::cli_inform(
-    "Full CRS:",
-    as.character(sf::st_crs(reference)),
-    "--- CRS ---"
+    paste(
+      "Full CRS:",
+      as.character(sf::st_crs(reference)),
+      "--- CRS ---",
+      collapse = "\n"
+    )
   )
 
   data_query_bb <-
@@ -386,7 +392,7 @@ is_bbox_within_reference <- function(
 
 #' Check Coordinate Reference System
 #' @family Helper functions
-#' @keywords internal
+#' @keywords internal soft-deprecated
 #' @param x `sf`/`stars`/`SpatVector`/`SpatRaster` object.
 #' @returns A st_crs or crs object.
 #' @description It returns st_crs object from `sf`/Spat* objects.
@@ -399,7 +405,6 @@ is_bbox_within_reference <- function(
 #' crs_check(nc)
 #' @importFrom sf st_crs
 #' @importFrom terra crs
-#' @importFrom methods is
 crs_check <- function(x = NULL) {
   ref_class <- c("sf", "stars", "SpatVector",
                  "SpatRaster", "SpatRasterDataset")
@@ -432,90 +437,158 @@ crs_check <- function(x = NULL) {
   return(crs_wkt)
 }
 
-#' Check if the boundary of the vector/raster object is inside the reference
-#' @family Helper functions
-#' @param input_object sf/stars/SpatVector/SpatRaster object.
-#' @param reference sf/stars/SpatVector/SpatRaster object.
-#' @returns logical
-#' @author Insang Song \email{geoissong@@gmail.com}
-#' @examples
-#' library(sf)
-#' sf_use_s2(FALSE)
-#' ncpath <- system.file("shape/nc.shp", package = "sf")
-#' nc <- sf::read_sf(ncpath)
-#' nc <- sf::st_transform(nc, "EPSG:4326")
-#' mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-#' mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
-#' within_res <- is_within_ref(nc, mainland_box)
-#' within_res
-#' @importFrom methods is
-#' @importFrom sf st_bbox
-#' @importFrom sf st_as_sfc
-#' @importFrom sf st_covered_by
-#' @export
-is_within_ref <- function(input_object, reference) {
-  if (!any(
-    methods::is(input_object, "sf"),
-    methods::is(input_object, "stars"),
-    methods::is(input_object, "SpatVector"),
-    methods::is(input_object, "SpatRaster")
-  )) {
-    cli::cli_abort("Input is invalid.\n")
+
+
+## .intersect_extent ####
+setGeneric(
+  ".intersect_extent",
+  function(input = NULL, out_class = NULL, ...) {
+    if (is.null(input)) {
+      return(input)
+    }
   }
+)
 
-  if (!any(
-    methods::is(reference, "sf"),
-    methods::is(reference, "stars"),
-    methods::is(reference, "SpatVector"),
-    methods::is(reference, "SpatRaster")
-  )) {
-    cli::cli_abort("Reference is invalid.\n")
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".intersect_extent",
+  signature(input = "sf"),
+  function(input, out_class = NULL, ...) {
+    extent <- sf::st_as_sfc(sf::st_bbox(input))
+    if (!is.null(out_class)) {
+      if (out_class == "terra") {
+        extent <- terra::ext(sf::st_bbox(extent))
+      }
+    }
+    return(extent)
   }
+)
 
-  bbox_input <- input_object |>
-    sf::st_bbox() |>
-    sf::st_as_sfc()
+# setMethod(
+#   ".intersect_extent",
+#   signature(input = "bbox"),
+#   function(input, out_class = NULL, ...) {
+#     extent <- sf::st_as_sfc(input)
+#     return(extent)
+#   }
+# )
 
-  bbox_reference <- reference |>
-    sf::st_bbox() |>
-    sf::st_as_sfc()
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".intersect_extent",
+  signature(input = "SpatVector"),
+  function(input, out_class = NULL, ...) {
+    extent <- terra::ext(input)
+    if (!is.null(out_class)) {
+      if (out_class == "sf") {
+        extent <- sf::st_bbox(extent)
+      }
+    }
+    return(extent)
+  }
+)
 
-  iswithin <- sf::st_covered_by(bbox_input, bbox_reference)
-  iswithin <- length(iswithin[[1]])
-  iswithin <- (iswithin == 1)
-  invisible(iswithin)
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".intersect_extent",
+  signature(input = "numeric", out_class = "character"),
+  function(input, out_class = NULL, ...) {
+    out_class <- match.arg(out_class, c("sf", "terra"))
+
+    if (out_class == "sf") {
+      extent <- input[c(1, 3, 2, 4)]
+      extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
+      extent <- sf::st_as_sfc(sf::st_bbox(extent))
+    }
+    if (out_class == "terra") {
+      extent <- terra::ext(input)
+    }
+    return(extent)
+  }
+)
+
+
+#' @keywords internal
+#' @noRd
+.check_id <- function(input, input_id = NULL) {
+  if (!is.null(input_id)) {
+    stopifnot(is.character(input_id))
+    if (!input_id %in% names(input)) {
+      cli::cli_abort("id should exist in the input object\n")
+    }
+  }
+  return(input)
 }
 
 
 
-#' Detect classes in function arguments
-#' @family Helper functions
-#' @param args Any list, but preferably generated by \code{list(...)} inside
-#' a function.
-#' @param search character(1). Class name to search. Partial match is supported.
-#' @returns logical vector.
-#' @author Insang Song
-#' @description When a R function is defined in an ordinary
-#' fashion (i.e., assigning a function by \code{<- function(...)})
-#' would be subject to ambiguity particularly if the function
-#' name is the same as the generic function name(s).
-#' This function supports detecting classes of arguments in
-#' a loosely defined function.
-#' @examples
-#' df <- data.frame(a = 1, b = 3)
-#' any_class_args(list(df), "data.frame")
-any_class_args <- function(
-  args = NULL,
-  search = NULL
-) {
-  searchphrase <- sprintf("(%s)", search)
-  args_scanned <- lapply(args, function(x) any(grepl(searchphrase, class(x))))
-  args_scanned <- vapply(args_scanned, FUN = any, FUN.VALUE = logical(1))
-  return(args_scanned)
-}
+#' @keywords internal
+#' @noRd
+setMethod(
+  "[",
+  signature(x = "SpatVector", i = "bbox", j = "missing"),
+  function(x, i, j) {
+    x[terra::ext(i), ]
+  }
+)
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  "[",
+  signature(x = "sf", i = "SpatExtent", j = "missing"),
+  function(x, i, j) {
+    x[sf::st_as_sfc(sf::st_bbox(i)), ]
+  }
+)
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  "[",
+  signature(x = "sf", i = "SpatVector", j = "missing"),
+  function(x, i, j) {
+    x[sf::st_as_sf(i), ]
+  }
+)
 
 
+#' @keywords internal
+#' @noRd
+setMethod(
+  "[",
+  signature(x = "SpatVector", i = "sf", j = "missing"),
+  function(x, i, j) {
+    x[terra::vect(i), ]
+  }
+)
 
+#' @keywords internal
+#' @noRd
+setMethod(
+  "[",
+  signature(x = "SpatVector", i = "sfc", j = "missing"),
+  function(x, i, j) {
+    x[terra::vect(sf::st_as_sf(i)), ]
+  }
+)
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  "[",
+  signature(x = "SpatVector", i = "SpatExtent", j = "missing"),
+  function(x, i, j) {
+    x[sf::st_as_sfc(sf::st_bbox(i)), ]
+  }
+)
+
+
+## .check_vector ####
 #' Check the subject object and perform necessary conversions if needed.
 #' @description
 #' This function checks the class of the input object and
@@ -539,70 +612,67 @@ any_class_args <- function(
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #' extent <- c(-80, -77, 35, 36)
-#' .check_subject(input = nc, extent = extent, input_id = "FIPS")
+#' .check_vector(input = nc, extent = extent, input_id = "FIPS")
 #'
 #' # Check a sf object
 #' ncsf <- sf::st_read(ncpath)
-#' .check_subject(input = ncsf, extent = extent, input_id = "FIPS")
+#' .check_vector(input = ncsf, extent = extent, input_id = "FIPS")
 #'
 #' # Check a character object
-#' .check_subject(
+#' .check_vector(
 #'   input = ncpath,
 #'   extent = extent,
 #'   out_class = "terra",
 #'   input_id = "FIPS"
 #' )
-.check_subject <-
-  function(
-    input,
-    input_id = NULL,
-    extent = NULL,
-    out_class = "sf",
-    ...
-  ) {
-    # type check
-    if (!any(
-      inherits(input, c("SpatVector", "sf", "character"))
-    )) {
-      cli::cli_abort("Check class of the input object.\n")
+#' @name .check_vector
+NULL
+
+
+setGeneric(
+  ".check_vector",
+  function(input = NULL, input_id = NULL, extent = NULL, out_class = NULL, ...) {
+    if (is.null(extent)) {
+      res <- .check_id(input, input_id)
+      return(res)
     }
 
-    # character ingestion
-    if (is.character(input)) {
-      if (!out_class %in% c("sf", "terra")) {
-        cli::cli_abort("out_class should be one of sf or terra.\n")
-      }
-      cli::cli_inform(
-        sprintf("Input is a character. Trying to read with %s", out_class)
-      )
-      if (out_class == "sf") {
-        extent <- if (is.null(extent)) {
-          character(0)
-        } else {
-          extent <- extent[c(1, 3, 2, 4)]
-          extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
-          sf::st_as_text(sf::st_as_sfc(sf::st_bbox(extent)))
-        }
-      }
-      # nolint start
-      input <-
-        switch(
-          out_class,
-          terra = try(terra::vect(input, extent = extent)),
-          sf = try(sf::st_read(input, wkt_filter = extent))
-        )
-      # nolint end
-    }
+    extent <- .intersect_extent(extent, out_class)
+    input <- input[extent, ]
 
-    # ID check
-    if (!is.null(input_id)) {
-      stopifnot(is.character(input_id))
-      if (!input_id %in% names(input)) {
-        cli::cli_abort("id should exist in the input object\n")
+    .check_id(input, input_id)
+  }
+)
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "character", input_id = "ANY", extent = "ANY", out_class = "character"),
+  function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort("out_class should be one of sf or terra.\n")
+    }
+    cli::cli_inform(
+      sprintf("Input is a character. Trying to read with %s\n.", out_class)
+    )
+    if (out_class == "sf") {
+      extent <- if (is.null(extent)) {
+        character(0)
+      } else {
+        extent <- extent[c(1, 3, 2, 4)]
+        extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
+        extent <- sf::st_as_text(sf::st_as_sfc(sf::st_bbox(extent)))
       }
     }
+    input <- switch(
+      out_class,
+      terra = try(terra::vect(input, extent = extent), silent = TRUE),
+      sf = try(sf::st_read(input, wkt_filter = extent), silent = TRUE)
+    )
     return(input)
   }
+)
 
 
 #' Check Raster Input
@@ -623,7 +693,7 @@ any_class_args <- function(
 #' @examples
 #' .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 #'
-#' @importFrom terra rast time has.time
+#' @importFrom terra rast
 #' @importFrom cli cli_abort cli_inform cli_warn
 #' @keywords internal
 .check_raster <- function(
@@ -639,7 +709,7 @@ any_class_args <- function(
       cli::cli_abort(
         paste0(
           "SpatRasterCollection is not directly supported.\n",
-          "Convert it into SpatRaster object to process."
+          "Convert it into SpatRaster object to process.\n"
         )
       )
     }
@@ -649,52 +719,73 @@ any_class_args <- function(
   # character ingestion
   if (is.character(input)) {
     cli::cli_inform(
-      sprintf("Input is a character. Attempt to read it with terra::rast...")
+      sprintf("Input is a character. Attempt to read it with terra::rast...\n")
     )
     input <-
-      try(terra::rast(input, win = extent))
+      try(terra::rast(input, win = extent, snap = "out"), silent = TRUE)
   }
 
-  # to be future-proof
-  if (terra::has.time(input)) {
-    cli::cli_inform(
-      paste0(
-        "The input contains time information.\n",
-        "Each time point is treated as a layer."
-      )
-    )
-  }
+  # to be future-proof... not run in terra 1.7.46
+  # if (terra::has.time(input)) {
+  #   cli::cli_inform(
+  #     paste0(
+  #       "The input contains time information.\n",
+  #       "Each time point is treated as a layer."
+  #     )
+  #   )
+  # }
   return(input)
 }
 
 
 #' Check the class of an input object
 #'
-#' This function checks the class of an input object and returns "raster" if it is a raster object,
+#' This function checks the class of an input object and
+#'  returns "raster" if it is a raster object,
 #' or "vector" if it is a vector object.
 #'
 #' @param input The input object to be checked
 #'
-#' @returns A character string indicating the class of the input object ("raster" or "vector")
+#' @returns A character string indicating the class of
+#'   the input object ("raster" or "vector")
 #' @keywords internal
 #' @importFrom terra vect rast
 .check_character <- function(
   input
 ) {
   # type check
-  stopifnot(is.character(input))
-  try_vect <- try(terra::vect(input, proxy = TRUE), silent = TRUE)
-  try_rast <- try(terra::rast(input), silent = TRUE)
-  not_vect <- inherits(try_vect, "try-error")
-  not_rast <- inherits(try_rast, "try-error")
+  if (!is.character(input)) {
+    cli::cli_alert_info("Input is not a character.\n")
+    res <- datamod(input)
+    return(res)
+  }
+
+  suppressWarnings(
+    try_vect <- tryCatch(terra::vect(input, proxy = TRUE),
+                         error = function(e) {
+                           structure(0L, class = "chopin-try-error")
+                         })
+  )
+  suppressWarnings(
+    try_rast <- tryCatch(terra::rast(input),
+                         error = function(e) {
+                           structure(0L, class = "chopin-try-error")
+                         })
+  )
+  not_vect <- inherits(try_vect, "chopin-try-error")
+  not_rast <- inherits(try_rast, "chopin-try-error")
 
   if (not_vect && not_rast) {
     cli::cli_abort("Check class of the input object.\n")
   }
   if (not_vect) {
-    return("raster")
+    res <- "raster"
+    attr(res, "crs") <- terra::crs(try_rast)
+    return(res)
   }
-  return("vector")
+  res <- "vector"
+  attr(res, "crs") <- terra::crs(try_vect)
+  return(res)
 }
 
 

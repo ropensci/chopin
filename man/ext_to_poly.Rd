@@ -32,7 +32,6 @@ ext_to_poly(numext1, "terra")
 }
 \seealso{
 Other Helper functions: 
-\code{\link{any_class_args}()},
 \code{\link{check_dist_incorrect}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
@@ -41,8 +40,9 @@ Other Helper functions:
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
 \code{\link{get_clip_ext}()},
-\code{\link{is_within_ref}()},
+\code{\link{is_bbox_within_reference}()},
 \code{\link{par_def_q}()},
+\code{\link{par_map_args}()},
 \code{\link{reproject_std}()},
 \code{\link{reproject_to_raster}()},
 \code{\link{vect_validate}()}
@@ -52,3 +52,4 @@ Insang Song
 }
 \concept{Helper functions}
 \keyword{internal}
+\keyword{soft-deprecated}

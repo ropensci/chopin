@@ -1,7 +1,6 @@
 Package: chopin
-Title: Computation of spatial data by hierarchical and objective partitioning
-    of inputs for parallel processing
-Version: 0.7.4.20240703
+Title: Computation of spatial data by hierarchical and objective partitioning of inputs for parallel processing
+Version: 0.7.5.20240705
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -32,6 +31,7 @@ Imports:
     dplyr (>= 1.1.0),
     exactextractr (>= 0.8.2),
     future,
+    future.mirai,
     future.apply,
     igraph,
     methods,

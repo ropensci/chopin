@@ -7,7 +7,7 @@
 par_pad_balanced(points_in = NULL, ngroups, padding)
 }
 \arguments{
-\item{points_in}{\code{sf} or \code{SpatVector} object.}
+\item{points_in}{\code{sf} or \code{SpatVector} object. Point geometries.}
 
 \item{ngroups}{integer(1). The number of groups.}
 
@@ -19,8 +19,8 @@ A list of two,
 \itemize{
 \item \code{original}: exhaustive and non-overlapping
 grid polygons in the class of input
-\item \code{padded}: a square buffer of each polygon in
-\code{original}. Used for computation.
+\item \code{padded}: a square buffer of each polygon in \code{original}.
+Used for computation.
 }
 }
 \description{
@@ -43,7 +43,6 @@ nc_gr
 \seealso{
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},

@@ -7,14 +7,14 @@
 par_hierarchy(
   regions,
   regions_id = NULL,
-  unit_id = NULL,
-  debug = FALSE,
   fun_dist,
-  ...
+  ...,
+  pad_y = FALSE,
+  .debug = FALSE
 )
 }
 \arguments{
-\item{regions}{sf/SpatVector object.
+\item{regions}{\code{sf}/\code{SpatVector} object.
 Computational regions. Only polygons are accepted.}
 
 \item{regions_id}{character(nrow(regions)) or character(1).
@@ -22,22 +22,23 @@ The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
 
-\item{unit_id}{character(1). Default is NULL.
-If NULL, the lower level units will be split by the intersection
-between a higher level region and lower level units.
-Otherwise, the \strong{first} element of the ellipsis argument
-\code{...} is used to split the lower level units.}
-
-\item{debug}{logical(1). Default is \code{FALSE}
-If a unit computation fails, the error message and the \code{regions_id}
-value where the error occurred will be included in the output.}
-
-\item{fun_dist}{sf, terra, or chopin functions.}
+\item{fun_dist}{\code{sf}, \code{terra}, or \code{chopin} functions.
+This function should have \code{x} and \code{y} arguments.}
 
 \item{...}{Arguments passed to the argument \code{fun_dist}.
 The \strong{second} place should get a vector or raster dataset from which
 you want to extract or calculate values. For example, a raster dataset
 when vector-raster overlay is performed.}
+
+\item{pad_y}{logical(1). Whether to filter y with the padded grid.
+Should be TRUE when x is where the values are calculated.
+Default is \code{FALSE}. In the flipped case, like \code{terra::extent} or
+\code{exactextractr::exact_extract}, the raster (x) should be scoped
+with the padded grid.}
+
+\item{.debug}{logical(1). Default is \code{FALSE}
+If a unit computation fails, the error message and the \code{regions_id}
+value where the error occurred will be included in the output.}
 }
 \value{
 a data.frame object with computation results.
@@ -49,21 +50,21 @@ For entries of the results, consult the function used in
 which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
 (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
-\link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} in \code{\link[future:plan]{future::plan}}
 will parallelize the work by splitting lower level features into
 several higher level feature group.
 For details of the terminology in \code{future} package,
-refer to \link[future]{plan}.
+refer to \code{\link[future:plan]{future::plan}}.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
 }
 \note{
-In dynamic dots (\code{...}), the first and second
-arguments should be the \code{fun_dist} arguments where
-\code{sf}/\code{SpatVector} objects are accepted.
-Virtually any \code{sf}/\code{terra} functions that accept two arguments
+In dynamic dots (\code{...}), \code{fun_dist} arguments should include
+x and y where sf/terra class objects or file paths are accepted.
+Virtually any sf/terra functions that accept two arguments
 can be put in \code{fun_dist}, but please be advised that
 some spatial operations do not necessarily give the
 exact result from what would have been done single-thread.
@@ -73,54 +74,44 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
-\dontrun{
 library(terra)
 library(sf)
-library(chopin)
 library(future)
-library(doFuture)
+library(future.mirai)
 sf::sf_use_s2(FALSE)
-registerDoFuture()
-plan(multicore)
+future::plan(future.mirai::mirai_multisession, workers = 2)
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-nccnty <- terra::vect(ncpath, layer = "county")
+nccnty <- sf::st_read(ncpath, layer = "county")
 nctrct <- sf::st_read(ncpath, layer = "tracts")
-nctrct <- terra::vect(nctrct)
 ncelev <-
-  terra::unwrap(
-    readRDS(
-      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    )
-  )
-terra::crs(ncelev) <- "EPSG:5070"
-names(ncelev) <- c("srtm15")
+  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 
 ncsamp <-
-  terra::spatSample(
-    terra::ext(ncelev),
-    1e4L,
-    lonlat = FALSE,
-    as.points = TRUE
+  sf::st_sample(
+    nccnty,
+    size = 1e4L
   )
-ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
+ncsamp <- sf::st_as_sf(ncsamp)
+ncsamp$kid <- sprintf("K-\%05d", seq_len(nrow(ncsamp)))
 res <-
   par_hierarchy(
     regions = nccnty,
     regions_id = "GEOID",
-    fun_dist = extract_at_poly,
-    polys = nctrct,
-    surf = ncelev,
+    fun_dist = extract_at,
+    y = nctrct,
+    x = ncelev,
     id = "GEOID",
     func = "mean"
   )
 )
 }
-}
 \seealso{
+\code{\link[future:multisession]{future::multisession}} \code{\link[future:multicore]{future::multicore}} \code{\link[future:cluster]{future::cluster}}
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} \code{\link[future:plan]{future::plan}} \code{\link{par_map_args}}
+
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
 \code{\link{par_grid}()},
 \code{\link{par_make_grid}()},
 \code{\link{par_merge_grid}()},
