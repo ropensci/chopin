@@ -6,7 +6,7 @@
 #' @param d Distance
 #' @param bw Bandwidth of a kernel
 #' @returns numeric. Kernel weights.
-#' @references \href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}
+#' @references https://github.com/JanCaha/SpatialKDE
 #' @examples
 #' v_dist <- c(1, 10, 100, 25, 50, 0.1)
 #' bw_dist1 <- 1
@@ -206,8 +206,6 @@ kernelfunction <-
 
 ## extract_at ####
 #' Extract raster values with point buffers or polygons
-#'
-#' `r lifecycle::badge("experimental")`
 #'
 #' @family Macros for calculation
 #' @details Inputs are preprocessed in different ways depending on the class.
@@ -503,6 +501,7 @@ setMethod(
 )
 
 
+# nolint start
 #' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 #' @family Macros for calculation
 #' @param point_from `SpatVector` object. Locations where
@@ -535,15 +534,8 @@ setMethod(
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, Serre ML. (2012).
-#'   Integrating Address Geocoding, Land Use
-#'   Regression, and Spatiotemporal Geostatistical Estimation
-#'   for Groundwater Tetrachloroethylene.
-#'   _Environmental Science & Technology_ 46(5), 2772-2780.
-#'   ](https://doi.org/10.1021/es203152a)
-#' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying
-#'   Contributions Tutorial](
-#'   https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
+#' * [Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](https://doi.org/10.1021/es203152a)
+#' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 #' @examples
 #' library(terra)
 #' library(sf)
@@ -574,6 +566,7 @@ setMethod(
 #' @importFrom terra buffer
 #' @importFrom rlang sym
 #' @export
+# nolint end
 summarize_sedc <-
   function(
     point_from = NULL,
@@ -649,9 +642,6 @@ summarize_sedc <-
       dplyr::left_join(data.frame(point_from), by = "from_id") |>
       dplyr::left_join(data.frame(point_to), by = "to_id") |>
       dplyr::left_join(dist_near_to_df, by = c("from_id", "to_id")) |>
-      # per the definition in
-      # https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html
-      # exp(-3) is about 0.05
       dplyr::mutate(w_sedc = exp((-3 * dist) / sedc_bandwidth)) |>
       dplyr::group_by(!!rlang::sym(id)) |>
       dplyr::summarize(
@@ -700,7 +690,7 @@ summarize_sedc <-
 #' @examples
 #' # package
 #' library(sf)
-#' sf_use_s2(FALSE)
+#' options(sf_use_s2 = FALSE)
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 #' nc <- sf::st_transform(nc, 5070)
 #' pp <- sf::st_sample(nc, size = 300)
@@ -720,8 +710,6 @@ summarize_sedc <-
 #'
 #' # terra examples
 #' library(terra)
-#' library(sf)
-#' options(sf_use_s2 = FALSE)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)

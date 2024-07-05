@@ -38,7 +38,7 @@ kernelfunction(v_dist, bw_dist2, "triweight")
 kernelfunction(v_dist, bw_dist2, "epanechnikov")
 }
 \references{
-\href{https://github.com/JanCaha/SpatialKDE}{SpatialKDE source}
+https://github.com/JanCaha/SpatialKDE
 }
 \seealso{
 Other Macros for calculation: 

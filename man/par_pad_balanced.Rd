@@ -34,9 +34,12 @@ is generated out of input points along with the output of
 \examples{
 library(terra)
 library(sf)
+options(sf_use_s2 = FALSE)
+
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 nc <- terra::vect(ncpath)
 nc_rp <- terra::spatSample(nc, 1000)
+
 nc_gr <- par_pad_balanced(nc_rp, 10L, 1000)
 nc_gr
 }

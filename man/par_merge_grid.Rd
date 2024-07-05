@@ -43,6 +43,8 @@ library(sf)
 library(igraph)
 library(dplyr)
 library(spatstat.random)
+options(sf_use_s2 = FALSE)
+
 dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
 sf::st_crs(dg) <- 5070
 dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
@@ -52,14 +54,12 @@ dg_sample <- sf::st_sample(dg, kappa = 5e-9, mu = 15,
 scale = 15000, type = "Thomas")
 sf::st_crs(dg_sample) <- sf::st_crs(dg)
 dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
+
 plot(dg_merged$geometry)
 }
 \references{
 \itemize{
-\item Polsby DD, Popper FJ. (1991).
-The Third Criterion: Compactness as a Procedural Safeguard Against
-Partisan Gerrymandering. \emph{Yale Law & Policy Review},
-9(2), 301–353. \href{http://hdl.handle.net/20.500.13051/17448}{Link}
+\item \href{https://hdl.handle.net/20.500.13051/17448}{Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. \emph{Yale Law & Policy Review}, 9(2), 301–353.}
 }
 }
 \seealso{

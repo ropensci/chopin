@@ -155,7 +155,7 @@ A data.frame object with summarized raster values with
 respect to the mode (polygon or buffer) and the function.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+Extract raster values with point buffers or polygons
 }
 \details{
 Inputs are preprocessed in different ways depending on the class.

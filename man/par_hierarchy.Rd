@@ -78,7 +78,7 @@ library(terra)
 library(sf)
 library(future)
 library(future.mirai)
-sf::sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
 future::plan(future.mirai::mirai_multisession, workers = 2)
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
@@ -92,7 +92,9 @@ ncsamp <-
     nccnty,
     size = 1e4L
   )
+# sfc to sf
 ncsamp <- sf::st_as_sf(ncsamp)
+# assign ID
 ncsamp$kid <- sprintf("K-\%05d", seq_len(nrow(ncsamp)))
 res <-
   par_hierarchy(
@@ -104,11 +106,10 @@ res <-
     id = "GEOID",
     func = "mean"
   )
-)
 }
 \seealso{
-\code{\link[future:multisession]{future::multisession}} \code{\link[future:multicore]{future::multicore}} \code{\link[future:cluster]{future::cluster}}
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} \code{\link[future:plan]{future::plan}} \code{\link{par_map_args}}
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

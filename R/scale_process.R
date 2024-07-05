@@ -39,28 +39,43 @@
 #'  in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' library(sf)
+#' library(future)
+#' library(future.mirai)
+#' plan(mirai_multisession, workers = 2)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' ncpoly <- sf::st_read(ncpath)
+#' # sf object
 #' ncpnts <-
 #'   readRDS(
 #'     system.file("extdata/nc_random_point.rds", package = "chopin")
 #'   )
+#' # file path
 #' ncelev <-
-#'     readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
+#'     system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 #'
+# generate grids
+#' nccompreg <-
+#'   chopin::par_pad_grid(
+#'     input = ncpnts,
+#'     mode = "grid",
+#'     nx = 4L,
+#'     ny = 2L,
+#'     padding = 5e3L
+#'   )
 #' res <-
 #'   par_grid(
 #'     grids = nccompreg,
 #'     fun_dist = extract_at,
-#'     y = ncpnts,
 #'     x = ncelev,
+#'     y = ncpnts,
 #'     qsegs = 90L,
 #'     radius = 5e3L,
 #'     id = "pid"
 #'   )
 #' @seealso
-#'  [`future::multisession`] [`future::multicore`] [`future::cluster`]
-#'  [`future.mirai::mirai_multisession`] [`future::plan`] [`par_map_args`]
+#'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
+#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
 #' @importFrom dplyr bind_rows
@@ -233,15 +248,15 @@ par_grid <-
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
 #' @seealso
-#'  [`future::multisession`] [`future::multicore`] [`future::cluster`]
-#'  [`future.mirai::mirai_multisession`] [`future::plan`] [`par_map_args`]
+#'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
+#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' library(terra)
 #' library(sf)
 #' library(future)
 #' library(future.mirai)
-#' sf::sf_use_s2(FALSE)
+#' options(sf_use_s2 = FALSE)
 #' future::plan(future.mirai::mirai_multisession, workers = 2)
 #'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
@@ -255,7 +270,9 @@ par_grid <-
 #'     nccnty,
 #'     size = 1e4L
 #'   )
+#' # sfc to sf
 #' ncsamp <- sf::st_as_sf(ncsamp)
+#' # assign ID
 #' ncsamp$kid <- sprintf("K-%05d", seq_len(nrow(ncsamp)))
 #' res <-
 #'   par_hierarchy(
@@ -267,7 +284,6 @@ par_grid <-
 #'     id = "GEOID",
 #'     func = "mean"
 #'   )
-#' )
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
@@ -424,8 +440,8 @@ par_hierarchy <-
 #'  consult the function used in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @seealso
-#'  [`future::multisession`] [`future::multicore`] [`future::cluster`]
-#'  [`future.mirai::mirai_multisession`] [`future::plan`] [`par_map_args`]
+#'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
+#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
 #'
 #' @examples
 #' library(terra)
@@ -439,10 +455,11 @@ par_hierarchy <-
 #' nccnty <- sf::st_read(ncpath, layer = "county")
 #' ncelev <-
 #'   system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+#' ncelevras <- terra::rast(ncelev)
+#'
 #' tdir <- tempdir(check = TRUE)
-#' terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
-#' terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
-#' terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+#' terra::writeRaster(ncelevras, file.path(tdir, "test1.tif"), overwrite = TRUE)
+#' terra::writeRaster(ncelevras, file.path(tdir, "test2.tif"), overwrite = TRUE)
 #' testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 #'
 #' res <- par_multirasters(

@@ -160,7 +160,7 @@ grid_quantiles <-
   chopin::par_pad_grid(
     input = ncpoints_tr,
     mode = "grid_quantile",
-    quantiles = chopin:::par_def_q(4L),
+    quantiles = seq(0, 1, length.out = 5),
     padding = 1e4L
   )
 

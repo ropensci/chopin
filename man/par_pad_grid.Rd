@@ -73,35 +73,34 @@ Each grid will be buffered by the radius.
 \examples{
 # data
 library(sf)
-sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:5070")
 
 # run: nx and ny should strictly be integers
-# In the example below, nx is 12L, not 12.
 nc_comp_region <-
   par_pad_grid(
     nc,
     mode = "grid",
-    nx = 12L, ny = 8L,
+    nx = 4L, ny = 2L,
     padding = 10000)
 par(mfcol = c(1, 2))
-plot(nc_comp_region$original)
-plot(nc_comp_region$padded)
+plot(nc_comp_region$original$geometry)
+plot(nc_comp_region$padded$geometry)
 
 nc_comp_region_wkt <-
   par_pad_grid(
     nc,
     mode = "grid",
-    nx = 12L, ny = 8L,
+    nx = 4L, ny = 2L,
     padding = 10000,
     return_wkt = TRUE)
 nc_comp_region_wkt$original
 nc_comp_region_wkt$padded
 }
 \seealso{
-\link{par_cut_coords}, \link{par_merge_grid}
+\link{par_merge_grid}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

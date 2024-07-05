@@ -23,16 +23,17 @@ the function will return a list of two WKT strings: \code{original} and \code{pa
 \examples{
 library(sf)
 library(terra)
-sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
+
 ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:5070")
 nc_comp_region <-
- par_pad_grid(
-  nc,
-  mode = "grid",
-  nx = 12L, ny = 8L,
-  padding = 10000)
+  par_pad_grid(
+    nc,
+    mode = "grid",
+    nx = 4L, ny = 2L,
+    padding = 10000)
 par_split_list(nc_comp_region)
 }
 \seealso{

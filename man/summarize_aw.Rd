@@ -75,7 +75,7 @@ read as \code{sf} objects.
 \examples{
 # package
 library(sf)
-sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 nc <- sf::st_transform(nc, 5070)
 pp <- sf::st_sample(nc, size = 300)
@@ -95,8 +95,6 @@ summary(ppb_nc_aw)
 
 # terra examples
 library(terra)
-library(sf)
-options(sf_use_s2 = FALSE)
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 elev <- system.file("ex/elev.tif", package = "terra")
 nc <- terra::vect(ncpath)

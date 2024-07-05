@@ -26,7 +26,7 @@ This function is only for two-dimensional points.
 library(terra)
 random_points <-
   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-quantiles <- par_def_q(4L)
+quantiles <- seq(0, 1, length.out = 5L)
 qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
 clustered_points <-
   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
@@ -54,3 +54,4 @@ Other Parallelization:
 \code{\link{par_split_list}()}
 }
 \concept{Parallelization}
+\keyword{internal}

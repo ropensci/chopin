@@ -55,10 +55,12 @@ dep_check <- function(input) {
 #' terra::values(ras_rand) <- runif(900)
 #' stars_rand <- dep_switch(ras_rand)
 #' stars_rand
+#' inherits(sf_rand, "stars") # TRUE
 #' # should return stars object
 #'
 #' vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
 #' sf_rand <- dep_switch(vec_rand)
+#' inherits(sf_rand, "sf") # TRUE
 #' sf_rand
 #' # should return sf object
 #' @importFrom terra vect rast
@@ -220,6 +222,7 @@ reproject_std <-
 #' library(terra)
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
+#'
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
@@ -257,14 +260,12 @@ reproject_to_raster <-
 #' the class of input_vector.
 #' @note This function works with GEOS (>=3.8).
 #' @examples
-#' \dontrun{
 #' library(terra)
 #' library(sf)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #'
 #' nc_valid <- vect_validate(nc)
-#' }
 #' @importFrom terra makeValid
 #' @importFrom sf st_make_valid
 vect_validate <- function(input_vector) {
@@ -631,7 +632,8 @@ NULL
 
 setGeneric(
   ".check_vector",
-  function(input = NULL, input_id = NULL, extent = NULL, out_class = NULL, ...) {
+  function(input = NULL, input_id = NULL,
+           extent = NULL, out_class = NULL, ...) {
     if (is.null(extent)) {
       res <- .check_id(input, input_id)
       return(res)
@@ -648,13 +650,16 @@ setGeneric(
 #' @noRd
 setMethod(
   ".check_vector",
-  signature(input = "character", input_id = "ANY", extent = "ANY", out_class = "character"),
+  signature(input = "character", input_id = "ANY",
+            extent = "ANY", out_class = "character"),
   function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort("out_class should be one of sf or terra.\n")
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
     cli::cli_inform(
-      sprintf("Input is a character. Trying to read with %s\n.", out_class)
+      c("i" =
+          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+      )
     )
     if (out_class == "sf") {
       extent <- if (is.null(extent)) {

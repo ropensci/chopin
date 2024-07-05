@@ -21,6 +21,7 @@ Align vector CRS to raster's
 library(terra)
 library(sf)
 options(sf_use_s2 = FALSE)
+
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 elev <- system.file("ex/elev.tif", package = "terra")
 nc <- terra::vect(ncpath)

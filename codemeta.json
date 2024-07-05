@@ -3,11 +3,11 @@
   "@type": "SoftwareSourceCode",
   "identifier": "chopin",
   "description": "It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.",
-  "name": "chopin: CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure",
+  "name": "chopin: Computation of spatial data by hierarchical and objective partitioning of inputs for parallel processing",
   "codeRepository": "https://github.com/NIEHS/chopin",
   "issueTracker": "https://github.com/NIEHS/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.6.4.20240523",
+  "version": "0.7.5.20240705",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -49,18 +49,6 @@
   "softwareSuggestions": [
     {
       "@type": "SoftwareApplication",
-      "identifier": "callr",
-      "name": "callr",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=callr"
-    },
-    {
-      "@type": "SoftwareApplication",
       "identifier": "covr",
       "name": "covr",
       "provider": {
@@ -85,30 +73,6 @@
     },
     {
       "@type": "SoftwareApplication",
-      "identifier": "doFuture",
-      "name": "doFuture",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=doFuture"
-    },
-    {
-      "@type": "SoftwareApplication",
-      "identifier": "future",
-      "name": "future",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=future"
-    },
-    {
-      "@type": "SoftwareApplication",
       "identifier": "future.batchtools",
       "name": "future.batchtools",
       "provider": {
@@ -118,18 +82,6 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=future.batchtools"
-    },
-    {
-      "@type": "SoftwareApplication",
-      "identifier": "future.callr",
-      "name": "future.callr",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=future.callr"
     },
     {
       "@type": "SoftwareApplication",
@@ -203,6 +155,18 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=withr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "alphahull",
+      "name": "alphahull",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=alphahull"
     }
   ],
   "softwareRequirements": {
@@ -226,6 +190,18 @@
     },
     "3": {
       "@type": "SoftwareApplication",
+      "identifier": "cli",
+      "name": "cli",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=cli"
+    },
+    "4": {
+      "@type": "SoftwareApplication",
       "identifier": "dplyr",
       "name": "dplyr",
       "version": ">= 1.1.0",
@@ -237,7 +213,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=dplyr"
     },
-    "4": {
+    "5": {
       "@type": "SoftwareApplication",
       "identifier": "exactextractr",
       "name": "exactextractr",
@@ -250,7 +226,31 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=exactextractr"
     },
-    "5": {
+    "6": {
+      "@type": "SoftwareApplication",
+      "identifier": "future",
+      "name": "future",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=future"
+    },
+    "7": {
+      "@type": "SoftwareApplication",
+      "identifier": "future.mirai",
+      "name": "future.mirai",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=future.mirai"
+    },
+    "8": {
       "@type": "SoftwareApplication",
       "identifier": "future.apply",
       "name": "future.apply",
@@ -262,7 +262,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=future.apply"
     },
-    "6": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "igraph",
       "name": "igraph",
@@ -274,16 +274,27 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=igraph"
     },
-    "7": {
+    "10": {
       "@type": "SoftwareApplication",
       "identifier": "methods",
       "name": "methods"
     },
-    "8": {
+    "11": {
+      "@type": "SoftwareApplication",
+      "identifier": "mirai",
+      "name": "mirai",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=mirai"
+    },
+    "12": {
       "@type": "SoftwareApplication",
       "identifier": "rlang",
       "name": "rlang",
-      "version": ">= 0.4.9",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
@@ -292,7 +303,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=rlang"
     },
-    "9": {
+    "13": {
       "@type": "SoftwareApplication",
       "identifier": "sf",
       "name": "sf",
@@ -305,7 +316,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=sf"
     },
-    "10": {
+    "14": {
       "@type": "SoftwareApplication",
       "identifier": "stars",
       "name": "stars",
@@ -318,7 +329,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=stars"
     },
-    "11": {
+    "15": {
       "@type": "SoftwareApplication",
       "identifier": "terra",
       "name": "terra",
@@ -331,7 +342,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=terra"
     },
-    "12": {
+    "16": {
       "@type": "SoftwareApplication",
       "identifier": "collapse",
       "name": "collapse",
@@ -343,7 +354,28 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=collapse"
     },
-    "SystemRequirements": null
+    "17": {
+      "@type": "SoftwareApplication",
+      "identifier": "lifecycle",
+      "name": "lifecycle",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=lifecycle"
+    },
+    "SystemRequirements": "NetCDF4"
   },
-  "fileSize": "653395.991KB"
+  "fileSize": "27901.103KB",
+  "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
+  "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
+  "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],
+  "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental",
+  "review": {
+    "@type": "Review",
+    "url": "https://github.com/ropensci/software-review/issues/638",
+    "provider": "https://ropensci.org"
+  }
 }

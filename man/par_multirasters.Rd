@@ -57,10 +57,11 @@ ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 nccnty <- sf::st_read(ncpath, layer = "county")
 ncelev <-
   system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+ncelevras <- terra::rast(ncelev)
+
 tdir <- tempdir(check = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelevras, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelevras, file.path(tdir, "test2.tif"), overwrite = TRUE)
 testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
 res <- par_multirasters(
@@ -73,8 +74,8 @@ res <- par_multirasters(
 )
 }
 \seealso{
-\code{\link[future:multisession]{future::multisession}} \code{\link[future:multicore]{future::multicore}} \code{\link[future:cluster]{future::cluster}}
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} \code{\link[future:plan]{future::plan}} \code{\link{par_map_args}}
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

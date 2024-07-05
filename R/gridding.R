@@ -34,33 +34,32 @@
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
 #'  Each grid will be buffered by the radius.
-#' @seealso [par_cut_coords], [par_merge_grid]
+#' @seealso [par_merge_grid]
 #' @author Insang Song
 #' @examples
 #' # data
 #' library(sf)
-#' sf_use_s2(FALSE)
+#' options(sf_use_s2 = FALSE)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' nc <- read_sf(ncpath)
 #' nc <- st_transform(nc, "EPSG:5070")
 #'
 #' # run: nx and ny should strictly be integers
-#' # In the example below, nx is 12L, not 12.
 #' nc_comp_region <-
 #'   par_pad_grid(
 #'     nc,
 #'     mode = "grid",
-#'     nx = 12L, ny = 8L,
+#'     nx = 4L, ny = 2L,
 #'     padding = 10000)
 #' par(mfcol = c(1, 2))
-#' plot(nc_comp_region$original)
-#' plot(nc_comp_region$padded)
+#' plot(nc_comp_region$original$geometry)
+#' plot(nc_comp_region$padded$geometry)
 #'
 #' nc_comp_region_wkt <-
 #'   par_pad_grid(
 #'     nc,
 #'     mode = "grid",
-#'     nx = 12L, ny = 8L,
+#'     nx = 4L, ny = 2L,
 #'     padding = 10000,
 #'     return_wkt = TRUE)
 #' nc_comp_region_wkt$original
@@ -204,9 +203,12 @@ par_pad_grid <-
 #' @examples
 #' library(terra)
 #' library(sf)
+#' options(sf_use_s2 = FALSE)
+#'
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #' nc_rp <- terra::spatSample(nc, 1000)
+#'
 #' nc_gr <- par_pad_balanced(nc_rp, 10L, 1000)
 #' nc_gr
 #' @importFrom terra as.polygons ext buffer
@@ -270,6 +272,7 @@ par_pad_balanced <-
 
 #' @title Generate grid polygons
 #' @family Parallelization
+#' @keywords internal
 #' @description Returns a sf object that includes x- and y- index
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
@@ -360,6 +363,7 @@ par_make_grid <-
 #' @importFrom terra vect distance
 #' @importFrom stats dist
 #' @importFrom cli cli_abort
+#' @keywords internal
 par_make_balanced <- function(
   points_in = NULL,
   n_clusters = NULL
@@ -401,6 +405,7 @@ par_def_q <- function(steps = 4L) {
 #' @title Partition coordinates into quantile polygons
 #' @note This function is only for two-dimensional points.
 #' @family Parallelization
+#' @keywords internal
 #' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
 #' @param y numeric. y-coordinates.
 #' @param quantiles numeric vector. Quantiles.
@@ -409,7 +414,7 @@ par_def_q <- function(steps = 4L) {
 #' library(terra)
 #' random_points <-
 #'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-#' quantiles <- par_def_q(4L)
+#' quantiles <- seq(0, 1, length.out = 5L)
 #' qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
 #' clustered_points <-
 #'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
@@ -424,7 +429,6 @@ par_def_q <- function(steps = 4L) {
 #' qcv <- intersect(cvect, qpoly_c)
 #' table(qcv$CGRIDID)
 #' sum(table(qcv$CGRIDID)) # should be 1000
-#' @importFrom methods is
 #' @importFrom sf st_coordinates st_zm st_geometry_type st_centroid
 #' @importFrom terra crds ext as.polygons geomtype
 #' @importFrom stats setNames quantile
@@ -523,6 +527,8 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' library(igraph)
 #' library(dplyr)
 #' library(spatstat.random)
+#' options(sf_use_s2 = FALSE)
+#'
 #' dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
 #' sf::st_crs(dg) <- 5070
 #' dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
@@ -532,12 +538,12 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' scale = 15000, type = "Thomas")
 #' sf::st_crs(dg_sample) <- sf::st_crs(dg)
 #' dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
+#'
 #' plot(dg_merged$geometry)
+# nolint start
 #' @references
-#' * Polsby DD, Popper FJ. (1991).
-#'   The Third Criterion: Compactness as a Procedural Safeguard Against
-#'   Partisan Gerrymandering. _Yale Law & Policy Review_,
-#'   9(2), 301–353. [Link](http://hdl.handle.net/20.500.13051/17448)
+#' * [Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353.](https://hdl.handle.net/20.500.13051/17448)
+# nolint end
 #' @importFrom dplyr group_by summarize ungroup n
 #' @importFrom sf st_relate st_length st_cast st_intersects st_as_sf st_area
 #' @importFrom rlang sym
@@ -747,16 +753,17 @@ par_merge_grid <-
 #' @examples
 #' library(sf)
 #' library(terra)
-#' sf_use_s2(FALSE)
+#' options(sf_use_s2 = FALSE)
+#'
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' nc <- read_sf(ncpath)
 #' nc <- st_transform(nc, "EPSG:5070")
 #' nc_comp_region <-
-#'  par_pad_grid(
-#'   nc,
-#'   mode = "grid",
-#'   nx = 12L, ny = 8L,
-#'   padding = 10000)
+#'   par_pad_grid(
+#'     nc,
+#'     mode = "grid",
+#'     nx = 4L, ny = 2L,
+#'     padding = 10000)
 #' par_split_list(nc_comp_region)
 #' @export
 par_split_list <-

@@ -55,29 +55,43 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
+library(sf)
+library(future)
+library(future.mirai)
+plan(mirai_multisession, workers = 2)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 ncpoly <- sf::st_read(ncpath)
+# sf object
 ncpnts <-
   readRDS(
     system.file("extdata/nc_random_point.rds", package = "chopin")
   )
+# file path
 ncelev <-
-    readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 
+nccompreg <-
+  chopin::par_pad_grid(
+    input = ncpnts,
+    mode = "grid",
+    nx = 4L,
+    ny = 2L,
+    padding = 5e3L
+  )
 res <-
   par_grid(
     grids = nccompreg,
     fun_dist = extract_at,
-    y = ncpnts,
     x = ncelev,
+    y = ncpnts,
     qsegs = 90L,
     radius = 5e3L,
     id = "pid"
   )
 }
 \seealso{
-\code{\link[future:multisession]{future::multisession}} \code{\link[future:multicore]{future::multicore}} \code{\link[future:cluster]{future::cluster}}
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} \code{\link[future:plan]{future::plan}} \code{\link{par_map_args}}
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
