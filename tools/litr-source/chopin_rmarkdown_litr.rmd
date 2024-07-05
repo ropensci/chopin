@@ -129,7 +129,7 @@ ncrast <- elevatr::get_elev_raster(ncpoly, z = 9, src = "srtm15plus", prj = terr
 ncrastt <- terra::rast(ncrast)
 ncrastw <- terra::wrap(ncrastt)
 # terra::writeRaster(ncrastt, "./tests/testdata/nc_srtm15_otm.tif", gdal=c("COMPRESS=DEFLATE"), overwrite = TRUE)
-saveRDS(ncrastw, "./tests/testdata/nc_srtm15_otm.rds", compress = "xz")
+saveRDS(ncrastw, "./tests/testdata/nc_srtm15_otm.tif", compress = "xz")
 
 library(nhdplusTools)
 huc08s <- get_huc(AOI = sf::st_union(ncpoly), buffer = 10000L, type = "huc08")
@@ -923,7 +923,7 @@ testthat::test_that("Clip by extent works without errors", {
   ncelev <-
     terra::unwrap(
       readRDS(
-        system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+        system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
       )
     )
   terra::crs(ncelev) <- "EPSG:5070"
@@ -2488,7 +2488,7 @@ nccnty <- system.file("shape/nc.shp", package = "sf")
 nccnty <- sf::st_read(nccnty)
 nccnty <- sf::st_transform(nccnty, "EPSG:5070")
 nccntytr <- terra::vect(nccnty)
-ncelev <- readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+ncelev <- readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 ncelev <- terra::unwrap(ncelev)
 
 kk <-
@@ -2739,7 +2739,7 @@ testthat::test_that("extract_at runs well", {
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
   ncelev <- readRDS(
-    system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
   )
   ncelev <- terra::unwrap(ncelev)
 
@@ -3845,7 +3845,7 @@ testthat::test_that(
 #' ncpnts <- terra::project(ncpnts, "EPSG:5070")
 #' ncelev <-
 #'   terra::unwrap(
-#'     readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+#'     readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"
 #' names(ncelev) <- c("srtm15")
@@ -4034,7 +4034,7 @@ par_grid <-
 #' ncelev <-
 #'   terra::unwrap(
 #'     readRDS(
-#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 #'     )
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"
@@ -4180,7 +4180,7 @@ par_hierarchy <-
 #' ncelev <-
 #'   terra::unwrap(
 #'     readRDS(
-#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 #'     )
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"
@@ -4283,7 +4283,7 @@ testthat::test_that("Processes are properly spawned and compute", {
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncelev <-
     terra::unwrap(
-      readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+      readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
     )
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
@@ -4456,7 +4456,7 @@ testthat::test_that(
     ncelev <-
       terra::unwrap(
         readRDS(
-          system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+          system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
@@ -4623,7 +4623,7 @@ testthat::test_that(
     ncelev <-
       terra::unwrap(
         readRDS(
-          system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+          system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
@@ -4760,7 +4760,7 @@ testthat::test_that(
 #' ncpnts <- terra::project(ncpnts, "EPSG:5070")
 #' ncelev <-
 #'   terra::unwrap(
-#'     readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+#'     readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"
 #' names(ncelev) <- c("srtm15")
@@ -4916,7 +4916,7 @@ adhoc <- function() {
   ncelev <-
     terra::unwrap(
       readRDS(
-        system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+        system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
       )
     )
   terra::crs(ncelev) <- "EPSG:5070"
@@ -4961,7 +4961,7 @@ adhoc2 <- function() {
   ncpnts <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
-  ncelev <- terra::unwrap(readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin")))
+  ncelev <- terra::unwrap(readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin")))
   terra::crs(ncelev) <- "EPSG:5070"
   names(ncelev) <- c("srtm15")
 

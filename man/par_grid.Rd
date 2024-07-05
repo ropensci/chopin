@@ -73,7 +73,7 @@ ncpnts <- terra::vect(ncpnts)
 ncpnts <- terra::project(ncpnts, "EPSG:5070")
 ncelev <-
   terra::unwrap(
-    readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+    readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
   )
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")

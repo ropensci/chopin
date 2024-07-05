@@ -21,7 +21,7 @@ set_backend <- function(backend = "mirai") {
 #' If the backend is set to any other value, the function throws an error indicating an unknown backend.
 #'
 #' @keywords internal
-#' @param ... Additional arguments to be passed to the backend function.
+#' @param ... Arguments passed to the backend function.
 #' @importFrom mirai mirai
 #' @importFrom future future
 #' @importFrom cli cli_abort
@@ -48,10 +48,15 @@ set_backend <- function(backend = "mirai") {
 .backend_collector <-
   function(worker) {
     if (inherits(worker, "mirai")) {
-      mirai::call_mirai(worker)[["data"]]
-    } else if (inherits(worker, "Future")) {
-      future::value(worker)
-    } else {
-      cli::cli_abort("Unknown worker")
+      if (mirai::unresolved(worker)) {
+        worked <- mirai::call_mirai(worker)[["data"]]
+      } else {
+        worked <- worker[["data"]]
+      }
+      return(worked)
     }
+    if (inherits(worker, "Future")) {
+      future::value(worker)
+    }
+    cli::cli_abort("Unknown worker")
   }

@@ -76,7 +76,7 @@ testthat::test_that("Clip by extent works without errors", {
   ncelev <-
     terra::unwrap(
       readRDS(
-        system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+        system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
       )
     )
   terra::crs(ncelev) <- "EPSG:5070"
@@ -113,7 +113,7 @@ testthat::test_that("extract_at runs well", {
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
   ncelev <- readRDS(
-    system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
   )
   ncelev <- terra::unwrap(ncelev)
 
@@ -344,7 +344,7 @@ testthat::test_that("Character input works", {
   sf::st_write(ncp, ncpfile)
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
   ncelev <- terra::unwrap(ncelev)
 
   testthat::expect_no_error(

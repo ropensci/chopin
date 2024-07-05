@@ -4,12 +4,12 @@
 \alias{.check_subject}
 \title{Check the subject object and perform necessary conversions if needed.}
 \usage{
-.check_subject(subject, subject_id, extent = NULL, out_class = "sf")
+.check_subject(input, input_id = NULL, extent = NULL, out_class = "sf", ...)
 }
 \arguments{
-\item{subject}{sf/SpatVector/character. The input object to be checked.}
+\item{input}{sf/SpatVector/character. The input object to be checked.}
 
-\item{subject_id}{character(1). ID field of the subject object.}
+\item{input_id}{character(1). ID field of the subject object.}
 
 \item{extent}{numeric(4). The extent of the subject object.
 Numeric vector should be put in order of
@@ -17,6 +17,8 @@ Numeric vector should be put in order of
 
 \item{out_class}{character(1). The class of the output object.
 Should be one of \code{c("sf", "terra")}.}
+
+\item{...}{Placeholder.}
 }
 \value{
 The checked and converted subject object.
@@ -30,18 +32,18 @@ performs necessary conversions if needed.
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 nc <- terra::vect(ncpath)
 extent <- c(-80, -77, 35, 36)
-.check_subject(subject = nc, extent = extent, subject_id = "FIPS")
+.check_subject(input = nc, extent = extent, input_id = "FIPS")
 
 # Check a sf object
 ncsf <- sf::st_read(ncpath)
-.check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
+.check_subject(input = ncsf, extent = extent, input_id = "FIPS")
 
 # Check a character object
 .check_subject(
-  subject = ncpath,
+  input = ncpath,
   extent = extent,
   out_class = "terra",
-  subject_id = "FIPS"
+  input_id = "FIPS"
 )
 }
 \keyword{internal}

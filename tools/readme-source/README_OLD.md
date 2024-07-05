@@ -74,7 +74,7 @@ ncpoints$pid <- seq(1, nrow(ncpoints))
 ### Target dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
 - We use an elevation dataset with and a moderate spatial resolution (approximately 400 meters or 0.25 miles).
 ``` r
-srtm <- terra::unwrap(readRDS("../../tests/testdata/nc_srtm15_otm.rds"))
+srtm <- terra::unwrap(readRDS("../../tests/testdata/nc_srtm15_otm.tif"))
 srtm
 #> class       : SpatRaster 
 #> dimensions  : 1534, 2281, 1  (nrow, ncol, nlyr)
@@ -323,7 +323,7 @@ system.time(
 ``` r
 ncpath <- "../testdata/nc_hierarchy.gpkg"
 nccnty <- terra::vect(ncpath, layer = "county")
-ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.rds"))
+ncelev <- terra::unwrap(readRDS("../testdata/nc_srtm15_otm.tif"))
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")
 tdir <- tempdir()

@@ -7,7 +7,7 @@
 .backend_worker(...)
 }
 \arguments{
-\item{...}{Additional arguments to be passed to the backend function.}
+\item{...}{Arguments passed to the backend function.}
 }
 \value{
 The result of the backend function call.

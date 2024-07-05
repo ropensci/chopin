@@ -521,13 +521,14 @@ any_class_args <- function(
 #' This function checks the class of the input object and
 #'   performs necessary conversions if needed.
 #' @keywords internal
-#' @param subject sf/SpatVector/character. The input object to be checked.
-#' @param subject_id character(1). ID field of the subject object.
+#' @param input sf/SpatVector/character. The input object to be checked.
+#' @param input_id character(1). ID field of the subject object.
 #' @param extent numeric(4). The extent of the subject object.
 #'   Numeric vector should be put in order of
 #'  `c(xmin, xmax, ymin, ymax)`.
 #' @param out_class character(1). The class of the output object.
 #'   Should be one of `c("sf", "terra")`.
+#' @param ... Placeholder.
 #' @returns The checked and converted subject object.
 #' @importFrom terra vect
 #' @importFrom sf st_read st_as_text st_as_sfc st_bbox
@@ -538,35 +539,36 @@ any_class_args <- function(
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #' extent <- c(-80, -77, 35, 36)
-#' .check_subject(subject = nc, extent = extent, subject_id = "FIPS")
+#' .check_subject(input = nc, extent = extent, input_id = "FIPS")
 #'
 #' # Check a sf object
 #' ncsf <- sf::st_read(ncpath)
-#' .check_subject(subject = ncsf, extent = extent, subject_id = "FIPS")
+#' .check_subject(input = ncsf, extent = extent, input_id = "FIPS")
 #'
 #' # Check a character object
 #' .check_subject(
-#'   subject = ncpath,
+#'   input = ncpath,
 #'   extent = extent,
 #'   out_class = "terra",
-#'   subject_id = "FIPS"
+#'   input_id = "FIPS"
 #' )
 .check_subject <-
   function(
-    subject,
-    subject_id,
+    input,
+    input_id = NULL,
     extent = NULL,
-    out_class = "sf"
+    out_class = "sf",
+    ...
   ) {
     # type check
     if (!any(
-      inherits(subject, c("SpatVector", "sf", "character"))
+      inherits(input, c("SpatVector", "sf", "character"))
     )) {
       cli::cli_abort("Check class of the input object.\n")
     }
 
     # character ingestion
-    if (is.character(subject)) {
+    if (is.character(input)) {
       if (!out_class %in% c("sf", "terra")) {
         cli::cli_abort("out_class should be one of sf or terra.\n")
       }
@@ -583,23 +585,23 @@ any_class_args <- function(
         }
       }
       # nolint start
-      subject <-
+      input <-
         switch(
           out_class,
-          terra = try(terra::vect(subject, extent = extent)),
-          sf = try(sf::st_read(subject, wkt_filter = extent))
+          terra = try(terra::vect(input, extent = extent)),
+          sf = try(sf::st_read(input, wkt_filter = extent))
         )
       # nolint end
     }
 
     # ID check
-    if (!missing(subject_id)) {
-      stopifnot(is.character(subject_id))
-      if (!subject_id %in% names(subject)) {
+    if (!is.null(input_id)) {
+      stopifnot(is.character(input_id))
+      if (!input_id %in% names(input)) {
         cli::cli_abort("id should exist in the input object\n")
       }
     }
-    return(subject)
+    return(input)
   }
 
 
@@ -614,18 +616,20 @@ any_class_args <- function(
 #' @param extent The extent of the raster. Defaults to NULL.
 #'   Numeric vector should be put in order of
 #'  `c(xmin, xmax, ymin, ymax)`.
+#' @param ... Placeholder.
 #'
 #' @returns The validated input object.
 #'
 #' @examples
 #' .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 #'
-#' @importFrom terra rast time
+#' @importFrom terra rast time has.time
 #' @importFrom cli cli_abort cli_inform cli_warn
 #' @keywords internal
 .check_raster <- function(
   input,
-  extent = NULL
+  extent = NULL,
+  ...
 ) {
   # type check
   if (
@@ -633,8 +637,10 @@ any_class_args <- function(
   ) {
     if (inherits(input, "SpatRasterCollection")) {
       cli::cli_abort(
-        "SpatRasterCollection is not directly supported.",
-        "Convert it into SpatRaster object to process."
+        paste0(
+          "SpatRasterCollection is not directly supported.\n",
+          "Convert it into SpatRaster object to process."
+        )
       )
     }
     cli::cli_abort("Check class of the input object.\n")
@@ -643,21 +649,54 @@ any_class_args <- function(
   # character ingestion
   if (is.character(input)) {
     cli::cli_inform(
-      sprintf("Input is a character. Trying to read it with terra::rast...")
+      sprintf("Input is a character. Attempt to read it with terra::rast...")
     )
     input <-
-      try(terra::rast(input, extent = extent))
+      try(terra::rast(input, win = extent))
   }
 
   # to be future-proof
-  if (!all(is.na(terra::time(input)))) {
-    cli::cli_warn(
-      "The input contains time information.",
-      "Each time point is treated as a layer."
+  if (terra::has.time(input)) {
+    cli::cli_inform(
+      paste0(
+        "The input contains time information.\n",
+        "Each time point is treated as a layer."
+      )
     )
   }
   return(input)
 }
+
+
+#' Check the class of an input object
+#'
+#' This function checks the class of an input object and returns "raster" if it is a raster object,
+#' or "vector" if it is a vector object.
+#'
+#' @param input The input object to be checked
+#'
+#' @returns A character string indicating the class of the input object ("raster" or "vector")
+#' @keywords internal
+#' @importFrom terra vect rast
+.check_character <- function(
+  input
+) {
+  # type check
+  stopifnot(is.character(input))
+  try_vect <- try(terra::vect(input, proxy = TRUE), silent = TRUE)
+  try_rast <- try(terra::rast(input), silent = TRUE)
+  not_vect <- inherits(try_vect, "try-error")
+  not_rast <- inherits(try_rast, "try-error")
+
+  if (not_vect && not_rast) {
+    cli::cli_abort("Check class of the input object.\n")
+  }
+  if (not_vect) {
+    return("raster")
+  }
+  return("vector")
+}
+
 
 
 

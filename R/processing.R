@@ -428,13 +428,13 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
-    extent,
-    radius,
+    extent = NULL,
+    radius = NULL,
     out_class = "sf",
     kernel = NULL,
     kernel_func = stats::weighted.mean,
-    bandwidth,
-    max_cells,
+    bandwidth = NULL,
+    max_cells = 3e+07,
     ...
   ) {
     .extract_at(

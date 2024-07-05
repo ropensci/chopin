@@ -90,7 +90,7 @@ nctrct <- terra::vect(nctrct)
 ncelev <-
   terra::unwrap(
     readRDS(
-      system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
     )
   )
 terra::crs(ncelev) <- "EPSG:5070"

@@ -36,6 +36,42 @@ par_fallback <-
   }
 
 
+#' Prescreen input data for parallelization
+#' 
+#' This function takes input object and type character to ingest
+#' the input object to return the object in the desired class.
+#' @param type character(1). "raster" or "vector".
+#' @param input object. Input object.
+#' @param input_id character(1). Default is NULL. If NULL, the function
+#'  will not check the object with an ID column.
+#' @param out_class character(1). Default is NULL, but should be one of
+#'   `c("sf", "terra")`.
+#' @param grid_ numeric(4)/SpatExtent/st_bbox object. Loading window.
+#' @keywords internal
+.par_screen <- function(
+  type,
+  input,
+  input_id = NULL,
+  out_class = NULL,
+  grid_ = NULL
+) {
+  # type check
+  match.arg(type, c("raster", "vector"))
+
+  if (type == "raster") {
+    scr <- .check_raster(input = input, extent = grid_)
+
+  } else {
+    scr <- .check_subject(input = input, input_id = input_id, extent = grid_,
+        out_class = out_class)
+  }
+  return(scr)
+
+}
+
+
+
+
 #' @title Process a given function in the entire or partial computational grids
 #' @family Parallelization
 #' @description
@@ -95,7 +131,7 @@ par_fallback <-
 #' ncpnts <- terra::project(ncpnts, "EPSG:5070")
 #' ncelev <-
 #'   terra::unwrap(
-#'     readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
+#'     readRDS(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"
 #' names(ncelev) <- c("srtm15")
@@ -135,6 +171,7 @@ par_fallback <-
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @importFrom cli cli_abort cli_inform
+#' @importFrom methods getPackageName
 #' @export
 par_grid <-
   function(
@@ -185,36 +222,51 @@ par_grid <-
       grids$original[grid_target_ids, ]
     grids_target_list <-
       base::split(grids_target_in, unlist(grids_target_in[["CGRIDID"]]))
-
+    results <- vector("list", length = length(grids_target_list))
     # results_distributed <-
     #   future.apply::future_lapply(
     #     grids_target_list,
     #     function(grid) {
-          sf::sf_use_s2(FALSE)
-          grid <-
-            tryCatch(
-              terra::vect(grid),
-              error = function(e) grid
-            )
+    sf::sf_use_s2(FALSE)
 
-          args_input <- list(...)
-          run_result <- tryCatch({
+    foo_set <- methods::getPackageName(environment(fun_dist))
+
+    args_input <- list(...)
+    peek_x <- try(.check_character(args_input$x))
+    peek_y <- try(.check_character(args_input$y))
+
+    for (i in seq_along(results)) {
+      results[[i]] <-
+        .backend_worker({
+          tryCatch({
             ## Strongly assuming that
             # the first is "at", the second is "from"
-            if (is.character(args_input[[1]])) {
-              args_input$extent <- terra::ext(grid)
-            } else {
-              if (dep_check(grid) != dep_check(args_input[[1]])) {
-                grid <- dep_switch(grid)
-              }
-              grid <- reproject_std(grid, terra::crs(args_input[[1]]))
-              args_input[[1]] <-
-                args_input[[1]][grid, ]
+            gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid$CGRIDID, ]
+            grid <- grids_target_list[[i]]
+            grid <-
+              tryCatch(
+                terra::vect(grid),
+                error = function(e) grid
+              )
+            grid <- reproject_std(grid, terra::crs(x))
+
+            if (!any("chopin" %in% foo_set)) {
+              args_input$x <-
+                .par_screen(
+                  type = peek_x,
+                  input = args_input$x,
+                  input_id = NULL,
+                  out_class = "terra",
+                  grid_ = gpad_in)
+              args_input$y <-
+                .par_screen(
+                  type = peek_y,
+                  input = args_input$y,
+                  input_id = NULL,
+                  out_class = "terra",
+                  grid_ = gpad_in)
             }
-            if (methods::is(args_input[[2]], "SpatVector")) {
-              gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid$CGRIDID, ]
-              args_input[[2]] <- args_input[[2]][gpad_in, ]
-            }
+
             if (!"id" %in% names(formals(fun_dist))) {
               args_input$id <- NULL
             }
@@ -222,7 +274,7 @@ par_grid <-
             res <- rlang::inject(fun_dist(!!!args_input))
             cli::cli_inform(
               sprintf(
-                "Your input function was successfully run at CGRIDID: %s\n",
+                "Your input function at CGRIDID was successfully dispatched: %s\n",
                 as.character(unlist(grid[["CGRIDID"]]))
               )
             )
@@ -231,30 +283,23 @@ par_grid <-
             return(res)
           },
           error = function(e) {
-            if (debug) {
+            #if (debug) {
               par_fallback(e, fun_dist, inputid = grid$CGRIDID)
-            } else {
-              return(NULL)
-            }
+            #} else {
+            #  return(NULL)
+            #}
           })
-
-    #       return(run_result)
-    #     },
-    #     future.seed = TRUE,
-    #     future.packages = c("chopin", "dplyr", "sf", "terra", "rlang"),
-    #     future.globals = FALSE,
-    #     future.scheduling = 2
-    #   )
-    # results_distributed <-
-    #   results_distributed[!vapply(results_distributed, is.null, logical(1))]
-    # results_distributed <- collapse::rowbind(results_distributed, fill = TRUE)
-    # return(results_distributed)
+        })
+    }
+    return(results)
+    # collect results
     results <- Map(function(x) .backend_collector(x), results)
+    # remove NULL
     results <-
       results[!vapply(results, is.null, logical(1))]
     results <- collapse::rowbind(results, fill = TRUE)
-    return(results)
 
+    return(results)
   }
 
 
@@ -325,7 +370,7 @@ par_grid <-
 #' ncelev <-
 #'   terra::unwrap(
 #'     readRDS(
-#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 #'     )
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"
@@ -506,7 +551,7 @@ par_hierarchy <-
 #' ncelev <-
 #'   terra::unwrap(
 #'     readRDS(
-#'       system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+#'       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 #'     )
 #'   )
 #' terra::crs(ncelev) <- "EPSG:5070"

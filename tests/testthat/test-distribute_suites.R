@@ -15,7 +15,7 @@ testthat::test_that("Processes are properly spawned and compute", {
             system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
   ncelev <-
     terra::unwrap(
       readRDS(ncelevpath)
@@ -240,7 +240,7 @@ testthat::test_that(
     ncelev <-
       terra::unwrap(
         readRDS(
-          system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+          system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
         )
       )
     terra::crs(ncelev) <- "EPSG:5070"
@@ -461,7 +461,7 @@ testthat::test_that(
       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
     # terra::unwrap(
     #   readRDS(
-    #     system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
+    #     system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
     #   )
     # )
     terra::crs(ncelev) <- "EPSG:5070"
