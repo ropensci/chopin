@@ -2,7 +2,7 @@
 % Please edit documentation in R/scale_process.R
 \name{par_hierarchy}
 \alias{par_hierarchy}
-\title{Process a given function using a hierarchy in input data}
+\title{Parallelize spatial computation by hierarchy in input data}
 \usage{
 par_hierarchy(
   regions,
@@ -49,7 +49,8 @@ For entries of the results, consult the function used in
 "Hierarchy" refers to a system,
 which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
-(e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
+(e.g., FIPS for US Census geographies and
+Nomenclature of Territorial Units for Statistics (NUTS), etc.).
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
 \code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} in \code{\link[future:plan]{future::plan}}
 will parallelize the work by splitting lower level features into

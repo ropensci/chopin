@@ -28,7 +28,6 @@ dep_check(nc_vect)
 }
 \seealso{
 Other Helper functions: 
-\code{\link{check_dist_incorrect}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
 \code{\link{crs_check}()},

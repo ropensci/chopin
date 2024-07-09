@@ -122,8 +122,9 @@ extract_at(
 )
 }
 \arguments{
-\item{x}{\code{SpatRaster} object. or file path(s) with extensions
-that are GDAL-compatible.}
+\item{x}{\code{SpatRaster} object or file path(s) with extensions
+that are GDAL-compatible. When multiple file paths are used, the rasters
+must have the same extent and resolution.}
 
 \item{y}{\code{sf}/\code{SpatVector} object or file path.}
 
@@ -195,8 +196,6 @@ extract_at(
 )
 }
 \seealso{
-\link{extract_at_poly}, \link{extract_at_buffer}
-
 Other Macros for calculation: 
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},

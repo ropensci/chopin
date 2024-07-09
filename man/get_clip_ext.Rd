@@ -14,7 +14,7 @@ get_clip_ext(pnts, radius, extrusion = 1.1)
 \item{extrusion}{numeric(1). The extent extrusion factor.}
 }
 \value{
-A terra::ext or sfc_POLYGON object of the computation extent.
+A \code{terra::ext} or sfc_POLYGON object of the computation extent.
 }
 \description{
 Return clipping extent with buffer radius.
@@ -34,7 +34,6 @@ get_clip_ext(nc_vect, 2.5e4)
 }
 \seealso{
 Other Helper functions: 
-\code{\link{check_dist_incorrect}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
 \code{\link{crs_check}()},

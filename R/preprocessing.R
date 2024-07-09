@@ -6,7 +6,7 @@
 #' @param pnts One of sf or SpatVector object. Target points of computation.
 #' @param radius numeric(1). Buffer radius. It is assumed to be in meters
 #' @param extrusion numeric(1). The extent extrusion factor.
-#' @returns A terra::ext or sfc_POLYGON object of the computation extent.
+#' @returns A `terra::ext` or sfc_POLYGON object of the computation extent.
 #' @examples
 #' library(sf)
 #' library(terra)

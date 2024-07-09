@@ -2,7 +2,7 @@
 % Please edit documentation in R/scale_process.R
 \name{par_multirasters}
 \alias{par_multirasters}
-\title{Process a given function over multiple large rasters}
+\title{Parallelize spatial computation over multiple raster files}
 \usage{
 par_multirasters(filenames, fun_dist, ..., .debug = FALSE)
 }

@@ -1,3 +1,40 @@
+# 0.7.5
+- Internal: Preprocessing "dot-functions" -- universally usable functions are plain S3, whereas class-specific in S4
+- Added
+  - CITATION.cff
+  - `par_*`: argument `pad_y` to enable applying padded extent to x or y (e.g., y in raster-vector overlay and x otherwise)
+- Updated
+  - README.Rmd: split the combined one into two mermaid figures -> MD rebuilt, removed date of last update
+  - `par_*`: argument name change from debug to .debug
+- Dropped
+  - Custom backend for future and mirai; rolling back to `future.apply`
+  - `any_class_args`, `is_within_ref`, `par_fallback`, `check_dist_incorrect`
+  - `par_grid` argument: `grids_input_ids`
+  - Data: SRTM (TIFF replaces RDS)
+
+# 0.7.4
+- Data preprocessing parts are separated into internal functions
+- Name change
+  - `check_subject` to `.check_vector`
+  - `reproject_b2r` to `reproject_to_raster`
+  - `vect_valid_repair` to `vect_validate`
+- targets-friendly helper function: `par_split_list`
+  - Vignette for `par_split_list`
+
+# 0.7.3
+- BREAKING
+  - `par_*` family naming hierarchy: `par_make_*` to `par_pad_*`
+    - Plain gridding (`par_make_grid`) and clustering (`par_make_balanced`) functions are internal
+  - Main `par_*` runners (par_grid, par_hierarchy, par_multirasters) are kept
+- `extract_at` is redesigned as a S4 method
+- All messaging is managed by `cli` package
+- Added zzz.R for startup message
+
+# 0.7.2
+- `summarize_aw` gets generic argument names `x` and `y`
+- `mirai` backend is introduced
+- Internal functions are not exported
+
 # 0.7.0
 - Type check function `check_subject` is added. This function is internal.
 - `vapply` argument `FUN.VALUE` fixed

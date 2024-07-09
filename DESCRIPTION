@@ -1,19 +1,25 @@
 Package: chopin
 Title: Computation of spatial data by hierarchical and objective partitioning of inputs for parallel processing
-Version: 0.7.5.20240708
+Version: 0.7.5.20240709
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
     person("Kyle", "Messier", role = c("aut", "ctb"),
            comment = c(ORCID = "0000-0001-9508-9623"))
   )
-Description: It enables users with basic understanding on geospatial data
-    and sf and terra functions to parallelize geospatial operations for
-    geospatial exposure assessment modeling and covariate computation.
-    Parallelization is done by dividing large datasets into sub-regions
-    with regular grids and data's own hierarchy. A computation over the
-    large number of raster files can be parallelized with a chopin
-    function as well.
+Description: Geospatial data computation is parallelized by grid, hierarchy,
+    or raster files. Based on future and mirai parallel backends, terra and sf
+    functions as well as convenience functions in the package can be distributed
+    over multiple threads. The simplest way of parallelizing generic geospatial
+    computation is to start from `par_pad_*` functions to `par_grid`,
+    `par_hierarchy`, or `par_multirasters` functions. Virtually any functions
+    accepting classes in terra or sf packages can be used in the three
+    parallelization functions. A common raster-vector overlay operation
+    is provided as a function `extract_at`, which uses exactextractr, with
+    options for kernel weights for summarizing raster values at vector geometries.
+    Other convenience functions for vector-vector operations including
+    simple areal interpolation (`summarize_aw`) and summation of
+    exponentially decaying weights (`summarize_sedc`) are also provided.
 License: MIT + file LICENSE
 URL: https://github.com/NIEHS/chopin
 BugReports: https://github.com/NIEHS/chopin/issues
@@ -51,7 +57,6 @@ Suggests:
     spatstat.random,
     testthat (>= 3.0.0),
     units,
-    withr,
-    alphahull
+    withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3

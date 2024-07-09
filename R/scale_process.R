@@ -1,4 +1,4 @@
-#' Process a given function in the entire or partial computational grids
+#' Parallelize spatial computation over the computational grids
 #' @family Parallelization
 #' @description
 #' [future::multicore], [future::multisession], [future::cluster]
@@ -29,7 +29,7 @@
 #' @param pad_y logical(1). Whether to filter y with the padded grid.
 #'  Should be TRUE when x is where the values are calculated.
 #'  Default is `FALSE`. In the reverse case, like `terra::extent` or
-#'  `exactextractr::exact_extract`, the raster (x) should be scoped
+#'  `exactextractr::exact_extract`, the raster (x) extent should be set
 #'   with the padded grid.
 #' @param .debug logical(1). Default is `FALSE`. Otherwise,
 #'   if a unit computation fails, the error message and the `CGRIDID`
@@ -78,10 +78,9 @@
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
-#' @importFrom dplyr bind_rows
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
-#' @importFrom cli cli_abort cli_inform
+#' @importFrom cli cli_abort cli_alert_info
 #' @importFrom methods getPackageName
 #' @export
 par_grid <-
@@ -198,12 +197,13 @@ par_grid <-
   }
 
 
-#' @title Process a given function using a hierarchy in input data
+#' Parallelize spatial computation by hierarchy in input data
 #' @family Parallelization
 #' @description "Hierarchy" refers to a system,
 #'  which divides the entire study region into multiple subregions.
 #'  It is oftentimes reflected in an area code system
-#'  (e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
+#'  (e.g., FIPS for US Census geographies and
+#'  Nomenclature of Territorial Units for Statistics (NUTS), etc.).
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
 #'  [`future.mirai::mirai_multisession`] in [`future::plan`]
 #'  will parallelize the work by splitting lower level features into
@@ -288,7 +288,7 @@ par_grid <-
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
-#' @importFrom cli cli_abort cli_inform
+#' @importFrom cli cli_abort cli_alert_info
 #' @export
 par_hierarchy <-
   function(
@@ -406,7 +406,7 @@ par_hierarchy <-
   }
 
 
-#' @title Process a given function over multiple large rasters
+#' @title Parallelize spatial computation over multiple raster files
 #' @family Parallelization
 #' @description Large raster files usually exceed the memory capacity in size.
 #'  This function can be helpful to process heterogenous raster files with
@@ -470,12 +470,11 @@ par_hierarchy <-
 #'   id = "GEOID",
 #'   func = "mean"
 #' )
-#' @importFrom future future
+#' @importFrom future.apply future_lapply
 #' @importFrom terra rast
-#' @importFrom mirai mirai call_mirai
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
-#' @importFrom cli cli_inform
+#' @importFrom cli cli_inform cli_alert_info
 #' @export
 par_multirasters <-
   function(

@@ -2,7 +2,7 @@
 % Please edit documentation in R/scale_process.R
 \name{par_grid}
 \alias{par_grid}
-\title{Process a given function in the entire or partial computational grids}
+\title{Parallelize spatial computation over the computational grids}
 \usage{
 par_grid(grids, fun_dist, ..., pad_y = FALSE, .debug = FALSE)
 }
@@ -19,7 +19,7 @@ This function should have \code{x} and \code{y} arguments.}
 \item{pad_y}{logical(1). Whether to filter y with the padded grid.
 Should be TRUE when x is where the values are calculated.
 Default is \code{FALSE}. In the reverse case, like \code{terra::extent} or
-\code{exactextractr::exact_extract}, the raster (x) should be scoped
+\code{exactextractr::exact_extract}, the raster (x) extent should be set
 with the padded grid.}
 
 \item{.debug}{logical(1). Default is \code{FALSE}. Otherwise,

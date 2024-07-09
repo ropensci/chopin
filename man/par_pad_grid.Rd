@@ -42,7 +42,7 @@ be specified.
 clip actual datasets. Depending on the length unit of the CRS of input.}
 
 \item{unit}{character(1). The length unit for padding (optional).
-units::set_units is used for padding when sf object is used.
+\code{units::set_units} is used for padding when \code{sf} object is used.
 See \href{https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html}{link}
 for the list of acceptable unit forms.}
 
@@ -100,7 +100,7 @@ nc_comp_region_wkt$original
 nc_comp_region_wkt$padded
 }
 \seealso{
-\link{par_merge_grid}
+\code{\link{par_merge_grid}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

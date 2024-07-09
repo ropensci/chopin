@@ -217,8 +217,9 @@ kernelfunction <-
 #'     raster-vector overlay is done with `exactextractr::exact_extract`.
 #'   * Raster input in `x`: `SpatRaster` is preferred. If the input is not
 #'    `SpatRaster`, it will be converted to `SpatRaster` object.
-#' @param x `SpatRaster` object. or file path(s) with extensions
-#' that are GDAL-compatible.
+#' @param x `SpatRaster` object or file path(s) with extensions
+#' that are GDAL-compatible. When multiple file paths are used, the rasters
+#' must have the same extent and resolution.
 #' @param y `sf`/`SpatVector` object or file path.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
@@ -236,7 +237,6 @@ kernelfunction <-
 #' @returns A data.frame object with summarized raster values with
 #'  respect to the mode (polygon or buffer) and the function.
 #' @author Insang Song \email{geoissong@@gmail.com}
-#' @seealso [extract_at_poly], [extract_at_buffer]
 #' @examples
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
@@ -511,6 +511,17 @@ setMethod(
 # nolint start
 #' Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 #' @family Macros for calculation
+#' @details
+#' The SEDC is specialized in vector to vector summary of covariates
+#' with exponential decay. Decaying slope will be defined by `sedc_bandwidth`,
+#' where the concentration of the source is reduced to $\exp(-3)$
+#' (approximately 5 \%). This function is useful when users a proper theory
+#' of the attenuating concentration with the distance from the sources.
+#' It can be thought of as a fixed bandwidth kernel weighted sum of covariates,
+#' which encapsulates three steps:
+#'   * Calculate the distance between each source and target points.
+#'   * Calculate the weight of each source point with the exponential decay.
+#'   * Summarize the weighted covariates.
 #' @param point_from `SpatVector` object. Locations where
 #'  the sum of SEDCs are calculated.
 #' @param point_to `SpatVector` object.
@@ -528,16 +539,16 @@ setMethod(
 #'   See [`terra::ext`] for more details. Coordinate systems should match.
 #' @param extent_to numeric(4) or SpatExtent. Extent of clipping `point_to`.
 #' @param ... Placeholder.
-#' @returns data.frame (tibble) object with input field names with
-#'  a suffix \code{"_sedc"} where the sums of EDC are stored.
+#' @returns data.frame object with input field names with
+#'  a suffix `"_sedc"` where the sums of EDC are stored.
 #'  Additional attributes are attached for the EDC information.
-#'    - attr(result, "sedc_bandwidth"): the bandwidth where
+#'    - `attr(result, "sedc_bandwidth")`: the bandwidth where
 #'  concentration reduces to approximately five percent
-#'    - attr(result, "sedc_threshold"): the threshold distance
+#'    - `attr(result, "sedc_threshold")`: the threshold distance
 #'  at which emission source points are excluded beyond that
 #' @note Distance calculation is done with `terra` functions internally.
 #'  Thus, the function internally converts `sf` objects in
-#'  \code{point_*} arguments to `terra`. Please note that any `NA` values
+#'  `point_*` arguments to `terra`. Please note that any `NA` values
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
@@ -662,7 +673,7 @@ summarize_sedc <-
 
 
 ## summarize_aw ####
-#' @title Area weighted summary using two polygon objects
+#' Area weighted summary using two polygon objects
 #' @rdname summarize_aw
 #' @name summarize_aw
 #' @family Macros for calculation

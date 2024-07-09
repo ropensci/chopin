@@ -44,23 +44,37 @@ See \code{\link[terra:ext]{terra::ext}} for more details. Coordinate systems sho
 \item{...}{Placeholder.}
 }
 \value{
-data.frame (tibble) object with input field names with
+data.frame object with input field names with
 a suffix \code{"_sedc"} where the sums of EDC are stored.
 Additional attributes are attached for the EDC information.
 \itemize{
-\item attr(result, "sedc_bandwidth"): the bandwidth where
+\item \code{attr(result, "sedc_bandwidth")}: the bandwidth where
 concentration reduces to approximately five percent
-\item attr(result, "sedc_threshold"): the threshold distance
+\item \code{attr(result, "sedc_threshold")}: the threshold distance
 at which emission source points are excluded beyond that
 }
 }
 \description{
 Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 }
+\details{
+The SEDC is specialized in vector to vector summary of covariates
+with exponential decay. Decaying slope will be defined by \code{sedc_bandwidth},
+where the concentration of the source is reduced to $\exp(-3)$
+(approximately 5 \\%). This function is useful when users a proper theory
+of the attenuating concentration with the distance from the sources.
+It can be thought of as a fixed bandwidth kernel weighted sum of covariates,
+which encapsulates three steps:
+\itemize{
+\item Calculate the distance between each source and target points.
+\item Calculate the weight of each source point with the exponential decay.
+\item Summarize the weighted covariates.
+}
+}
 \note{
 Distance calculation is done with \code{terra} functions internally.
 Thus, the function internally converts \code{sf} objects in
-\code{point_*} arguments to \code{terra}. Please note that any \code{NA} values
+\verb{point_*} arguments to \code{terra}. Please note that any \code{NA} values
 in the input will be ignored in SEDC calculation.
 }
 \examples{

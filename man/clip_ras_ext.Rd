@@ -41,7 +41,6 @@ clip_ras_ext(x = ras_rand, y = vec_rand_p, radius = 1.5)
 }
 \seealso{
 Other Helper functions: 
-\code{\link{check_dist_incorrect}()},
 \code{\link{clip_vec_ext}()},
 \code{\link{crs_check}()},
 \code{\link{datamod}()},
