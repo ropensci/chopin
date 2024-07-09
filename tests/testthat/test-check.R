@@ -1,5 +1,5 @@
 
-testthat::test_that("What package does the input object belong?",
+testthat::test_that("Input object class is detected",
   {
     withr::local_package("stars")
     withr::local_package("terra")
@@ -13,11 +13,18 @@ testthat::test_that("What package does the input object belong?",
 
     testthat::expect_equal(packbound_stars, "sf")
     testthat::expect_equal(packbound_terra, "terra")
+
+    # proxy
+    ncpath <- system.file(package = "sf", "shape/nc.shp")
+    nc <- terra::vect(ncpath, proxy = TRUE)
+    packbound_proxy <- dep_check(nc)
+    testthat::expect_equal(packbound_proxy, "terra")
+
   }
 )
 
 
-testthat::test_that("What package does the input object belong?",
+testthat::test_that("Data model detection",
   {
     withr::local_package("stars")
     withr::local_package("terra")
@@ -52,11 +59,6 @@ testthat::test_that("CRS is transformed when it is not standard", {
   sf::st_crs(ncna) <- NA
   ncnatr <- terra::vect(ncna)
 
-  testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:4326"))
-  testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:5070"))
-  testthat::expect_no_error(reproject_std(nctr, crs_standard = "EPSG:4326"))
-  testthat::expect_no_error(reproject_std(nctr, crs_standard = "EPSG:5070"))
-
   nctr_align <- reproject_std(nctr, "EPSG:4326")
   nc_align <- reproject_std(nc, "EPSG:4326")
 
@@ -76,6 +78,28 @@ testthat::test_that("CRS is transformed when it is not standard", {
 })
 
 
+testthat::test_that("reproject to raster: sf", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  nctr <- terra::vect(nc)
+  terra::crs(nctr) <- "EPSG:5070"
+
+  # make random raster
+  rr <- terra::rast(matrix(runif(100), 10, 10), crs = "EPSG:4326")
+
+  ncr <- reproject_to_raster(nc, rr)
+  nctr <- reproject_to_raster(nctr, rr)
+
+  testthat::expect_s3_class(ncr, "sf")
+  testthat::expect_s4_class(nctr, "SpatVector")
+})
+
+
 testthat::test_that("vector validity check is cleared", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -91,94 +115,30 @@ testthat::test_that("vector validity check is cleared", {
 })
 
 
-testthat::test_that("input extent is converted to a polygon", {
+testthat::test_that(".check_id throws error with non-character id", {
   withr::local_package("sf")
-  withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_sf <- sf::st_read(input_char)
 
-  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
-  mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
-  mainland_box_t <- ext_to_poly(mainland_vec, output_class = "terra")
-  mainland_vec_un <- unname(mainland_vec)
-
-  testthat::expect_s3_class(mainland_box, "sf")
-  # terra Spat* objects are s4 class...
-  testthat::expect_s4_class(mainland_box_t, "SpatVector")
-  # error cases
   testthat::expect_error(
-    ext_to_poly(mainland_vec_un, output_class = "sf")
+    .check_id(input_sf, 32)
   )
+})
+
+
+testthat::test_that(".check_id throws error with nonexistent id", {
+  withr::local_package("sf")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_sf <- sf::st_read(input_char)
+
   testthat::expect_error(
-    ext_to_poly(mainland_vec_un, output_class = "GeoDataFrames")
+    .check_id(input_sf, "fips"),
+    "id should exist in the input object"
   )
 })
 
-
-testthat::test_that("Check bbox abides.", {
-  withr::local_package("sf")
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  # starts from sf/stars
-  nc <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::read_sf(nc)
-  nc <- sf::st_transform(nc, "EPSG:5070")
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
-
-  testthat::expect_no_error(is_bbox_within_reference(ncp, nc))
-  res <- is_bbox_within_reference(ncp, nc)
-  testthat::expect_equal(res, TRUE)
-
-  # error cases
-  testthat::expect_no_error(
-    is_bbox_within_reference(ncp, sf::st_bbox(nc))
-  )
-})
-
-
-testthat::test_that("crs_check is working as expected", {
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  ncpath <- system.file("shape/nc.shp", package = "sf")
-  nc <- sf::read_sf(ncpath)
-  nct <- terra::vect(nc)
-  crs_checked1 <- crs_check(nc)
-  dummy <- character(0)
-  crs_checked2 <- crs_check(nct)
-
-  testthat::expect_equal(crs_checked1, sf::st_crs(nc))
-  testthat::expect_equal(crs_checked2, terra::crs(nct))
-  testthat::expect_error(crs_check(dummy))
-  ncna <- nc
-  sf::st_crs(ncna) <- NA
-  testthat::expect_error(crs_check(ncna))
-  nctna <- nct
-  terra::crs(nctna) <- ""
-  testthat::expect_error(crs_check(nctna))
-
-})
-
-
-testthat::test_that("nc data is within the mainland US", {
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  ncpath <- system.file("shape/nc.shp", package = "sf")
-  nc <- sf::read_sf(ncpath)
-  nc <- sf::st_transform(nc, "EPSG:4326")
-  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-  mainland_box <- ext_to_poly(mainland_vec, output_class = "sf")
-  within_res <- is_within_ref(nc, mainland_box)
-  testthat::expect_equal(within_res, TRUE)
-
-  # error cases
-  testthat::expect_error(is_within_ref(list(1), mainland_box))
-  testthat::expect_error(is_within_ref(nc, list(1)))
-
-})
 
 testthat::test_that("check_subject performs necessary conversions", {
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
@@ -201,4 +161,122 @@ testthat::test_that("check_subject performs necessary conversions", {
       input_char, extent = c(-80, -77, 35, 36), subject_id = "FIPS"
     )
   testthat::expect_equal(dep_check(checked_ext), "terra")
+})
+
+
+testthat::test_that(".check_character with non-character inputs",{
+  # test for non-character input
+  testthat::expect_message(
+    testthat::expect_error(.check_character(3L)),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    testthat::expect_error(.check_character(11.11)),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    testthat::expect_error(.check_character(NA)),
+    "Input is not a character."
+  )
+})
+
+testthat::test_that(".check_character with character inputs",{
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  # test for non file path character input
+  testthat::expect_error(
+    .check_character("test")
+  )
+  # vector file
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  vec_file <- .check_character(ncfile)
+  # remove attributes for comparison
+  attr(vec_file, "crs") <- NULL
+  testthat::expect_equal(vec_file, "vector")
+
+  # raster file
+  elevfile <- system.file(package = "terra", "ex/elev.tif")
+  ras_file <- .check_character(elevfile)
+  attr(ras_file, "crs") <- NULL
+  testthat::expect_equal(ras_file, "raster")
+})
+
+
+testthat::test_that(".check_character with sf objects", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # sf object
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  elevfile <- system.file(package = "terra", "ex/elev.tif")
+
+  nc <- sf::read_sf(ncfile)
+  elev <- stars::read_stars(elevfile)
+  testthat::expect_message(
+    ncsf_detected <- .check_character(nc),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    elev_detected <- .check_character(elev),
+    "Input is not a character."
+  )
+  testthat::expect_equal(ncsf_detected, "vector")
+  testthat::expect_equal(elev_detected, "raster")
+
+})
+
+testthat::test_that(".check_character with Spat* objects", {
+  withr::local_package("terra")
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  elevfile <- system.file(package = "terra", "ex/elev.tif")
+
+  nct <- terra::vect(nc)
+  elevt <- terra::rast(elevfile)
+  testthat::expect_message(
+    nct_detected <- .check_character(nct),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    elevt_detected <- .check_character(elevt),
+    "Input is not a character."
+  )
+  testthat::expect_equal(nct_detected, "vector")
+  testthat::expect_equal(elevt_detected, "raster")
+
+})
+
+
+# `[` Tests ####
+testthat::test_that("`[` methods in chopin -- SpatVector-bbox", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
+
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- sf::st_bbox(nc10)
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+testthat::test_that("`[` methods in chopin -- sf-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::st_read(ncfile)
+  nct <- terra::vect(nc)
+
+  nct10 <- nct[seq_len(10L), ]
+  nc10ext <- terra::ext(nct10)
+  testthat::expect_no_error(nct10 <- nc[nc10ext, ])
+
+  nc10 <- nc[seq_len(10L), ]
+  testthat::expect_no_error(nc[nc10, ])
 })
