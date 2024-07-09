@@ -55,7 +55,7 @@ It is oftentimes reflected in an area code system
 will parallelize the work by splitting lower level features into
 several higher level feature group.
 For details of the terminology in \code{future} package,
-refer to \code{\link[future:plan]{future::plan}}.
+please refer to \code{\link[future:plan]{future::plan}} documentation.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with

@@ -62,8 +62,10 @@ kernelfunction <-
   }
   if (!grepl("point", terra::geomtype(y_vec))) {
     cli::cli_warn(
-      "Point geometries are acceptable for kernel weighting.\n",
-      "Convert to points... (Note: inside = TRUE is applied)"
+      paste0(
+        "Point geometries are acceptable for kernel weighting.\n",
+        "Convert to points... (Note: inside = TRUE is applied)"
+      )
     )
     y_vec <- terra::centroids(y_vec, inside = TRUE)
   }
@@ -252,6 +254,11 @@ kernelfunction <-
 #' extract_at(rrast, ncpath, "NAME", "mean")
 #' extract_at(
 #'   rrast, ncpath, "NAME", "mean",
+#'   kernel = "epanechnikov",
+#'   bandwidth = 1e5
+#' )
+#' extract_at(
+#'   rastpath, ncpath, "NAME", "mean",
 #'   kernel = "epanechnikov",
 #'   bandwidth = 1e5
 #' )
@@ -553,17 +560,9 @@ setMethod(
 #'
 #' vals <- c("val1", "val2")
 #' summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
-#' @importFrom dplyr as_tibble
-#' @importFrom dplyr left_join
-#' @importFrom dplyr summarize
-#' @importFrom dplyr mutate
-#' @importFrom dplyr group_by
-#' @importFrom dplyr all_of
-#' @importFrom dplyr across
-#' @importFrom dplyr ungroup
-#' @importFrom terra nearby
-#' @importFrom terra distance
-#' @importFrom terra buffer
+#' @importFrom dplyr as_tibble left_join summarize mutate group_by all_of
+#' @importFrom dplyr across ungroup
+#' @importFrom terra nearby distance buffer
 #' @importFrom rlang sym
 #' @export
 # nolint end
@@ -581,29 +580,32 @@ summarize_sedc <-
   ) {
 
     point_from <-
-      .check_vector(point_from, extent = extent_from, subject_id = id)
+      .check_vector(
+        point_from,
+        extent = extent_from,
+        subject_id = id,
+        out_class = "terra"
+      )
     point_to <-
-      .check_vector(point_to, extent = extent_to, subject_id = NULL)
+      .check_vector(
+        point_to,
+        extent = extent_to,
+        subject_id = NULL,
+        out_class = "terra"
+      )
 
     # define sources, set SEDC exponential decay range
     len_point_from <- seq_len(nrow(point_from))
     len_point_to <- seq_len(nrow(point_to))
 
-    pkginfo_from <- dep_check(point_from)
-    pkginfo_to <- dep_check(point_to)
-
-    if (any(pkginfo_from == "sf", pkginfo_to == "sf")) {
-      point_from <- dep_switch(point_from)
-      point_to <- dep_switch(point_to)
-    }
-
     cn_overlap <- intersect(names(point_from), names(point_to))
     if (length(cn_overlap) > 0) {
       cli::cli_warn(
         sprintf(
-          "There are %d fields with the same name.", length(cn_overlap)
-        ),
-        "The result may be inaccurate.\n"
+          "There are %d fields with the same name.\n%s",
+          length(cn_overlap),
+          "The result may be inaccurate.\n"
+        )
       )
     }
     point_from$from_id <- len_point_from

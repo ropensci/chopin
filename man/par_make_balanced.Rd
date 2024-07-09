@@ -30,10 +30,12 @@ The results will be irregular grids with or without overlapping parts.
 library(terra)
 library(anticlust)
 data(ncpoints, package = "chopin")
+
 ncp <- terra::vect(
   ncpoints, geom = c("X", "Y"),
   keepgeom = FALSE, crs = "EPSG:5070"
 )
+
 # 2,304 points / 12 = 192 points per cluster
 ncpbal <- par_make_balanced(ncp, 12)
 ncpbal

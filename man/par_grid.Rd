@@ -33,8 +33,8 @@ in \code{fun_dist} argument.
 }
 \description{
 \link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
-will parallelize the work in each grid.
-For details of the terminology in \code{future} package,
+\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession} in \link[future:plan]{future::plan} will parallelize
+the work in each grid. For details of the terminology in \code{future} package,
 refer to \code{\link[future:plan]{future::plan}}. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process

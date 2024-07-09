@@ -351,10 +351,12 @@ par_make_grid <-
 #' library(terra)
 #' library(anticlust)
 #' data(ncpoints, package = "chopin")
+#'
 #' ncp <- terra::vect(
 #'   ncpoints, geom = c("X", "Y"),
 #'   keepgeom = FALSE, crs = "EPSG:5070"
 #' )
+#'
 #' # 2,304 points / 12 = 192 points per cluster
 #' ncpbal <- par_make_balanced(ncp, 12)
 #' ncpbal
@@ -412,20 +414,25 @@ par_def_q <- function(steps = 4L) {
 #' @returns A `SpatVector` object with field `CGRIDID`.
 #' @examples
 #' library(terra)
+#'
 #' random_points <-
 #'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
 #' quantiles <- seq(0, 1, length.out = 5L)
 #' qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
 #' clustered_points <-
 #'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
+#'
 #' qpoly_c <- par_cut_coords(clustered_points$x, clustered_points$y, quantiles)
+#'
 #' par(mfcol = c(1, 2))
 #' plot(qpoly)
 #' plot(qpoly_c)
 #' par(mfcol = c(1, 1))
+#'
 #' cvect <- terra::vect(clustered_points, geom = c("x", "y"))
 #' plot(cvect)
 #' plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
+#'
 #' qcv <- intersect(cvect, qpoly_c)
 #' table(qcv$CGRIDID)
 #' sum(table(qcv$CGRIDID)) # should be 1000

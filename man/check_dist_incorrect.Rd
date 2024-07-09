@@ -25,6 +25,37 @@ Alpha hull refers to the parametrized exterior boundary
 of a set of points. This function checks if the distance to the nearest
 computational grid boundary is reported in the alphahull points.
 }
+\examples{
+library(sf)
+library(terra)
+
+building <- system.file("gpkg/buildings.gpkg", package = "sf")
+building <- terra::vect(building)
+buildingc <- terra::centroids(building, inside = TRUE)
+buildingl <- terra::as.lines(building)
+buildingl <- terra::intersect(buildingl, buildingl)
+building_ctol <- terra::nearest(buildingc, buildingl)
+
+bgrid <-
+  par_pad_grid(
+    input = buildingc, mode = "grid",
+    nx = 4L, ny = 4L,
+    padding = 20L
+  )
+bgrid_n <- nrow(bgrid$original)
+for (i in seq_len(bgrid_n)) {
+  check_dist_incorrect(
+    points = buildingc,
+    grid = bgrid$original[i, ],
+    dist_calc = building_ctol$distance
+  )
+}
+}
+\references{
+\itemize{
+\item \href{https://doi.org/10.32614/CRAN.package.alphahull}{\code{alphahull}}
+}
+}
 \seealso{
 Other Helper functions: 
 \code{\link{clip_ras_ext}()},

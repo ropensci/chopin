@@ -188,6 +188,11 @@ extract_at(
   kernel = "epanechnikov",
   bandwidth = 1e5
 )
+extract_at(
+  rastpath, ncpath, "NAME", "mean",
+  kernel = "epanechnikov",
+  bandwidth = 1e5
+)
 }
 \seealso{
 \link{extract_at_poly}, \link{extract_at_buffer}

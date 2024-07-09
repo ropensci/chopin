@@ -2,8 +2,8 @@
 #' @family Parallelization
 #' @description
 #' [future::multicore], [future::multisession], [future::cluster]
-#' will parallelize the work in each grid.
-#' For details of the terminology in `future` package,
+#' [future.mirai::mirai_multisession] in [future::plan] will parallelize
+#' the work in each grid. For details of the terminology in `future` package,
 #' refer to [`future::plan`]. This function assumes that
 #' users have one raster file and a sizable and spatially distributed
 #' target locations. Each thread will process
@@ -209,7 +209,7 @@ par_grid <-
 #'  will parallelize the work by splitting lower level features into
 #'  several higher level feature group.
 #'  For details of the terminology in `future` package,
-#'  refer to [`future::plan`].
+#'  please refer to [`future::plan`] documentation.
 #'  Each thread will process the number of lower level features
 #'  in each higher level feature. Please be advised that
 #'  accessing the same file simultaneously with

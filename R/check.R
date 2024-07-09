@@ -808,6 +808,33 @@ setMethod(
 #' @param dist_calc Calculated distance.
 #' @returns logical vector.
 #' @importFrom alphahull ahull
+#' @references
+#' * [`alphahull`](https://doi.org/10.32614/CRAN.package.alphahull)
+#' @examples
+#' library(sf)
+#' library(terra)
+#'
+#' building <- system.file("gpkg/buildings.gpkg", package = "sf")
+#' building <- terra::vect(building)
+#' buildingc <- terra::centroids(building, inside = TRUE)
+#' buildingl <- terra::as.lines(building)
+#' buildingl <- terra::intersect(buildingl, buildingl)
+#' building_ctol <- terra::nearest(buildingc, buildingl)
+#'
+#' bgrid <-
+#'   par_pad_grid(
+#'     input = buildingc, mode = "grid",
+#'     nx = 4L, ny = 4L,
+#'     padding = 20L
+#'   )
+#' bgrid_n <- nrow(bgrid$original)
+#' for (i in seq_len(bgrid_n)) {
+#'   check_dist_incorrect(
+#'     points = buildingc,
+#'     grid = bgrid$original[i, ],
+#'     dist_calc = building_ctol$distance
+#'   )
+#' }
 #' @export
 check_dist_incorrect <-
   function(
@@ -815,17 +842,22 @@ check_dist_incorrect <-
     grid,
     dist_calc
   ) {
+    points <- points[grid, ]
     grid_line <- terra::as.lines(grid)
+    grid_line <- terra::intersect(grid_line, grid_line)
     pcoords <- terra::crds(points)
 
     # get the outermost point row indices
     points_ahull <- alphahull::ahull(pcoords[, 1], pcoords[, 2], alpha = 1)
     points_check <- points_ahull$ashape.obj$alpha.extremes
-    points_check <- points[points_check, ]
-    dist_calc_check <- dist_calc[points_check, ]
-    dist_check <- terra::nearest(points_check, grid_line)
+    points_search <- points[points_check, ]
+    # terra::relate(points, points_check, "intersects")
+    # points_search <- points[points_searchid, ]
+    dist_calc_check <- dist_calc[points_check]
+    dist_check <- terra::nearest(points_search, grid_line)
+    dist_check <- dist_check$distance
 
-    if (any(dist_calc_check == dist_check)) {
+    if (any(abs(dist_calc_check - dist_check) < 1e-6)) {
       cli::cli_warn("Suspected records found.")
       return(dist_calc_check[dist_calc_check == dist_check])
     } else {
