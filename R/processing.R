@@ -233,6 +233,10 @@ kernelfunction <-
 #'   Kernel function to apply to the extracted values.
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @param max_cells integer(1). Maximum number of cells in memory.
+#' @param .standalone logical(1). Default is `TRUE`, which means that
+#'   the function will be executed in a standalone mode.
+#'   When using this function in `par_*` functions,
+#'   set this to `FALSE`.
 #' @param ... Placeholder.
 #' @returns A data.frame object with summarized raster values with
 #'  respect to the mode (polygon or buffer) and the function.
@@ -425,7 +429,7 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
-      .standalone = TRUE
+      .standalone = .standalone
     )
   }
 )
@@ -514,7 +518,7 @@ setMethod(
 #' @details
 #' The SEDC is specialized in vector to vector summary of covariates
 #' with exponential decay. Decaying slope will be defined by `sedc_bandwidth`,
-#' where the concentration of the source is reduced to $\exp(-3)$
+#' where the concentration of the source is reduced to $\\exp(-3)$
 #' (approximately 5 \%). This function is useful when users a proper theory
 #' of the attenuating concentration with the distance from the sources.
 #' It can be thought of as a fixed bandwidth kernel weighted sum of covariates,

@@ -37,13 +37,10 @@ nc_valid <- vect_validate(nc)
 Other Helper functions: 
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
-\code{\link{crs_check}()},
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
-\code{\link{ext_to_poly}()},
 \code{\link{get_clip_ext}()},
-\code{\link{is_bbox_within_reference}()},
 \code{\link{par_def_q}()},
 \code{\link{par_map_args}()},
 \code{\link{reproject_std}()},

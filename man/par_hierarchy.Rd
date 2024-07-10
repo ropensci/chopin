@@ -25,10 +25,7 @@ A field name with the higher level information is also accepted.}
 \item{fun_dist}{\code{sf}, \code{terra}, or \code{chopin} functions.
 This function should have \code{x} and \code{y} arguments.}
 
-\item{...}{Arguments passed to the argument \code{fun_dist}.
-The \strong{second} place should get a vector or raster dataset from which
-you want to extract or calculate values. For example, a raster dataset
-when vector-raster overlay is performed.}
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
 
 \item{pad_y}{logical(1). Whether to filter y with the padded grid.
 Should be TRUE when x is where the values are calculated.

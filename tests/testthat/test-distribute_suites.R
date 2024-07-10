@@ -1,28 +1,30 @@
 
-testthat::test_that("Processes are properly spawned and compute", {
+testthat::test_that("par_grid", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
   withr::local_package("future.apply")
+  withr::local_package("future.mirai")
   withr::local_package("dplyr")
   withr::local_options(list(sf_use_s2 = FALSE))
 
+  # Reading data
+  ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
-  ncpoly <- terra::vect(ncpath) |>
+  ncpoly <- terra::vect(ncpath) %>%
     terra::project("EPSG:5070")
+
+  ## Bundled random points in NC
   ncpnts <-
-    readRDS(
-            system.file("extdata/nc_random_point.rds", package = "chopin"))
+    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-  ncelev <-
-    terra::unwrap(
-      readRDS(ncelevpath)
-    )
-  terra::crs(ncelev) <- "EPSG:5070"
-  names(ncelev) <- c("srtm15")
 
+  ## Resampled SRTM data in NC
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+
+  ## Random points in NC
   ncsamp <-
     terra::spatSample(
       terra::ext(ncelev),
@@ -52,26 +54,26 @@ testthat::test_that("Processes are properly spawned and compute", {
     suppressWarnings(
       par_grid(
         grids = nccompreg,
-        grid_target_id = NULL,
-        fun_dist = extract_at_buffer,
-        points = ncpnts,
-        surf = ncelev,
+        fun_dist = extract_at,
+        x = ncelev,
+        y = sf::st_as_sf(ncpnts),
         qsegs = 90L,
         radius = 5e3L,
-        id = "pid"
+        id = "pid",
+        .debug = FALSE,
+        .standalone = FALSE
       )
     )
+
 
   # check: sf <-> terra conversion changes coordinate precision?
   # this result omits 2 points which are exactly on the boundary.
   testthat::expect_no_error({
-    #plan(multicore, workers = 4L)
     resstr <-
       suppressWarnings(
         par_grid(
           grids = NULL,
-          grid_target_id = NULL,
-          fun_dist = extract_at_buffer,
+          fun_dist = extract_at,
           points = test_fullpath,
           surf = ncelev,
           qsegs = 90L,
@@ -82,9 +84,7 @@ testthat::test_that("Processes are properly spawned and compute", {
           padding = 3e4L
         )
       )
-    #plan(sequential)
-  }
-  )
+  })
 
   ncpntsf <- sf::st_as_sf(ncpnts)
   testthat::expect_no_error(

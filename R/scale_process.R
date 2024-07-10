@@ -122,10 +122,13 @@ par_grid <-
       args_input$id <- NULL
     }
 
+    # Track spatraster file path
+    args_input$x <- .check_par_spatraster(args_input$x)
+    args_input$y <- .check_par_spatraster(args_input$y)
     # get hints from the inputs
-    crs_x <- .check_character(args_input$x)
     peek_x <- try(.check_character(args_input$x), silent = TRUE)
     peek_y <- try(.check_character(args_input$y), silent = TRUE)
+    crs_x <- .check_character(args_input$x)
 
     # Main parallelization
     results <-
@@ -150,7 +153,7 @@ par_grid <-
               out_class = if (is_sf_parent) "sf" else "terra",
               .window = if (pad_y) grid_in else gpad_in
             )
-          print(args_input$x)
+
           args_input$y <-
             .par_screen(
               type = peek_y,
@@ -159,7 +162,7 @@ par_grid <-
               out_class = if (is_sf_parent || is_extract_at) "sf" else "terra",
               .window = if (pad_y) gpad_in else grid_in
             )
-          print(args_input$y)
+
           res <- rlang::inject(fun_dist(!!!args_input))
           cli::cli_alert_info(
             sprintf(
@@ -232,10 +235,7 @@ par_grid <-
 #'  A field name with the higher level information is also accepted.
 #' @param fun_dist `sf`, `terra`, or `chopin` functions.
 #'   This function should have `x` and `y` arguments.
-#' @param ... Arguments passed to the argument \code{fun_dist}.
-#' The **second** place should get a vector or raster dataset from which
-#' you want to extract or calculate values. For example, a raster dataset
-#' when vector-raster overlay is performed.
+#' @param ... Arguments passed to the argument `fun_dist`.
 #' @param pad_y logical(1). Whether to filter y with the padded grid.
 #'  Should be TRUE when x is where the values are calculated.
 #'  Default is `FALSE`. In the flipped case, like `terra::extent` or
@@ -304,10 +304,13 @@ par_hierarchy <-
       args_input$id <- NULL
     }
 
+    # Track spatraster file path
+    args_input$x <- .check_par_spatraster(args_input$x)
+    args_input$y <- .check_par_spatraster(args_input$y)
     # get hints from the inputs
-    crs_x <- .check_character(args_input$x)
     peek_x <- try(.check_character(args_input$x), silent = TRUE)
     peek_y <- try(.check_character(args_input$y), silent = TRUE)
+    crs_x <- .check_character(args_input$x)
 
     if (!length(regions_id) %in% c(1, nrow(regions))) {
       cli::cli_abort("The length of regions_id is not valid.")
@@ -488,10 +491,11 @@ par_multirasters <-
     file_iter <- as.list(seq_along(file_list))
     args_input <- list(...)
 
+    # Track spatraster file path
+    args_input$x <- .check_par_spatraster(args_input$x)
+    args_input$y <- .check_par_spatraster(args_input$y)
     # get hints from the inputs
     crs_x <- .check_character(filenames[1])
-    # peek_x <- try(.check_character(args_input$x), silent = TRUE)
-    # peek_y <- try(.check_character(args_input$y), silent = TRUE)
 
     results <-
       future.apply::future_lapply(

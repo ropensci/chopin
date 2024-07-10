@@ -555,8 +555,9 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' @importFrom sf st_relate st_length st_cast st_intersects st_as_sf st_area
 #' @importFrom rlang sym
 #' @importFrom igraph graph_from_edgelist mst components
+#' @importFrom dplyr %>%
 #' @importFrom utils combn
-#' @importFrom cli cli_inform
+#' @importFrom cli cli_inform cli_alert_info
 #' @export
 par_merge_grid <-
   function(
@@ -583,12 +584,7 @@ par_merge_grid <-
     n_points_in_grid <- lengths(sf::st_intersects(grid_pc, points_pc))
     grid_target <- (n_points_in_grid < grid_min_features)
 
-    # 2. concatenate self and contiguity grid indices
-    grid_self <- sf::st_relate(grid_pc, grid_pc, pattern = "2********")
-    grid_rook <- sf::st_relate(grid_pc, grid_pc, pattern = "F***1****")
-    # 3. merge self and rook neighbors
-    grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
-    # 4. conditional 1: the number of points per grid exceed the threshold?
+    # 2. conditional 1: the number of points per grid exceed the threshold?
     if (
       any(
         sum(grid_target) < 2,
@@ -596,18 +592,26 @@ par_merge_grid <-
         is.na(grid_target)
       )
     ) {
-      cli::cli_inform(c("i" =
+      cli::cli_alert_info(
+        paste0(
+          "Threshold is too low. Return the original grid.\n",
           sprintf(
-            "Threshold is too low. Return the original grid.
-            Please try higher threshold.
-            Minimum number of points in grids: %d, your threshold: %d\n",
-            min(n_points_in_grid), grid_min_features
-          )
-      ))
+            "Please try higher threshold. your threshold: %d\n",
+            grid_min_features
+          ),
+          "Top-10 non-zero number of points in grids: ",
+          paste(sort(n_points_in_grid)[1:10], collapse = ", ")
+        )
+      )
       # changed to grid_pc (0.6.4)
       return(grid_pc)
     }
 
+    # 3. concatenate self and contiguity grid indices
+    grid_self <- sf::st_relate(grid_pc, grid_pc, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_pc, grid_pc, pattern = "F***1****")
+    # 4. merge self and rook neighbors
+    grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
     # leave only actual index rather than logical
     grid_lt_threshold_idx <- seq(1, nrow(grid_pc))[grid_target]
 
@@ -629,12 +633,25 @@ par_merge_grid <-
     }
     # 9. Minimum spanning tree: find the connected components
     identified_graph <-
-      lapply(identified, function(x) t(utils::combn(x, 2))) |>
-      Reduce(f = rbind) |>
-      unique() |>
-      apply(MARGIN = 2, FUN = as.character) |>
-      igraph::graph_from_edgelist(directed = FALSE) |>
-      igraph::mst() |>
+      lapply(identified, function(x) t(utils::combn(x, 2)))
+
+    # 9-1. (added 0.7.5) single row identified_graph exception
+    identified_graph <-
+      identified_graph %>%
+      Reduce(f = rbind) %>%
+      unique() %>%
+      apply(MARGIN = 2, FUN = as.character)
+    # exception control: if nrow is 1 at unique(),
+    # the result here will be a vector of length 2.
+    # restore to matrix
+    if (is.vector(identified_graph)) {
+      identified_graph <-
+        matrix(identified_graph, nrow = 1)
+    }
+    identified_graph <-
+      identified_graph %>%
+      igraph::graph_from_edgelist(directed = FALSE) %>%
+      igraph::mst() %>%
       igraph::components()
 
     identified_graph_member <- identified_graph$membership
@@ -714,9 +731,9 @@ par_merge_grid <-
     grid_out <- grid_pc
     grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
 
-    grid_out <- grid_out |>
-      dplyr::group_by(!!rlang::sym("CGRIDID")) |>
-      dplyr::summarize(n_merged = dplyr::n()) |>
+    grid_out <- grid_out %>%
+      dplyr::group_by(!!rlang::sym("CGRIDID")) %>%
+      dplyr::summarize(n_merged = dplyr::n()) %>%
       dplyr::ungroup()
 
     ## 13. Polsby-Popper test for shape compactness
@@ -737,8 +754,8 @@ par_merge_grid <-
       cli::cli_inform(
         c("i" =
             paste0(
-              "The reduced computational regions have too complex shapes.\n",
-              "Consider increasing thresholds or using the original grids.\n"
+              "The merged polygons have too complex shapes.\n",
+              "Increase threshold or use the original grids.\n"
             )
         )
       )

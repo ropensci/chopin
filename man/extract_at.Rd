@@ -150,6 +150,11 @@ Kernel function to apply to the extracted values.}
 \item{max_cells}{integer(1). Maximum number of cells in memory.}
 
 \item{...}{Placeholder.}
+
+\item{.standalone}{logical(1). Default is \code{TRUE}, which means that
+the function will be executed in a standalone mode.
+When using this function in \verb{par_*} functions,
+set this to \code{FALSE}.}
 }
 \value{
 A data.frame object with summarized raster values with

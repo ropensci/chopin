@@ -60,7 +60,7 @@ Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 \details{
 The SEDC is specialized in vector to vector summary of covariates
 with exponential decay. Decaying slope will be defined by \code{sedc_bandwidth},
-where the concentration of the source is reduced to $\exp(-3)$
+where the concentration of the source is reduced to $\\exp(-3)$
 (approximately 5 \\%). This function is useful when users a proper theory
 of the attenuating concentration with the distance from the sources.
 It can be thought of as a fixed bandwidth kernel weighted sum of covariates,

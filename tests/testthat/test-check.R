@@ -264,19 +264,111 @@ testthat::test_that("`[` methods in chopin -- SpatVector-bbox", {
   testthat::expect_no_error(nct10 <- nct[nc10box, ])
 })
 
-testthat::test_that("`[` methods in chopin -- sf-SpatExtent", {
+
+testthat::test_that("`[` methods in chopin -- SpatVector-sf", {
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   ncfile <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::st_read(ncfile)
+  nc <- sf::read_sf(ncfile)
   nct <- terra::vect(nc)
 
-  nct10 <- nct[seq_len(10L), ]
-  nc10ext <- terra::ext(nct10)
-  testthat::expect_no_error(nct10 <- nc[nc10ext, ])
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- sf::st_as_sf(nc10)
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that("`[` methods in chopin -- SpatVector-sfc", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
 
   nc10 <- nc[seq_len(10L), ]
-  testthat::expect_no_error(nc[nc10, ])
+  nc10box <- sf::st_as_sf(nc10)$geometry
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that("`[` methods in chopin -- SpatVector-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
+
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- terra::ext(sf::st_bbox(nc10))
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nc10 <- nct[seq_len(10L), ]
+  nc10box <- terra::ext(nc10)
+  nc10e <- .intersect_extent(nc10box)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "terra")
+
+  testthat::expect_s4_class(nc10e, "SpatExtent")
+  testthat::expect_s4_class(nct10, "SpatVector")
+})
+
+
+testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nc10 <- nct[seq_len(10L), ]
+  nc10box <- terra::ext(nc10)
+  nc10e <- .intersect_extent(nc10box)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "terra")
+
+  testthat::expect_s4_class(nc10e, "SpatExtent")
+  testthat::expect_s4_class(nct10, "SpatVector")
+
+  nc10e <- .intersect_extent(nc10box)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "sf")
+
+  testthat::expect_s3_class(nct10, "sf")
+
+})
+
+
+testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nc10 <- nct[seq_len(10L), ]
+  nc10box <- terra::ext(nc10)
+  nc10e <- .intersect_extent(nc10box)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "sf")
+
+  testthat::expect_s3_class(nct10, "sf")
+
+  nc10e <- .intersect_extent(nc10box)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "sf")
+
+  testthat::expect_s3_class(nct10, "sf")
 })
