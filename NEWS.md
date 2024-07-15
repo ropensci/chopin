@@ -1,5 +1,8 @@
+# 0.7.6
+- Internal function .check_par_spatraster is added to main `par_*` functions
+
 # 0.7.5
-- Internal: Preprocessing "dot-functions" -- universally usable functions are plain S3, whereas class-specific in S4
+- Internal: Preprocessing "dot-functions" -- universally usable functions are plain S3, whereas others that are class-specific were implemented in S4
 - Added
   - CITATION.cff
   - `par_*`: argument `pad_y` to enable applying padded extent to x or y (e.g., y in raster-vector overlay and x otherwise)

@@ -189,14 +189,14 @@ reproject_std <-
     input_crs <- switch(
       bound_package,
       sf = sf::st_crs(input)$wkt,
-      terra = terra::crs(input, describe = TRUE)$code
+      terra = terra::crs(input)
     )
     standard_crs <- switch(
       bound_package,
       sf = sf::st_crs(crs_standard)$wkt,
-      terra = terra::crs(crs_standard, describe = TRUE)$code
+      terra = terra::crs(crs_standard)
     )
-    if (input_crs != standard_crs) {
+    if (!terra::same.crs(input_crs, standard_crs)) {
       cli::cli_inform(
         sprintf("Reprojecting input:\n\n--- CRS ---\n\n%s\n", standard_crs)
       )
@@ -548,8 +548,8 @@ setMethod(
       )
     )
     if (out_class == "sf") {
-      extent <- if (is.null(extent)) {
-        character(0)
+      if (is.null(extent)) {
+        extent <- character(0)
       } else {
         extent <- extent[c(1, 3, 2, 4)]
         extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
@@ -745,3 +745,68 @@ setMethod(
   }
   return(input)
 }
+
+
+#' @param fun character(1). Function name
+#' @returns character(1). Package name
+.check_package <-
+  function(fun) {
+    funname <- find(fun)
+    pkgname <- gsub("package:", "", funname)
+    pkgname <- grep("terra|sf|chopin", pkgname, value = TRUE)
+    if (length(pkgname) == 0) {
+      cli::cli_abort("No parent package is found.\n")
+    }
+    if (length(pkgname) > 1) {
+      cli::cli_abort("There are multiple parent packages matched.\n")
+    }
+    if (!pkgname %in% c("sf", "terra", "chopin")) {
+      cli::cli_abort("Function should be one from sf, terra, or chopin.\n")
+    }
+    return(pkgname)
+  }
+
+
+#' Check the alignment of a function and the input objects
+#' @keywords internal
+#' @noRd
+#' @param f The package name to be checked.
+#' @param x The first input object.
+#' @param y The second input object.
+#' @description This function will check if `f` is a sf or terra function
+#'  then get x and y classes. It compares the parent packages of
+#'  `f`, `x`, `y`. It is internally designed that `x` and `y` match
+#'  `x` and `y` in sf/terra/chopin function arguments.
+.check_align_fxy <-
+  function(
+    f, x, y
+  ) {
+    if (is.character(x) && is.character(y)) {
+      return(invisible(TRUE))
+    }
+    if (f == "chopin") {
+      return(invisible(TRUE))
+    }
+    dep_x <- chopin:::dep_check(x)
+    dep_y <- chopin:::dep_check(y)
+
+    checkvec <- c(f, dep_x, dep_y)
+    checkdup1 <- duplicated(checkvec)
+    checkdup2 <- duplicated(checkvec, fromLast = TRUE)
+    if (all("terra" == checkvec)) {
+      if (!inherits(future::plan(), "multicore")) {
+        cli::cli_abort(
+          c("x" =
+              paste(
+                "All terra inputs detected.",
+                "Please replace x and y to file paths to proceed.\n"
+              )
+          )
+        )
+      }
+    }
+    if (!all(checkdup1 | checkdup2)) {
+      cli::cli_abort("The function should be applied to the same class.\n")
+    }
+    return(invisible(TRUE))
+  }

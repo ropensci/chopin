@@ -1,13 +1,16 @@
+# testthat::skip_on_os()
 
-testthat::test_that("par_grid", {
+testthat::test_that("par_grid -- plain mode with raster path", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
+  withr::local_options(
+    list(sf_use_s2 = FALSE,
+         future.plan = "mirai_multisession")
+  )
   # Reading data
   ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -50,201 +53,331 @@ testthat::test_that("par_grid", {
       ny = 4L,
       padding = 3e4L
     )
-  res <-
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        fun_dist = extract_at,
-        x = ncelev,
-        y = sf::st_as_sf(ncpnts),
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid",
-        .debug = FALSE,
-        .standalone = FALSE
-      )
-    )
-
-
-  # check: sf <-> terra conversion changes coordinate precision?
-  # this result omits 2 points which are exactly on the boundary.
   testthat::expect_no_error({
-    resstr <-
+    res <-
       suppressWarnings(
         par_grid(
-          grids = NULL,
+          grids = nccompreg,
           fun_dist = extract_at,
-          points = test_fullpath,
-          surf = ncelev,
+          x = ncelevpath,
+          y = sf::st_as_sf(ncpnts),
           qsegs = 90L,
           radius = 5e3L,
-          id = "kid",
-          nx = 6L,
-          ny = 4L,
-          padding = 3e4L
+          id = "pid",
+          .debug = FALSE
         )
       )
   })
 
-  ncpntsf <- sf::st_as_sf(ncpnts)
-  testthat::expect_no_error(
-    resk <-
+  testthat::expect_no_error({
+    res <-
       suppressWarnings(
         par_grid(
           grids = nccompreg,
-          grid_target_id = NULL,
-          fun_dist = extract_at_buffer,
-          points = ncpntsf,
-          surf = ncelev,
+          fun_dist = extract_at,
+          x = ncelev,
+          y = sf::st_as_sf(ncpnts),
           qsegs = 90L,
           radius = 5e3L,
-          id = "pid"
+          id = "pid",
+          .debug = FALSE
         )
       )
+  })
+
+})
+
+
+testthat::test_that("par_grid -- grid_advanced mode", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("future.mirai")
+  withr::local_package("dplyr")
+  withr::local_options(
+    list(sf_use_s2 = FALSE,
+         future.plan = "mirai_multisession")
   )
+  # Reading data
+  ## NC counties polygon
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) %>%
+    terra::project("EPSG:5070")
+
+  ## Bundled random points in NC
+  ncpnts <-
+    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncpnts <- terra::vect(ncpnts)
+  ncpnts <- terra::project(ncpnts, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+
+  ## Random points in NC
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
+  tdir <- tempdir()
+  target_file <- "ncrandpnts.gpkg"
+  test_fullpath <- file.path(tdir, target_file)
+  suppressWarnings(
+    terra::writeVector(ncsamp, test_fullpath, overwrite = TRUE)
+  )
+
+  testthat::expect_message(
+    testthat::expect_message(
+      testthat::expect_message(
+        testthat::expect_message(
+          ppg <-
+            par_pad_grid(
+              input = ncsamp,
+              mode = "grid_advanced",
+              nx = 15L,
+              ny = 10L,
+              padding = 3e4L,
+              grid_min_features = 100L,
+              merge_max = 5L
+            ),
+          paste0(
+            "The merged polygons have too complex shapes.\n",
+            "Increase threshold or use the original grids."
+          )
+        ),
+        "Switch sf class to terra..."
+      ),
+      "Switch terra class to sf..."
+    ),
+    "Switch terra class to sf..."
+  )
+
+  testthat::expect_message(
+    ppg2 <-
+      par_pad_grid(
+        input = ncsamp,
+        mode = "grid_advanced",
+        nx = 15L,
+        ny = 10L,
+        padding = 3e4L,
+        grid_min_features = 50L,
+        merge_max = 5L
+      ),
+    paste0(
+      "No grid to merge."
+    )
+  )
+
+  # run with grid_advanced mode grids
+  # check: sf <-> terra conversion changes coordinate precision?
+  # this result omits 2 points which are exactly on the boundary.
+  testthat::expect_no_error({
+    resstr <-
+      par_grid(
+        grids = ppg,
+        fun_dist = extract_at,
+        x = ncelev,
+        y = sf::st_as_sf(ncsamp),
+        qsegs = 90L,
+        radius = 5e3L,
+        id = "kid",
+        .standalone = FALSE,
+        .debug = TRUE
+      )
+  })
+
+})
+
+testthat::test_that("par_grid -- grid_quantile mode", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("future.mirai")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(sf_use_s2 = FALSE,
+         future.plan = "mirai_multisession")
+  )
+  # Reading data
+  ## NC counties polygon
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) %>%
+    terra::project("EPSG:5070")
+
+  ## Bundled random points in NC
+  ncpnts <-
+    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncpntssf <- sf::st_transform(ncpnts, "EPSG:5070")
+
+
+  ## Resampled SRTM data in NC
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+
+  ## Random points in NC
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
+  tdir <- tempdir()
+  target_file <- "ncrandpnts.gpkg"
+  test_fullpath <- file.path(tdir, target_file)
+  suppressWarnings(
+    terra::writeVector(ncsamp, test_fullpath, overwrite = TRUE)
+  )
+
+  testthat::expect_no_error(
+    ppg <-
+      par_pad_grid(
+        input = ncsamp,
+        mode = "grid_quantile",
+        quantiles = seq(0, 1, length.out = 5L),
+        padding = 3e4L
+      )
+  )
+
+  resq <-
+    suppressWarnings(
+      par_grid(
+        grids = ppg,
+        fun_dist = extract_at,
+        y = ncpntssf,
+        x = ncelev,
+        qsegs = 90L,
+        radius = 5e3L,
+        id = "pid"
+      )
+    )
+
+  testthat::expect_s3_class(resq, "data.frame")
+})
+
+
+testthat::test_that("par_grid -- par_pad_balanced", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("future.mirai")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(sf_use_s2 = FALSE,
+         future.plan = "mirai_multisession",
+         rlib_message_verbosity = "warning")
+  )
+
+  # Reading data
+  ## NC counties polygon
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) %>%
+    terra::project("EPSG:5070")
+
+  ## Bundled random points in NC
+  ncpnts <-
+    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncpntssf <- sf::st_transform(ncpnts, "EPSG:5070")
+  ncpntst <- terra::vect(ncpntssf)
+
+  ## Resampled SRTM data in NC
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+
+  ## Random points in NC
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
+  tdir <- tempdir()
+  target_file <- "ncrandpnts.gpkg"
+  test_fullpath <- file.path(tdir, target_file)
+  suppressWarnings(
+    terra::writeVector(ncsamp, test_fullpath, overwrite = TRUE)
+  )
+  target_ncpnts <- "ncpnts.gpkg"
+  test_pntspath <- file.path(tdir, target_ncpnts)
+  suppressWarnings(
+    terra::writeVector(ncpntst, test_pntspath, overwrite = TRUE)
+  )
+
+  ncsamp <- ncsamp[seq_len(1000), ]
+  testthat::expect_no_error(
+    ppg <-
+      par_pad_balanced(
+        points_in = ncsamp,
+        ngroups = 10,
+        padding = 1e4L
+      )
+  )
+
   testthat::expect_error(
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        grid_target_id = "1/10",
-        fun_dist = extract_at_buffer,
-        points = ncpnts,
-        surf = ncelev,
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid"
-      )
-    )
+    par_grid(
+      grids = ppg,
+      fun_dist = nearest,
+      x = ncsamp,
+      y = ncpntst,
+      pad_y = TRUE,
+      .debug = TRUE
+    ),
+    "All terra inputs detected. Please replace x and y to file paths to proceed."
   )
-
-  testthat::expect_error(
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        grid_target_id = c(1, 100, 125),
-        fun_dist = extract_at_buffer,
-        points = ncpnts,
-        surf = ncelev,
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid"
-      )
-    )
-  )
-
 
   testthat::expect_no_error(
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        grid_target_id = "1:10",
-        fun_dist = extract_at_buffer,
-        points = ncpnts,
-        surf = ncelev,
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid"
-      )
-    )
-  )
-
-
-  testthat::expect_no_error(
-    suppressWarnings(
-      par_grid(
-        grids = nccompreg,
-        grid_target_id = c(1, 3),
-        fun_dist = extract_at_buffer,
-        points = ncpnts,
-        surf = ncelev,
-        qsegs = 90L,
-        radius = 5e3L,
-        id = "pid"
-      )
-    )
-  )
-
-  testthat::expect_true(is.list(nccompreg))
-  testthat::expect_s4_class(nccompreg$original, "SpatVector")
-  testthat::expect_s3_class(res, "data.frame")
-
-  testthat::expect_no_error(
-    suppressWarnings(
-      resnas <-
-        par_grid(
-          grids = nccompreg,
-          grid_target_id = "1:10",
-          fun_dist = extract_at_buffer,
-          debug = TRUE,
-          points = ncpnts,
-          surf = ncelev,
-          qsegs = 90L,
-          radius = -5e3L,
-          id = "pid"
-        )
-    )
-  )
-
-  testthat::expect_s3_class(resnas, "data.frame")
-  testthat::expect_true("error_message" %in% names(resnas))
-
-  testthat::expect_no_error(
-    suppressWarnings(
-      resnas0 <-
-        par_grid(
-          grids = nccompreg,
-          grid_target_id = "1:10",
-          fun_dist = terra::nearest,
-          x = ncpnts,
-          y = ncsamp,
-          id = "pid"
-        )
-    )
-  )
-  testthat::expect_no_error(
-    suppressWarnings(
-      resnasz <-
-        par_grid(
-          grids = nccompreg,
-          grid_target_id = NULL,
-          fun_dist = terra::nearest,
-          x = ncpnts,
-          y = ncsamp,
-          id = "pid"
-        )
+    par_grid(
+      grids = ppg,
+      fun_dist = nearest,
+      x = test_fullpath,
+      y = test_pntspath,
+      pad_y = TRUE,
+      .debug = TRUE
     )
   )
 })
 
 
-
 testthat::test_that(
-  "Processes are properly spawned and compute over hierarchy", {
+  "par_hierarchy -- raster path input and spatraster fallback ", {
     withr::local_package("terra")
     withr::local_package("sf")
     withr::local_package("future")
     withr::local_package("future.apply")
+    withr::local_package("future.mirai")
     withr::local_package("dplyr")
+    withr::local_package("chopin")
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
-        future.resolve.recursive = 2L
+        future.resolve.recursive = 2L,
+        future.plan = "mirai_multisession"
       )
     )
 
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- sf::st_read(ncpath, layer = "county")
-    # nccnty <- terra::vect(ncpath, layer = "county")
     nctrct <- sf::st_read(ncpath, layer = "tracts")
-    # nctrct <- terra::vect(nctrct)
-    ncelev <-
-      terra::unwrap(
-        readRDS(
-          system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-        )
-      )
-    terra::crs(ncelev) <- "EPSG:5070"
-    names(ncelev) <- c("srtm15")
+    ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+    ncelev <- terra::rast(ncelevpath)
 
     ncsamp <-
       terra::spatSample(
@@ -256,73 +389,113 @@ testthat::test_that(
     ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
     ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
-    future::plan(future::sequential)
-    testthat::expect_no_error(
-      res <-
-        suppressWarnings(
-          par_hierarchy(
-            regions = nccnty,
-            regions_id = "GEOID",
-            fun_dist = extract_at_poly,
-            polys = nctrct,
-            surf = ncelev,
-            id = "GEOID",
-            func = "mean"
-          )
-        )
-    )
     testthat::expect_no_error(
       residb <-
-        suppressWarnings(
-          par_hierarchy(
-            regions = nccnty,
-            regions_id = "GEOID",
-            unit_id = "GEOID",
-            debug = TRUE,
-            fun_dist = extract_at_poly,
-            polys = sf::st_as_sf(nctrct),
-            surf = ncelev,
-            id = "GEOID",
-            func = "mean"
-          )
-        )
-    )
-    testthat::expect_true(is.data.frame(residb))
-    testthat::expect_no_error(
-      residc <-
-        suppressWarnings(
-          par_hierarchy(
-            regions = nccnty,
-            regions_id = unlist(nccnty[["GEOID"]]),
-            unit_id = "GEOID",
-            debug = TRUE,
-            fun_dist = extract_at_poly,
-            polys = nctrct,
-            surf = ncelev,
-            id = "GEOID",
-            func = "mean"
-          )
-        )
-    )
-    testthat::expect_true(is.data.frame(residc))
-
-    testthat::expect_error(
-      suppressWarnings(
         par_hierarchy(
           regions = nccnty,
-          regions_id = c(1, 2, 3),
-          fun_dist = extract_at_poly,
-          polys = nctrct,
-          surf = ncelev,
+          regions_id = "GEOID",
+          .debug = TRUE,
+          fun_dist = extract_at,
+          y = nctrct,
+          x = ncelevpath,
           id = "GEOID",
           func = "mean"
         )
-      )
     )
+    testthat::expect_true(is.data.frame(residb))
 
-    testthat::expect_s3_class(res, "data.frame")
-    testthat::expect_equal(!any(is.na(unlist(res))), TRUE)
+    # SpatRaster input will be converted to file path
+    testthat::expect_message(
+      testthat::expect_message(
+        residb2 <-
+          par_hierarchy(
+            regions = nccnty,
+            regions_id = "GEOID",
+            .debug = TRUE,
+            fun_dist = extract_at,
+            y = nctrct,
+            x = ncelev,
+            id = "GEOID",
+            func = "mean"
+          ),
+        "Input is not a character."
+      ),
+      paste0("SpatRaster class input is detected.\n",
+             "Attempt to track the data source file path...\n")
+    )
+    testthat::expect_true(is.data.frame(residb2))
 
+  })
+
+
+testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
+  testthat::skip_on_os("windows")
+
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+    )
+  )
+  future::plan(future::multicore, workers = 2L)
+
+  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+  nccnty <- sf::st_read(ncpath, layer = "county")
+  nctrct <- sf::st_read(ncpath, layer = "tracts")
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+
+  testthat::expect_no_error(
+    residc <-
+      par_hierarchy(
+        regions = nccnty,
+        regions_id = unlist(nccnty[["GEOID"]]),
+        .debug = TRUE,
+        fun_dist = extract_at,
+        y = nctrct,
+        x = ncelev,
+        id = "GEOID",
+        func = "mean"
+      )
+  )
+  testthat::expect_true(is.data.frame(residc))
+
+  # regions_id is neither length 1 nor length of regions
+  testthat::expect_error(
+    reshsing <-
+      par_hierarchy(
+        regions = nccnty,
+        regions_id = c(1, 2, 3),
+        fun_dist = extract_at,
+        y = nctrct,
+        x = ncelev,
+        id = "GEOID",
+        func = "mean"
+      ),
+    "The length of regions_id is not valid."
+  )
+
+  future::plan(future::sequential)
+})
+
+
+testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
     # straightforward error case
     # invalid usage of fun_dist
     # halted at the first error

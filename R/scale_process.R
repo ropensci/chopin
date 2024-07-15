@@ -106,16 +106,26 @@ par_grid <-
     results <- as.list(seq_along(grids_target_list))
 
     # is the function sf?
-    fun_parent <- methods::getPackageName(environment(fun_dist))
-    is_sf_parent <- (fun_parent == "sf")
-
+    funname <- as.character(substitute(fun_dist))
     # is the function extract_at?
-    is_extract_at <- as.character(substitute(fun_dist))
-    is_extract_at <- any(endsWith(is_extract_at, "extract_at"))
+    is_extract_at <- any(endsWith(funname, "extract_at"))
+    funname <- funname[length(funname)]
+    pkgname <- .check_package(funname)
+
+    # parallel worker will take terra class objects
+    # if chopin function is used
+    class_vec <-
+      if (is_extract_at) {
+        "sf"
+      } else if (funname == "chopin") {
+        "terra"
+      } else {
+        pkgname
+      }
 
     # clean additional arguments
     args_input <- list(...)
-    if (fun_parent == "chopin" && is.null(args_input$.standalone)) {
+    if (funname == "chopin" && is.null(args_input$.standalone)) {
       args_input$.standalone <- FALSE
     }
     if (!"id" %in% names(formals(fun_dist))) {
@@ -125,10 +135,18 @@ par_grid <-
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
     args_input$y <- .check_par_spatraster(args_input$y)
-    # get hints from the inputs
+    # get hints from the inputs on data model
     peek_x <- try(.check_character(args_input$x), silent = TRUE)
     peek_y <- try(.check_character(args_input$y), silent = TRUE)
-    crs_x <- .check_character(args_input$x)
+    if (inherits(peek_x, "try-error")) {
+      crs_x <- terra::crs(args_input$x)
+    } else {
+      crs_x <- .check_character(args_input$x)
+      crs_x <- attr(crs_x, "crs")
+    }
+
+    # class identity check
+    .check_align_fxy(pkgname, args_input$x, args_input$y)
 
     # Main parallelization
     results <-
@@ -141,16 +159,15 @@ par_grid <-
         tryCatch({
           grid_in <- grids_target_list[[i]]
 
-          grid_in <- reproject_std(grid_in, attr(crs_x, "crs"))
+          grid_in <- reproject_std(grid_in, crs_x)
           gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid_in$CGRIDID, ]
-          class(gpad_in)
 
           args_input$x <-
             .par_screen(
               type = peek_x,
               input = args_input$x,
               input_id = NULL,
-              out_class = if (is_sf_parent) "sf" else "terra",
+              out_class = class_vec,
               .window = if (pad_y) grid_in else gpad_in
             )
 
@@ -159,7 +176,7 @@ par_grid <-
               type = peek_y,
               input = args_input$y,
               input_id = NULL,
-              out_class = if (is_sf_parent || is_extract_at) "sf" else "terra",
+              out_class = class_vec,
               .window = if (pad_y) gpad_in else grid_in
             )
 
@@ -304,6 +321,24 @@ par_hierarchy <-
       args_input$id <- NULL
     }
 
+    # is the function sf?
+    funname <- as.character(substitute(fun_dist))
+    # is the function extract_at?
+    is_extract_at <- any(endsWith(funname, "extract_at"))
+    funname <- funname[length(funname)]
+    pkgname <- .check_package(funname)
+
+    # parallel worker will take terra class objects
+    # if chopin function is used
+    class_vec <-
+      if (is_extract_at) {
+        "sf"
+      } else if (funname == "chopin") {
+        "terra"
+      } else {
+        pkgname
+      }
+
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
     args_input$y <- .check_par_spatraster(args_input$y)
@@ -315,6 +350,9 @@ par_hierarchy <-
     if (!length(regions_id) %in% c(1, nrow(regions))) {
       cli::cli_abort("The length of regions_id is not valid.")
     }
+
+    # class identity check
+    .check_align_fxy(pkgname, args_input$x, args_input$y)
 
     # Region ID cleaning to get unique high-level IDs
     # what if regions refers to a path string?
@@ -347,7 +385,7 @@ par_hierarchy <-
                     type = peek_x,
                     input = args_input$x,
                     input_id = NULL,
-                    out_class = "terra",
+                    out_class = class_vec,
                     .window = NULL
                   )
                 args_input$y <-
@@ -355,7 +393,7 @@ par_hierarchy <-
                     type = peek_y,
                     input = args_input$y,
                     input_id = NULL,
-                    out_class = "terra",
+                    out_class = class_vec,
                     .window = NULL
                   )
 
@@ -491,6 +529,24 @@ par_multirasters <-
     file_iter <- as.list(seq_along(file_list))
     args_input <- list(...)
 
+    # is the function sf?
+    funname <- as.character(substitute(fun_dist))
+    # is the function extract_at?
+    is_extract_at <- any(endsWith(funname, "extract_at"))
+    funname <- funname[length(funname)]
+    pkgname <- .check_package(funname)
+
+    # parallel worker will take terra class objects
+    # if chopin function is used
+    class_vec <-
+      if (is_extract_at) {
+        "sf"
+      } else if (funname == "chopin") {
+        "terra"
+      } else {
+        pkgname
+      }
+
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
     args_input$y <- .check_par_spatraster(args_input$y)
@@ -514,7 +570,7 @@ par_multirasters <-
                   type = "raster",
                   input = filenames[i],
                   input_id = NULL,
-                  out_class = "terra",
+                  out_class = class_vec,
                   .window = NULL
                 )
               args_input$y <-
@@ -522,7 +578,7 @@ par_multirasters <-
                   type = "vector",
                   input = args_input$y,
                   input_id = NULL,
-                  out_class = "terra",
+                  out_class = class_vec,
                   .window = NULL
                 )
               args_input$y <- reproject_std(args_input$y, attr(crs_x, "crs"))
@@ -639,3 +695,5 @@ par_map_args <- function(fun, name_match = list(), ...) {
   # Call the target function 'fun' with modified arguments
   do.call(fun, args)
 }
+
+

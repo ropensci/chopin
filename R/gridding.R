@@ -751,12 +751,10 @@ par_merge_grid <-
     # possibly will make it defined by users.
     if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
           any(par_merge_gridd_pptest < 0.3)) {
-      cli::cli_inform(
-        c("i" =
-            paste0(
-              "The merged polygons have too complex shapes.\n",
-              "Increase threshold or use the original grids.\n"
-            )
+      cli::cli_alert_info(
+        paste0(
+          "The merged polygons have too complex shapes.\n",
+          "Increase threshold or use the original grids."
         )
       )
     }
