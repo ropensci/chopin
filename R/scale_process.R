@@ -470,8 +470,8 @@ par_hierarchy <-
 #' @param filenames character. A vector or list of
 #'  full file paths of raster files. n is the total number of raster files.
 #' @param fun_dist sf, terra, or chopin functions.
-#'   This function should have `x` and `y` arguments and `x` is a
-#'   raster object.
+#'   This function should have `x` and `y` arguments and `x` should
+#'   be a `SpatRaster`.
 #' @param ... Arguments passed to the argument `fun_dist`.
 #' @param .debug logical(1). Default is `FALSE`. If `TRUE` and
 #'   a unit computation fails, the error message and the file path
@@ -548,8 +548,11 @@ par_multirasters <-
       }
 
     # Track spatraster file path
-    args_input$x <- .check_par_spatraster(args_input$x)
-    args_input$y <- .check_par_spatraster(args_input$y)
+    # args_input$x <- .check_par_spatraster(args_input$x)
+    # args_input$y <- .check_par_spatraster(args_input$y)
+    #peek_x <- try(.check_character(args_input$x), silent = TRUE)
+    peek_y <- try(.check_character(args_input$y), silent = TRUE)
+
     # get hints from the inputs
     crs_x <- .check_character(filenames[1])
 
@@ -575,7 +578,7 @@ par_multirasters <-
                 )
               args_input$y <-
                 .par_screen(
-                  type = "vector",
+                  type = peek_y,
                   input = args_input$y,
                   input_id = NULL,
                   out_class = class_vec,

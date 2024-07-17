@@ -537,7 +537,7 @@ setGeneric(
 setMethod(
   ".check_vector",
   signature(input = "character", input_id = "ANY",
-            extent = "numeric", out_class = "character"),
+            extent = "ANY", out_class = "character"),
   function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
@@ -747,8 +747,10 @@ setMethod(
 }
 
 
+#' Check the parent package of a function
 #' @param fun character(1). Function name
-#' @returns character(1). Package name
+#' @returns character(1). Package name. Only one of "sf", "terra", "chopin"
+#' @noRd
 .check_package <-
   function(fun) {
     funname <- find(fun)

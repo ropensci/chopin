@@ -1,4 +1,3 @@
-# testthat::skip_on_os()
 
 testthat::test_that("par_grid -- plain mode with raster path", {
   withr::local_package("terra")
@@ -7,6 +6,7 @@ testthat::test_that("par_grid -- plain mode with raster path", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
@@ -95,6 +95,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
@@ -551,6 +552,7 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
+  withr::local_package("chopin")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # main test
@@ -612,33 +614,80 @@ testthat::test_that("generic function should be parallelized properly", {
 
 
 testthat::test_that(
-  "Processes are properly spawned and compute over multirasters",
+  "par_multirasters -- character filenames, character y",
   {
     withr::local_package("terra")
     withr::local_package("sf")
     withr::local_package("future")
-    withr::local_package("mirai")
+    withr::local_package("future.mirai")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
+    withr::local_package("chopin")
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
-        future.plan = "multisession",
+        future.plan = "mirai_multisession",
         future.resolve.recursive = 2L
       )
     )
-
+    future::plan(future.mirai::mirai_multisession, workers = 2L)
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- terra::vect(ncpath, layer = "county")
     ncelev <-
       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    # terra::unwrap(
-    #   readRDS(
-    #     system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    #   )
-    # )
-    terra::crs(ncelev) <- "EPSG:5070"
-    names(ncelev) <- c("srtm15")
+    ncelev <- terra::rast(ncelev)
+    tdir <- tempdir(check = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+    testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+    testthat::expect_no_error(
+      suppressWarnings(
+        res <- par_multirasters(
+          filenames = testfiles,
+          fun_dist = extract_at,
+          .debug = TRUE,
+          y = ncpath,
+          x = ncelev,
+          id = "GEOID",
+          func = "mean",
+          radius = 5000L
+        )
+      )
+    )
+    testthat::expect_s3_class(res, "data.frame")
+    testthat::expect_true(!anyNA(res))
+
+    future::plan(future::sequential)
+  })
+
+
+testthat::test_that(
+  "par_multirasters -- terra function dispatch",
+  {
+    withr::local_package("terra")
+    withr::local_package("sf")
+    withr::local_package("future")
+    withr::local_package("future.mirai")
+    withr::local_package("future.apply")
+    withr::local_package("dplyr")
+    withr::local_package("chopin")
+    withr::local_options(
+      list(
+        sf_use_s2 = FALSE,
+        future.plan = "mirai_multisession",
+        future.resolve.recursive = 2L
+      )
+    )
+    future::plan(future.mirai::mirai_multisession, workers = 2L)
+    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+    nccnty <- terra::vect(ncpath, layer = "county")
+    ncelev <-
+      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+    ncelev <- terra::rast(ncelev)
     tdir <- tempdir(check = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
@@ -650,36 +699,59 @@ testthat::test_that(
     testthat::expect_no_error(
       res <- par_multirasters(
         filenames = testfiles,
-        fun_dist = extract_at_poly,
-        debug = FALSE,
-        polys = ncpath,
-        surf = ncelev,
-        id = "GEOID",
-        func = "mean",
-        radius = 50000L
-      )
-    )
-    testthat::expect_s3_class(res, "data.frame")
-    testthat::expect_true(!anyNA(res))
-
-    testthat::expect_no_error(
-      res <- par_multirasters(
-        filenames = testfiles,
+        .debug = TRUE,
         fun_dist = terra::extract,
-        y = nccnty,
+        y = ncpath,
         x = ncelev,
         fun = mean
       )
     )
+    future::plan(future::sequential)
+
+  })
+
+
+
+testthat::test_that(
+  "Processes are properly spawned and compute over multirasters",
+  {
+    withr::local_package("terra")
+    withr::local_package("sf")
+    withr::local_package("future")
+    withr::local_package("future.mirai")
+    withr::local_package("future.apply")
+    withr::local_package("dplyr")
+    withr::local_package("chopin")
+    withr::local_options(
+      list(
+        sf_use_s2 = FALSE,
+        future.plan = "mirai_multisession",
+        future.resolve.recursive = 2L
+      )
+    )
+    future::plan(future.mirai::mirai_multisession, workers = 2L)
+    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+    nccnty <- sprintf("GPKG:%s:%s", ncpath, "county")
+    ncelev <-
+      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+    ncelev <- terra::rast(ncelev)
+    tdir <- tempdir(check = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+    testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
     testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
     testthat::expect_condition(
       resnas <- par_multirasters(
         filenames = testfiles_corrupted,
-        debug = TRUE,
-        fun_dist = extract_at_poly,
-        polys = nccnty,
-        surf = ncelev,
+        .debug = TRUE,
+        fun_dist = extract_at,
+        y = nccnty,
+        x = ncelev,
         id = "GEOID",
         func = "mean"
       )
@@ -687,9 +759,64 @@ testthat::test_that(
 
     testthat::expect_s3_class(resnas, "data.frame")
     testthat::expect_equal(
-      nrow(resnas), nrow(nccnty) * (length(testfiles_corrupted) - 1) + 1
+      nrow(resnas), 100L * (length(testfiles_corrupted) - 1) + 1
     )
     testthat::expect_true(anyNA(resnas))
+
+    # error case 
+    testthat::expect_condition(
+      nut <- par_multirasters(
+        filenames = testfiles_corrupted,
+        .debug = TRUE,
+        fun_dist = terra::extract,
+        y = nccnty,
+        x = ncelev,
+        id = "GEOID",
+        fun = mean
+      )
+    )
+
+    testthat::expect_s3_class(nut, "data.frame")
+    testthat::expect_true("error_message" %in% names(nut))
+    testthat::expect_true(sum(!is.na(nut$error_message)) == 1L)
+
+    future::plan(future::sequential)
+
+  })
+
+testthat::test_that(
+  "par_multirasters: sf y",
+  {
+    withr::local_package("terra")
+    withr::local_package("sf")
+    withr::local_package("future")
+    withr::local_package("future.mirai")
+    withr::local_package("future.apply")
+    withr::local_package("dplyr")
+    withr::local_package("chopin")
+    withr::local_options(
+      list(
+        sf_use_s2 = FALSE,
+        future.plan = "mirai_multisession",
+        future.resolve.recursive = 2L
+      )
+    )
+    future::plan(future.mirai::mirai_multisession, workers = 2L)
+    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+    nccnty <- sprintf("GPKG:%s:%s", ncpath, "county")
+    nccnty <- sf::st_read(nccnty)
+    ncelev <-
+      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+    ncelev <- terra::rast(ncelev)
+    tdir <- tempdir(check = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+    terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+    testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+    testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
 
     testthat::expect_no_error(
       dough <- par_multirasters(
@@ -698,25 +825,29 @@ testthat::test_that(
         y = nccnty,
         x = ncelev,
         ID = TRUE,
-        fun = "mean"
+        fun = mean
       )
     )
     testthat::expect_s3_class(dough, "data.frame")
+    testthat::expect_true(!anyNA(dough))
+    testthat::expect_equal(nrow(dough), nrow(nccnty) * length(testfiles))
 
     # error case
-    future::plan(future::sequential)
     testthat::expect_condition(
       nut <- par_multirasters(
         filenames = testfiles_corrupted,
-        debug = TRUE,
-        fun_dist = extract_at_poly,
-        polys = nccnty,
-        surf = ncelev,
+        .debug = TRUE,
+        fun_dist = extract_at,
+        y = nccnty,
+        x = ncelev,
         id = "GEOID",
         func = "mean"
       )
     )
     testthat::expect_s3_class(nut, "data.frame")
+    testthat::expect_true("error_message" %in% names(nut))
+    testthat::expect_true(sum(!is.na(nut$error_message)) == 1L)
 
+    future::plan(future::sequential)
   }
 )

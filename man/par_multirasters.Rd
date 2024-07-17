@@ -11,8 +11,8 @@ par_multirasters(filenames, fun_dist, ..., .debug = FALSE)
 full file paths of raster files. n is the total number of raster files.}
 
 \item{fun_dist}{sf, terra, or chopin functions.
-This function should have \code{x} and \code{y} arguments and \code{x} is a
-raster object.}
+This function should have \code{x} and \code{y} arguments and \code{x} should
+be a \code{SpatRaster}.}
 
 \item{...}{Arguments passed to the argument \code{fun_dist}.}
 
