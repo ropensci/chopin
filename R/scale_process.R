@@ -345,7 +345,12 @@ par_hierarchy <-
     # get hints from the inputs
     peek_x <- try(.check_character(args_input$x), silent = TRUE)
     peek_y <- try(.check_character(args_input$y), silent = TRUE)
-    crs_x <- .check_character(args_input$x)
+    if (inherits(peek_x, "try-error")) {
+      crs_x <- terra::crs(args_input$x)
+    } else {
+      crs_x <- .check_character(args_input$x)
+      crs_x <- attr(crs_x, "crs")
+    }
 
     if (!length(regions_id) %in% c(1, nrow(regions))) {
       cli::cli_abort("The length of regions_id is not valid.")

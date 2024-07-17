@@ -516,19 +516,47 @@ setMethod(
 NULL
 
 
+# nolint start
 setGeneric(
   ".check_vector",
-  function(input = NULL, input_id = NULL,
-           extent = NULL, out_class = NULL, ...) {
-    if (is.null(extent)) {
-      res <- .check_id(input, input_id)
-      return(res)
+  function(input, input_id = NULL, extent = NULL, out_class = character(1), ...) standardGeneric(".check_vector"),
+  signature = c("input", "input_id", "extent", "out_class")
+)
+# nolint end
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "character", input_id = "ANY",
+            extent = "NULL", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    cli::cli_inform(
+      c("i" =
+          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+      )
+    )
+    if (!is.null(extent)) {
+      cli::cli_alert_warning("Non-null extent is ignored.")
     }
 
-    extent <- .intersect_extent(extent, out_class)
-    input <- input[extent, ]
+    if (out_class == "sf") {
+      if (is.null(extent)) {
+        extent <- character(0)
+      }
+    }
 
-    .check_id(input, input_id)
+    input <- switch(
+      out_class,
+      terra = try(terra::vect(input, extent = extent), silent = TRUE),
+      sf = try(sf::st_read(input, wkt_filter = extent), silent = TRUE)
+    )
+    return(input)
   }
 )
 
@@ -537,11 +565,13 @@ setGeneric(
 setMethod(
   ".check_vector",
   signature(input = "character", input_id = "ANY",
-            extent = "ANY", out_class = "character"),
-  function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
+            extent = "numeric", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
+    input <- .check_id(input, input_id)
+
     cli::cli_inform(
       c("i" =
           sprintf("Input is a character. Trying to read with %s\n.", out_class)
@@ -570,24 +600,30 @@ setMethod(
 #' @noRd
 setMethod(
   ".check_vector",
-  signature(input = "sf", input_id = "ANY",
-            extent = "numeric", out_class = "character"),
-  function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
+  signature(input = "character", input_id = "ANY",
+            extent = "sf", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
-    if (out_class == "terra") {
-      input <- terra::vect(input)
-      if (!is.null(extent)) {
-        extent <- terra::ext(extent)
+    input <- .check_id(input, input_id)
+
+    cli::cli_inform(
+      c("i" =
+          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+      )
+    )
+    if (out_class == "sf") {
+      input <- try(sf::st_read(input), silent = TRUE)
+      if (sf::st_crs(input) != sf::st_crs(extent)) {
+        extent <- sf::st_transform(extent, sf::st_crs(input))
       }
     }
-    if (out_class == "sf") {
-      if (!is.null(extent)) {
-        extent <- extent[c(1, 3, 2, 4)]
-        extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
-        extent <- sf::st_as_sfc(sf::st_bbox(extent))
-        extent <- sf::st_set_crs(extent, sf::st_crs(input))
+    if (out_class == "terra") {
+      input <- try(terra::vect(input), silent = TRUE)
+      extent <- terra::vect(extent)
+      if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+        extent <- reproject_std(extent, terra::crs(input))
       }
     }
     input <- input[extent, ]
@@ -600,14 +636,176 @@ setMethod(
 #' @noRd
 setMethod(
   ".check_vector",
-  signature(input = "sf", input_id = "ANY",
-            extent = "sf", out_class = "character"),
-  function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
+  signature(input = "character", input_id = "ANY",
+            extent = "SpatVector", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
-    extent <- reproject_std(extent, sf::st_crs(input))
+    input <- .check_id(input, input_id)
+
+    cli::cli_inform(
+      c("i" =
+          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+      )
+    )
+    if (out_class == "sf") {
+      input <- try(sf::st_read(input), silent = TRUE)
+      extent <- sf::st_as_sf(extent)
+      if (sf::st_crs(input) != sf::st_crs(extent)) {
+        extent <- sf::st_transform(extent, sf::st_crs(input))
+      }
+    }
+    if (out_class == "terra") {
+      input <- try(terra::vect(input), silent = TRUE)
+      if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+        extent <- reproject_std(extent, terra::crs(input))
+      }
+    }
     input <- input[extent, ]
+    return(input)
+  }
+)
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "character", input_id = "ANY",
+            extent = "SpatExtent", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    cli::cli_inform(
+      c("i" =
+          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+      )
+    )
+    cli::cli_alert_danger(
+      "SpatExtent is detected in the extent argument. Assuming the same CRS..."
+    )
+    if (out_class == "sf") {
+      input <- try(sf::st_read(input), silent = TRUE)
+      extent <- sf::st_as_sfc(sf::st_bbox(extent))
+    }
+    if (out_class == "terra") {
+      input <- try(terra::vect(input), silent = TRUE)
+    }
+    input <- input[extent, ]
+    return(input)
+  }
+)
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "sf", input_id = "ANY",
+            extent = "NULL", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (out_class == "terra") {
+      input <- terra::vect(input)
+      if (!is.null(extent)) {
+        extent <- terra::ext(extent)
+        input <- input[extent, ]
+      }
+    }
+    if (out_class == "sf") {
+      if (!is.null(extent)) {
+        extent <- extent[c(1, 3, 2, 4)]
+        extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
+        extent <- sf::st_as_sfc(sf::st_bbox(extent))
+        extent <- sf::st_set_crs(extent, sf::st_crs(input))
+        input <- input[extent, ]
+      }
+    }
+    return(input)
+  }
+)
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "sf", input_id = "ANY",
+            extent = "numeric", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (out_class == "terra") {
+      extent <- terra::ext(extent)
+      input <- input[extent, ]
+    }
+    if (out_class == "sf") {
+      extent <- extent[c(1, 3, 2, 4)]
+      extent <- stats::setNames(extent, c("xmin", "ymin", "xmax", "ymax"))
+      extent <- sf::st_as_sfc(sf::st_bbox(extent))
+      extent <- sf::st_set_crs(extent, sf::st_crs(input))
+      input <- input[extent, ]
+    }
+    input <- input[extent, ]
+    return(input)
+  }
+)
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "sf", input_id = "ANY",
+            extent = "SpatExtent", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (out_class == "sf") {
+      extent <- sf::st_as_sfc(sf::st_bbox(extent))
+      extent <- sf::st_set_crs(extent, sf::st_crs(input))
+      input <- input[extent, ]
+    }
+    if (out_class == "terra") {
+      input <- terra::vect(input)
+      input <- input[extent, ]
+    }
+    return(input)
+  }
+)
+
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "sf", input_id = "ANY",
+            extent = "sf", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+      extent <- reproject_std(extent, sf::st_crs(input))
+    }
+    input <- input[extent, ]
+
     if (out_class == "terra") {
       input <- terra::vect(input)
     }
@@ -622,13 +820,18 @@ setMethod(
   ".check_vector",
   signature(input = "sf", input_id = "ANY",
             extent = "SpatVector", out_class = "character"),
-  function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
+  function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
-    extent <- sf::st_as_sf(extent)
-    extent <- reproject_std(extent, sf::st_crs(input))
-    input <- input[extent, ]
+    input <- .check_id(input, input_id)
+
+    if (!is.null(extent)) {
+      if (!terra::same.crs(terra::st_crs(input), terra::st_crs(extent))) {
+        extent <- reproject_std(extent, terra::crs(input))
+      }
+      input <- input[extent, ]
+    }
     if (out_class == "terra") {
       input <- terra::vect(input)
     }
@@ -643,10 +846,12 @@ setMethod(
   ".check_vector",
   signature(input = "SpatVector", input_id = "ANY",
             extent = "SpatExtent", out_class = "character"),
-  function(input, input_id = NULL, extent = NULL, out_class = "terra", ...) {
+  function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
+    input <- .check_id(input, input_id)
+
     input <- input[extent, ]
     if (out_class == "sf") {
       input <- dep_switch(input)
@@ -654,6 +859,72 @@ setMethod(
     return(input)
   }
 )
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "SpatVector", input_id = "ANY",
+            extent = "ANY", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (out_class == "sf") {
+      input <- dep_switch(input)
+    }
+    return(input)
+  }
+)
+
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "SpatVector", input_id = "ANY",
+            extent = "NULL", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (out_class == "sf") {
+      input <- dep_switch(input)
+    }
+    return(input)
+  }
+)
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "SpatVector", input_id = "ANY",
+            extent = "SpatVector", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+    }
+    input <- .check_id(input, input_id)
+
+    if (!is.null(extent)) {
+      if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+        extent <- reproject_std(extent, terra::crs(input))
+      }
+      input <- input[extent, ]
+    }
+    if (out_class == "sf") {
+      input <- dep_switch(input)
+    }
+    return(input)
+  }
+)
+
 
 #' Check Raster Input
 #'
@@ -800,7 +1071,7 @@ setMethod(
         cli::cli_abort(
           c("x" =
               paste(
-                "All terra inputs detected.",
+                "terra inputs detected in both x and y.",
                 "Please replace x and y to file paths to proceed.\n"
               )
           )

@@ -196,6 +196,8 @@ testthat::test_that("par_grid -- grid_advanced mode", {
 
 })
 
+
+
 testthat::test_that("par_grid -- grid_quantile mode", {
   withr::local_package("terra")
   withr::local_package("sf")
@@ -496,54 +498,88 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
 })
 
 
-testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
-    # straightforward error case
-    # invalid usage of fun_dist
-    # halted at the first error
-    testthat::expect_error(
-      suppressWarnings(
-        resnas <-
-          par_hierarchy(
-            regions = nccnty,
-            regions_id = "GEOID",
-            fun_dist = terra::nearest,
-            polys = nctrct,
-            surf = ncelev
-          )
-      )
+testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
     )
+  )
+  future::plan(future::multicore, workers = 2L)
 
-    testthat::expect_no_error(
-      suppressWarnings(
-        resnasx <-
-          par_hierarchy(
-            regions = nccnty,
-            debug = TRUE,
-            regions_id = "GEOID",
-            fun_dist = extract_at_buffer,
-            points = sf::st_centroid(nctrct),
-            surf = ncelev,
-            id = "GEOID",
-            radius = 1e3L
-          )
-      )
+  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+  nccnty <- terra::vect(ncpath, layer = "county")
+  nctrct <- terra::vect(ncpath, layer = "tracts")
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+  ncroad <- system.file("extdata/ncroads_first.gpkg", package = "chopin")
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
     )
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
-    testthat::expect_no_error(
-      suppressWarnings(
-        resnasz <-
-          par_hierarchy(
-            regions = nccnty,
-            debug = TRUE,
-            regions_id = "GEOID",
-            fun_dist = terra::nearest,
-            x = nctrct,
-            y = ncsamp
-          )
-      )
+  nctrctc <- terra::centroids(nctrct)
+  ncroadv <- terra::vect(ncroad)
+
+  # straightforward error case
+  # invalid usage of fun_dist
+  # halted at the first error
+  testthat::expect_error(
+    suppressWarnings(
+      resnas <-
+        par_hierarchy(
+          regions = nccnty,
+          regions_id = "GEOID",
+          pad_y = TRUE,
+          .debug = TRUE,
+          fun_dist = nearest,
+          x = nctrctc,
+          y = ncroadv
+        )
     )
-  }
-)
+  )
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasx <-
+        par_hierarchy(
+          regions = sf::st_as_sf(nccnty),
+          .debug = TRUE,
+          regions_id = "GEOID",
+          fun_dist = extract_at,
+          x = ncelev,
+          y = terra::centroids(nctrct),
+          id = "GEOID",
+          radius = 1e3L
+        )
+    )
+  )
+
+  testthat::expect_no_error(
+    suppressWarnings(
+      resnasz <-
+        par_hierarchy(
+          regions = nccnty,
+          .debug = TRUE,
+          regions_id = "GEOID",
+          fun_dist = terra::nearest,
+          x = nctrct,
+          y = ncsamp
+        )
+    )
+  )
+})
 
 
 testthat::test_that("generic function should be parallelized properly", {
