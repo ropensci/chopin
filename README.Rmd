@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure
+# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure <img src="man/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
 [![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
