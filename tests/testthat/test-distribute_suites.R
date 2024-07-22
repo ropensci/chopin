@@ -343,7 +343,10 @@ testthat::test_that("par_grid -- par_pad_balanced", {
       pad_y = TRUE,
       .debug = TRUE
     ),
-    "All terra inputs detected. Please replace x and y to file paths to proceed."
+    paste0(
+      "terra inputs detected in both x and y. ",
+      "Please replace x and y to file paths to proceed."
+    )
   )
 
   testthat::expect_no_error(
@@ -550,18 +553,22 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
     )
   )
 
+  nctrcc <- terra::centroids(nctrct)
   testthat::expect_no_error(
     suppressWarnings(
       resnasx <-
         par_hierarchy(
           regions = sf::st_as_sf(nccnty),
-          .debug = TRUE,
           regions_id = "GEOID",
+          input_id = "GEOID",
+          pad_y = FALSE,
           fun_dist = extract_at,
           x = ncelev,
-          y = terra::centroids(nctrct),
+          y = nctrcc,
           id = "GEOID",
-          radius = 1e3L
+          radius = 1e3L,
+          .standalone = FALSE,
+          .debug = TRUE
         )
     )
   )

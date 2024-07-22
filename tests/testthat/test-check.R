@@ -140,27 +140,74 @@ testthat::test_that(".check_id throws error with nonexistent id", {
 })
 
 
-testthat::test_that("check_subject performs necessary conversions", {
+testthat::test_that(".check_vector with sf", {
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_sf <- sf::st_read(input_char)
-  checked_sf <- check_subject(input_sf, subject_id = "FIPS")
-  testthat::expect_equal(dep_check(checked_sf), "terra")
+  checked_sf <-
+    .check_vector(
+      input_sf, input_id = "FIPS",
+      extent = NULL, out_class = "sf"
+    )
+  testthat::expect_equal(dep_check(checked_sf), "sf")
 
+})
+
+
+testthat::test_that(".check_vector with terra", {
   input_vect <- terra::vect(input_sf)
-  checked_vect <- check_subject(input_vect, subject_id = "FIPS")
+  checked_vect <-
+    .check_vector(
+      input_vect, input_id = "FIPS",
+      extent = NULL, out_class = "terra")
   testthat::expect_equal(dep_check(checked_vect), "terra")
 
+})
+
+
+testthat::test_that(".check_vector with file path and extent", {
+
+  # nonexistent file path: terra/sf ingestion is tried and it
+  # inherits "try-error", still available for .check_id
+  # the error is thrown in .check_id
+  testthat::expect_error(
+    .check_vector(
+      "nonexistent.gpkg", input_id = "FIPS",
+      extent = NULL, out_class = "sf"
+    ),
+    "id should exist in the input object"
+  )
+
+  testthat::expect_error(
+    .check_vector(
+      "nonexistent.gpkg", input_id = "FIPS",
+      extent = NULL, out_class = "terra"
+    ),
+    "id should exist in the input object"
+  )
+
+  # existing file path: terra output
   checked_char <-
-    check_subject(
-      input_char, extent = NULL, subject_id = "FIPS"
+    .check_vector(
+      input_char, extent = NULL, input_id = "FIPS", out_class = "terra"
     )
   testthat::expect_equal(dep_check(checked_char), "terra")
 
+  # existing file path: terra output with extent
   checked_ext <-
-    check_subject(
-      input_char, extent = c(-80, -77, 35, 36), subject_id = "FIPS"
+    .check_vector(
+      input_char, extent = c(-80, -77, 35, 36),
+      input_id = "FIPS", out_class = "terra"
     )
   testthat::expect_equal(dep_check(checked_ext), "terra")
+
+  # existing file path: terra output without extent
+  checked_ext <-
+    .check_vector(
+      input_char, extent = NULL,
+      input_id = "FIPS", out_class = "terra"
+    )
+  testthat::expect_equal(dep_check(checked_ext), "terra")
+
 })
 
 
@@ -179,6 +226,7 @@ testthat::test_that(".check_character with non-character inputs",{
     "Input is not a character."
   )
 })
+
 
 testthat::test_that(".check_character with character inputs",{
   withr::local_package("sf")
@@ -233,7 +281,7 @@ testthat::test_that(".check_character with Spat* objects", {
   ncfile <- system.file(package = "sf", "shape/nc.shp")
   elevfile <- system.file(package = "terra", "ex/elev.tif")
 
-  nct <- terra::vect(nc)
+  nct <- terra::vect(ncfile)
   elevt <- terra::rast(elevfile)
   testthat::expect_message(
     nct_detected <- .check_character(nct),

@@ -246,7 +246,7 @@ reproject_to_raster <-
 
 #' Validate and repair input vector data
 #' @family Helper functions
-#' @keywords internal soft-validated
+#' @keywords internal soft-deprecated
 #' @description It tries repairing input vector data.
 #' Vector validity violation usually appears in polygon data with
 #' self-crossing or
@@ -532,13 +532,12 @@ setMethod(
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
-    input <- .check_id(input, input_id)
 
     cli::cli_inform(
       c("i" =
-          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+          sprintf("Input is a character. Trying to read with %s.", out_class)
       )
     )
     if (!is.null(extent)) {
@@ -556,6 +555,8 @@ setMethod(
       terra = try(terra::vect(input, extent = extent), silent = TRUE),
       sf = try(sf::st_read(input, wkt_filter = extent), silent = TRUE)
     )
+    .check_id(input = input, input_id = input_id)
+
     return(input)
   }
 )
@@ -568,13 +569,12 @@ setMethod(
             extent = "numeric", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
-    input <- .check_id(input, input_id)
 
     cli::cli_inform(
       c("i" =
-          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+          sprintf("Input is a character. Trying to read with %s.", out_class)
       )
     )
     if (out_class == "sf") {
@@ -591,6 +591,7 @@ setMethod(
       terra = try(terra::vect(input, extent = extent), silent = TRUE),
       sf = try(sf::st_read(input, wkt_filter = extent), silent = TRUE)
     )
+    .check_id(input = input, input_id = input_id)
     return(input)
   }
 )
@@ -606,7 +607,6 @@ setMethod(
     if (!out_class %in% c("sf", "terra")) {
       cli::cli_abort(c("out_class should be one of sf or terra.\n"))
     }
-    input <- .check_id(input, input_id)
 
     cli::cli_inform(
       c("i" =
@@ -626,6 +626,7 @@ setMethod(
         extent <- reproject_std(extent, terra::crs(input))
       }
     }
+    .check_id(input = input, input_id = input_id)
     input <- input[extent, ]
     return(input)
   }
@@ -640,13 +641,12 @@ setMethod(
             extent = "SpatVector", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
-    input <- .check_id(input, input_id)
 
     cli::cli_inform(
       c("i" =
-          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+          sprintf("Input is a character. Trying to read with %s.", out_class)
       )
     )
     if (out_class == "sf") {
@@ -662,6 +662,8 @@ setMethod(
         extent <- reproject_std(extent, terra::crs(input))
       }
     }
+    .check_id(input = input, input_id = input_id)
+
     input <- input[extent, ]
     return(input)
   }
@@ -675,13 +677,12 @@ setMethod(
             extent = "SpatExtent", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
-    input <- .check_id(input, input_id)
 
     cli::cli_inform(
       c("i" =
-          sprintf("Input is a character. Trying to read with %s\n.", out_class)
+          sprintf("Input is a character. Trying to read with %s.", out_class)
       )
     )
     cli::cli_alert_danger(
@@ -694,6 +695,8 @@ setMethod(
     if (out_class == "terra") {
       input <- try(terra::vect(input), silent = TRUE)
     }
+    .check_id(input = input, input_id = input_id)
+
     input <- input[extent, ]
     return(input)
   }
@@ -708,7 +711,7 @@ setMethod(
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -741,7 +744,7 @@ setMethod(
             extent = "numeric", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -770,7 +773,7 @@ setMethod(
             extent = "SpatExtent", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -797,7 +800,7 @@ setMethod(
             extent = "sf", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -822,7 +825,7 @@ setMethod(
             extent = "SpatVector", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -848,7 +851,7 @@ setMethod(
             extent = "SpatExtent", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -869,7 +872,7 @@ setMethod(
             extent = "ANY", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -889,7 +892,7 @@ setMethod(
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -900,6 +903,26 @@ setMethod(
   }
 )
 
+
+#' @keywords internal
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "SpatVector", input_id = "NULL",
+            extent = "NULL", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    if (!out_class %in% c("sf", "terra")) {
+      cli::cli_abort(c("out_class should be one of sf or terra."))
+    }
+
+    if (out_class == "sf") {
+      input <- dep_switch(input)
+    }
+    return(input)
+  }
+)
+
+
 #' @keywords internal
 #' @noRd
 setMethod(
@@ -908,7 +931,7 @@ setMethod(
             extent = "SpatVector", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
+      cli::cli_abort(c("out_class should be one of sf or terra."))
     }
     input <- .check_id(input, input_id)
 
@@ -1049,7 +1072,8 @@ setMethod(
 #' @description This function will check if `f` is a sf or terra function
 #'  then get x and y classes. It compares the parent packages of
 #'  `f`, `x`, `y`. It is internally designed that `x` and `y` match
-#'  `x` and `y` in sf/terra/chopin function arguments.
+#'  `x` and `y` in sf/terra/chopin function arguments. The packages to
+#'  be checked must be loaded in the current R session.
 .check_align_fxy <-
   function(
     f, x, y

@@ -250,12 +250,18 @@ par_grid <-
 #'  The regions will be split by the common level value.
 #'  The level should be higher than the original data level.
 #'  A field name with the higher level information is also accepted.
+#' @param input_id character(1). The ID field name of the input data,
+#'  which include character/vector/numeric IDs with `regions_id` value
+#'  is included as prefix. Default is NULL, which will result in error.
+#'  `startsWith` function is used to detect the prefix.
+#'  Note that [`extract_at`]'s `id` argument value should be the same as
+#'  this argument.
 #' @param fun_dist `sf`, `terra`, or `chopin` functions.
 #'   This function should have `x` and `y` arguments.
 #' @param ... Arguments passed to the argument `fun_dist`.
 #' @param pad_y logical(1). Whether to filter y with the padded grid.
 #'  Should be TRUE when x is where the values are calculated.
-#'  Default is `FALSE`. In the flipped case, like `terra::extent` or
+#'  Default is `FALSE`. In the reverse case, like `terra::extent` or
 #'  `exactextractr::exact_extract`, the raster (x) should be scoped
 #'   with the padded grid.
 #' @param .debug logical(1). Default is `FALSE`
@@ -311,6 +317,7 @@ par_hierarchy <-
   function(
     regions,
     regions_id = NULL,
+    input_id = NULL,
     fun_dist,
     ...,
     pad_y = FALSE,
@@ -352,6 +359,8 @@ par_hierarchy <-
       crs_x <- attr(crs_x, "crs")
     }
 
+    print(list(peek_x, peek_y))
+
     if (!length(regions_id) %in% c(1, nrow(regions))) {
       cli::cli_abort("The length of regions_id is not valid.")
     }
@@ -383,6 +392,7 @@ par_hierarchy <-
                   regions[startsWith(regions_idn, regions_list[[i]]), ]
                 query_id <-
                   unlist(subregion_in[[regions_id]], use.names = FALSE)
+                print(query_id)
 
                 # interpret the function input x and y
                 args_input$x <-
@@ -401,15 +411,17 @@ par_hierarchy <-
                     out_class = class_vec,
                     .window = NULL
                   )
+                print(args_input$y)
 
                 if (pad_y) {
                   data_id <-
-                    unlist(args_input$x[[regions_id]], use.names = FALSE)
+                    unlist(args_input$x[[input_id]], use.names = FALSE)
                   args_input$x <-
                     args_input$x[startsWith(data_id, query_id), ]
+                  print(args_input$x)
                 } else {
                   data_id <-
-                    unlist(args_input$y[[regions_id]], use.names = FALSE)
+                    unlist(args_input$y[[input_id]], use.names = FALSE)
                   args_input$y <-
                     args_input$y[startsWith(data_id, query_id), ]
                 }
