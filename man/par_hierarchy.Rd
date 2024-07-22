@@ -7,6 +7,7 @@
 par_hierarchy(
   regions,
   regions_id = NULL,
+  input_id = NULL,
   fun_dist,
   ...,
   pad_y = FALSE,
@@ -22,6 +23,13 @@ The regions will be split by the common level value.
 The level should be higher than the original data level.
 A field name with the higher level information is also accepted.}
 
+\item{input_id}{character(1). The ID field name of the input data,
+which include character/vector/numeric IDs with \code{regions_id} value
+is included as prefix. Default is NULL, which will result in error.
+\code{startsWith} function is used to detect the prefix.
+Note that \code{\link{extract_at}}'s \code{id} argument value should be the same as
+this argument.}
+
 \item{fun_dist}{\code{sf}, \code{terra}, or \code{chopin} functions.
 This function should have \code{x} and \code{y} arguments.}
 
@@ -29,7 +37,7 @@ This function should have \code{x} and \code{y} arguments.}
 
 \item{pad_y}{logical(1). Whether to filter y with the padded grid.
 Should be TRUE when x is where the values are calculated.
-Default is \code{FALSE}. In the flipped case, like \code{terra::extent} or
+Default is \code{FALSE}. In the reverse case, like \code{terra::extent} or
 \code{exactextractr::exact_extract}, the raster (x) should be scoped
 with the padded grid.}
 

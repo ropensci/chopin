@@ -51,4 +51,4 @@ Insang Song
 }
 \concept{Helper functions}
 \keyword{internal}
-\keyword{soft-validated}
+\keyword{soft-deprecated}

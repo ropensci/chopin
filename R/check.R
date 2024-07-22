@@ -393,6 +393,7 @@ setMethod(
   if (!is.character(input)) {
     cli::cli_alert_info("Input is not a character.\n")
     res <- datamod(input)
+    attr(res, "crs") <- terra::crs(input)
     return(res)
   }
 

@@ -358,8 +358,7 @@ par_hierarchy <-
       crs_x <- .check_character(args_input$x)
       crs_x <- attr(crs_x, "crs")
     }
-
-    print(list(peek_x, peek_y))
+    message(sprintf("initial crs_x is ------ %s", crs_x))
 
     if (!length(regions_id) %in% c(1, nrow(regions))) {
       cli::cli_abort("The length of regions_id is not valid.")
@@ -392,7 +391,6 @@ par_hierarchy <-
                   regions[startsWith(regions_idn, regions_list[[i]]), ]
                 query_id <-
                   unlist(subregion_in[[regions_id]], use.names = FALSE)
-                print(query_id)
 
                 # interpret the function input x and y
                 args_input$x <-
@@ -411,24 +409,21 @@ par_hierarchy <-
                     out_class = class_vec,
                     .window = NULL
                   )
-                print(args_input$y)
 
                 if (pad_y) {
                   data_id <-
                     unlist(args_input$x[[input_id]], use.names = FALSE)
                   args_input$x <-
                     args_input$x[startsWith(data_id, query_id), ]
-                  print(args_input$x)
                 } else {
                   data_id <-
                     unlist(args_input$y[[input_id]], use.names = FALSE)
                   args_input$y <-
                     args_input$y[startsWith(data_id, query_id), ]
                 }
-
                 # reproject the y to the crs of x
                 args_input$y <-
-                  reproject_std(args_input$y, attr(crs_x, "crs"))
+                  reproject_std(args_input$y, crs_x)
 
                 res <- rlang::inject(fun_dist(!!!args_input))
                 res <- try(as.data.frame(res), silent = TRUE)
@@ -657,9 +652,9 @@ par_multirasters <-
   .window = NULL
 ) {
   # type check
-  if (inherits(type, "try-error")) {
-    type <- datamod(input)
-  }
+  # if (inherits(type, "try-error")) {
+  #   type <- datamod(input)
+  # }
   match.arg(type, c("vector", "raster"))
 
   if (type == "raster") {
@@ -715,5 +710,3 @@ par_map_args <- function(fun, name_match = list(), ...) {
   # Call the target function 'fun' with modified arguments
   do.call(fun, args)
 }
-
-

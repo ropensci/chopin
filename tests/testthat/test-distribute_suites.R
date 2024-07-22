@@ -1,3 +1,178 @@
+testthat::test_that(".par_screen -- vector", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(sf_use_s2 = FALSE)
+  )
+  # Reading data
+  ## NC counties polygon
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) %>%
+    terra::project("EPSG:5070")
+
+  scr_terra <-
+    .par_screen(
+      type = "vector",
+      input = ncpath,
+      input_id = "FIPS",
+      out_class = "terra"
+    )
+
+  scr_sf <-
+    .par_screen(
+      type = "vector",
+      input = ncpath,
+      input_id = "FIPS",
+      out_class = "sf"
+    )
+
+  testthat::expect_s3_class(scr_sf, "sf")
+  testthat::expect_s4_class(scr_terra, "SpatVector")
+
+  # sf into terra
+  scr_sfterra <-
+    .par_screen(
+      type = "vector",
+      input = scr_sf,
+      input_id = "FIPS",
+      out_class = "terra"
+    )
+  # sf (as is)
+  scr_sfsf <-
+    .par_screen(
+      type = "vector",
+      input = scr_sf,
+      input_id = "FIPS",
+      out_class = "sf"
+    )
+  testthat::expect_s3_class(scr_sfsf, "sf")
+  testthat::expect_s4_class(scr_sfterra, "SpatVector")
+
+  # terra into sf
+  scr_terrasf <-
+    .par_screen(
+      type = "vector",
+      input = scr_terra,
+      input_id = "FIPS",
+      out_class = "sf"
+    )
+  # terra (as is)
+  scr_terraterra <-
+    .par_screen(
+      type = "vector",
+      input = scr_terra,
+      input_id = "FIPS",
+      out_class = "terra"
+    )
+
+  testthat::expect_s3_class(scr_terrasf, "sf")
+  testthat::expect_s4_class(scr_terraterra, "SpatVector")
+
+})
+
+
+testthat::test_that(".par_screen -- raster", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(sf_use_s2 = FALSE)
+  )
+  # Reading data
+  ## NC counties polygon
+  bundleras <- system.file("ex/elev.tif", package = "terra")
+
+  scr_terra <-
+    .par_screen(
+      type = "raster",
+      input = bundleras,
+      input_id = NULL,
+      out_class = "terra"
+    )
+
+  # in "raster" mode, out_class = "sf" is ignored.
+  scr_sf <-
+    .par_screen(
+      type = "raster",
+      input = bundleras,
+      input_id = NULL,
+      out_class = "sf"
+    )
+
+  testthat::expect_s4_class(scr_sf, "SpatRaster")
+  testthat::expect_s4_class(scr_terra, "SpatRaster")
+
+  # input_id is ignored
+  scr_trid <-
+    .par_screen(
+      type = "raster",
+      input = bundleras,
+      input_id = "FIPS",
+      out_class = "terra"
+    )
+  testthat::expect_s4_class(scr_trid, "SpatRaster")
+
+})
+
+
+testthat::test_that(".check_character to .par_screen: try-error inputs", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(sf_use_s2 = FALSE)
+  )
+  # Reading data
+  bundlevec <- system.file("gpkg/nc.gpkg", package = "sf")
+  bundleras <- system.file("ex/elev.tif", package = "terra")
+
+  # read file into terra objects
+  bundlevect <- terra::vect(bundlevec)
+  bundlerast <- terra::rast(bundleras)
+
+  chk_bundlevect <- .check_character(bundlevect)
+  chk_bundlerast <- .check_character(bundlerast)
+
+
+  # sf (as is)
+  scr_sfsf <-
+    .par_screen(
+      type = "raster",
+      input = scr_sf,
+      input_id = "FIPS",
+      out_class = "sf"
+    )
+  testthat::expect_s3_class(scr_sfsf, "sf")
+  testthat::expect_s4_class(scr_sfterra, "SpatVector")
+
+  # terra into sf
+  scr_terrasf <-
+    .par_screen(
+      type = "raster",
+      input = scr_terra,
+      input_id = "FIPS",
+      out_class = "sf"
+    )
+  # terra (as is)
+  scr_terraterra <-
+    .par_screen(
+      type = "raster",
+      input = scr_terra,
+      input_id = "FIPS",
+      out_class = "terra"
+    )
+
+  testthat::expect_s3_class(scr_terrasf, "sf")
+  testthat::expect_s4_class(scr_terraterra, "SpatVector")
+
+})
+
+
+
 
 testthat::test_that("par_grid -- plain mode with raster path", {
   withr::local_package("terra")
@@ -544,6 +719,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
         par_hierarchy(
           regions = nccnty,
           regions_id = "GEOID",
+          input_id = "GEOID",
           pad_y = TRUE,
           .debug = TRUE,
           fun_dist = nearest,
@@ -555,22 +731,20 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
 
   nctrcc <- terra::centroids(nctrct)
   testthat::expect_no_error(
-    suppressWarnings(
-      resnasx <-
-        par_hierarchy(
-          regions = sf::st_as_sf(nccnty),
-          regions_id = "GEOID",
-          input_id = "GEOID",
-          pad_y = FALSE,
-          fun_dist = extract_at,
-          x = ncelev,
-          y = nctrcc,
-          id = "GEOID",
-          radius = 1e3L,
-          .standalone = FALSE,
-          .debug = TRUE
-        )
-    )
+    resnasx <-
+      par_hierarchy(
+        regions = sf::st_as_sf(nccnty),
+        regions_id = "GEOID",
+        input_id = "GEOID",
+        pad_y = FALSE,
+        fun_dist = extract_at,
+        x = ncelev,
+        y = nctrcc,
+        id = "GEOID",
+        radius = 1e3L,
+        .standalone = FALSE,
+        .debug = TRUE
+      )
   )
 
   testthat::expect_no_error(
@@ -580,7 +754,8 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
           regions = nccnty,
           .debug = TRUE,
           regions_id = "GEOID",
-          fun_dist = terra::nearest,
+          input_id = "kid",
+          fun_dist = nearest,
           x = nctrct,
           y = ncsamp
         )
