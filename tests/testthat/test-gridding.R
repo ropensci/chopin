@@ -167,7 +167,7 @@ testthat::test_that("Grid merging internal -- Polsby-Popper test fails.", {
           merge_max = 10L
         )
     },
-    "The merged polygons have too complex shapes. Increase threshold or use the original grids."
+    "The merged polygons have too complex shapes.\nIncrease threshold or use the original grids."
   )
 
 })
@@ -289,9 +289,13 @@ testthat::test_that("Quantile cut internal tests", {
   # polygon case
   ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
   nc <- sf::st_read(ncpath)
+
   testthat::expect_warning(
-    par_cut_coords(nc, NULL, par_def_q(3L)),
-    "st_centroid assumes attributes are constant over geometries"
+    testthat::expect_warning(
+      par_cut_coords(nc, NULL, par_def_q(3L)),
+      "st_centroid assumes attributes are constant over geometries"
+    ),
+    "st_centroid does not give correct centroids for longitude/latitude"
   )
 
 })

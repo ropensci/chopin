@@ -701,7 +701,8 @@ summarize_sedc <-
 #' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `x` and `y` are different classes,
 #'  `poly_weight` will be converted to the class of `x`.
-#' @note If `x` and `y` are characters, they will be
+#' @note `x` and `y` classes should match.
+#'   If `x` and `y` are characters, they will be
 #'   read as `sf` objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
@@ -763,11 +764,14 @@ setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"),
     target_fields = NULL,
     id_x = "ID",
     fun = stats::weighted.mean,
-    extent = NULL
+    extent = NULL,
+    ...
   ) {
 
-    x <- .check_vector(x, extent = extent, subject_id = id_x)
-    y <- .check_vector(y, extent = extent)
+    x <-
+      .check_vector(x, extent = extent, input_id = id_x, out_class = "terra")
+    y <-
+      .check_vector(y, extent = extent, input_id = NULL, out_class = "terra")
 
     poly_intersected <- terra::intersect(x, y)
     poly_intersected[["area_segment_"]] <-
@@ -799,7 +803,8 @@ setMethod("summarize_aw", signature(x = "character", y = "character"),
     id_x = "ID",
     fun = stats::weighted.mean,
     out_class = "terra",
-    extent = NULL
+    extent = NULL,
+    ...
   ) {
 
     x <-
@@ -837,12 +842,13 @@ setMethod("summarize_aw", signature(x = "sf", y = "sf"),
     target_fields = NULL,
     id_x = "ID",
     fun = NULL,
-    extent = NULL
+    extent = NULL,
+    ...
   ) {
     fun <- match.arg(fun, c("mean", "sum"))
     extensive <- (fun == "sum")
-    x <- .check_vector(x, extent = extent, subject_id = id_x)
-    y <- .check_vector(y, extent = extent)
+    x <- .check_vector(x, extent = extent, input_id = id_x, out_class = "sf")
+    y <- .check_vector(y, extent = extent, input_id = NULL, out_class = "sf")
 
     if (!is.null(target_fields)) {
       y <- y[, target_fields]

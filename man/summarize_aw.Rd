@@ -15,7 +15,8 @@ summarize_aw(x, y, ...)
   target_fields = NULL,
   id_x = "ID",
   fun = stats::weighted.mean,
-  extent = NULL
+  extent = NULL,
+  ...
 )
 
 \S4method{summarize_aw}{character,character}(
@@ -25,7 +26,8 @@ summarize_aw(x, y, ...)
   id_x = "ID",
   fun = stats::weighted.mean,
   out_class = "terra",
-  extent = NULL
+  extent = NULL,
+  ...
 )
 
 \S4method{summarize_aw}{sf,sf}(
@@ -34,7 +36,8 @@ summarize_aw(x, y, ...)
   target_fields = NULL,
   id_x = "ID",
   fun = NULL,
-  extent = NULL
+  extent = NULL,
+  ...
 )
 }
 \arguments{
@@ -69,6 +72,7 @@ When \code{x} and \code{y} are different classes,
 \code{poly_weight} will be converted to the class of \code{x}.
 }
 \note{
+\code{x} and \code{y} classes should match.
 If \code{x} and \code{y} are characters, they will be
 read as \code{sf} objects.
 }

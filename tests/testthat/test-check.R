@@ -154,7 +154,8 @@ testthat::test_that(".check_vector with sf", {
 
 
 testthat::test_that(".check_vector with terra", {
-  input_vect <- terra::vect(input_sf)
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_vect <- terra::vect(input_char)
   checked_vect <-
     .check_vector(
       input_vect, input_id = "FIPS",
@@ -165,6 +166,8 @@ testthat::test_that(".check_vector with terra", {
 
 
 testthat::test_that(".check_vector with file path and extent", {
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_vect <- terra::vect(input_char)
 
   # nonexistent file path: terra/sf ingestion is tried and it
   # inherits "try-error", still available for .check_id
@@ -270,6 +273,13 @@ testthat::test_that(".check_character with sf objects", {
     elev_detected <- .check_character(elev),
     "Input is not a character."
   )
+  # is CRS correctly detected from the input path?
+  testthat::expect_true(is.character(attr(ncsf_detected, "crs")))
+  testthat::expect_true(is.na(attr(elev_detected, "crs")))
+
+  # remove attributes for comparison
+  attr(ncsf_detected, "crs") <- NULL
+  attr(elev_detected, "crs") <- NULL
   testthat::expect_equal(ncsf_detected, "vector")
   testthat::expect_equal(elev_detected, "raster")
 
@@ -291,6 +301,11 @@ testthat::test_that(".check_character with Spat* objects", {
     elevt_detected <- .check_character(elevt),
     "Input is not a character."
   )
+  testthat::expect_true(is.character(attr(nct_detected, "crs")))
+  testthat::expect_true(is.character(attr(elevt_detected, "crs")))
+
+  attr(nct_detected, "crs") <- NULL
+  attr(elevt_detected, "crs") <- NULL
   testthat::expect_equal(nct_detected, "vector")
   testthat::expect_equal(elevt_detected, "raster")
 

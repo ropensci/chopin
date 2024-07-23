@@ -74,11 +74,8 @@ testthat::test_that("Clip by extent works without errors", {
 
   # starts from sf/stars
   ncelev <-
-    terra::unwrap(
-      readRDS(
-        system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-      )
-    )
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelev)
   terra::crs(ncelev) <- "EPSG:5070"
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
@@ -88,14 +85,14 @@ testthat::test_that("Clip by extent works without errors", {
     )
   ncp_terra <- terra::vect(ncp)
 
-  testthat::expect_no_error(clip_ras_ext(ncp, 30000L, ncelev))
-  testthat::expect_no_error(clip_ras_ext(ncp_terra, 30000L, ncelev))
-  testthat::expect_error(clip_ras_ext(ncp_terra, NULL, ncelev))
+  testthat::expect_no_error(clip_ras_ext(ncelev, ncp, 30000L))
+  testthat::expect_no_error(clip_ras_ext(ncelev, ncp_terra, 30000L))
+  testthat::expect_error(clip_ras_ext(ncelev, ncp_terra, NULL))
 })
 
 
 
-
+## should be fixed ####
 testthat::test_that("extract_at runs well", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -341,24 +338,22 @@ testthat::test_that("Character input works", {
   ncp <- system.file("extdata/nc_random_point.rds", package = "chopin") |>
     readRDS()
   ncpfile <- file.path(tempdir(), "ncp.shp")
-  sf::st_write(ncp, ncpfile)
+  sf::st_write(ncp, ncpfile, append = FALSE)
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
   ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-  ncelev <- terra::unwrap(ncelev)
 
   testthat::expect_no_error(
-    extract_at(ncpfile, ncelev, "pid", mode = "buffer", radius = 1e4L)
+    extract_at(ncelev, ncpfile, "pid", radius = 1e4L)
   )
-  testthat::expect_no_error(
-    extract_at(ncpfile, ncelev, "pid", mode = "buffer", radius = 1e4L,
+  testthat::expect_warning(
+    extract_at(ncelev, ncpfile, "pid", radius = 1e4L,
                kernel = "epanechnikov", func = stats::weighted.mean,
                bandwidth = 1.25e4L)
   )
   testthat::expect_no_error(
-    extract_at(nccnty, ncelev, "FIPS", mode = "polygon")
+    extract_at(ncelev, nccnty, "FIPS")
   )
-
 
 })
 
@@ -379,10 +374,11 @@ testthat::test_that("summarize_aw works as expected.", {
   flds <- c("BIR74", "SID74", "BIR79", "SID79")
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  testthat::expect_no_error(
+  testthat::expect_warning(
     system.time({
       ppb_nc_aw <- summarize_aw(ppb, nc, target_fields = flds, "id")
-    })
+    }),
+    "st_interpolate_aw assumes attributes are constant or uniform over areas of x"
   )
   testthat::expect_true(inherits(ppb_nc_aw, "data.frame"))
 
@@ -392,14 +388,6 @@ testthat::test_that("summarize_aw works as expected.", {
   testthat::expect_no_error(
     system.time({
       ppb_nc_aw <- summarize_aw(ppb_t, nc_t, target_fields = flds, "id")
-    })
-  )
-  testthat::expect_s3_class(ppb_nc_aw, "data.frame")
-
-  # auto convert formats
-  testthat::expect_no_error(
-    system.time({
-      ppb_nc_aw <- summarize_aw(ppb_t, nc, target_fields = flds, "id")
     })
   )
   testthat::expect_s3_class(ppb_nc_aw, "data.frame")

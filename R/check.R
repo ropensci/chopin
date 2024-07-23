@@ -475,6 +475,26 @@ setMethod(
   }
 )
 
+#' @param x SpatVector/sf/SpatRaster object to be intersected.
+#' @param y SpatVector/sf object. Intersecting object.
+#' @keywords internal
+#' @noRd
+.intersect <- function(x, y) {
+  datamodel_x <- datamod(x)
+  if (datamodel_x == "raster") {
+    return(x)
+  }
+  dep_x <- dep_check(x)
+  dep_y <- dep_check(y)
+
+  if (dep_x != dep_y) {
+    y <- dep_switch(y)
+  }
+  x[y, ]
+
+}
+
+
 
 ## .check_vector ####
 #' Check the subject object and perform necessary conversions if needed.

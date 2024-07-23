@@ -1,3 +1,4 @@
+### .par_screen tests ####
 testthat::test_that(".par_screen -- vector", {
   withr::local_package("terra")
   withr::local_package("sf")
@@ -173,7 +174,7 @@ testthat::test_that(".check_character to .par_screen: try-error inputs", {
 
 
 
-
+### par_grid tests ####
 testthat::test_that("par_grid -- plain mode with raster path", {
   withr::local_package("terra")
   withr::local_package("sf")
@@ -537,6 +538,8 @@ testthat::test_that("par_grid -- par_pad_balanced", {
 })
 
 
+
+### par_hierarchy tests ####
 testthat::test_that(
   "par_hierarchy -- raster path input and spatraster fallback ", {
     withr::local_package("terra")
@@ -580,7 +583,9 @@ testthat::test_that(
           y = nctrct,
           x = ncelevpath,
           id = "GEOID",
-          func = "mean"
+          func = "mean",
+          pad_y = F,
+          .standalone = FALSE
         )
     )
     testthat::expect_true(is.data.frame(residb))
@@ -693,7 +698,8 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
 
   ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
   nccnty <- terra::vect(ncpath, layer = "county")
-  nctrct <- terra::vect(ncpath, layer = "tracts")
+  nctrct <- sf::st_read(ncpath, layer = "tracts")
+  nctrct <- terra::vect(nctrct)
   ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
   ncelev <- terra::rast(ncelevpath)
   ncroad <- system.file("extdata/ncroads_first.gpkg", package = "chopin")
@@ -710,32 +716,45 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   nctrctc <- terra::centroids(nctrct)
   ncroadv <- terra::vect(ncroad)
 
-  # straightforward error case
-  # invalid usage of fun_dist
-  # halted at the first error
-  testthat::expect_error(
-    suppressWarnings(
-      resnas <-
-        par_hierarchy(
-          regions = nccnty,
-          regions_id = "GEOID",
-          input_id = "GEOID",
-          pad_y = TRUE,
-          .debug = TRUE,
-          fun_dist = nearest,
-          x = nctrctc,
-          y = ncroadv
-        )
+  # no errors since 100km buffer is enough to capture
+  # nearest road for coastal tracts
+  resnas0 <-
+    par_hierarchy(
+      regions = nccnty,
+      regions_id = "GEOID",
+      pad_y = TRUE,
+      pad = 50000,
+      .debug = TRUE,
+      fun_dist = nearest,
+      x = nctrctc,
+      y = ncroadv
     )
-  )
 
+
+  # no errors since 100km buffer is enough to capture
+  # nearest road for coastal tracts
+  resnas <-
+    par_hierarchy(
+      regions = nccnty,
+      regions_id = "GEOID",
+      pad_y = TRUE,
+      pad = 100000,
+      .debug = TRUE,
+      fun_dist = nearest,
+      x = nctrctc,
+      y = ncroadv
+    )
+
+  # resnas0 and resnas must have different #rows
+  testthat::expect_true(nrow(resnas) > nrow(resnas0))
+
+  # regions are sf object
   nctrcc <- terra::centroids(nctrct)
   testthat::expect_no_error(
     resnasx <-
       par_hierarchy(
         regions = sf::st_as_sf(nccnty),
         regions_id = "GEOID",
-        input_id = "GEOID",
         pad_y = FALSE,
         fun_dist = extract_at,
         x = ncelev,
@@ -753,15 +772,85 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
         par_hierarchy(
           regions = nccnty,
           .debug = TRUE,
+          pad_y = TRUE,
           regions_id = "GEOID",
-          input_id = "kid",
           fun_dist = nearest,
-          x = nctrct,
-          y = ncsamp
+          x = ncsamp,
+          y = nctrct
         )
     )
   )
 })
+
+
+
+testthat::test_that("par_hierarchy: define level by substring", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("future")
+  withr::local_package("future.apply")
+  withr::local_package("future.mirai")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+    )
+  )
+  future::plan(mirai_multisession, workers = 2L)
+
+  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
+  nccnty <- sf::st_read(ncpath, layer = "county")
+  nctrct <- sf::st_read(ncpath, layer = "tracts")
+  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncelev <- terra::rast(ncelevpath)
+
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+
+  # use length_left to substring GEOID
+  testthat::expect_no_error(
+    residc <-
+      par_hierarchy(
+        regions = nctrct,
+        regions_id = "GEOID",
+        length_left = 5L,
+        .debug = TRUE,
+        fun_dist = extract_at,
+        y = nctrct,
+        x = ncelev,
+        id = "GEOID",
+        func = "mean"
+      )
+  )
+  testthat::expect_true(is.data.frame(residc))
+
+  # regions_id is not length 1
+  testthat::expect_error(
+    reshsing <-
+      par_hierarchy(
+        regions = nccnty,
+        regions_id = c(1, 2, 3),
+        fun_dist = extract_at,
+        y = nctrct,
+        x = ncelev,
+        id = "GEOID",
+        func = "mean"
+      ),
+    "The length of regions_id is not valid."
+  )
+
+  future::plan(future::sequential)
+})
+
 
 
 testthat::test_that("generic function should be parallelized properly", {
@@ -771,7 +860,12 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_package("chopin")
-  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::local_options(
+    list(
+      sf_use_s2 = FALSE,
+      future.resolve.recursive = 2L
+    )
+  )
 
   # main test
   pnts <- readRDS(
@@ -793,13 +887,13 @@ testthat::test_that("generic function should be parallelized properly", {
       ny = 4L,
       padding = 5e4L
     )
-  future::plan(future::multicore, workers = 6L)
+  future::plan(future.mirai::mirai_multisession, workers = 4L)
   testthat::expect_no_error(
     res <-
       suppressWarnings(
         par_grid(
           grids = nccompreg,
-          fun_dist = terra::nearest,
+          fun_dist = nearest,
           debug = TRUE,
           x = pnts,
           y = rd1
@@ -818,8 +912,10 @@ testthat::test_that("generic function should be parallelized properly", {
       suppressWarnings(
         par_grid(
           grids = nccompreg,
-          fun_dist = terra::nearest,
-          debug = FALSE,
+          fun_dist = nearest,
+          pad_y = TRUE,
+          pad = 1e5L,
+          .debug = FALSE,
           x = pnts,
           y = rd1
         )
@@ -850,7 +946,8 @@ testthat::test_that(
     )
     future::plan(future.mirai::mirai_multisession, workers = 2L)
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- terra::vect(ncpath, layer = "county")
+    nccnty <- sf::st_read(ncpath, layer = "county")
+    nccnty <- terra::vect(nccnty)
     ncelev <-
       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
     ncelev <- terra::rast(ncelev)
@@ -886,6 +983,8 @@ testthat::test_that(
 testthat::test_that(
   "par_multirasters -- terra function dispatch",
   {
+    testthat::skip_on_os("windows")
+
     withr::local_package("terra")
     withr::local_package("sf")
     withr::local_package("future")
@@ -896,11 +995,10 @@ testthat::test_that(
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
-        future.plan = "mirai_multisession",
         future.resolve.recursive = 2L
       )
     )
-    future::plan(future.mirai::mirai_multisession, workers = 2L)
+    future::plan(future::multicore, workers = 2L)
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- terra::vect(ncpath, layer = "county")
     ncelev <-
@@ -915,13 +1013,15 @@ testthat::test_that(
 
     testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
     testthat::expect_no_error(
-      res <- par_multirasters(
-        filenames = testfiles,
-        .debug = TRUE,
-        fun_dist = terra::extract,
-        y = ncpath,
-        x = ncelev,
-        fun = mean
+      suppressWarnings(
+        res <- par_multirasters(
+          filenames = testfiles,
+          .debug = TRUE,
+          fun_dist = terra::extract,
+          y = ncpath,
+          x = ncelev,
+          fun = mean
+        )
       )
     )
     future::plan(future::sequential)
@@ -963,7 +1063,9 @@ testthat::test_that(
     testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
     testfiles_corrupted <- c(testfiles, "/home/runner/fallin.tif")
-    testthat::expect_condition(
+
+    # suppressWarnings: suppressing multilayer gpkg read warnings
+    suppressWarnings(
       resnas <- par_multirasters(
         filenames = testfiles_corrupted,
         .debug = TRUE,
@@ -979,10 +1081,11 @@ testthat::test_that(
     testthat::expect_equal(
       nrow(resnas), 100L * (length(testfiles_corrupted) - 1) + 1
     )
+    testthat::expect_true("error_message" %in% names(resnas))
     testthat::expect_true(anyNA(resnas))
 
-    # error case 
-    testthat::expect_condition(
+    # error case: function loading with ::
+    testthat::expect_error(
       nut <- par_multirasters(
         filenames = testfiles_corrupted,
         .debug = TRUE,
@@ -991,12 +1094,9 @@ testthat::test_that(
         x = ncelev,
         id = "GEOID",
         fun = mean
-      )
+      ),
+      "No parent package is found."
     )
-
-    testthat::expect_s3_class(nut, "data.frame")
-    testthat::expect_true("error_message" %in% names(nut))
-    testthat::expect_true(sum(!is.na(nut$error_message)) == 1L)
 
     future::plan(future::sequential)
 
