@@ -437,7 +437,6 @@ setMethod(
 # `[` extension ####
 #' @keywords internal
 #' @noRd
-#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "bbox", j = "missing"),
@@ -450,7 +449,6 @@ setMethod(
 
 #' @keywords internal
 #' @noRd
-#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "sf", j = "missing"),
@@ -461,7 +459,6 @@ setMethod(
 
 #' @keywords internal
 #' @noRd
-#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "sfc", j = "missing"),
@@ -473,7 +470,6 @@ setMethod(
 
 #' @keywords internal
 #' @noRd
-#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "SpatExtent", j = "missing"),
@@ -858,7 +854,7 @@ setMethod(
     input <- .check_id(input, input_id)
 
     if (!is.null(extent)) {
-      if (!terra::same.crs(terra::st_crs(input), terra::st_crs(extent))) {
+      if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
         extent <- reproject_std(extent, terra::crs(input))
       }
       input <- input[extent, ]
@@ -1112,8 +1108,8 @@ setMethod(
     if (f == "chopin") {
       return(invisible(TRUE))
     }
-    dep_x <- chopin:::dep_check(x)
-    dep_y <- chopin:::dep_check(y)
+    dep_x <- dep_check(x)
+    dep_y <- dep_check(y)
 
     checkvec <- c(f, dep_x, dep_y)
     checkdup1 <- duplicated(checkvec)

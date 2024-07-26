@@ -63,6 +63,8 @@ argument. If both \code{x} and \code{y} are \code{sf}, it should be one of
 \item{extent}{numeric(4) or SpatExtent object. Extent of clipping \code{x}.
 It only works with \code{x} of character(1) file path.
 See \code{\link[terra:ext]{terra::ext}} for more details. Coordinate systems should match.}
+
+\item{out_class}{character(1). "sf" or "terra". Output class.}
 }
 \value{
 A data.frame with all numeric fields of area-weighted means.

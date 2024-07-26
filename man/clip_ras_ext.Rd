@@ -25,20 +25,6 @@ A clipped \code{SpatRaster} object.
 Clip input raster by the expected maximum extent of
 computation.
 }
-\examples{
-library(terra)
-
-ras_rand <- terra::rast(nrow = 20, ncol = 20)
-terra::values(ras_rand) <- runif(400L)
-vec_rand_p <-
-  data.frame(
-    x = c(3, 5, 3.2, 8),
-    y = c(12, 10, 15, 12),
-    z = c(0, 1, 2, 3)
-  )
-ras_rand_p <- terra::vect(vec_rand_p, geom = c("x", "y"))
-clip_ras_ext(x = ras_rand, y = vec_rand_p, radius = 1.5)
-}
 \seealso{
 Other Helper functions: 
 \code{\link{clip_vec_ext}()},

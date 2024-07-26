@@ -139,10 +139,17 @@ tail(px)
 - Here we demonstrate multiraster processing of the random points using multiple rasters.
 
 ```{r}
-# 
-dir_demo <- "/ddn/gs1/home/songi2/chopin_demo"
-rasts <- list.files(dir_demo, "tif$", full.names = TRUE)
-rasts
+ncelev <-
+  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+ncelev <- terra::rast(ncelev)
+tdir <- tempdir(check = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+
+rasts <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
 pm <-
   par_multirasters(

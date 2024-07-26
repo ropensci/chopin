@@ -685,6 +685,7 @@ summarize_sedc <-
 #' @param extent numeric(4) or SpatExtent object. Extent of clipping `x`.
 #' It only works with `x` of character(1) file path.
 #' See [`terra::ext`] for more details. Coordinate systems should match.
+#' @param out_class character(1). "sf" or "terra". Output class.
 #' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `x` and `y` are different classes,
 #'  `poly_weight` will be converted to the class of `x`.

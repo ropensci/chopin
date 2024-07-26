@@ -10,20 +10,7 @@
 \alias{extract_at,character,SpatVector-method}
 \title{Extract raster values with point buffers or polygons}
 \usage{
-extract_at(
-  x,
-  y,
-  id = NULL,
-  func = NULL,
-  extent = NULL,
-  radius = NULL,
-  out_class = "sf",
-  kernel = NULL,
-  kernel_func = stats::weighted.mean,
-  bandwidth = NULL,
-  max_cells = 3e+07,
-  ...
-)
+extract_at(x, y, ...)
 
 \S4method{extract_at}{SpatRaster,sf}(
   x = NULL,
@@ -128,6 +115,8 @@ must have the same extent and resolution.}
 
 \item{y}{\code{sf}/\code{SpatVector} object or file path.}
 
+\item{...}{Placeholder.}
+
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{func}{function taking one numeric vector argument.}
@@ -148,8 +137,6 @@ Kernel function to apply to the extracted values.}
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 
 \item{max_cells}{integer(1). Maximum number of cells in memory.}
-
-\item{...}{Placeholder.}
 
 \item{.standalone}{logical(1). Default is \code{TRUE}, which means that
 the function will be executed in a standalone mode.
