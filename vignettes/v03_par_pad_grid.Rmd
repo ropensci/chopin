@@ -38,19 +38,21 @@ options(sf_use_s2 = FALSE)
 
 
 
-
-
 ## Computational grids
 - Computational grids refer to a set of polygons that cover the entire spatial domain of interest. These grids are used to split the spatial domain into smaller pieces for parallel processing.
 - `chopin` provides functions to generate computational grids for parallel processing by `par_grid()` function.
 - The standard sequence of running `par_grid()` includes the following steps:
     1. Generate computational grids with `par_pad_grid()` or `par_pad_balanced()`. This step will give you a set of grid polygons, one of which is original splits and the other is padded in consideration of buffer radius in the subsequent spatial operations.
     2. Run `par_grid()` with the input dataset and the grid polygons.
+- Before advancing, we define terms for clarity.
+  - **Input data**: the data where the computed value will be stored. For example, when extracting raster values with vector objects, vector objects are the input data.
+  - **Target data**: the data _from_ which the values come. In the example above, raster object is the target data.
 - Original and padded grids will be used to split the main input with the original grid and the target dataset for computation with the padded grid, respectively.
 
 ## Types of computational grids and their generation
 
 - There are two approaches to generate computational grids. One is to use `par_pad_grid()` with one of three `mode`s and the other is to use `par_group_grid()`. Thus, users have **four options** in total to generate computational grids.
+- `padding` argument is very important to ensure the accurate parallel operations in a case where buffering is involved. Suppose a user has point geometry inputs and apply circular buffer with a certain radius. Since the original grid (without padding = no overlap between adjacent grids) filters the original input in each parallel worker, points near each grid border may miss target data as buffered polygons exceed the grid. 
 
 ### `par_pad_grid()`: standard interface
 - `par_pad_grid()` generates regular grid polygons with padding for parallel processing. Padding is the distance of overlapping between grid polygons, essentially from the buffer radius of the points when buffer polygons are concerned.
@@ -61,18 +63,19 @@ options(sf_use_s2 = FALSE)
 
 
 ### `par_pad_balanced()`: focusing on getting the balanced clusters
-- `par_pad_balanced()` generates rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing by converting it to the grid sets with `par_pad_balanced()`.
-
+- `par_pad_balanced()` groups the inputs into equal size, then generates padded rectangles that cover the same number of points per grid. Users can use the output of this function into `par_grid()` for parallel processing.
 
 
 ### Random points in NC
 - For demonstration of `par_pad_grid()`, we use moderately clustered point locations generated inside the counties of North Carolina.
+
 ```{r nc-gen-points}
 ncpoly <- system.file("shape/nc.shp", package = "sf")
 ncsf <- sf::read_sf(ncpoly)
 ncsf <- sf::st_transform(ncsf, "EPSG:5070")
 plot(sf::st_geometry(ncsf))
 
+# sampling clustered point
 set.seed(202404)
 library(spatstat.random)
 ncpoints <-
@@ -83,6 +86,8 @@ ncpoints <-
     scale = 1e4,
     kappa = 1.25e-9
   )
+
+
 ncpoints <- sf::st_as_sf(ncpoints)
 ncpoints <- sf::st_set_crs(ncpoints, "EPSG:5070")
 ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
@@ -94,11 +99,9 @@ ncpoints_tr <- terra::vect(ncpoints)
 ```
 
 
-<!--![](https://i.imgur.com/ImPfGXP.png) -->
-
-
 
 ## Visualize computational grids
+- The output of `par_pad_grid()` and `par_pad_balanced()` is length 2 list. A significant difference between the two is the first element of the output. In `par_pad_grid()`, it is always a sf or SpatVector object with polygon geometries. On the other hand, `par_pad_balanced()` will have the first element as a sf or SpatVector object with the same geometry type as the original input. For example, it will have point geometries if the input was point.
 
 ```{r grid-plain}
 compregions <-
@@ -153,7 +156,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 ### Split the points by two 1D quantiles
 - `mode = "grid_quantile"` generates regular grid polygons with padding based on quantiles of the coordinates in each dimension.
-- When using this mode, users should define `quantiles` argument, which will be used to get the same number of quantiles in each dimension. A convenient way to define quantiles is to use `chopin::par_def_q()` function.
+- When using this mode, users should define `quantiles` argument, which will be used to get the same number of quantiles in each dimension. A convenient way to define `seq()` function with `length.out` argument. The example below uses `length.out = 5`, which will give quartiles.
 
 ```{r split-points-grid}
 grid_quantiles <-
@@ -178,8 +181,8 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 
 ### Merge the grids based on the number of points
 - `mode = "grid_advanced"` utilizes finer grids to merge the results from the finer grids into the coarser grids. This behavior can balance the computational load among the threads and reduce the overhead of parallelization. That said, this mode internally generates grids in `mode = "grid"` and merges them based on the number of points in each grid.
-- To determine the adjacency and merging behavior, minimum spanning tree is used. The function utilizes `igraph::mst()` and other graph summary functions under the hood. 
-- As a note, you could adjust the merging behavior by changing the arguments `grid_min_features` and `merge_max`.
+- To determine the adjacency and merging behavior, minimum spanning tree (MST) is identified. The function utilizes `igraph::mst()` for MST identification and other graph summary functions under the hood. 
+- As a note, users can adjust the merging behavior by changing the arguments `grid_min_features` and `merge_max`.
 
 ```{r split-points-grid-adv}
 grid_advanced1 <-

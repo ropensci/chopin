@@ -398,10 +398,17 @@ setMethod(
   }
 
   suppressWarnings(
-    try_vect <- tryCatch(terra::vect(input, proxy = TRUE),
-                         error = function(e) {
-                           structure(0L, class = "chopin-try-error")
-                         })
+    try_vect <- tryCatch({
+      vct <- terra::vect(input, proxy = TRUE)
+      # if the input is not a vector in ambiguous formats
+      if (terra::geomtype(vct) == "none") {
+        vct <- structure(0L, class = "chopin-try-error")
+      }
+      vct
+    },
+    error = function(e) {
+      structure(0L, class = "chopin-try-error")
+    })
   )
   suppressWarnings(
     try_rast <- tryCatch(terra::rast(input),

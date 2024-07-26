@@ -417,7 +417,7 @@ par_hierarchy <-
       )
       check_nchar <- nchar(vec_regions_id)
       if (var(check_nchar) != 0) {
-        cli::cli_alert_danger(
+        cli::cli_alert_warning(
           paste0(
             "The regions_id values are in different lengths. ",
             "substr may not work properly."

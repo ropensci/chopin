@@ -17,6 +17,9 @@ testthat::test_that("par_pad_grid with sf inputs", {
 })
 
 testthat::test_that("par_pad_grid with terra inputs", {
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
   nctr <- terra::vect(nc)
   ncgridtr <- par_pad_grid(nctr, mode = "grid", padding = 3e4L)
   testthat::expect_s4_class(ncgridtr$original, "SpatVector")
@@ -26,7 +29,7 @@ testthat::test_that("par_pad_grid with terra inputs", {
     par_pad_grid(nctr, mode = "grid", nx = 3.6, ny = 10L, padding = 3e4L),
     "nx, ny must be integer."
   )
-  
+ 
   testthat::expect_error(
     testthat::expect_warning(
       testthat::expect_message(
@@ -45,6 +48,10 @@ testthat::test_that("par_pad_grid with other modes", {
   withr::local_package("stars")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
 
   ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
   ncp <- sf::st_transform(ncp, "EPSG:5070")

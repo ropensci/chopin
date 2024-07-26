@@ -91,7 +91,7 @@ clip_vec_ext <- function(
 
   if (detected_pnts != detected_target) {
     cli::cli_warn(c("Inputs are not the same class.\n"))
-    target_input <- dep_switch(x)
+    x <- dep_switch(x)
   }
 
   ext_input <- get_clip_ext(y, radius)
@@ -101,10 +101,10 @@ clip_vec_ext <- function(
   )
   if (detected_pnts == "sf") {
     cae <-
-      sf::st_intersection(x = target_input, y = ext_input)
+      sf::st_intersection(x = x, y = ext_input)
   }
   if (detected_pnts == "terra") {
-    cae <- terra::intersect(target_input, ext_input)
+    cae <- terra::intersect(x, ext_input)
   }
 
   return(cae)

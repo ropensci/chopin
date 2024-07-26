@@ -267,21 +267,8 @@ kernelfunction <-
 #'   bandwidth = 1e5
 #' )
 #' @export
-setGeneric("extract_at",
-  function(
-    x, y,
-    id = NULL,
-    func = NULL,
-    extent = NULL,
-    radius = NULL,
-    out_class = "sf",
-    kernel = NULL,
-    kernel_func = stats::weighted.mean,
-    bandwidth = NULL,
-    max_cells = 3e+07,
-    ...
-  ) {}
-)
+setGeneric("extract_at", function(x, y, ...) standardGeneric("extract_at"))
+
 
 
 #' @rdname extract_at

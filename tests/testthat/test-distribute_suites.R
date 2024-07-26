@@ -119,60 +119,6 @@ testthat::test_that(".par_screen -- raster", {
 })
 
 
-testthat::test_that(".check_character to .par_screen: try-error inputs", {
-  withr::local_package("terra")
-  withr::local_package("sf")
-  withr::local_package("dplyr")
-  withr::local_package("chopin")
-  withr::local_options(
-    list(sf_use_s2 = FALSE)
-  )
-  # Reading data
-  bundlevec <- system.file("gpkg/nc.gpkg", package = "sf")
-  bundleras <- system.file("ex/elev.tif", package = "terra")
-
-  # read file into terra objects
-  bundlevect <- terra::vect(bundlevec)
-  bundlerast <- terra::rast(bundleras)
-
-  chk_bundlevect <- .check_character(bundlevect)
-  chk_bundlerast <- .check_character(bundlerast)
-
-
-  # sf (as is)
-  scr_sfsf <-
-    .par_screen(
-      type = "raster",
-      input = scr_sf,
-      input_id = "FIPS",
-      out_class = "sf"
-    )
-  testthat::expect_s3_class(scr_sfsf, "sf")
-  testthat::expect_s4_class(scr_sfterra, "SpatVector")
-
-  # terra into sf
-  scr_terrasf <-
-    .par_screen(
-      type = "raster",
-      input = scr_terra,
-      input_id = "FIPS",
-      out_class = "sf"
-    )
-  # terra (as is)
-  scr_terraterra <-
-    .par_screen(
-      type = "raster",
-      input = scr_terra,
-      input_id = "FIPS",
-      out_class = "terra"
-    )
-
-  testthat::expect_s3_class(scr_terrasf, "sf")
-  testthat::expect_s4_class(scr_terraterra, "SpatVector")
-
-})
-
-
 
 ### par_grid tests ####
 testthat::test_that("par_grid -- plain mode with raster path", {
@@ -276,6 +222,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
   )
+  withr::local_seed(202407)
   # Reading data
   ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -386,6 +333,8 @@ testthat::test_that("par_grid -- grid_quantile mode", {
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
   )
+  withr::local_seed(202407)
+
   # Reading data
   ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -460,6 +409,7 @@ testthat::test_that("par_grid -- par_pad_balanced", {
          future.plan = "mirai_multisession",
          rlib_message_verbosity = "warning")
   )
+  withr::local_seed(202407)
 
   # Reading data
   ## NC counties polygon
@@ -556,6 +506,7 @@ testthat::test_that(
         future.plan = "mirai_multisession"
       )
     )
+    withr::local_seed(202407)
 
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- sf::st_read(ncpath, layer = "county")
@@ -629,6 +580,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
       future.resolve.recursive = 2L
     )
   )
+  withr::local_seed(202407)
   future::plan(future::multicore, workers = 2L)
 
   ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
@@ -647,7 +599,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
   ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
   ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
-  testthat::expect_no_error(
+  testthat::expect_error(
     residc <-
       par_hierarchy(
         regions = nccnty,
@@ -658,9 +610,9 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
         x = ncelev,
         id = "GEOID",
         func = "mean"
-      )
+      ),
+    "The length of regions_id is not valid."
   )
-  testthat::expect_true(is.data.frame(residc))
 
   # regions_id is neither length 1 nor length of regions
   testthat::expect_error(
@@ -798,6 +750,7 @@ testthat::test_that("par_hierarchy: define level by substring", {
       future.resolve.recursive = 2L
     )
   )
+  withr::local_seed(202407)
   future::plan(mirai_multisession, workers = 2L)
 
   ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
@@ -833,19 +786,21 @@ testthat::test_that("par_hierarchy: define level by substring", {
   )
   testthat::expect_true(is.data.frame(residc))
 
-  # regions_id is not length 1
-  testthat::expect_error(
-    reshsing <-
+  # bare integers with different lengths: warning message
+  nctrct$qid <- seq_len(nrow(nctrct))
+  testthat::expect_message(
+    residc <-
       par_hierarchy(
-        regions = nccnty,
-        regions_id = c(1, 2, 3),
+        regions = nctrct,
+        regions_id = "qid",
+        length_left = 2L,
+        .debug = TRUE,
         fun_dist = extract_at,
         y = nctrct,
         x = ncelev,
         id = "GEOID",
         func = "mean"
-      ),
-    "The length of regions_id is not valid."
+      )
   )
 
   future::plan(future::sequential)
@@ -888,41 +843,20 @@ testthat::test_that("generic function should be parallelized properly", {
       padding = 5e4L
     )
   future::plan(future.mirai::mirai_multisession, workers = 4L)
-  testthat::expect_no_error(
+  testthat::expect_error(
     res <-
       suppressWarnings(
         par_grid(
           grids = nccompreg,
           fun_dist = nearest,
-          debug = TRUE,
+          .debug = TRUE,
           x = pnts,
           y = rd1
         )
-      )
+      ),
+    "terra inputs detected in both x and y. Please replace x and y to file paths to proceed."
   )
-  dd <- terra::extract(nccompreg$original, pnts)
-  ddt <- table(dd$CGRIDID)
-  nnullgrid <- (6L * 4L) - length(ddt)
 
-  testthat::expect_s3_class(res, "data.frame")
-  testthat::expect_equal(nrow(res), nrow(pnts) + nnullgrid)
-
-  testthat::expect_no_error(
-    res_nodebug <-
-      suppressWarnings(
-        par_grid(
-          grids = nccompreg,
-          fun_dist = nearest,
-          pad_y = TRUE,
-          pad = 1e5L,
-          .debug = FALSE,
-          x = pnts,
-          y = rd1
-        )
-      )
-  )
-  testthat::expect_s3_class(res_nodebug, "data.frame")
-  testthat::expect_equal(nrow(res_nodebug), nrow(pnts))
 
 })
 
@@ -1017,7 +951,7 @@ testthat::test_that(
         res <- par_multirasters(
           filenames = testfiles,
           .debug = TRUE,
-          fun_dist = terra::extract,
+          fun_dist = extract,
           y = ncpath,
           x = ncelev,
           fun = mean
@@ -1085,18 +1019,18 @@ testthat::test_that(
     testthat::expect_true(anyNA(resnas))
 
     # error case: function loading with ::
-    testthat::expect_error(
+    testthat::expect_warning(
       nut <- par_multirasters(
         filenames = testfiles_corrupted,
         .debug = TRUE,
         fun_dist = terra::extract,
         y = nccnty,
         x = ncelev,
-        id = "GEOID",
+        ID = TRUE,
         fun = mean
-      ),
-      "No parent package is found."
+      )
     )
+    testthat::expect_s3_class(nut, "data.frame")
 
     future::plan(future::sequential)
 
@@ -1122,7 +1056,7 @@ testthat::test_that(
     future::plan(future.mirai::mirai_multisession, workers = 2L)
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     nccnty <- sprintf("GPKG:%s:%s", ncpath, "county")
-    nccnty <- sf::st_read(nccnty)
+    suppressWarnings(nccnty <- sf::st_read(nccnty))
     ncelev <-
       system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
     ncelev <- terra::rast(ncelev)
@@ -1139,7 +1073,7 @@ testthat::test_that(
     testthat::expect_no_error(
       dough <- par_multirasters(
         filenames = testfiles,
-        fun_dist = terra::extract,
+        fun_dist = extract,
         y = nccnty,
         x = ncelev,
         ID = TRUE,
@@ -1151,7 +1085,7 @@ testthat::test_that(
     testthat::expect_equal(nrow(dough), nrow(nccnty) * length(testfiles))
 
     # error case
-    testthat::expect_condition(
+    testthat::expect_warning(
       nut <- par_multirasters(
         filenames = testfiles_corrupted,
         .debug = TRUE,

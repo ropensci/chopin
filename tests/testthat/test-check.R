@@ -159,7 +159,8 @@ testthat::test_that(".check_vector with terra", {
   checked_vect <-
     .check_vector(
       input_vect, input_id = "FIPS",
-      extent = NULL, out_class = "terra")
+      extent = NULL, out_class = "terra"
+    )
   testthat::expect_equal(dep_check(checked_vect), "terra")
 
 })
@@ -435,3 +436,4 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
   testthat::expect_s3_class(nct10, "sf")
 })
+
