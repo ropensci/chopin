@@ -16,6 +16,7 @@ A character object; one of \code{"character"}, \code{"terra"} and \code{"sf"}
 Detect whether the input object is sf or Spat* object.
 }
 \examples{
+\dontrun{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -25,6 +26,7 @@ nc_sf <- sf::st_read(nc_path)
 dep_check(nc_sf)
 nc_vect <- terra::vect(nc_sf)
 dep_check(nc_vect)
+}
 }
 \seealso{
 Other Helper functions: 

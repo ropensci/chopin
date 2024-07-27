@@ -686,6 +686,7 @@ summarize_sedc <-
 #' It only works with `x` of character(1) file path.
 #' See [`terra::ext`] for more details. Coordinate systems should match.
 #' @param out_class character(1). "sf" or "terra". Output class.
+#' @param ... Placeholder.
 #' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `x` and `y` are different classes,
 #'  `poly_weight` will be converted to the class of `x`.
@@ -735,9 +736,8 @@ summarize_sedc <-
 #' )
 #' summary(ppb_nc_aw)
 #'
-setGeneric("summarize_aw", function(x, y, ...) {
-  standardGeneric("summarize_aw")
-})
+#' @export
+setGeneric("summarize_aw", function(x, y, ...) standardGeneric("summarize_aw"))
 
 #' @rdname summarize_aw
 #' @importFrom rlang sym

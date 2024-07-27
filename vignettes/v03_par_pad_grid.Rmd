@@ -13,16 +13,9 @@ knitr::opts_knit$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  eval = TRUE,
-  # root.dir = file.path(Sys.getenv("HOME"), "projects/chopin"),
-  comment = "#>",
-  fig.path = "gridset-ex-",
   out.width = "900px"
 )
 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, out.width = "600px",
-  fig.path = "vignettes/figures/", fig.lp = "")
-# knitr::fig_path(".png", options = list(fig.path = "vignettes/figures/v01-"))
 ```
 
 
@@ -76,8 +69,8 @@ ncsf <- sf::st_transform(ncsf, "EPSG:5070")
 plot(sf::st_geometry(ncsf))
 
 # sampling clustered point
-set.seed(202404)
 library(spatstat.random)
+set.seed(202404)
 ncpoints <-
   sf::st_sample(
     x = ncsf,
@@ -86,7 +79,7 @@ ncpoints <-
     scale = 1e4,
     kappa = 1.25e-9
   )
-
+ncpoints <- ncpoints[seq_len(2e3L), ]
 
 ncpoints <- sf::st_as_sf(ncpoints)
 ncpoints <- sf::st_set_crs(ncpoints, "EPSG:5070")
@@ -233,8 +226,8 @@ grid_advanced2 <-
     nx = 15L,
     ny = 8L,
     padding = 1e4L,
-    grid_min_features = 25L,
-    merge_max = 8L
+    grid_min_features = 15L,
+    merge_max = 4L
   )
 
 par(mfrow = c(2, 1))
@@ -284,7 +277,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 group_bal_grid <-
   chopin::par_pad_balanced(
     points_in = ncpoints_tr,
-    ngroups = 23L,
+    ngroups = 10L,
     padding = 1e4
   )
 group_bal_grid$original$CGRIDID <- as.factor(group_bal_grid$original$CGRIDID)
@@ -292,7 +285,7 @@ group_bal_grid$original$CGRIDID <- as.factor(group_bal_grid$original$CGRIDID)
 par(mfrow = c(2, 1))
 terra::plot(group_bal_grid$original, "CGRIDID",
             legend = FALSE,
-            main = "Assigned points (ngroups = 23)")
+            main = "Assigned points (ngroups = 10)")
 terra::plot(group_bal_grid$padded, main = "Padded grids")
 
 ```

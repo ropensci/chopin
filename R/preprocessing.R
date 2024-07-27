@@ -57,6 +57,7 @@ get_clip_ext <- function(
 #'  this value will be automatically multiplied by 1.1
 #' @returns A clipped `sf` or `SpatVector` object.
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(stars)
 #' library(terra)
@@ -68,6 +69,7 @@ get_clip_ext <- function(
 #' bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
 #' bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 #' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
+#' }
 #' @importFrom sf st_intersection
 #' @importFrom terra intersect
 clip_vec_ext <- function(

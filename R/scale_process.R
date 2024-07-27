@@ -337,6 +337,7 @@ par_grid <-
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @importFrom cli cli_abort cli_alert_info
+#' @importFrom stats var
 #' @export
 par_hierarchy <-
   function(

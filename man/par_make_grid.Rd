@@ -30,6 +30,7 @@ these and \code{points_in}. Thus, the number of generated grids may be
 smaller than \code{ncutsx * ncutsy}.
 }
 \examples{
+\dontrun{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -41,6 +42,7 @@ nc_gr <- par_make_grid(nc_rp, 10L, 6L)
 
 plot(nc_rp)
 plot(nc_gr, add = TRUE)
+}
 }
 \seealso{
 Other Parallelization: 

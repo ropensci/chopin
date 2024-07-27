@@ -6,6 +6,7 @@
 #' @param input Spat* in terra or sf object.
 #' @returns A character object; one of `"character"`, `"terra"` and `"sf"`
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -15,6 +16,7 @@
 #' dep_check(nc_sf)
 #' nc_vect <- terra::vect(nc_sf)
 #' dep_check(nc_vect)
+#' }
 dep_check <- function(input) {
   if (
     !inherits(
@@ -113,6 +115,7 @@ dep_switch <- function(input) {
 #' @returns character(1). One of `"vector"` or `"raster"`.
 #' @importFrom cli cli_abort
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -124,6 +127,7 @@ dep_switch <- function(input) {
 #' ra_path <- system.file("ex/elev.tif", package = "terra")
 #' ra <- terra::rast(ra_path)
 #' datamod(ra)
+#' }
 datamod <- function(input) {
   if (
     !inherits(
@@ -166,6 +170,7 @@ datamod <- function(input) {
 #' @returns A (reprojected) `sf` or `SpatVector` object.
 #' @author Insang Song
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -177,6 +182,7 @@ datamod <- function(input) {
 #'
 #' nc_vect <- terra::vect(nc_sf)
 #' reproject_std(nc_vect, base_crs)
+#' }
 #' @importFrom sf st_crs st_transform
 #' @importFrom terra crs project
 reproject_std <-
@@ -219,6 +225,7 @@ reproject_std <-
 #' @returns Reprojected object in the same class as \code{vector}
 #' @author Insang Song
 #' @examples
+#' \dontrun{
 #' library(terra)
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
@@ -228,6 +235,7 @@ reproject_std <-
 #' nc <- terra::vect(ncpath)
 #' elev <- terra::rast(elev)
 #' reproject_to_raster(nc, elev)
+#' }
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
@@ -260,12 +268,14 @@ reproject_to_raster <-
 #' the class of input_vector.
 #' @note This function works with GEOS (>=3.8).
 #' @examples
+#' \dontrun{
 #' library(terra)
 #' library(sf)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #'
 #' nc_valid <- vect_validate(nc)
+#' }
 #' @importFrom terra makeValid
 #' @importFrom sf st_make_valid
 vect_validate <- function(input_vector) {
@@ -281,17 +291,19 @@ vect_validate <- function(input_vector) {
 
 
 # ## .intersect_extent ####
+#' Get intersection extent
+#' @param input sf/SpatExtent/SpatVector/numeric
+#' @param out_class character(1). "sf" or "terra"
+#' @param ... other arguments. Placeholder.
+#' @name .intersect_extent
+#' @rdname .intersect_extent
 setGeneric(
   ".intersect_extent",
-  function(input = NULL, out_class = NULL, ...) {
-    if (is.null(input)) {
-      return(input)
-    }
-  }
+  function(input, out_class, ...) standardGeneric(".intersect_extent")
 )
 
 #' @keywords internal
-#' @noRd
+#' @rdname .intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "sf"),
@@ -308,7 +320,7 @@ setMethod(
 
 
 #' @keywords internal
-#' @noRd
+#' @rdname .intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "SpatExtent"),
@@ -324,7 +336,7 @@ setMethod(
 )
 
 #' @keywords internal
-#' @noRd
+#' @rdname .intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "SpatVector"),
@@ -340,7 +352,7 @@ setMethod(
 )
 
 #' @keywords internal
-#' @noRd
+#' @rdname .intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "numeric", out_class = "character"),
@@ -361,6 +373,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @param input sf/SpatVector/data.frame
+#' @param input_id character(1) ID field name.
 #' @noRd
 .check_id <- function(input, input_id = NULL) {
   if (!is.null(input_id)) {
@@ -435,8 +449,13 @@ setMethod(
 
 
 # `[` extension ####
+#' Subset for nonidentical package class objects
 #' @keywords internal
-#' @noRd
+#' @param x Dataset to be subset.
+#' @param y Dataset used to subset x.
+#' @param j Column indices or names.
+#' @name [.chopin
+#' @rdname [.chopin
 setMethod(
   "[",
   signature(x = "SpatVector", i = "bbox", j = "missing"),
@@ -446,7 +465,8 @@ setMethod(
 )
 
 
-
+#' @name [.chopin
+#' @rdname [.chopin
 #' @keywords internal
 #' @noRd
 setMethod(
@@ -458,6 +478,8 @@ setMethod(
 )
 
 #' @keywords internal
+#' @name [.chopin
+#' @rdname [.chopin
 #' @noRd
 setMethod(
   "[",
@@ -469,6 +491,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name [.chopin
+#' @rdname [.chopin
 #' @noRd
 setMethod(
   "[",
@@ -478,9 +502,12 @@ setMethod(
   }
 )
 
+#' [ wrapper
 #' @param x SpatVector/sf/SpatRaster object to be intersected.
 #' @param y SpatVector/sf object. Intersecting object.
 #' @keywords internal
+#' @name [.chopin
+#' @rdname [.chopin
 #' @noRd
 .intersect <- function(x, y) {
   datamodel_x <- datamod(x)
@@ -537,9 +564,6 @@ setMethod(
 #'   input_id = "FIPS"
 #' )
 #' @name .check_vector
-NULL
-
-
 # nolint start
 setGeneric(
   ".check_vector",
@@ -549,6 +573,8 @@ setGeneric(
 # nolint end
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -586,6 +612,7 @@ setMethod(
 )
 
 #' @keywords internal
+#' @name .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -622,6 +649,7 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -658,6 +686,7 @@ setMethod(
 
 
 #' @keywords internal
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -694,6 +723,8 @@ setMethod(
 )
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -728,6 +759,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -761,6 +794,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -790,6 +825,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -817,6 +854,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -842,6 +881,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -868,6 +909,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -889,6 +932,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -909,6 +954,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -929,6 +976,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -948,6 +997,8 @@ setMethod(
 
 
 #' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
 #' @noRd
 setMethod(
   ".check_vector",
@@ -989,8 +1040,9 @@ setMethod(
 #' @returns The validated input object.
 #'
 #' @examples
+#' \dontrun{
 #' .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
-#'
+#' }
 #' @importFrom terra rast
 #' @importFrom cli cli_abort cli_inform cli_warn
 #' @keywords internal
@@ -1038,6 +1090,7 @@ setMethod(
 
 #' Check SpatRaster input then get the source file path
 #' @keywords internal
+#' @param input SpatRaster.
 #' @noRd
 .check_par_spatraster <- function(input) {
   if (inherits(input, c("SpatRaster"))) {
@@ -1068,6 +1121,7 @@ setMethod(
 #' Check the parent package of a function
 #' @param fun character(1). Function name
 #' @returns character(1). Package name. Only one of "sf", "terra", "chopin"
+#' @importFrom utils find
 #' @noRd
 .check_package <-
   function(fun) {

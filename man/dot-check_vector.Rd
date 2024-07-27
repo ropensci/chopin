@@ -3,6 +3,15 @@
 \name{.check_vector}
 \alias{.check_vector}
 \title{Check the subject object and perform necessary conversions if needed.}
+\usage{
+.check_vector(
+  input,
+  input_id = NULL,
+  extent = NULL,
+  out_class = character(1),
+  ...
+)
+}
 \arguments{
 \item{input}{sf/SpatVector/character. The input object to be checked.}
 

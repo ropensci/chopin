@@ -25,6 +25,7 @@ present. If not, it is reprojected to the CRS specified in
 This function works well with EPSG codes.
 }
 \examples{
+\dontrun{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -36,6 +37,7 @@ reproject_std(nc_sf, base_crs)
 
 nc_vect <- terra::vect(nc_sf)
 reproject_std(nc_vect, base_crs)
+}
 }
 \seealso{
 Other Helper functions: 
