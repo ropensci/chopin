@@ -47,6 +47,7 @@ dep_check <- function(input) {
 #' @returns Data converted to the other package class
 #' (if sf, terra; if terra, sf)
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(stars)
 #' library(terra)
@@ -65,6 +66,7 @@ dep_check <- function(input) {
 #' inherits(sf_rand, "sf") # TRUE
 #' sf_rand
 #' # should return sf object
+#' }
 #' @importFrom terra vect rast
 #' @importFrom sf st_as_sf
 #' @importFrom stars st_as_stars
@@ -296,14 +298,14 @@ vect_validate <- function(input_vector) {
 #' @param out_class character(1). "sf" or "terra"
 #' @param ... other arguments. Placeholder.
 #' @name .intersect_extent
-#' @rdname .intersect_extent
+#' @rdname dot-intersect_extent
 setGeneric(
   ".intersect_extent",
   function(input, out_class, ...) standardGeneric(".intersect_extent")
 )
 
 #' @keywords internal
-#' @rdname .intersect_extent
+#' @rdname dot-intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "sf"),
@@ -320,7 +322,7 @@ setMethod(
 
 
 #' @keywords internal
-#' @rdname .intersect_extent
+#' @rdname dot-intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "SpatExtent"),
@@ -336,7 +338,7 @@ setMethod(
 )
 
 #' @keywords internal
-#' @rdname .intersect_extent
+#' @rdname dot-intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "SpatVector"),
@@ -352,7 +354,7 @@ setMethod(
 )
 
 #' @keywords internal
-#' @rdname .intersect_extent
+#' @rdname dot-intersect_extent
 setMethod(
   ".intersect_extent",
   signature(input = "numeric", out_class = "character"),
@@ -450,12 +452,15 @@ setMethod(
 
 # `[` extension ####
 #' Subset for nonidentical package class objects
+#' @method `[` SpatVector,bbox,missing,ANY-method
+#' @aliases `[`
+#' @docType methods
 #' @keywords internal
 #' @param x Dataset to be subset.
-#' @param y Dataset used to subset x.
+#' @param i Dataset used to subset x.
 #' @param j Column indices or names.
-#' @name [.chopin
-#' @rdname [.chopin
+#' @name indexing
+#' @rdname indexing
 setMethod(
   "[",
   signature(x = "SpatVector", i = "bbox", j = "missing"),
@@ -465,10 +470,15 @@ setMethod(
 )
 
 
-#' @name [.chopin
-#' @rdname [.chopin
+#' @method `[` SpatVector,sf,missing,ANY-method
+#' @aliases `[`
+#' @docType methods
+#' @param x Dataset to be subset.
+#' @param i Dataset used to subset x.
+#' @param j Column indices or names.
+#' @name indexing
+#' @rdname indexing
 #' @keywords internal
-#' @noRd
 setMethod(
   "[",
   signature(x = "SpatVector", i = "sf", j = "missing"),
@@ -477,10 +487,15 @@ setMethod(
   }
 )
 
+#' @method `[` SpatVector,sfc,missing,ANY-method
+#' @aliases `[`
+#' @docType methods
+#' @param x Dataset to be subset.
+#' @param i Dataset used to subset x.
+#' @param j Column indices or names.
 #' @keywords internal
-#' @name [.chopin
-#' @rdname [.chopin
-#' @noRd
+#' @name indexing
+#' @rdname indexing
 setMethod(
   "[",
   signature(x = "SpatVector", i = "sfc", j = "missing"),
@@ -490,10 +505,15 @@ setMethod(
 )
 
 
+#' @method `[` SpatVector,SpatExtent,missing,ANY-method
+#' @aliases `[`
+#' @docType methods
+#' @param x Dataset to be subset.
+#' @param i Dataset used to subset x.
+#' @param j Column indices or names.
 #' @keywords internal
-#' @name [.chopin
-#' @rdname [.chopin
-#' @noRd
+#' @name indexing
+#' @rdname indexing
 setMethod(
   "[",
   signature(x = "SpatVector", i = "SpatExtent", j = "missing"),
@@ -502,13 +522,13 @@ setMethod(
   }
 )
 
-#' [ wrapper
+
+#' Intersect different data model objects
 #' @param x SpatVector/sf/SpatRaster object to be intersected.
 #' @param y SpatVector/sf object. Intersecting object.
 #' @keywords internal
-#' @name [.chopin
-#' @rdname [.chopin
-#' @noRd
+#' @name indexing
+#' @rdname indexing
 .intersect <- function(x, y) {
   datamodel_x <- datamod(x)
   if (datamodel_x == "raster") {
@@ -546,6 +566,7 @@ setMethod(
 #' @importFrom cli cli_abort cli_inform
 #' @importFrom stats setNames
 #' @examples
+#' \dontrun{
 #' # Check a SpatVector object
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
@@ -563,6 +584,7 @@ setMethod(
 #'   out_class = "terra",
 #'   input_id = "FIPS"
 #' )
+#' }
 #' @name .check_vector
 # nolint start
 setGeneric(

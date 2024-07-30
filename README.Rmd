@@ -32,7 +32,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 ### For whom `chopin` is useful
 - All who need to perform geospatial operations with large datasets may find this package useful to accelerate the covariate calculation process for further analysis and modeling.
 - We assume that users--
-    - Have basic knowledge of [geographic information system data models](https://r.geocompx.org/spatial-class), [coordinate systems and transformations](https://gistbok.ucgis.org/bok-topics/coordinate-transformations), [spatial operations](https://r.geocompx.org/spatial-operations), and [raster-vector overlay](https://r.geocompx.org/raster-vector);
+    - Have basic knowledge of [geographic information system data models](https://r.geocompx.org/spatial-class), [coordinate systems and transformations](https://doi.org/10.22224/gistbok/2023.1.2), [spatial operations](https://r.geocompx.org/spatial-operations), and [raster-vector overlay](https://r.geocompx.org/raster-vector);
     - Understood and planned **what they want to calculate**; and
     - Collected **datasets they need**
 
@@ -463,6 +463,6 @@ sf::sf_use_s2(FALSE)
 
 ## Why parallelization is slower than the ordinary function run?
 - Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead here refers to the required amount of computational resources for transferring objects to multiple processes.
-- Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. Please refer to a [vignette](https://kyle-messier.github.io/chopin/articles/v02_climate_examples.html) in this package for the demonstration of various climate/weather datasets.
+- Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could find the efficiency of this package. A vignette in this package demonstrates use cases extracting various climate/weather datasets.
 
 

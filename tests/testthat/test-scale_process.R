@@ -7,6 +7,7 @@ testthat::test_that(".par_screen -- vector", {
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # Reading data
   ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -78,10 +79,10 @@ testthat::test_that(".par_screen -- raster", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("dplyr")
-  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # Reading data
   ## NC counties polygon
   bundleras <- system.file("ex/elev.tif", package = "terra")
@@ -499,6 +500,7 @@ testthat::test_that(
     withr::local_package("future.mirai")
     withr::local_package("dplyr")
     withr::local_package("chopin")
+
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
@@ -562,7 +564,8 @@ testthat::test_that(
     )
     testthat::expect_true(is.data.frame(residb2))
 
-  })
+  }
+)
 
 
 testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
@@ -640,6 +643,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_package("chopin")
+
   withr::local_options(
     list(
       sf_use_s2 = FALSE,
@@ -735,7 +739,6 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
 })
 
 
-
 testthat::test_that("par_hierarchy: define level by substring", {
   withr::local_package("terra")
   withr::local_package("sf")
@@ -744,6 +747,7 @@ testthat::test_that("par_hierarchy: define level by substring", {
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
   withr::local_package("chopin")
+
   withr::local_options(
     list(
       sf_use_s2 = FALSE,
@@ -815,6 +819,7 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_package("future.apply")
   withr::local_package("dplyr")
   withr::local_package("chopin")
+
   withr::local_options(
     list(
       sf_use_s2 = FALSE,
@@ -856,7 +861,6 @@ testthat::test_that("generic function should be parallelized properly", {
       ),
     "terra inputs detected in both x and y. Please replace x and y to file paths to proceed."
   )
-
 
 })
 
@@ -911,7 +915,8 @@ testthat::test_that(
     testthat::expect_true(!anyNA(res))
 
     future::plan(future::sequential)
-  })
+  }
+)
 
 
 testthat::test_that(
@@ -960,7 +965,8 @@ testthat::test_that(
     )
     future::plan(future::sequential)
 
-  })
+  }
+)
 
 
 
@@ -974,6 +980,7 @@ testthat::test_that(
     withr::local_package("future.apply")
     withr::local_package("dplyr")
     withr::local_package("chopin")
+
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
@@ -1019,7 +1026,8 @@ testthat::test_that(
     testthat::expect_true(anyNA(resnas))
 
     # error case: function loading with ::
-    testthat::expect_warning(
+    testthat::expect_no_error(
+      suppressWarnings(
       nut <- par_multirasters(
         filenames = testfiles_corrupted,
         .debug = TRUE,
@@ -1029,12 +1037,15 @@ testthat::test_that(
         ID = TRUE,
         fun = mean
       )
+      )
     )
-    testthat::expect_s3_class(nut, "data.frame")
 
+    testthat::expect_s3_class(nut, "data.frame")
     future::plan(future::sequential)
 
-  })
+  }
+)
+
 
 testthat::test_that(
   "par_multirasters: sf y",
@@ -1046,6 +1057,7 @@ testthat::test_that(
     withr::local_package("future.apply")
     withr::local_package("dplyr")
     withr::local_package("chopin")
+
     withr::local_options(
       list(
         sf_use_s2 = FALSE,

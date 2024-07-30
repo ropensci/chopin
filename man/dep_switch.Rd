@@ -17,6 +17,7 @@ Data converted to the other package class
 Convert class between \code{sf}/\code{stars}-\code{terra}
 }
 \examples{
+\dontrun{
 library(sf)
 library(stars)
 library(terra)
@@ -35,6 +36,7 @@ sf_rand <- dep_switch(vec_rand)
 inherits(sf_rand, "sf") # TRUE
 sf_rand
 # should return sf object
+}
 }
 \seealso{
 Other Helper functions: 

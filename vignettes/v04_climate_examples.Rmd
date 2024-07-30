@@ -132,7 +132,7 @@ path_tc_files
 
 
 ## Preprocessing
-Fourteen variables are available in TerraClimate data. The table below is from [the TerraClimate website](http://www.climatologylab.org/terraclimate-variables.html).
+Fourteen variables are available in TerraClimate data. The table below is from [the TerraClimate website](https://www.climatologylab.org/terraclimate-variables.html).
 
 | Variable | Description | Units |
 |:--------:|:------------|:------|

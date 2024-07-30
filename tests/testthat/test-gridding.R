@@ -211,7 +211,6 @@ testthat::test_that("par_pad_balanced -- input validity", {
   )
 })
 
-
 testthat::test_that("par_pad_balanced -- output check", {
   withr::local_package("sf")
   withr::local_package("terra")

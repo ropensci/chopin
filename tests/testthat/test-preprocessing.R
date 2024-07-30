@@ -1,4 +1,3 @@
-
 testthat::test_that("Format is well converted",
   {
     withr::local_package("stars")
@@ -27,7 +26,6 @@ testthat::test_that("Format is well converted",
     testthat::expect_error(dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE)))
   }
 )
-
 
 
 testthat::test_that("Clip extent is set properly", {
@@ -61,7 +59,6 @@ testthat::test_that("Clip extent is set properly", {
   testthat::expect_equal(nc_ext_terra_1, proper_xmin)
 
 })
-
 
 
 testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
@@ -154,4 +151,3 @@ testthat::test_that("Clip by extent works without errors", {
   testthat::expect_no_error(clip_ras_ext(ncelev, ncp_terra, 30000L))
   testthat::expect_error(clip_ras_ext(ncelev, ncp_terra, NULL))
 })
-

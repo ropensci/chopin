@@ -17,7 +17,7 @@
 # nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'   `units::set_units` is used for padding when `sf` object is used.
-#'   See [link](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'   See [link](https://CRAN.R-project.org/package=units/vignettes/measurement_units_in_R.html)
 #'   for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 #' @param merge_max integer(1). Maximum number of grids to merge
@@ -398,7 +398,9 @@ par_make_balanced <- function(
 #' @importFrom cli cli_abort
 #' @returns numeric vector of quantiles.
 #' @examples
+#' \dontrun{
 #' par_def_q(5L)
+#' }
 par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
     cli::cli_abort(c("x" = "steps should be greater than 1."))

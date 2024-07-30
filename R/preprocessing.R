@@ -8,6 +8,7 @@
 #' @param extrusion numeric(1). The extent extrusion factor.
 #' @returns A `terra::ext` or sfc_POLYGON object of the computation extent.
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -18,6 +19,7 @@
 #' get_clip_ext(nc_sf, 2.5e4)
 #' nc_vect <- terra::vect(nc_sf)
 #' get_clip_ext(nc_vect, 2.5e4)
+#' }
 #' @importFrom terra ext
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc

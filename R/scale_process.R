@@ -763,12 +763,19 @@ par_multirasters <-
   match.arg(type, c("vector", "raster"))
 
   if (type == "raster") {
-    scr <- .check_raster(input = input, extent = .window)
+    scr <-
+      .check_raster(
+        input = input,
+        extent = .window
+      )
   } else {
-    scr <- .check_vector(
-      input = input, input_id = input_id, extent = .window,
-      out_class = out_class
-    )
+    scr <-
+      .check_vector(
+        input = input,
+        input_id = input_id,
+        extent = .window,
+        out_class = out_class
+      )
   }
   return(scr)
 

@@ -34,6 +34,7 @@ This function checks the class of the input object and
 performs necessary conversions if needed.
 }
 \examples{
+\dontrun{
 # Check a SpatVector object
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 nc <- terra::vect(ncpath)
@@ -51,5 +52,6 @@ ncsf <- sf::st_read(ncpath)
   out_class = "terra",
   input_id = "FIPS"
 )
+}
 }
 \keyword{internal}

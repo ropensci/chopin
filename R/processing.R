@@ -19,6 +19,7 @@
 #' kernelfunction(v_dist, bw_dist2, "quartic")
 #' kernelfunction(v_dist, bw_dist2, "triweight")
 #' kernelfunction(v_dist, bw_dist2, "epanechnikov")
+#' @export
 kernelfunction <-
   function(
     d,
@@ -121,6 +122,23 @@ kernelfunction <-
 #   argument.
 
 #' @title Extract summarized values from raster with generic polygons
+#' @param x SpatRaster
+#' @param y sf/SpatVector/character(1) file path.
+#' @param id character(1). Name of unique identifier field.
+#' @param func character(1)/function. supported function names or functions
+#'   taking `x` and `w` in `exactextractr::exact_extract`
+#' @param extent numeric
+#' @param radius numeric(1).
+#' @param out_class character(1). "sf" or "terra"
+#' @param kernel character(1). Name of kernel functions [kernelfunction]
+#' @param kernel_func function. Kernel weight summary function.
+#' @param bandwidth numeric(1). Kernel bandwidth. Should match the linear unit
+#'   of the coordinate reference system of x.
+#' @param max_cells integer(1). Total number of cells fetched in
+#'   `exactextractr::exact_extract`
+#' @param .standalone logical(1). Whether or not running standalone mode.
+#'   `TRUE` will apply internal input check functions, whereas
+#'   `FALSE` will let `par_*` functions will check inputs.
 #' @keywords internal
 #' @noRd
 .extract_at <- function(
@@ -543,8 +561,8 @@ setMethod(
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](https://doi.org/10.1021/es203152a)
-#' * Wiesner C. (n.d.). [Euclidean Sum of Exponentially Decaying Contributions Tutorial](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
+#' * [Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](\doi{10.1021/es203152a})
+#' * Wiesner C. (n.d.). Euclidean Sum of Exponentially Decaying Contributions Tutorial.
 #' @examples
 #' library(terra)
 #' library(sf)
