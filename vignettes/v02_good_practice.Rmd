@@ -23,7 +23,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ### Raster-Vector overlay
 - Use `chopin::par_pad_grid` to make exhaustive and padded grid objects in `SpatVector` class
-- `chopin::par_grid` filters features that **intersect** with each grid. Post-processing is necessary as polygons may be taken more than twice in parallelized calculation.
+- `chopin::par_grid` filters features that **intersect** with each grid. Post-processing is necessary as polygons may be taken more than twice in parallelized calculation. If users have a field containing divisible and hierarchical information, dataset can be processed with `chopin::par_hierarchy`. 
 
 ### Customization
 - `chopin` way to parallelize is to iterate calculation over a list then to use `future.apply` function

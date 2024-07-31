@@ -128,9 +128,6 @@ par_grid <-
     if (funname == "chopin" && is.null(args_input$.standalone)) {
       args_input$.standalone <- FALSE
     }
-    if (!"id" %in% names(formals(fun_dist))) {
-      args_input$id <- NULL
-    }
 
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
@@ -351,9 +348,6 @@ par_hierarchy <-
     .debug = FALSE
   ) {
     args_input <- list(...)
-    if (!"id" %in% names(formals(fun_dist))) {
-      args_input$id <- NULL
-    }
 
     # is the function sf?
     funname <- as.character(substitute(fun_dist))

@@ -123,7 +123,7 @@ path_tc_files
 ```
 
 ```
-#>   [1] "input/terraClimate/TerraClimate_aet_2000.nc" 
+#>  [1] "input/terraClimate/TerraClimate_aet_2000.nc" 
 #>  [2] "input/terraClimate/TerraClimate_aet_2001.nc"
 #>  [truncated]
 #> [321] "input/terraClimate/TerraClimate_ws_2021.nc"  
@@ -254,10 +254,9 @@ grid_init <-
 multi_grid <-
   chopin::par_grid(
     grids = grid_init,
-    fun_dist = chopin::extract_at_buffer,
-    combine = dplyr::bind_rows,
-    points = popplacep2,
-    surf = netcdf_read_sum,
+    fun_dist = extract_at,
+    y = popplacep2,
+    x = netcdf_read_sum,
     id = "GEOID",
     func = "mean",
     radius = 1e4
@@ -279,10 +278,9 @@ system.time(
     ) %>%
     chopin::par_multirasters(
       filenames = .,
-      fun_dist = chopin::extract_at_buffer,
-      combine = dplyr::bind_cols,
-      points = popplacep2,
-      surf = rast(), # ignored
+      fun_dist = extract_at,
+      y = popplacep2,
+      x = rast(), # ignored
       id = "GEOID",
       func = "mean",
       radius = 1e4
@@ -393,9 +391,9 @@ system.time(
   exmulti <-
     chopin::par_grid(
       exgrid,
-      fun_dist = chopin::extract_at_buffer,
-      points = popplacep2,
-      surf = bilssds,
+      fun_dist = extract_at,
+      y = popplacep2,
+      x = bilssds,
       radius = units::set_units(1e4, "meter"),
       id = "GEOID",
       func = "mean"
@@ -494,9 +492,9 @@ system.time(
   exmulti5k <-
     chopin::par_grid(
       exgrid5k,
-      fun_dist = chopin::extract_at_buffer,
-      points = popplacep2,
-      surf = bilssds,
+      fun_dist = extract_at,
+      y = popplacep2,
+      x = bilssds,
       radius = 5e4,
       id = "GEOID",
       func = "mean"
@@ -584,9 +582,9 @@ system.time(
   stt5k <-
     chopin::par_grid(
       stt_gbg,
-      fun_dist = chopin::extract_at_buffer,
-      points = stt_g,
-      surf = netcdf_read_sum,
+      fun_dist = extract_at,
+      y = stt_g,
+      x = netcdf_read_sum,
       id = "pid",
       radius = 1e4,
       func = "mean",
@@ -664,16 +662,15 @@ nmain <- c("AS", "AK", "HI", "PR", "VI", "GU", "MP")
 stt_nmain <- stt[!stt$STUSPS %in% nmain, ]
 
 
-doFuture::registerDoFuture()
-future::plan(multicore, workers = 20L)
+future::plan(future.mirai::mirai_multisession, workers = 20L)
 system.time(
   exhierarchy <-
     chopin::par_hierarchy(
       bgsf_main,
       regions_id = "STATEFP",
-      fun_dist = chopin::extract_at_poly,
-      polys = bgsf_main,
-      surf = bilssds,
+      fun_dist = extract_at,
+      y = bgsf_main,
+      x = bilssds,
       id = "GEOID"
     )
 )
@@ -749,17 +746,16 @@ bgsf_9grids <- bgsf_main %>%
   )
 
 
-doFuture::registerDoFuture()
-future::plan(multicore, workers = 9L)
+future::plan(future.mirai::mirai_multisession, workers = 9L)
 # Note that bgsf_9grids were converted to sf
 # for exporting the objects to the parallel workers
 system.time(
   bgsf_cdl_par <-
     chopin::par_grid(
       lapply(bgsf_9grids, sf::st_as_sf),
-      fun_dist = chopin::extract_at_poly,
-      poly = bgsf_main,
-      surf = cdl,
+      fun_dist = extract_at,
+      y = bgsf_main,
+      x = cdl,
       id = "GEOID",
       func = "frac",
       max_cells = 2e7
