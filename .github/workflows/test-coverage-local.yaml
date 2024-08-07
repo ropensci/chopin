@@ -39,7 +39,9 @@ jobs:
 
       - name: Test coverage
         run: |
-          Rscript -e "covd<-covr::coverage_to_list()$totalcoverage;write.table(covd[length(covd)], file = '${{ github.workspace }}/local_cov.Rout', row.names = F, col.names = F)"
+          Rscript -e "covpack<-covr::package_coverage(install_path='${{ github.workspace}}'); \
+          covd<-covr::coverage_to_list(covpack)$totalcoverage; \
+          write.table(covd[length(covd)], file = '${{ github.workspace }}/local_cov.Rout', row.names = F, col.names = F)"
         shell: bash
 
       - name: Get Values
@@ -84,5 +86,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-outputs
-          run: mkdir /tmp/chopintest | cp -r ${{ github.workspace }} /tmp/chopintest
-          path: /tmp
+          path: ${{ github.workspace }}
