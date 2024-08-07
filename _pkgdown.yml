@@ -22,6 +22,8 @@ reference:
   contents:
   - par_pad_grid
   - par_pad_balanced
+  - par_merge_grid
+  - par_split_list
 - title: "chopin calculation functions"
   desc: "Functions for streamlining oft-used operations"
   contents:

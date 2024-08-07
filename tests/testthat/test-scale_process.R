@@ -537,7 +537,7 @@ testthat::test_that(
           x = ncelevpath,
           id = "GEOID",
           func = "mean",
-          pad_y = F,
+          pad_y = FALSE,
           .standalone = FALSE
         )
     )
@@ -580,11 +580,11 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
   withr::local_options(
     list(
       sf_use_s2 = FALSE,
-      future.resolve.recursive = 2L
+      future.resolve.recursive = 2L,
+      future.plan = future::multicore(workers = 2L)
     )
   )
   withr::local_seed(202407)
-  future::plan(future::multicore, workers = 2L)
 
   ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
   nccnty <- sf::st_read(ncpath, layer = "county")
@@ -632,11 +632,11 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
     "The length of regions_id is not valid."
   )
 
-  future::plan(future::sequential)
 })
 
 
 testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
+  testthat::skip_on_os("windows")
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
@@ -650,7 +650,6 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
       future.resolve.recursive = 2L
     )
   )
-  future::plan(future::multicore, workers = 2L)
 
   ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
   nccnty <- terra::vect(ncpath, layer = "county")
@@ -672,6 +671,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   nctrctc <- terra::centroids(nctrct)
   ncroadv <- terra::vect(ncroad)
 
+  future::plan(future::multicore(workers = 2L))
   # no errors since 100km buffer is enough to capture
   # nearest road for coastal tracts
   resnas0 <-
@@ -685,7 +685,6 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
       x = nctrctc,
       y = ncroadv
     )
-
 
   # no errors since 100km buffer is enough to capture
   # nearest road for coastal tracts
@@ -736,6 +735,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
         )
     )
   )
+  future::plan(future::sequential)
 })
 
 
@@ -751,11 +751,11 @@ testthat::test_that("par_hierarchy: define level by substring", {
   withr::local_options(
     list(
       sf_use_s2 = FALSE,
-      future.resolve.recursive = 2L
+      future.resolve.recursive = 2L,
+      future.plan = "mirai_multisession"
     )
   )
   withr::local_seed(202407)
-  future::plan(mirai_multisession, workers = 2L)
 
   ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
   nccnty <- sf::st_read(ncpath, layer = "county")
@@ -807,7 +807,6 @@ testthat::test_that("par_hierarchy: define level by substring", {
       )
   )
 
-  future::plan(future::sequential)
 })
 
 
