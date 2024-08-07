@@ -77,4 +77,11 @@ jobs:
       - name: Checkout Back
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}  
+          ref: ${{ github.ref }} 
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-outputs
+          run: mkdir /tmp/chopintest | cp -r ${{ github.workspace }} /tmp/chopintest
+          path: /tmp
