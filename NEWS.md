@@ -1,3 +1,6 @@
+# 0.7.7
+- Documentation is revised
+
 # 0.7.6
 - Internal function .check_par_spatraster is added to main `par_*` functions
 

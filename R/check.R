@@ -452,15 +452,18 @@ setMethod(
 
 # `[` extension ####
 #' Subset for nonidentical package class objects
-#' @method `[` SpatVector,bbox,missing,ANY-method
-#' @aliases `[`
 #' @docType methods
 #' @keywords internal
 #' @param x Dataset to be subset.
 #' @param i Dataset used to subset x.
 #' @param j Column indices or names.
+#' @importFrom sf st_bbox
 #' @name indexing
 #' @rdname indexing
+NULL
+
+#' @rdname indexing
+#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "bbox", j = "missing"),
@@ -470,15 +473,8 @@ setMethod(
 )
 
 
-#' @method `[` SpatVector,sf,missing,ANY-method
-#' @aliases `[`
-#' @docType methods
-#' @param x Dataset to be subset.
-#' @param i Dataset used to subset x.
-#' @param j Column indices or names.
-#' @name indexing
 #' @rdname indexing
-#' @keywords internal
+#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "sf", j = "missing"),
@@ -487,15 +483,8 @@ setMethod(
   }
 )
 
-#' @method `[` SpatVector,sfc,missing,ANY-method
-#' @aliases `[`
-#' @docType methods
-#' @param x Dataset to be subset.
-#' @param i Dataset used to subset x.
-#' @param j Column indices or names.
-#' @keywords internal
-#' @name indexing
 #' @rdname indexing
+#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "sfc", j = "missing"),
@@ -505,15 +494,8 @@ setMethod(
 )
 
 
-#' @method `[` SpatVector,SpatExtent,missing,ANY-method
-#' @aliases `[`
-#' @docType methods
-#' @param x Dataset to be subset.
-#' @param i Dataset used to subset x.
-#' @param j Column indices or names.
-#' @keywords internal
-#' @name indexing
 #' @rdname indexing
+#' @export
 setMethod(
   "[",
   signature(x = "SpatVector", i = "SpatExtent", j = "missing"),
@@ -527,7 +509,6 @@ setMethod(
 #' @param x SpatVector/sf/SpatRaster object to be intersected.
 #' @param y SpatVector/sf object. Intersecting object.
 #' @keywords internal
-#' @name indexing
 #' @rdname indexing
 .intersect <- function(x, y) {
   datamodel_x <- datamod(x)

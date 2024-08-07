@@ -19,3 +19,4 @@ _pkgdown.yml
 \*.out$
 \*.error$
 LICENSE.md
+CITATION.cff

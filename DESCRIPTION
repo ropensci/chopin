@@ -1,6 +1,6 @@
 Package: chopin
 Title: Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing
-Version: 0.7.7.20240731
+Version: 0.7.7.20240807
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -20,7 +20,7 @@ Description: Geospatial data computation is parallelized by grid, hierarchy,
     Other convenience functions for vector-vector operations including
     simple areal interpolation (`summarize_aw`) and summation of
     exponentially decaying weights (`summarize_sedc`) are also provided.
-License: MIT
+License: MIT + file LICENSE
 URL: https://github.com/NIEHS/chopin
 BugReports: https://github.com/NIEHS/chopin/issues
 Depends: 

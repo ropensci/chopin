@@ -554,7 +554,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' sf::st_crs(dg_sample) <- sf::st_crs(dg)
 #' dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 #'
-#' plot(dg_merged$geometry)
+#' plot(sf::st_geometry(dg_merged))
 # nolint start
 #' @references
 #' * [Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353.](https://hdl.handle.net/20.500.13051/17448)

@@ -796,9 +796,9 @@ par_multirasters <-
 #' }
 #'
 #' # Example usage of map_args_xy
-#' result <- map_args_xy(fun = example_fun,
-#'                       name_match = list(a = "x", b = "y"),
-#'                       a = 10, b = 20, z = 5)
+#' result <- par_map_args(fun = example_fun,
+#'                        name_match = list(a = "x", b = "y"),
+#'                        a = 10, b = 20, z = 5)
 #' print(result)
 #' @export
 par_map_args <- function(fun, name_match = list(), ...) {

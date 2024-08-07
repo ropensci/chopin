@@ -32,9 +32,9 @@ example_fun <- function(x, y, z = 1) {
 }
 
 # Example usage of map_args_xy
-result <- map_args_xy(fun = example_fun,
-                      name_match = list(a = "x", b = "y"),
-                      a = 10, b = 20, z = 5)
+result <- par_map_args(fun = example_fun,
+                       name_match = list(a = "x", b = "y"),
+                       a = 10, b = 20, z = 5)
 print(result)
 }
 \seealso{

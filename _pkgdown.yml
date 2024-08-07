@@ -27,10 +27,6 @@ reference:
   contents:
   - starts_with("extract_at")
   - starts_with("summarize_")
-- title: "Interoperability"
-  desc: "terra-sf conversion support"
-  contents:
-  - starts_with("dep_")
 - title: "Helper functions"
   desc: "Miscellaneous helper functions for subsetting datasets and quick comparison between extents"
   contents:

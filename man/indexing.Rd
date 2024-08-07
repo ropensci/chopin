@@ -3,7 +3,10 @@
 \docType{methods}
 \name{indexing}
 \alias{indexing}
-\alias{`[`}
+\alias{[,SpatVector,bbox,missing,ANY-method}
+\alias{[,SpatVector,sf,missing,ANY-method}
+\alias{[,SpatVector,sfc,missing,ANY-method}
+\alias{[,SpatVector,SpatExtent,missing,ANY-method}
 \alias{.intersect}
 \title{Subset for nonidentical package class objects}
 \usage{
