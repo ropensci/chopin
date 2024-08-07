@@ -1,6 +1,7 @@
+#' @importFrom utils packageVersion
 #' @noRd
-.onLoad <- function(libname, pkgname) {
+.onAttach <- function(libname, pkgname) {
   if (interactive()) {
-    message(pkgname, " ", packageVersion(pkgname))
+    packageStartupMessage(pkgname, " ", packageVersion(pkgname))
   }
 }

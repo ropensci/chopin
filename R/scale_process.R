@@ -128,9 +128,6 @@ par_grid <-
     if (funname == "chopin" && is.null(args_input$.standalone)) {
       args_input$.standalone <- FALSE
     }
-    if (!"id" %in% names(formals(fun_dist))) {
-      args_input$id <- NULL
-    }
 
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
@@ -337,6 +334,7 @@ par_grid <-
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @importFrom cli cli_abort cli_alert_info
+#' @importFrom stats var
 #' @export
 par_hierarchy <-
   function(
@@ -350,9 +348,6 @@ par_hierarchy <-
     .debug = FALSE
   ) {
     args_input <- list(...)
-    if (!"id" %in% names(formals(fun_dist))) {
-      args_input$id <- NULL
-    }
 
     # is the function sf?
     funname <- as.character(substitute(fun_dist))
@@ -762,12 +757,19 @@ par_multirasters <-
   match.arg(type, c("vector", "raster"))
 
   if (type == "raster") {
-    scr <- .check_raster(input = input, extent = .window)
+    scr <-
+      .check_raster(
+        input = input,
+        extent = .window
+      )
   } else {
-    scr <- .check_vector(
-      input = input, input_id = input_id, extent = .window,
-      out_class = out_class
-    )
+    scr <-
+      .check_vector(
+        input = input,
+        input_id = input_id,
+        extent = .window,
+        out_class = out_class
+      )
   }
   return(scr)
 

@@ -3,6 +3,15 @@
 \name{.check_vector}
 \alias{.check_vector}
 \title{Check the subject object and perform necessary conversions if needed.}
+\usage{
+.check_vector(
+  input,
+  input_id = NULL,
+  extent = NULL,
+  out_class = character(1),
+  ...
+)
+}
 \arguments{
 \item{input}{sf/SpatVector/character. The input object to be checked.}
 
@@ -25,6 +34,7 @@ This function checks the class of the input object and
 performs necessary conversions if needed.
 }
 \examples{
+\dontrun{
 # Check a SpatVector object
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 nc <- terra::vect(ncpath)
@@ -42,5 +52,6 @@ ncsf <- sf::st_read(ncpath)
   out_class = "terra",
   input_id = "FIPS"
 )
+}
 }
 \keyword{internal}

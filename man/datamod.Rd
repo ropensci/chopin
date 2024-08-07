@@ -22,6 +22,7 @@ whether to classify vector or raster,
 it will be considered raster in this package.
 }
 \examples{
+\dontrun{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -33,6 +34,7 @@ datamod(nc_sf)
 ra_path <- system.file("ex/elev.tif", package = "terra")
 ra <- terra::rast(ra_path)
 datamod(ra)
+}
 }
 \seealso{
 Other Helper functions: 

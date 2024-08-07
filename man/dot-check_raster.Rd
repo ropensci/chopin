@@ -25,7 +25,8 @@ it is a valid raster object or a character path to a raster file.
 It also provides warnings and informative messages based on the input type.
 }
 \examples{
+\dontrun{
 .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
-
+}
 }
 \keyword{internal}

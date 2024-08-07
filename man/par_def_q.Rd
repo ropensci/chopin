@@ -16,7 +16,9 @@ numeric vector of quantiles.
 Quantile definition
 }
 \examples{
+\dontrun{
 par_def_q(5L)
+}
 }
 \seealso{
 Other Helper functions: 

@@ -18,6 +18,7 @@ Reprojected object in the same class as \code{vector}
 Align vector CRS to raster's
 }
 \examples{
+\dontrun{
 library(terra)
 library(sf)
 options(sf_use_s2 = FALSE)
@@ -27,6 +28,7 @@ elev <- system.file("ex/elev.tif", package = "terra")
 nc <- terra::vect(ncpath)
 elev <- terra::rast(elev)
 reproject_to_raster(nc, elev)
+}
 }
 \seealso{
 Other Helper functions: 

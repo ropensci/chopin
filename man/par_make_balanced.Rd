@@ -27,6 +27,7 @@ This function is only for two-dimensional points.
 The results will be irregular grids with or without overlapping parts.
 }
 \examples{
+\dontrun{
 library(terra)
 library(anticlust)
 data(ncpoints, package = "chopin")
@@ -39,6 +40,7 @@ ncp <- terra::vect(
 # 2,304 points / 12 = 192 points per cluster
 ncpbal <- par_make_balanced(ncp, 12)
 ncpbal
+}
 }
 \author{
 Insang Song

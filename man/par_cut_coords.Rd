@@ -23,6 +23,7 @@ Partition coordinates into quantile polygons
 This function is only for two-dimensional points.
 }
 \examples{
+\dontrun{
 library(terra)
 
 random_points <-
@@ -46,6 +47,7 @@ plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
 qcv <- intersect(cvect, qpoly_c)
 table(qcv$CGRIDID)
 sum(table(qcv$CGRIDID)) # should be 1000
+}
 }
 \seealso{
 Other Parallelization: 

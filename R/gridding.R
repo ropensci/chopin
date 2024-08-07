@@ -17,7 +17,7 @@
 # nolint start
 #' @param unit character(1). The length unit for padding (optional).
 #'   `units::set_units` is used for padding when `sf` object is used.
-#'   See [link](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'   See [link](https://CRAN.R-project.org/package=units/vignettes/measurement_units_in_R.html)
 #'   for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 #' @param merge_max integer(1). Maximum number of grids to merge
@@ -288,6 +288,7 @@ par_pad_balanced <-
 #' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -299,6 +300,7 @@ par_pad_balanced <-
 #'
 #' plot(nc_rp)
 #' plot(nc_gr, add = TRUE)
+#' }
 #' @importFrom terra rast as.polygons
 #' @importFrom sf st_as_sf st_make_grid
 par_make_grid <-
@@ -348,6 +350,7 @@ par_make_grid <-
 #' @param n_clusters integer(1). The number of clusters.
 #' @returns `SpatVector` object with a field `"CGRIDID"`.
 #' @examples
+#' \dontrun{
 #' library(terra)
 #' library(anticlust)
 #' data(ncpoints, package = "chopin")
@@ -360,6 +363,7 @@ par_make_grid <-
 #' # 2,304 points / 12 = 192 points per cluster
 #' ncpbal <- par_make_balanced(ncp, 12)
 #' ncpbal
+#' }
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
 #' @importFrom terra vect distance
@@ -394,7 +398,9 @@ par_make_balanced <- function(
 #' @importFrom cli cli_abort
 #' @returns numeric vector of quantiles.
 #' @examples
+#' \dontrun{
 #' par_def_q(5L)
+#' }
 par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
     cli::cli_abort(c("x" = "steps should be greater than 1."))
@@ -413,6 +419,7 @@ par_def_q <- function(steps = 4L) {
 #' @param quantiles numeric vector. Quantiles.
 #' @returns A `SpatVector` object with field `CGRIDID`.
 #' @examples
+#' \dontrun{
 #' library(terra)
 #'
 #' random_points <-
@@ -436,6 +443,7 @@ par_def_q <- function(steps = 4L) {
 #' qcv <- intersect(cvect, qpoly_c)
 #' table(qcv$CGRIDID)
 #' sum(table(qcv$CGRIDID)) # should be 1000
+#' }
 #' @importFrom sf st_coordinates st_zm st_geometry_type st_centroid
 #' @importFrom terra crds ext as.polygons geomtype
 #' @importFrom stats setNames quantile

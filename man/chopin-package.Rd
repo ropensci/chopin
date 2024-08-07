@@ -9,6 +9,154 @@
 The \code{chopin} package provides a set of functions to compute on divided
 geospatial data.
 }
+\section{Basic functionalities}{
+
+\itemize{
+\item Distribute \code{terra}, \code{sf}, and \code{chopin} functions to parallel workers set by \code{future}
+\item Set parallelization strategies based on artificial grids, equal-size clusters, hierarchy, and multiple raster files
+\item Convenience functions for raster-vector overlay and weighted summary from vector dataset
+}
+}
+
+\section{\code{chopin} workflow}{
+
+\itemize{
+\item The simplest way of parallelizing generic geospatial computation is to start from \verb{par_pad_*} functions to \code{par_grid}, or running \code{par_hierarchy}, or \code{par_multirasters} functions at once.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{library(chopin)
+library(terra)
+library(sf)
+library(collapse)
+library(dplyr)
+library(future)
+library(future.mirai)
+library(future.apply)
+}\if{html}{\out{</div>}}
+
+\strong{Example data}
+\itemize{
+\item North Carolinian counties and a raster of elevation data are used as example data.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{nccnty_path <- system.file("extdata", "nc_hierarchy.gpkg", package = "chopin")
+ncelev_path <-
+  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+nccnty <- terra::vect(nccnty_path)
+ncelev <- terra::rast(ncelev_path)
+}\if{html}{\out{</div>}}
+\itemize{
+\item To demonstrate chopin functions, we generate 10,000 random points in North Carolina
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{ncsamp <-
+  terra::spatSample(
+    nccnty,
+    1e4L
+  )
+ncsamp$pid <- 1:nrow(ncsamp)
+}\if{html}{\out{</div>}}
+
+\strong{Creating grids}
+\itemize{
+\item The example below will generate a regular grid from the random point data.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{ncgrid <- par_pad_grid(ncsamp, mode = "grid", nx = 4L, ny = 2L, padding = 10000)
+plot(ncgrid$original)
+}\if{html}{\out{</div>}}
+
+\strong{Extracting values from raster}
+\itemize{
+\item Since all \verb{par_*} functions operate on \code{future} backends, users should define the future plan before running the functions. \code{multicore} plan supports \code{terra} objects which may lead to faster computation, but it is not supported in Windows. An alternative is \code{future.mirai}'s \code{mirai_multisession} plan, which is supported in many platforms and generally faster than plain future multisession plan.
+\item \code{workers} argument should be defined with an integer value to specify the number of threads to be used.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{future::plan(future.mirai::mirai_multisession, workers = 2L)
+}\if{html}{\out{</div>}}
+\itemize{
+\item Then we dispatch multiple \code{extract_at} runs on the grid polygons.
+\item Before we proceed, the terra object should be converted to sf object.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{pg <-
+  par_grid(
+    grids = ncgrid,
+    pad_y = FALSE,
+    .debug = TRUE,
+    fun_dist = extract_at,
+    x = ncelev_path,
+    y = sf::st_as_sf(ncsamp),
+    id = "pid",
+    radius = 1e4,
+    func = "mean"
+  )
+}\if{html}{\out{</div>}}
+
+\strong{Hierarchical processing}
+\itemize{
+\item Here we demonstrate hierarchical processing of the random points using census tract polygons.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{nccnty <- sf::st_read(nccnty_path, layer = "county")
+nctrct <- sf::st_read(nccnty_path, layer = "tracts")
+}\if{html}{\out{</div>}}
+\itemize{
+\item The example below will parallelize summarizing mean elevation at 10 kilometers circular buffers of random sample points by the first five characters of census tract unique identifiers, which are county codes.
+\item This example demonstrates the hierarchy can be defined from any given polygons if the unique identifiers are suitably formatted for defining the hierarchy.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{px <-
+  par_hierarchy(
+    # from here the par_hierarchy-specific arguments
+    regions = nctrct,
+    regions_id = "GEOID",
+    length_left = 5,
+    pad = 10000,
+    pad_y = FALSE,
+    .debug = TRUE,
+    # from here are the dispatched function definition
+    # for parallel workers
+    fun_dist = extract_at,
+    # below should follow the arguments of the dispatched function
+    x = ncelev,
+    y = sf::st_as_sf(ncsamp),
+    id = "pid",
+    radius = 1e4,
+    func = "mean"
+  )
+}\if{html}{\out{</div>}}
+
+\strong{Multiraster processing}
+\itemize{
+\item Here we demonstrate multiraster processing of the random points using multiple rasters.
+}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{ncelev <-
+  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+ncelev <- terra::rast(ncelev)
+tdir <- tempdir(check = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test4.tif"), overwrite = TRUE)
+terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
+rasts <- list.files(tdir, pattern = "tif$", full.names = TRUE)
+
+pm <-
+  par_multirasters(
+    filenames = rasts,
+    fun_dist = extract_at,
+    x = NA,
+    y = sf::st_as_sf(ncsamp)[1:500, ],
+    id = "pid",
+    radius = 1e4,
+    func = "mean",
+    .debug = TRUE
+  )
+}\if{html}{\out{</div>}}
+}
+
 \seealso{
 Useful links:
 \itemize{

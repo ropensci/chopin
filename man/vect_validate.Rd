@@ -26,12 +26,14 @@ May take some time depending on the geometry complexity.
 This function works with GEOS (>=3.8).
 }
 \examples{
+\dontrun{
 library(terra)
 library(sf)
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 nc <- terra::vect(ncpath)
 
 nc_valid <- vect_validate(nc)
+}
 }
 \seealso{
 Other Helper functions: 

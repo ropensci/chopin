@@ -22,6 +22,7 @@ Clip input vector by
 the expected maximum extent of computation.
 }
 \examples{
+\dontrun{
 library(sf)
 library(stars)
 library(terra)
@@ -33,6 +34,7 @@ bcsd <- sf::st_as_sf(bcsd)
 bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
 bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
 clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
+}
 }
 \seealso{
 Other Helper functions: 
