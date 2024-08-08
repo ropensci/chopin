@@ -7,6 +7,7 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
+library(devtools)
 library(chopin)
 
 test_check("chopin")

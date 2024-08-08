@@ -3,6 +3,7 @@ testthat::test_that("Input object class is detected",
   {
     withr::local_package("stars")
     withr::local_package("terra")
+    withr::local_package("chopin")
     withr::local_options(list(sf_use_s2 = FALSE))
     bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
     bcsd_stars <- stars::read_stars(bcsd_path)
@@ -28,6 +29,7 @@ testthat::test_that("Data model detection",
   {
     withr::local_package("stars")
     withr::local_package("terra")
+    withr::local_package("chopin")
     withr::local_options(list(sf_use_s2 = FALSE))
     bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
     bcsd_stars <- stars::read_stars(bcsd_path)
@@ -48,6 +50,7 @@ testthat::test_that("Data model detection",
 testthat::test_that("CRS is transformed when it is not standard", {
   withr::local_package("sf")
   withr::local_package("terra")
+  withr::local_package("chopin")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nc <- system.file(package = "sf", "shape/nc.shp")
@@ -81,6 +84,7 @@ testthat::test_that("CRS is transformed when it is not standard", {
 testthat::test_that("reproject to raster: sf", {
   withr::local_package("sf")
   withr::local_package("terra")
+  withr::local_package("chopin")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nc <- system.file(package = "sf", "shape/nc.shp")
@@ -103,6 +107,7 @@ testthat::test_that("reproject to raster: sf", {
 testthat::test_that("vector validity check is cleared", {
   withr::local_package("sf")
   withr::local_package("terra")
+  withr::local_package("chopin")
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_options(list(sf_use_s2 = FALSE))
 

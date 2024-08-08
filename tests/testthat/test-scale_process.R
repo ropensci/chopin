@@ -79,6 +79,7 @@ testthat::test_that(".par_screen -- raster", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("dplyr")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
