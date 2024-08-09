@@ -1,144 +1,52 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/404.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/CODE_OF_CONDUCT.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/CONTRIBUTING.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/articles/v00_good_practice_parallelization.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/articles/v01_par_make_gridset.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/articles/v02_climate_examples.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/index.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/any_class_args.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/check_subject.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/clip_ras_ext.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/clip_vec_ext.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/crs_check.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/datamod.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/dep_check.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/dep_switch.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/ext2poly.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/extract_at.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/extract_at_buffer.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/extract_at_poly.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/get_clip_ext.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/is_bbox_within_reference.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/is_within_ref.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/kernelfunction.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/ncpoints.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_cut_coords.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_def_q.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_fallback.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_grid.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_group_balanced.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_group_grid.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_hierarchy.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_make_grid.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_make_gridset.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_merge_grid.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/par_multirasters.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/prediction_grid.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/reproject_b2r.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/reproject_std.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/summarize_aw.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/summarize_sedc.html</loc>
-  </url>
-  <url>
-    <loc>https://kyle-messier.github.io/chopin/reference/vect_valid_repair.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://NIEHS.github.io/chopin/404.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/CODE_OF_CONDUCT.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/CONTRIBUTING.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/LICENSE-text.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/LICENSE.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/articles/index.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/articles/v01_start.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/articles/v02_good_practice.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/articles/v03_par_pad_grid.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/articles/v04_climate_examples.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/articles/v05_targets.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/authors.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/index.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/news/index.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/chopin-package.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/clip_ras_ext.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/clip_vec_ext.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/datamod.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dep_check.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dep_switch.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dot-check_character.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dot-check_raster.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dot-check_vector.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dot-intersect_extent.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/dot-par_screen.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/extract_at.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/get_clip_ext.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/index.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/indexing.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/kernelfunction.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/ncpoints.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_cut_coords.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_def_q.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_grid.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_hierarchy.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_make_balanced.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_make_grid.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_map_args.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_merge_grid.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_multirasters.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_pad_balanced.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_pad_grid.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_split_list.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/prediction_grid.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/reproject_std.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/reproject_to_raster.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/summarize_aw.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/summarize_sedc.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/vect_validate.html</loc></url>
 </urlset>
+

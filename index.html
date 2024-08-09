@@ -5,69 +5,59 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.">
-<title>CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure • chopin</title>
+<title>Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing • chopin</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="CHOPIN: Computation for Climate and Health research On Parallelized INfrastructure">
-<meta property="og:description" content="It enables users with basic understanding on geospatial data and sf and terra functions to parallelize geospatial operations for geospatial exposure assessment modeling and covariate computation. Parallelization is done by dividing large datasets into sub-regions with regular grids and data's own hierarchy. A computation over the large number of raster files can be parallelized with a chopin function as well.">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing">
+<meta name="description" content="Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.">
+<meta property="og:description" content="Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0.20240525</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7.20240807</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/v00_good_practice_parallelization.html">Good practice of using `chopin` in HPC</a>
-    <a class="dropdown-item" href="articles/v01_par_make_gridset.html">Generate computational grids</a>
-    <a class="dropdown-item" href="articles/v02_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/v01_start.html">Getting started with chopin</a></li>
+    <li><a class="dropdown-item" href="articles/v02_good_practice.html">Good practice of using `chopin` in HPC</a></li>
+    <li><a class="dropdown-item" href="articles/v03_par_pad_grid.html">Generate computational grids</a></li>
+    <li><a class="dropdown-item" href="articles/v04_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a></li>
+    <li><a class="dropdown-item" href="articles/v05_targets.html">targets and grid objects</a></li>
+  </ul>
 </li>
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
+</form></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/NIEHS/chopin/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/NIEHS/chopin/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="chopin-computation-for-climate-and-health-research-on-parallelized-infrastructure">
-<code>chopin</code>: Computation for Climate and Health research On Parallelized INfrastructure<a class="anchor" aria-label="anchor" href="#chopin-computation-for-climate-and-health-research-on-parallelized-infrastructure"></a>
+<div class="page-header"><h1 id="chopin-computation-for-climate-and-health-research-on-parallelized-infrastructure-">
+<code>chopin</code>: Computation for Climate and Health research On Parallelized INfrastructure <img src="reference/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal"><a class="anchor" aria-label="anchor" href="#chopin-computation-for-climate-and-health-research-on-parallelized-infrastructure-"></a>
 </h1></div>
 <!-- badges: start -->
 
@@ -86,17 +76,10 @@
 <h3 id="for-whom-chopin-is-useful">For whom <code>chopin</code> is useful<a class="anchor" aria-label="anchor" href="#for-whom-chopin-is-useful"></a>
 </h3>
 <ul>
-<li>Following user groups will find this package useful to accelerate the covariate calculation process for further analysis and modeling:
-<ul>
-<li>Environmental health researchers and data analysts</li>
-<li>Health geographers and spatial epidemiologists</li>
-<li>Spatial analysts who need to perform geospatial operations with large datasets</li>
-</ul>
-</li>
+<li>All who need to perform geospatial operations with large datasets may find this package useful to accelerate the covariate calculation process for further analysis and modeling.</li>
 <li>We assume that users–
 <ul>
-<li>Can run R functions following relevant instructions;</li>
-<li>Have basic knowledge of <a href="https://r.geocompx.org/spatial-class" class="external-link">geographic information system data models</a>, <a href="https://gistbok.ucgis.org/bok-topics/coordinate-transformations" class="external-link">coordinate systems and transformations</a>, <a href="https://r.geocompx.org/spatial-operations" class="external-link">spatial operations</a>, and <a href="https://r.geocompx.org/raster-vector" class="external-link">raster-vector overlay</a>;</li>
+<li>Have basic knowledge of <a href="https://r.geocompx.org/spatial-class" class="external-link">geographic information system data models</a>, <a href="https://doi.org/10.22224/gistbok/2023.1.2" class="external-link">coordinate systems and transformations</a>, <a href="https://r.geocompx.org/spatial-operations" class="external-link">spatial operations</a>, and <a href="https://r.geocompx.org/raster-vector" class="external-link">raster-vector overlay</a>;</li>
 <li>Understood and planned <strong>what they want to calculate</strong>; and</li>
 <li>Collected <strong>datasets they need</strong>
 </li>
@@ -104,31 +87,16 @@
 </li>
 </ul>
 </div>
-<div class="section level3">
-<h3 id="notes-on-data-restrictions">Notes on data restrictions<a class="anchor" aria-label="anchor" href="#notes-on-data-restrictions"></a>
-</h3>
-<ul>
-<li>This package works best with <strong>two-dimensional</strong> (<strong>planar</strong>) geometries. Users should disable <code>s2</code> spherical geometry mode in <code>sf</code> by setting. Running any <code>chopin</code> functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.</li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-</div>
 </div>
 <div class="section level2">
-<h2 id="basic-design">Basic design<a class="anchor" aria-label="anchor" href="#basic-design"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <ul>
-<li>Processing functions accept <a href="https://github.com/r-spatial/sf" class="external-link">sf</a>/<a href="https://github.com/rspatial/terra" class="external-link">terra</a>’s classes for spatial data. Raster-vector overlay is done with <code>exactextractr</code>.</li>
-<li>From version 0.3.0, this package supports three basic functions that are readily parallelized over multithread environments:
+<li>Processing functions accept <a href="https://github.com/rspatial/terra" class="external-link">terra</a>/<a href="https://github.com/r-spatial/sf" class="external-link">sf</a> classes for spatial data. Raster-vector overlay is done with <code>exactextractr</code>.</li>
+<li>From version 0.8.0, this package supports three basic functions that are readily parallelized over multithread environments:
 <ul>
 <li>
-<code>extract_at</code>: extract raster values with point buffers or polygons.
-<ul>
-<li>
-<code>extract_at_buffer</code>: extract raster values at circular buffers; kernel weight can be applied</li>
-<li><code>extract_at_poly</code></li>
-</ul>
-</li>
+<code>extract_at</code>: extract raster values with point buffers or polygons with or without kernel weights</li>
 <li>
 <code>summarize_sedc</code>: calculate sums of <a href="https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html" class="external-link">exponentially decaying contributions</a>
 </li>
@@ -139,49 +107,39 @@
 <li>When processing points/polygons in parallel, the entire study area will be divided into partly overlapped grids or processed through its own hierarchy. We suggest two flowcharts to help which function to use for parallel processing below. The upper flowchart is raster-oriented and the lower one is vector-oriented. They are separated but supplementary to each other. When a user follows the raster-oriented one, they might visit the vector-oriented flowchart at each end of the raster-oriented flowchart.
 <ul>
 <li>
-<code>par_grid</code>: parallelize over artificial grid polygons that are generated from the maximum extent of inputs. <code>par_make_gridset</code> is used to generate the grid polygons before running this function.</li>
+<code>par_grid</code>: parallelize over artificial grid polygons that are generated from the maximum extent of inputs. <code>par_pad_grid</code> is used to generate the grid polygons before running this function.</li>
 <li>
 <code>par_hierarchy</code>: parallelize over hierarchy coded in identifier fields (for example, census blocks in each county in the US)</li>
 <li>
 <code>par_multirasters</code>: parallelize over multiple raster files</li>
 </ul>
 </li>
-<li>These functions are designed to be used with <code>future</code> and <code>doFuture</code> packages to parallelize over multiple CPU threads. Users can choose the number of threads to be used in the parallelization process. Users always need to register parallel workers with <code>future</code> and <code>doFuture</code> before running the three functions above.</li>
+<li>These functions are designed to be used with <code>future</code> and <code>future.mirai</code> packages to parallelize over multiple CPU threads. Users can choose the number of threads to be used in the parallelization process. Users always need to register parallel workers with <code>future</code> before running the three functions above.</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">doFuture</span><span class="fu">::</span><span class="fu"><a href="https://doFuture.futureverse.org/reference/registerDoFuture.html" class="external-link">registerDoFuture</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future</span><span class="fu">::</span><span class="va"><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">multicore</a></span>, workers <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span></span>
+<!-- end list --><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future.mirai</span><span class="fu">::</span><span class="va"><a href="https://future.mirai.futureverse.org/reference/mirai_multisession.html" class="external-link">mirai_multisession</a></span>, workers <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span></span>
 <span><span class="co"># future::multisession, future::cluster are available,</span></span>
 <span><span class="co"># See future.batchtools and future.callr for other options</span></span>
 <span><span class="co"># the number of workers are up to users' choice</span></span></code></pre></div>
-<p><img src="reference/figures/README-flowchart-mermaid-1.png" width="100%"></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co">#&gt; PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.</span></span></code></pre></div>
+<div id="htmlwidget-55d9d71eaa1d4df2fe0b" class="DiagrammeR html-widget" style="width:1000px;height:600px;">
+
 </div>
-<div class="section level2">
-<h2 id="to-run-the-examples">To run the examples<a class="anchor" aria-label="anchor" href="#to-run-the-examples"></a>
-</h2>
-<ul>
-<li>RStudio: download and open this document then press “Run All Chunks Above”, “Run All Chunks Below”, or “Restart R and Run All Chunks”, whichever is appropriate.</li>
-<li>Visual Studio Code (with R extension): download and open this document then press “Run Above” at the last code chunk.</li>
-<li>If you prefer command line (i.e., in Unix-like operating systems), run:</li>
-</ul>
-<pre class="shell"><code>git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
-cd chopin
-Rscript -e \
-"
-knitr::purl(\"README.Rmd\", \"README_run.r\")
-source(\"README_run.r\")
-"</code></pre>
+<script type="application/json" data-for="htmlwidget-55d9d71eaa1d4df2fe0b">{"x":{"diagram":"\ngraph LR\n\tn6695079[\"Is the spatial resolution finer than 100 meters?\"]\n\tn11509997[\"Are there multiple rasters?\"]\n\tn72001430[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn27284812[\"Do they have the same extent and resolution?\"]\n\tn83137384[\"Is a single raster larger than your free memory space?\"]\n\tn83318893[\"Do you have memory larger than the total raster file size?\"]\n\tn14786842[\"exact_extract with low max_cells_in_memory\"]\n\tn17102479[\"exact_extract with high max_cells_in_memory argument value\"]\n\tn7037868[\"Stack rasters then process in the single thread\"]\n\tn58642837[\"par_multirasters\"]\n\tn6695079 -->|Yes| n11509997\n\tn6695079 -->|No| n72001430\n\tn11509997 -->|Yes| n27284812\n\tn11509997 -->|No| n83137384\n\tn27284812 -->|Yes| n83318893\n\tn27284812 -->|No| n58642837\n\tn83137384 -->|No| n14786842\n\tn83137384 -->|Yes| n17102479\n\tn83318893 -->|Yes| n7037868\n\tn83318893 -->|No| n58642837\n\n"},"evals":[],"jsHooks":[]}</script><div id="htmlwidget-48046f94da65f67e9e2e" class="DiagrammeR html-widget" style="width:1000px;height:600px;">
+
+</div>
+<script type="application/json" data-for="htmlwidget-48046f94da65f67e9e2e">{"x":{"diagram":"\ngraph LR\n\tn21640044[\"Are there 100K+ features in the input vectors?\"]\n\tn84295645[\"Are they hierarchical?\"]\n\tn82902796[\"single thread processing\"]\n\tn34878990[\"Are your split_level have similar number of members?\"]\n\tn27787116[\"Are they spatially clustered?\"]\n\tn89847105[\"par_hierarchy\"]\n\tn94475834[\"par_make_gridset(..., mode = 'grid_quantile') or par_make_gridset_mode = 'grid_advanced')\"]\n\tn77415399[\"par_make_gridset(..., mode = 'grid'\"]\n\tn64849552[\"par_grid\"]\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn34878990 -->|Yes| n89847105\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <ul>
 <li>
-<code>chopin</code> can be installed using <code>remotes::install_github</code> (also possible with <code><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak::pak</a></code> or <code>devtools::install_github</code>).</li>
+<code>chopin</code> can be installed using <code><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">remotes::install_github</a></code> (also possible with <code><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak::pak</a></code> or <code><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">devtools::install_github</a></code>).</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"Spatiotemporal-Exposures-and-Toxicology/chopin"</span><span class="op">)</span></span></code></pre></div>
+<!-- end list --><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">check_installed</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"NIEHS/chopin"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
@@ -189,16 +147,34 @@ source(\"README_run.r\")
 <ul>
 <li>Examples will navigate <code>par_grid</code>, <code>par_hierarchy</code>, and <code>par_multirasters</code> functions in <code>chopin</code> to parallelize geospatial operations.</li>
 </ul>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># check and install packages to run examples</span></span>
-<span><span class="va">pkgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chopin"</span>, <span class="st">"dplyr"</span>, <span class="st">"sf"</span>, <span class="st">"terra"</span>,</span>
-<span>          <span class="st">"future"</span>, <span class="st">"future.apply"</span>, <span class="st">"doFuture"</span>, <span class="st">"testthat"</span><span class="op">)</span></span>
+<span><span class="va">pkgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chopin"</span>, <span class="st">"dplyr"</span>, <span class="st">"sf"</span>, <span class="st">"terra"</span>, <span class="st">"future"</span>, <span class="st">"future.mirai"</span>, <span class="st">"mirai"</span><span class="op">)</span></span>
 <span><span class="co"># install packages if anything is unavailable</span></span>
 <span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">check_installed</a></span><span class="op">(</span><span class="va">pkgs</span><span class="op">)</span></span>
 <span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NIEHS/chopin" class="external-link">chopin</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter, lag</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.3.1; sf_use_s2() is TRUE</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; terra 1.7.78</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.futureverse.org" class="external-link">future</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.mirai.futureverse.org" class="external-link">future.mirai</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shikokuchuo.net/mirai/" class="external-link">mirai</a></span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># disable spherical geometries</span></span>
-<span><span class="co"># it does the same as sf::sf_use_s2(FALSE)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>sf_use_s2 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Spherical geometry (s2) switched off</span></span>
+<span></span>
 <span><span class="co"># parallelization-safe random number generator</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span>, kind <span class="op">=</span> <span class="st">"L'Ecuyer-CMRG"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
@@ -210,11 +186,11 @@ source(\"README_run.r\")
 <li>Before running code chunks below, set the cloned <code>chopin</code> repository as your working directory with <code><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd()</a></code>
 </li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"shape/nc.shp"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">read_sf</a></span><span class="op">(</span><span class="va">ncpoly</span><span class="op">)</span></span>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncsf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncsf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-read-nc-1.png" width="100%"></p>
 <div class="section level4">
 <h4 id="generate-random-points-in-nc">Generate random points in NC<a class="anchor" aria-label="anchor" href="#generate-random-points-in-nc"></a>
@@ -222,11 +198,11 @@ source(\"README_run.r\")
 <ul>
 <li>Ten thousands random point locations were generated inside the counties of North Carolina.</li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoints</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_sample.html" class="external-link">st_sample</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="fl">1e4</span><span class="op">)</span></span>
 <span><span class="va">ncpoints</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span></span>
 <span><span class="va">ncpoints</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"PID-%05d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1e4</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-gen-ncpoints-1.png" width="100%"></p>
 </div>
 <div class="section level4">
@@ -236,72 +212,79 @@ source(\"README_run.r\")
 <ul>
 <li>We use an elevation dataset with and a moderate spatial resolution (approximately 400 meters or 0.25 miles).</li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># data preparation</span></span>
 <span><span class="va">wdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, package <span class="op">=</span> <span class="st">"chopin"</span><span class="op">)</span></span>
-<span><span class="va">path_srtm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"nc_srtm15_otm.rds"</span><span class="op">)</span></span>
+<span><span class="va">srtm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"nc_srtm15_otm.tif"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># terra SpatRaster objects are wrapped when exported to rds file</span></span>
-<span><span class="va">srtm</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/wrap.html" class="external-link">unwrap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">path_srtm</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">srtm</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:5070"</span></span>
-<span><span class="va">srtm</span></span>
+<span><span class="va">srtm_ras</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">srtm</span><span class="op">)</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">srtm_ras</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:5070"</span></span>
+<span><span class="va">srtm_ras</span></span>
 <span><span class="co">#&gt; class       : SpatRaster </span></span>
 <span><span class="co">#&gt; dimensions  : 1534, 2281, 1  (nrow, ncol, nlyr)</span></span>
 <span><span class="co">#&gt; resolution  : 391.5026, 391.5026  (x, y)</span></span>
 <span><span class="co">#&gt; extent      : 1012872, 1905890, 1219961, 1820526  (xmin, xmax, ymin, ymax)</span></span>
 <span><span class="co">#&gt; coord. ref. : NAD83 / Conus Albers (EPSG:5070) </span></span>
-<span><span class="co">#&gt; source(s)   : memory</span></span>
-<span><span class="co">#&gt; name        : file928c3830468b </span></span>
-<span><span class="co">#&gt; min value   :        -3589.291 </span></span>
-<span><span class="co">#&gt; max value   :         1946.400</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srtm</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; source      : nc_srtm15_otm.tif </span></span>
+<span><span class="co">#&gt; name        :    srtm15 </span></span>
+<span><span class="co">#&gt; min value   : -3589.291 </span></span>
+<span><span class="co">#&gt; max value   :  1946.400</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srtm_ras</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-load-srtm-1.png" width="100%"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ncpoints_tr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># ncpoints_tr &lt;- terra::vect(ncpoints)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">ncpoints_srtm</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/extract_at.html">extract_at</a></span><span class="op">(</span></span>
-<span>      vector <span class="op">=</span> <span class="va">ncpoints_tr</span>,</span>
-<span>      raster <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      x <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      y <span class="op">=</span> <span class="va">ncpoints</span>,</span>
 <span>      id <span class="op">=</span> <span class="st">"pid"</span>,</span>
 <span>      mode <span class="op">=</span> <span class="st">"buffer"</span>,</span>
 <span>      radius <span class="op">=</span> <span class="fl">1e4L</span>  <span class="co"># 10,000 meters (10 km)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   9.925   0.197  10.149</span></span></code></pre></div>
+<span><span class="co">#&gt;   5.025   0.066   5.092</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
 </h4>
 <ul>
 <li>
-<code><a href="reference/par_make_gridset.html">chopin::par_make_gridset</a></code> takes a spatial dataset to generate regular grid polygons with <code>nx</code> and <code>ny</code> arguments with padding. Users will have both overlapping (by the degree of <code>radius</code>) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.</li>
+<code><a href="reference/par_pad_grid.html">chopin::par_pad_grid</a></code> takes a spatial dataset to generate regular grid polygons with <code>nx</code> and <code>ny</code> arguments with padding. Users will have both overlapping (by the degree of <code>radius</code>) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.</li>
 </ul>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">compregions</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_make_gridset.html">par_make_gridset</a></span><span class="op">(</span></span>
-<span>    <span class="va">ncpoints_tr</span>,</span>
+<span>  <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_pad_grid.html">par_pad_grid</a></span><span class="op">(</span></span>
+<span>    <span class="va">ncpoints</span>,</span>
 <span>    mode <span class="op">=</span> <span class="st">"grid"</span>,</span>
-<span>    nx <span class="op">=</span> <span class="fl">8L</span>,</span>
-<span>    ny <span class="op">=</span> <span class="fl">5L</span>,</span>
+<span>    nx <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>    ny <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>    padding <span class="op">=</span> <span class="fl">1e4L</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Switch sf class to terra...</span></span>
+<span><span class="co">#&gt; Switch terra class to sf...</span></span></code></pre></div>
 <ul>
 <li>
 <code>compregions</code> is a list object with two elements named <code>original</code> (non-overlapping grid polygons) and <code>padded</code> (overlapping by <code>padding</code>). The figures below illustrate the grid polygons with and without overlaps.</li>
 </ul>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "original" "padded"</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">oldpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="op">)</span></span>
+<!-- end list --><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "original" "padded"</span></span>
+<span></span>
+<span><span class="va">oldpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">original</span>, main <span class="op">=</span> <span class="st">"Original grids"</span><span class="op">)</span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">padded</span>, main <span class="op">=</span> <span class="st">"Padded grids"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">original</span><span class="op">)</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Original grids"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">$</span><span class="va">padded</span><span class="op">)</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Padded grids"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-compare-compregions-1.png" width="100%"></p>
-<!--![](https://i.imgur.com/c0xweeV.png) -->
 </div>
 <div class="section level4">
 <h4 id="parallel-processing">Parallel processing<a class="anchor" aria-label="anchor" href="#parallel-processing"></a>
@@ -316,81 +299,61 @@ source(\"README_run.r\")
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future</span><span class="fu">::</span><span class="va"><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">multicore</a></span>, workers <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span></span>
+<!-- end list --><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future.mirai</span><span class="fu">::</span><span class="va"><a href="https://future.mirai.futureverse.org/reference/mirai_multisession.html" class="external-link">mirai_multisession</a></span>, workers <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">ncpoints_srtm_mthr</span> <span class="op">&lt;-</span></span>
-<span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_grid.html">par_grid</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="reference/par_grid.html">par_grid</a></span><span class="op">(</span></span>
 <span>      grids <span class="op">=</span> <span class="va">compregions</span>,</span>
-<span>      grid_target_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>      fun_dist <span class="op">=</span> <span class="fu">chopin</span><span class="fu">::</span><span class="va"><a href="reference/extract_at.html">extract_at</a></span>,</span>
-<span>      vector <span class="op">=</span> <span class="va">ncpoints_tr</span>,</span>
-<span>      raster <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      fun_dist <span class="op">=</span> <span class="va">extract_at</span>,</span>
+<span>      x <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      y <span class="op">=</span> <span class="va">ncpoints</span>,</span>
 <span>      id <span class="op">=</span> <span class="st">"pid"</span>,</span>
-<span>      mode <span class="op">=</span> <span class="st">"buffer"</span>,</span>
-<span>      radius <span class="op">=</span> <span class="fl">1e4L</span></span>
+<span>      radius <span class="op">=</span> <span class="fl">1e4L</span>,</span>
+<span>      .standalone <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 4</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 5</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 6</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 7</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 8</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 10</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 11</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 12</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 13</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 14</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 15</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 16</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 17</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 18</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 19</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 20</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 21</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 22</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 23</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 24</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 25</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 26</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 27</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 28</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 29</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 30</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 31</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 32</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 33</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 34</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 37</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 38</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 39</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
-<span><span class="co">#&gt; Warning: [buffer] empty SpatVector</span></span>
+<span><span class="co">#&gt; ℹ Input is not a character.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 1 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 2 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 3 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 4 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.418   1.567   3.447</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">ncpoints_srtm_mthr</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"mean_par"</span></span>
-<span><span class="va">ncpoints_compar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints_srtm</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
-<span><span class="co"># Are the calculations equal?</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">ncpoints_compar</span><span class="op">$</span><span class="va">mean</span>, <span class="va">ncpoints_compar</span><span class="op">$</span><span class="va">mean_par</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ncpoints_s</span> <span class="op">&lt;-</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="va">ncpoints_srtm</span><span class="op">)</span></span>
-<span><span class="va">ncpoints_m</span> <span class="op">&lt;-</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   0.371   0.016   7.531</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_s</span><span class="op">[</span>, <span class="st">"mean"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Single-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">ncpoints_srtm</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="reference/extract_at.html">extract_at</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>    y <span class="op">=</span> <span class="va">ncpoints</span>,</span>
+<span>    id <span class="op">=</span> <span class="st">"pid"</span>,</span>
+<span>    radius <span class="op">=</span> <span class="fl">1e4L</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">ncpoints_srtm_mthr</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"mean_par"</span></span>
+<span><span class="va">ncpoints_compar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints_srtm</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
+<span><span class="co"># Are the calculations equal?</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">ncpoints_compar</span><span class="op">$</span><span class="va">mean</span>, <span class="va">ncpoints_compar</span><span class="op">$</span><span class="va">mean_par</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ncpoints_s</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="va">ncpoints_srtm</span><span class="op">)</span></span>
+<span><span class="va">ncpoints_m</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_s</span><span class="op">[</span>, <span class="st">"mean"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Single-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot%20results-1.png" width="100%"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_m</span><span class="op">[</span>, <span class="st">"mean_par"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Multi-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-plot%20results-2.png" width="100%"><!--![](https://i.imgur.com/iaQHWBL.png) --><!--![](https://i.imgur.com/fgOvOff.png) --></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_m</span><span class="op">[</span>, <span class="st">"mean_par"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Multi-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-plot%20results-2.png" width="100%"></p>
 </div>
 </div>
 <div class="section level3">
@@ -406,31 +369,31 @@ source(\"README_run.r\")
 <div class="section level4">
 <h4 id="read-data">Read data<a class="anchor" aria-label="anchor" href="#read-data"></a>
 </h4>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">path_nchrchy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"nc_hierarchy.gpkg"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># nc_hierarchy.gpkg includes two layers: county and tracts</span></span>
+<span><span class="va">path_nchrchy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"nc_hierarchy.gpkg"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">nc_data</span> <span class="op">&lt;-</span> <span class="va">path_nchrchy</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `county' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 100 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
 <span><span class="co">#&gt; Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176</span></span>
-<span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
+<span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `tracts' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2672 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
 <span><span class="co">#&gt; Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176</span></span>
-<span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># reproject to Conus Albers Equal Area</span></span>
+<span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
+<span></span>
+<span><span class="co"># reproject to Conus Albers Equal Area</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">nc_county</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
 <span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">nc_tracts</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
 <span><span class="va">nc_tracts</span><span class="op">$</span><span class="va">COUNTY</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">nc_tracts</span><span class="op">$</span><span class="va">GEOID</span>, <span class="fl">1</span>, <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
@@ -438,35 +401,137 @@ source(\"README_run.r\")
 <div class="section level4">
 <h4 id="extract-average-srtm-elevations-by-single-and-multiple-threads">Extract average SRTM elevations by single and multiple threads<a class="anchor" aria-label="anchor" href="#extract-average-srtm-elevations-by-single-and-multiple-threads"></a>
 </h4>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># single-thread</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_elev_tr_single</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/extract_at.html">extract_at</a></span><span class="op">(</span></span>
-<span>      vector <span class="op">=</span> <span class="va">nc_tracts</span>,</span>
-<span>      raster <span class="op">=</span> <span class="va">srtm</span>,</span>
-<span>      id <span class="op">=</span> <span class="st">"GEOID"</span>,</span>
-<span>      mode <span class="op">=</span> <span class="st">"polygon"</span></span>
+<span>      x <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      y <span class="op">=</span> <span class="va">nc_tracts</span>,</span>
+<span>      id <span class="op">=</span> <span class="st">"GEOID"</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.798   0.082   1.886</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># hierarchical parallelization</span></span>
+<span><span class="co">#&gt;   0.518   0.002   0.520</span></span>
+<span></span>
+<span><span class="co"># hierarchical parallelization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_elev_tr_distr</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_hierarchy.html">par_hierarchy</a></span><span class="op">(</span></span>
 <span>      regions <span class="op">=</span> <span class="va">nc_county</span>, <span class="co"># higher level geometry</span></span>
 <span>      regions_id <span class="op">=</span> <span class="st">"GEOID"</span>, <span class="co"># higher level unique id</span></span>
-<span>      fun_dist <span class="op">=</span> <span class="fu">chopin</span><span class="fu">::</span><span class="va"><a href="reference/extract_at.html">extract_at</a></span>,</span>
-<span>      vector <span class="op">=</span> <span class="va">nc_tracts</span>, <span class="co"># lower level geometry</span></span>
-<span>      raster <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      fun_dist <span class="op">=</span> <span class="va">extract_at</span>,</span>
+<span>      x <span class="op">=</span> <span class="va">srtm</span>,</span>
+<span>      y <span class="op">=</span> <span class="va">nc_tracts</span>, <span class="co"># lower level geometry</span></span>
 <span>      id <span class="op">=</span> <span class="st">"GEOID"</span>, <span class="co"># lower level unique id</span></span>
 <span>      func <span class="op">=</span> <span class="st">"mean"</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; ℹ Input is not a character.</span></span>
+<span><span class="co">#&gt; ℹ GEOID is used to stratify the process.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37037 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37001 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37057 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37069 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37155 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37109 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37027 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37063 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37145 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37115 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37151 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37131 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37013 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37159 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37051 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37153 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37093 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37025 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37029 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37169 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37031 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37005 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37139 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37193 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37003 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37083 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37163 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37189 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37173 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37011 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37045 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37125 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37067 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37077 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37185 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37137 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37033 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37107 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37075 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37073 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37161 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37187 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37007 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37135 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37049 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37195 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37061 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37087 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37081 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37099 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37097 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37091 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37149 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37165 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37085 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37105 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37017 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37039 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37035 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37177 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37113 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37143 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37095 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37071 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37101 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37015 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37167 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37079 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37129 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37147 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37141 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37179 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37121 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37133 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37065 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37119 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37199 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37197 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37023 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37191 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37059 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37111 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37183 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37053 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37103 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37041 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37021 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37157 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37117 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37089 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37127 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37009 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37019 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37123 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37181 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37175 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37171 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37043 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  10.452   2.020   4.324</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.242   0.102   1.987</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -478,11 +543,11 @@ source(\"README_run.r\")
 <li>
 <code><a href="reference/par_multirasters.html">chopin::par_multirasters</a></code> is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.</li>
 </ul>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nccnty</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
-<span><span class="va">ncelev</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/wrap.html" class="external-link">unwrap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">path_srtm</span><span class="op">)</span><span class="op">)</span></span>
+<!-- end list --><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># nccnty &lt;- sf::st_read(nc_data, layer = "county")</span></span>
+<span><span class="va">ncelev</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">srtm</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:5070"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srtm15"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srtm15"</span><span class="op">)</span></span>
 <span><span class="va">tdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">ncelev</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">tdir</span>, <span class="st">"test1.tif"</span><span class="op">)</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -494,66 +559,74 @@ source(\"README_run.r\")
 <span><span class="co"># check if the raster files were exported as expected</span></span>
 <span><span class="va">testfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span>, pattern <span class="op">=</span> <span class="st">"*.tif$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">testfiles</span></span>
-<span><span class="co">#&gt; [1] "/tmp/RtmpPWsyT6/test1.tif" "/tmp/RtmpPWsyT6/test2.tif"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/RtmpPWsyT6/test3.tif" "/tmp/RtmpPWsyT6/test4.tif"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/RtmpPWsyT6/test5.tif"</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "/tmp/Rtmp1avZwd/test1.tif" "/tmp/Rtmp1avZwd/test2.tif"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/Rtmp1avZwd/test3.tif" "/tmp/Rtmp1avZwd/test4.tif"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/Rtmp1avZwd/test5.tif"</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_multirasters.html">par_multirasters</a></span><span class="op">(</span></span>
 <span>      filenames <span class="op">=</span> <span class="va">testfiles</span>,</span>
-<span>      fun_dist <span class="op">=</span> <span class="fu">chopin</span><span class="fu">::</span><span class="va"><a href="reference/extract_at_poly.html">extract_at_poly</a></span>,</span>
-<span>      polys <span class="op">=</span> <span class="va">nccnty</span>,</span>
-<span>      surf <span class="op">=</span> <span class="va">ncelev</span>,</span>
+<span>      fun_dist <span class="op">=</span> <span class="va">extract_at</span>,</span>
+<span>      x <span class="op">=</span> <span class="va">ncelev</span>,</span>
+<span>      y <span class="op">=</span> <span class="va">nc_county</span>,</span>
 <span>      id <span class="op">=</span> <span class="st">"GEOID"</span>,</span>
 <span>      func <span class="op">=</span> <span class="st">"mean"</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; ℹ Input is not a character.</span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test1.tif is dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test2.tif is dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test3.tif is dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test4.tif is dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test5.tif is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.554   0.633   1.027</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.856   0.181   2.123</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
-<th align="left">GEOID</th>
 <th align="right">mean</th>
 <th align="left">base_raster</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">37037</td>
 <td align="right">136.80203</td>
-<td align="left">/tmp/RtmpPWsyT6/test1.tif</td>
+<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
 </tr>
 <tr class="even">
-<td align="left">37001</td>
 <td align="right">189.76170</td>
-<td align="left">/tmp/RtmpPWsyT6/test1.tif</td>
+<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
 </tr>
 <tr class="odd">
-<td align="left">37057</td>
 <td align="right">231.16968</td>
-<td align="left">/tmp/RtmpPWsyT6/test1.tif</td>
+<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
 </tr>
 <tr class="even">
-<td align="left">37069</td>
 <td align="right">98.03845</td>
-<td align="left">/tmp/RtmpPWsyT6/test1.tif</td>
+<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
 </tr>
 <tr class="odd">
-<td align="left">37155</td>
 <td align="right">41.23463</td>
-<td align="left">/tmp/RtmpPWsyT6/test1.tif</td>
+<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
 </tr>
 <tr class="even">
-<td align="left">37109</td>
 <td align="right">270.96933</td>
-<td align="left">/tmp/RtmpPWsyT6/test1.tif</td>
+<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># remove temporary raster files</span></span>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># remove temporary raster files</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.remove</a></span><span class="op">(</span><span class="va">testfiles</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE TRUE TRUE TRUE TRUE</span></span></code></pre></div>
 <!--| GEOID |      mean |
@@ -574,98 +647,136 @@ source(\"README_run.r\")
 <li>Other than <code>chopin</code> internal macros, <code>chopin::par_*</code> functions support generic geospatial operations.</li>
 <li>An example below uses <code><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">terra::nearest</a></code>, which gets the nearest feature’s attributes, inside <code><a href="reference/par_grid.html">chopin::par_grid</a></code>.</li>
 </ul>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path_ncrd1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"ncroads_first.gpkg"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate 5000 random points</span></span>
-<span><span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_sample.html" class="external-link">st_sample</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="fl">5000</span><span class="op">)</span></span>
+<span><span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_sample.html" class="external-link">st_sample</a></span><span class="op">(</span><span class="va">nc_county</span>, <span class="fl">5000</span><span class="op">)</span></span>
 <span><span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">pnts</span><span class="op">)</span></span>
 <span><span class="co"># assign identifiers</span></span>
 <span><span class="va">pnts</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"RPID-%04d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5000</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">pnts</span><span class="op">)</span></span>
-<span><span class="va">rd1</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">path_ncrd1</span><span class="op">)</span></span>
+<span><span class="va">rd1</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">path_ncrd1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Reading layer `ncroads_first' from data source </span></span>
+<span><span class="co">#&gt;   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/ncroads_first.gpkg' </span></span>
+<span><span class="co">#&gt;   using driver `GPKG'</span></span>
+<span><span class="co">#&gt; Simple feature collection with 620 features and 4 fields</span></span>
+<span><span class="co">#&gt; Geometry type: MULTILINESTRING</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: 1152512 ymin: 1390719 xmax: 1748367 ymax: 1662294</span></span>
+<span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
 <span></span>
 <span><span class="co"># reproject</span></span>
-<span><span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/project.html" class="external-link">project</a></span><span class="op">(</span><span class="va">pnts</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
-<span><span class="va">rd1</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/project.html" class="external-link">project</a></span><span class="op">(</span><span class="va">rd1</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
+<span><span class="va">pntst</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">pnts</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
+<span><span class="va">rd1t</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">rd1</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># generate grids</span></span>
 <span><span class="va">nccompreg</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_make_gridset.html">par_make_gridset</a></span><span class="op">(</span></span>
-<span>    input <span class="op">=</span> <span class="va">pnts</span>,</span>
+<span>  <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_pad_grid.html">par_pad_grid</a></span><span class="op">(</span></span>
+<span>    input <span class="op">=</span> <span class="va">pntst</span>,</span>
 <span>    mode <span class="op">=</span> <span class="st">"grid"</span>,</span>
 <span>    nx <span class="op">=</span> <span class="fl">4L</span>,</span>
 <span>    ny <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>    padding <span class="op">=</span> <span class="fl">5e4L</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Switch sf class to terra...</span></span>
+<span><span class="co">#&gt; Switch terra class to sf...</span></span></code></pre></div>
 <ul>
-<li>The figure below shows the padded grids (50 kilometers), primary roads, and points. Primary roads will be selected by a padded grid per iteration and used to calculate the distance from each point to the nearest primary road. Padded grids and their overlapping areas will look different according to <code>padding</code> argument in <code><a href="reference/par_make_gridset.html">chopin::par_make_gridset</a></code>.</li>
+<li>The figure below shows the padded grids (50 kilometers), primary roads, and points. Primary roads will be selected by a padded grid per iteration and used to calculate the distance from each point to the nearest primary road. Padded grids and their overlapping areas will look different according to <code>padding</code> argument in <code><a href="reference/par_pad_grid.html">chopin::par_pad_grid</a></code>.</li>
 </ul>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<!-- end list --><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">nccompreg</span><span class="op">$</span><span class="va">padded</span>, border <span class="op">=</span> <span class="st">"orange"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncsf</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">rd1</span>, col <span class="op">=</span> <span class="st">"blue"</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pnts</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, cex <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">rd1t</span>, col <span class="op">=</span> <span class="st">"blue"</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in plot.sf(rd1t, col = "blue", add = TRUE): ignoring all but the first</span></span>
+<span><span class="co">#&gt; attribute</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pntst</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, cex <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="fl">1.02e6</span>, <span class="fl">1.72e6</span>,</span>
 <span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Computation grids (50km padding)"</span>, <span class="st">"Major roads"</span><span class="op">)</span>,</span>
 <span>       lty <span class="op">=</span> <span class="fl">1</span>, lwd <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"orange"</span>, <span class="st">"blue"</span><span class="op">)</span>,</span>
 <span>       cex <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-map-all-1.png" width="100%"></p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># terra::nearest run</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pnts</span>, y <span class="op">=</span> <span class="va">rd1</span><span class="op">)</span></span>
+<span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">pntst</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">rd1t</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.462   0.003   0.466</span></span></code></pre></div>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># we use four threads that were configured above</span></span>
+<span><span class="co">#&gt;   0.423   0.000   0.422</span></span>
+<span></span>
+<span><span class="va">pnt_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">tdir</span>, <span class="st">"pntst.gpkg"</span><span class="op">)</span></span>
+<span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_write.html" class="external-link">st_write</a></span><span class="op">(</span><span class="va">pntst</span>, <span class="va">pnt_path</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/Rtmp1avZwd/pntst.gpkg' using driver `GPKG'</span></span>
+<span><span class="co">#&gt; Writing 5000 features with 1 fields and geometry type Point.</span></span>
+<span></span>
+<span><span class="co"># we use four threads that were configured above</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">resd</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_grid.html">par_grid</a></span><span class="op">(</span></span>
 <span>      grids <span class="op">=</span> <span class="va">nccompreg</span>,</span>
-<span>      fun_dist <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="va"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span>,</span>
-<span>      x <span class="op">=</span> <span class="va">pnts</span>,</span>
-<span>      y <span class="op">=</span> <span class="va">rd1</span></span>
+<span>      fun_dist <span class="op">=</span> <span class="va">nearest</span>,</span>
+<span>      x <span class="op">=</span> <span class="va">pnt_path</span>,</span>
+<span>      y <span class="op">=</span> <span class="va">path_ncrd1</span>,</span>
+<span>      pad_y <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 1</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 2</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 3</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 4</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 5</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 6</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 7</span></span>
-<span><span class="co">#&gt; Your input function was successfully run at CGRIDID: 8</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 1 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 2 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 3 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 4 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 5 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 6 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 7 is successfully dispatched.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
+<span><span class="co">#&gt; ℹ Task at CGRIDID: 8 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.776   0.562   0.521</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.083   0.005   0.539</span></span></code></pre></div>
 <ul>
 <li>We will compare the results from the single-thread and multi-thread calculation.</li>
 </ul>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">resj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">restr</span>, <span class="va">res</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from_x"</span>, <span class="st">"from_y"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">resj</span><span class="op">$</span><span class="va">distance.x</span>, <span class="va">resj</span><span class="op">$</span><span class="va">distance.y</span><span class="op">)</span></span>
+<!-- end list --><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">resj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">restr</span>, <span class="va">resd</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from_x"</span>, <span class="st">"from_y"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">resj</span><span class="op">$</span><span class="va">distance.x</span>, <span class="va">resj</span><span class="op">$</span><span class="va">distance.y</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <ul>
 <li>Users should be mindful of potential caveats in the parallelization of nearest feature search, which may result in no or excess distance depending on the distribution of the target dataset to which the nearest feature is searched.
 <ul>
 <li>For example, when one wants to calculate the nearest interstate from rural homes with fine grids, some grids may have no interstates then homes in such grids will not get any distance to the nearest interstate.</li>
-<li>Such problems can be avoided by choosing <code>nx</code>, <code>ny</code>, and <code>padding</code> values in <code>par_make_gridset</code> meticulously.</li>
+<li>Such problems can be avoided by choosing <code>nx</code>, <code>ny</code>, and <code>padding</code> values in <code>par_pad_grid</code> meticulously.</li>
 </ul>
 </li>
 </ul>
-</div>
-<div class="section level2">
-<h2 id="why-parallelization-is-slower-than-the-ordinary-function-run">Why parallelization is slower than the ordinary function run?<a class="anchor" aria-label="anchor" href="#why-parallelization-is-slower-than-the-ordinary-function-run"></a>
-</h2>
+<div class="section level3">
+<h3 id="notes-on-data-restrictions">Notes on data restrictions<a class="anchor" aria-label="anchor" href="#notes-on-data-restrictions"></a>
+</h3>
 <ul>
-<li>Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead here refers to the required amount of computational resources for transferring objects to multiple processes.</li>
-<li>Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could see the efficiency of this package. Please refer to a <a href="https://kyle-messier.github.io/chopin/articles/v02_climate_examples.html">vignette</a> in this package for the demonstration of various climate/weather datasets.</li>
+<li>
+<code>chopin</code> works best with <strong>two-dimensional</strong> (<strong>planar</strong>) geometries. Users should disable <code>s2</code> spherical geometry mode in <code>sf</code> by setting. Running any <code>chopin</code> functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.</li>
 </ul>
-<div class="section level4">
-<h4 id="last-edited-march-22-2024">Last edited: March 22, 2024<a class="anchor" aria-label="anchor" href="#last-edited-march-22-2024"></a>
-</h4>
+<!-- end list --><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -727,15 +838,15 @@ source(\"README_run.r\")
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>
