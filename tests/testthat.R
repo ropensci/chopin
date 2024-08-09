@@ -9,7 +9,7 @@
 library(testthat)
 library(devtools)
 temp_lib <- tempdir()
-devtools::install(pkg = "..", lib = temp_lib)
+devtools::install(pkg = ".", lib = temp_lib)
 
 # Set the library path for the session
 .libPaths(temp_lib)
