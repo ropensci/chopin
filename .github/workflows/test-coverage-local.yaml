@@ -87,4 +87,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-outputs
-          path: ${{ github.workspace }}
+          path: ${{ github.workspace }}/**

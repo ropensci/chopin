@@ -1,3 +1,6 @@
+# 0.7.8
+- `.check_package` refactoring: no `library()` call is required
+
 # 0.7.7
 - Documentation is revised
 
