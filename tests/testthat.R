@@ -6,12 +6,10 @@
 # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
 # * https://testthat.r-lib.org/articles/special-files.html
 
-library(testthat)
-library(devtools)
+# https://github.com/r-lib/covr/issues/420
+options(useFancyQuotes = FALSE)
 
-library(terra)
-library(sf)
+library(testthat)
 library(chopin)
-options(sf_use_s2 = FALSE)
 
 test_check("chopin")

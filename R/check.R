@@ -1125,24 +1125,36 @@ setMethod(
 #' @param fun character(1). Function name
 #' @returns character(1). Package name. Only one of "sf", "terra", "chopin"
 #' @importFrom utils find
+#' @importFrom methods findFunction
 #' @noRd
 .check_package <-
   function(fun) {
-    requireNamespace("sf")
-    requireNamespace("terra")
-    options(sf_use_s2 = FALSE)
-
-    funname <- find(fun)
-    pkgname <- gsub("package:", "", funname)
-    pkgname <- grep("terra|sf|chopin", pkgname, value = TRUE)
+    candidates <- c("sf", "terra", "chopin")
+    # funname <- find(fun)
+    pkgname <-
+      vapply(candidates,
+        function(x) {
+          tryCatch(
+            environmentName(
+              findFunction(
+                f = fun,
+                where = getNamespace(x))[[1]]
+            ),
+            error = function(e){"error"}
+          )
+        },
+        FUN.VALUE = character(1)
+      )
+    # pkgname <- gsub("package:", "", funname)
+    pkgname <- grep("^(terra|sf|chopin)$", pkgname, value = TRUE)
     if (length(pkgname) == 0) {
-      cli::cli_abort("No parent package is found.\n")
+      cli::cli_abort("No parent package is found.")
     }
     if (length(pkgname) > 1) {
-      cli::cli_abort("There are multiple parent packages matched.\n")
+      cli::cli_abort("There are multiple parent packages matched.")
     }
     if (!pkgname %in% c("sf", "terra", "chopin")) {
-      cli::cli_abort("Function should be one from sf, terra, or chopin.\n")
+      cli::cli_abort("Function should be one from sf, terra, or chopin.")
     }
     return(pkgname)
   }

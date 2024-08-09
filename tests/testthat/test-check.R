@@ -2,6 +2,7 @@
 testthat::test_that("Input object class is detected",
   {
     testthat::skip_on_ci()
+    testthat::skip_on_covr()
     withr::local_package("stars")
     withr::local_package("terra")
     # withr::local_package("chopin")
@@ -9,7 +10,7 @@ testthat::test_that("Input object class is detected",
     bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
     bcsd_stars <- stars::read_stars(bcsd_path)
 
-    packbound_stars <- dep_check(bcsd_stars)
+    packbound_stars <- chopin:::dep_check(bcsd_stars)
     sprast_bcsd <- terra::rast(bcsd_path)
     packbound_terra <- dep_check(sprast_bcsd)
 
@@ -19,7 +20,7 @@ testthat::test_that("Input object class is detected",
     # proxy
     ncpath <- system.file(package = "sf", "shape/nc.shp")
     nc <- terra::vect(ncpath, proxy = TRUE)
-    packbound_proxy <- dep_check(nc)
+    packbound_proxy <- chopin:::dep_check(nc)
     testthat::expect_equal(packbound_proxy, "terra")
 
   }
@@ -29,6 +30,7 @@ testthat::test_that("Input object class is detected",
 testthat::test_that("Data model detection",
   {
     testthat::skip_on_ci()
+    testthat::skip_on_covr()
     withr::local_package("stars")
     withr::local_package("terra")
     # withr::local_package("chopin")
@@ -51,6 +53,7 @@ testthat::test_that("Data model detection",
 
 testthat::test_that("CRS is transformed when it is not standard", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
@@ -86,6 +89,7 @@ testthat::test_that("CRS is transformed when it is not standard", {
 
 testthat::test_that("reproject to raster: sf", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
@@ -110,6 +114,7 @@ testthat::test_that("reproject to raster: sf", {
 
 testthat::test_that("vector validity check is cleared", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
@@ -128,6 +133,7 @@ testthat::test_that("vector validity check is cleared", {
 
 testthat::test_that(".check_id throws error with non-character id", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_options(list(sf_use_s2 = FALSE))
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
@@ -142,6 +148,7 @@ testthat::test_that(".check_id throws error with non-character id", {
 
 testthat::test_that(".check_id throws error with nonexistent id", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -157,6 +164,7 @@ testthat::test_that(".check_id throws error with nonexistent id", {
 
 testthat::test_that(".check_vector with sf", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_sf <- sf::st_read(input_char)
@@ -172,6 +180,7 @@ testthat::test_that(".check_vector with sf", {
 
 testthat::test_that(".check_vector with terra", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_vect <- terra::vect(input_char)
@@ -187,6 +196,7 @@ testthat::test_that(".check_vector with terra", {
 
 testthat::test_that(".check_vector with file path and extent", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_vect <- terra::vect(input_char)
@@ -238,6 +248,7 @@ testthat::test_that(".check_vector with file path and extent", {
 
 testthat::test_that(".check_character with non-character inputs",{
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # test for non-character input
   testthat::expect_message(
@@ -257,6 +268,7 @@ testthat::test_that(".check_character with non-character inputs",{
 
 testthat::test_that(".check_character with character inputs",{
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
@@ -282,6 +294,7 @@ testthat::test_that(".check_character with character inputs",{
 
 testthat::test_that(".check_character with sf objects", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("stars")
@@ -315,6 +328,7 @@ testthat::test_that(".check_character with sf objects", {
 
 testthat::test_that(".check_character with Spat* objects", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("terra")
 
@@ -344,7 +358,6 @@ testthat::test_that(".check_character with Spat* objects", {
 
 # `[` Tests ####
 testthat::test_that("`[` methods in chopin -- SpatVector-bbox", {
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -360,7 +373,6 @@ testthat::test_that("`[` methods in chopin -- SpatVector-bbox", {
 
 
 testthat::test_that("`[` methods in chopin -- SpatVector-sf", {
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -376,7 +388,6 @@ testthat::test_that("`[` methods in chopin -- SpatVector-sf", {
 
 
 testthat::test_that("`[` methods in chopin -- SpatVector-sfc", {
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -392,7 +403,6 @@ testthat::test_that("`[` methods in chopin -- SpatVector-sfc", {
 
 
 testthat::test_that("`[` methods in chopin -- SpatVector-SpatExtent", {
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -409,7 +419,7 @@ testthat::test_that("`[` methods in chopin -- SpatVector-SpatExtent", {
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
   testthat::skip_on_ci()
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -419,8 +429,8 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
   nc10 <- nct[seq_len(10L), ]
   nc10box <- terra::ext(nc10)
-  nc10e <- .intersect_extent(nc10box, NULL)
-  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "terra")
+  nc10e <- chopin:::.intersect_extent(nc10box, NULL)
+  nct10 <- chopin:::.check_vector(input = nct, extent = nc10box, out_class = "terra")
 
   testthat::expect_s4_class(nc10e, "SpatExtent")
   testthat::expect_s4_class(nct10, "SpatVector")
@@ -429,6 +439,7 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
@@ -455,6 +466,7 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
   testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")

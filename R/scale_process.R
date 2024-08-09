@@ -110,15 +110,17 @@ par_grid <-
     # is the function extract_at?
     is_extract_at <- any(endsWith(funname, "extract_at"))
     funname <- funname[length(funname)]
-    pkgname <- .check_package(funname)
+    pkgname <- try(.check_package(funname), silent = TRUE)
 
     # parallel worker will take terra class objects
     # if chopin function is used
     class_vec <-
-      if (is_extract_at) {
-        "sf"
-      } else if (funname == "chopin") {
-        "terra"
+      if (pkgname == "chopin") {
+        if (is_extract_at) {
+          "sf"
+        } else {
+          "terra"
+        }
       } else {
         pkgname
       }
@@ -354,15 +356,17 @@ par_hierarchy <-
     # is the function extract_at?
     is_extract_at <- any(endsWith(funname, "extract_at"))
     funname <- funname[length(funname)]
-    pkgname <- .check_package(funname)
+    pkgname <- try(.check_package(funname), silent = TRUE)
 
     # parallel worker will take terra class objects
     # if chopin function is used
     class_vec <-
-      if (is_extract_at) {
-        "sf"
-      } else if (funname == "chopin") {
-        "terra"
+      if (pkgname == "chopin") {
+        if (is_extract_at) {
+          "sf"
+        } else {
+          "terra"
+        }
       } else {
         pkgname
       }
@@ -646,15 +650,17 @@ par_multirasters <-
     # is the function extract_at?
     is_extract_at <- any(endsWith(funname, "extract_at"))
     funname <- funname[length(funname)]
-    pkgname <- .check_package(funname)
+    pkgname <- try(.check_package(funname), silent = TRUE)
 
     # parallel worker will take terra class objects
     # if chopin function is used
     class_vec <-
-      if (is_extract_at) {
-        "sf"
-      } else if (funname == "chopin") {
-        "terra"
+      if (pkgname == "chopin") {
+        if (is_extract_at) {
+          "sf"
+        } else {
+          "terra"
+        }
       } else {
         pkgname
       }

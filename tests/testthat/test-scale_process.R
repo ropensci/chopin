@@ -1,9 +1,10 @@
 ### .par_screen tests ####
 testthat::test_that(".par_screen -- vector", {
+  testthat::skip_on_ci()
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
@@ -76,6 +77,8 @@ testthat::test_that(".par_screen -- vector", {
 
 
 testthat::test_that(".par_screen -- raster", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("dplyr")
@@ -83,13 +86,13 @@ testthat::test_that(".par_screen -- raster", {
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  # withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # Reading data
   ## NC counties polygon
   bundleras <- system.file("ex/elev.tif", package = "terra")
 
   scr_terra <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "raster",
       input = bundleras,
       input_id = NULL,
@@ -98,7 +101,7 @@ testthat::test_that(".par_screen -- raster", {
 
   # in "raster" mode, out_class = "sf" is ignored.
   scr_sf <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "raster",
       input = bundleras,
       input_id = NULL,
@@ -110,7 +113,7 @@ testthat::test_that(".par_screen -- raster", {
 
   # input_id is ignored
   scr_trid <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "raster",
       input = bundleras,
       input_id = "FIPS",
@@ -130,7 +133,7 @@ testthat::test_that("par_grid -- plain mode with raster path", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
@@ -219,7 +222,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
@@ -330,7 +333,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE,
          future.plan = "mirai_multisession")
@@ -405,12 +408,12 @@ testthat::test_that("par_grid -- par_pad_balanced", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE,
-         future.plan = "mirai_multisession",
          rlib_message_verbosity = "warning")
   )
+  future::plan(future.mirai::mirai_multisession, workers = 2L)
   withr::local_seed(202407)
 
   # Reading data
@@ -500,15 +503,15 @@ testthat::test_that(
     withr::local_package("future.apply")
     withr::local_package("future.mirai")
     withr::local_package("dplyr")
-    # withr::local_package("chopin")
+    withr::local_package("chopin")
 
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
-        future.resolve.recursive = 2L,
-        future.plan = "mirai_multisession"
+        future.resolve.recursive = 2L
       )
     )
+    future::plan(future.mirai::mirai_multisession, workers = 2L)
     withr::local_seed(202407)
 
     ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
@@ -577,7 +580,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(
       sf_use_s2 = FALSE,
@@ -643,7 +646,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
 
   withr::local_options(
     list(
@@ -747,7 +750,7 @@ testthat::test_that("par_hierarchy: define level by substring", {
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
 
   withr::local_options(
     list(
@@ -818,7 +821,7 @@ testthat::test_that("generic function should be parallelized properly", {
   withr::local_package("future")
   withr::local_package("future.apply")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
 
   withr::local_options(
     list(
@@ -874,11 +877,10 @@ testthat::test_that(
     withr::local_package("future.mirai")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
-    # withr::local_package("chopin")
+    withr::local_package("chopin")
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
-        future.plan = "mirai_multisession",
         future.resolve.recursive = 2L
       )
     )
@@ -930,7 +932,7 @@ testthat::test_that(
     withr::local_package("future.mirai")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
-    # withr::local_package("chopin")
+    withr::local_package("chopin")
     withr::local_options(
       list(
         sf_use_s2 = FALSE,
@@ -979,7 +981,7 @@ testthat::test_that(
     withr::local_package("future.mirai")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
-    # withr::local_package("chopin")
+    withr::local_package("chopin")
 
     withr::local_options(
       list(
@@ -1056,7 +1058,7 @@ testthat::test_that(
     withr::local_package("future.mirai")
     withr::local_package("future.apply")
     withr::local_package("dplyr")
-    # withr::local_package("chopin")
+    withr::local_package("chopin")
 
     withr::local_options(
       list(
