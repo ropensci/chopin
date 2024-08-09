@@ -116,8 +116,6 @@ DiagrammeR::mermaid(mermaid_chart_vector, width = 1000, height = 600)
 ```
 
 
-
-
 ## Installation
 
 - `chopin` can be installed using `remotes::install_github` (also possible with `pak::pak` or `devtools::install_github`).
@@ -128,9 +126,9 @@ remotes::install_github("NIEHS/chopin")
 ```
 
 
-
 ## Examples
 - Examples will navigate `par_grid`, `par_hierarchy`, and `par_multirasters` functions in `chopin` to parallelize geospatial operations.
+
 ```{r load-packages}
 # check and install packages to run examples
 pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai")

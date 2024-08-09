@@ -3,11 +3,11 @@
   "@type": "SoftwareSourceCode",
   "identifier": "chopin",
   "description": "Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.",
-  "name": "chopin: Computation of spatial data by hierarchical and objective partitioning of inputs for parallel processing",
+  "name": "chopin: Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing",
   "codeRepository": "https://github.com/NIEHS/chopin",
   "issueTracker": "https://github.com/NIEHS/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.7.6.20240710",
+  "version": "0.7.8.20240809",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -61,6 +61,30 @@
     },
     {
       "@type": "SoftwareApplication",
+      "identifier": "devtools",
+      "name": "devtools",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=devtools"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "targets",
+      "name": "targets",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=targets"
+    },
+    {
+      "@type": "SoftwareApplication",
       "identifier": "DiagrammeR",
       "name": "DiagrammeR",
       "provider": {
@@ -73,15 +97,27 @@
     },
     {
       "@type": "SoftwareApplication",
-      "identifier": "future.batchtools",
-      "name": "future.batchtools",
+      "identifier": "future.mirai",
+      "name": "future.mirai",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
         "name": "Comprehensive R Archive Network (CRAN)",
         "url": "https://cran.r-project.org"
       },
-      "sameAs": "https://CRAN.R-project.org/package=future.batchtools"
+      "sameAs": "https://CRAN.R-project.org/package=future.mirai"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "mirai",
+      "name": "mirai",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=mirai"
     },
     {
       "@type": "SoftwareApplication",
@@ -228,18 +264,6 @@
     },
     "7": {
       "@type": "SoftwareApplication",
-      "identifier": "future.mirai",
-      "name": "future.mirai",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=future.mirai"
-    },
-    "8": {
-      "@type": "SoftwareApplication",
       "identifier": "future.apply",
       "name": "future.apply",
       "provider": {
@@ -250,7 +274,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=future.apply"
     },
-    "9": {
+    "8": {
       "@type": "SoftwareApplication",
       "identifier": "igraph",
       "name": "igraph",
@@ -262,24 +286,12 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=igraph"
     },
-    "10": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "methods",
       "name": "methods"
     },
-    "11": {
-      "@type": "SoftwareApplication",
-      "identifier": "mirai",
-      "name": "mirai",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=mirai"
-    },
-    "12": {
+    "10": {
       "@type": "SoftwareApplication",
       "identifier": "rlang",
       "name": "rlang",
@@ -291,7 +303,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=rlang"
     },
-    "13": {
+    "11": {
       "@type": "SoftwareApplication",
       "identifier": "sf",
       "name": "sf",
@@ -304,7 +316,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=sf"
     },
-    "14": {
+    "12": {
       "@type": "SoftwareApplication",
       "identifier": "stars",
       "name": "stars",
@@ -317,7 +329,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=stars"
     },
-    "15": {
+    "13": {
       "@type": "SoftwareApplication",
       "identifier": "terra",
       "name": "terra",
@@ -330,7 +342,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=terra"
     },
-    "16": {
+    "14": {
       "@type": "SoftwareApplication",
       "identifier": "collapse",
       "name": "collapse",
@@ -342,7 +354,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=collapse"
     },
-    "17": {
+    "15": {
       "@type": "SoftwareApplication",
       "identifier": "lifecycle",
       "name": "lifecycle",
@@ -356,7 +368,7 @@
     },
     "SystemRequirements": "NetCDF4"
   },
-  "fileSize": "27866.818KB",
+  "fileSize": "27931.947KB",
   "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],
