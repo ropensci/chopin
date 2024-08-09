@@ -24,7 +24,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr
+          extra-packages: any::covr, any::DT, any::htmltools
           needs: coverage
 
       - name: Cache C++ and R dependencies
