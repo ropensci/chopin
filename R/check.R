@@ -1128,8 +1128,8 @@ setMethod(
 #' @noRd
 .check_package <-
   function(fun) {
-    library(sf)
-    library(terra)
+    requireNamespace("sf")
+    requireNamespace("terra")
     options(sf_use_s2 = FALSE)
 
     funname <- find(fun)
