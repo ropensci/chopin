@@ -8,14 +8,10 @@
 
 library(testthat)
 library(devtools)
-# temp_lib <- tempdir()
-# devtools::install(pkg = basename("."), lib = temp_lib)
 
-# # Set the library path for the session
-# .libPaths(temp_lib)
 library(terra)
 library(sf)
 library(chopin)
 options(sf_use_s2 = FALSE)
 
-test_check("chopin")
+test_package("chopin")
