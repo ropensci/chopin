@@ -2,42 +2,53 @@
 % Please edit documentation in R/scale_process.R
 \name{par_hierarchy}
 \alias{par_hierarchy}
-\title{Process a given function using a hierarchy in input data}
+\title{Parallelize spatial computation by hierarchy in input data}
 \usage{
 par_hierarchy(
   regions,
   regions_id = NULL,
-  unit_id = NULL,
-  debug = FALSE,
+  length_left = NULL,
+  pad = 0,
+  pad_y = FALSE,
   fun_dist,
-  ...
+  ...,
+  .debug = FALSE
 )
 }
 \arguments{
-\item{regions}{sf/SpatVector object.
+\item{regions}{\code{sf}/\code{SpatVector} object.
 Computational regions. Only polygons are accepted.}
 
-\item{regions_id}{character(nrow(regions)) or character(1).
-The regions will be split by the common level value.
-The level should be higher than the original data level.
-A field name with the higher level information is also accepted.}
+\item{regions_id}{character(1). Name of unique ID field in \code{regions}.
+The regions will be split by the common level value.}
 
-\item{unit_id}{character(1). Default is NULL.
-If NULL, the lower level units will be split by the intersection
-between a higher level region and lower level units.
-Otherwise, the \strong{first} element of the ellipsis argument
-\code{...} is used to split the lower level units.}
+\item{length_left}{integer(1). Length of the first characters of
+the \code{regions_id} values. Default is NULL, which will not manipulate
+the \code{regions_id} values. If the number of characters is not
+consistent (for example, numerics), the function will alert the user.}
 
-\item{debug}{logical(1). Default is \code{FALSE}
+\item{pad}{numeric(1). Padding distance for each subregion defined
+by \code{regions_id} or trimmed \code{regions_id} values.
+in linear unit of coordinate system. Default is 0, which means
+each subregion is used as is. If the value is greater than 0,
+the subregion will be buffered by the value. The padding distance will
+be applied to \code{x} (\code{pad_y = FALSE}) or \code{y} (\code{pad_y = TRUE}) to filter
+the data.}
+
+\item{pad_y}{logical(1). Whether to filter y with the padded grid.
+Should be TRUE when x is where the values are calculated.
+Default is \code{FALSE}. In the reverse case, like \code{terra::extent} or
+\code{exactextractr::exact_extract}, the raster (x) should be scoped
+with the padded grid.}
+
+\item{fun_dist}{\code{sf}, \code{terra}, or \code{chopin} functions.
+This function should have \code{x} and \code{y} arguments.}
+
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
+
+\item{.debug}{logical(1). Default is \code{FALSE}
 If a unit computation fails, the error message and the \code{regions_id}
 value where the error occurred will be included in the output.}
-
-\item{fun_dist}{sf, terra, or chopin functions.}
-
-\item{...}{Arguments passed to the argument \code{fun_dist}.
-The \strong{second} place should get a vector or raster dataset from which
-you want to extract or calculate values. For example, a raster dataset
-when vector-raster overlay is performed.}
 }
 \value{
 a data.frame object with computation results.
@@ -48,85 +59,98 @@ For entries of the results, consult the function used in
 "Hierarchy" refers to a system,
 which divides the entire study region into multiple subregions.
 It is oftentimes reflected in an area code system
-(e.g., FIPS for US Census geographies, HUC-4, -6, -8, etc.).
-\link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
+(e.g., FIPS for US Census geographies and
+Nomenclature of Territorial Units for Statistics (NUTS), etc.).
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} in \code{\link[future:plan]{future::plan}}
 will parallelize the work by splitting lower level features into
 several higher level feature group.
 For details of the terminology in \code{future} package,
-refer to \link[future]{plan}.
+please refer to \code{\link[future:plan]{future::plan}} documentation.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
 }
+\details{
+In dynamic dots (\code{...}), \code{fun_dist} arguments should include
+x and y where sf/terra class objects or file paths are accepted.
+Hierarchy is interpreted by the \code{regions_id} argument first.
+\code{regions_id} is assumed to be a field name in the \code{x} or \code{y} argument
+object. It is expected that \code{regions} represents the higher level
+boundaries and \code{x} or \code{y} in \code{fun_dist} is the lower level boundaries.
+However, if that is not the case, with \code{trim} argument, the function
+will generate the higher level codes from \code{regions_id} by extracting
+left-t
+Whether \code{x} or \code{y} is searched is determined by \code{pad_y} value.
+\code{pad_y = TRUE} will make the function attempt to find \code{regions_id}
+in \code{x}, whereas \code{pad_y = FALSE} will look for \code{regions_id} at
+\code{y}. If the \code{regions_id} doesn't exist in \code{x} or \code{y}, the function
+will utilize spatial relationship (intersects) to filter the data.
+Note that dispatching computation by subregions based on the spatial
+relationship may lead to a slight discrepancy in the result. For
+example, if the higher and lower level features are not perfectly
+aligned, there may be some features that are not included or duplicated
+in the subregions. The function will alert the user if spatial relation-
+ship is used to filter the data.
+}
 \note{
-In dynamic dots (\code{...}), the first and second
-arguments should be the \code{fun_dist} arguments where
-\code{sf}/\code{SpatVector} objects are accepted.
-Virtually any \code{sf}/\code{terra} functions that accept two arguments
+Virtually any sf/terra functions that accept two arguments
 can be put in \code{fun_dist}, but please be advised that
 some spatial operations do not necessarily give the
-exact result from what would have been done single-thread.
+exact result from what would have been done with single thread.
 For example, distance calculated through this function may return the
 lower value than actual because the computational region was reduced.
 This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
-\dontrun{
 library(terra)
 library(sf)
-library(chopin)
 library(future)
-library(doFuture)
-sf::sf_use_s2(FALSE)
-registerDoFuture()
-plan(multicore)
+library(future.mirai)
+options(sf_use_s2 = FALSE)
+future::plan(future.mirai::mirai_multisession, workers = 2)
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-nccnty <- terra::vect(ncpath, layer = "county")
+nccnty <- sf::st_read(ncpath, layer = "county")
 nctrct <- sf::st_read(ncpath, layer = "tracts")
-nctrct <- terra::vect(nctrct)
 ncelev <-
-  terra::unwrap(
-    readRDS(
-      system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
-    )
-  )
-terra::crs(ncelev) <- "EPSG:5070"
-names(ncelev) <- c("srtm15")
+  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 
 ncsamp <-
-  terra::spatSample(
-    terra::ext(ncelev),
-    1e4L,
-    lonlat = FALSE,
-    as.points = TRUE
+  sf::st_sample(
+    nccnty,
+    size = 1e4L
   )
-ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
+# sfc to sf
+ncsamp <- sf::st_as_sf(ncsamp)
+# assign ID
+ncsamp$kid <- sprintf("K-\%05d", seq_len(nrow(ncsamp)))
 res <-
   par_hierarchy(
     regions = nccnty,
     regions_id = "GEOID",
-    fun_dist = extract_at_poly,
-    polys = nctrct,
-    surf = ncelev,
+    fun_dist = extract_at,
+    y = nctrct,
+    x = ncelev,
     id = "GEOID",
     func = "mean"
   )
-)
-}
 }
 \seealso{
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
+
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
 \code{\link{par_grid}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_make_grid}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
-\code{\link{par_multirasters}()}
+\code{\link{par_multirasters}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

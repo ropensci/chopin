@@ -10,12 +10,13 @@ dep_check(input)
 \item{input}{Spat* in terra or sf object.}
 }
 \value{
-A character object; one of \code{"terra"} and \code{"sf"}
+A character object; one of \code{"character"}, \code{"terra"} and \code{"sf"}
 }
 \description{
 Detect whether the input object is sf or Spat* object.
 }
 \examples{
+\dontrun{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -25,26 +26,23 @@ nc_sf <- sf::st_read(nc_path)
 dep_check(nc_sf)
 nc_vect <- terra::vect(nc_sf)
 dep_check(nc_vect)
-## END OF EXAMPLE
+}
 }
 \seealso{
 Other Helper functions: 
-\code{\link{any_class_args}()},
 \code{\link{clip_ras_ext}()},
 \code{\link{clip_vec_ext}()},
-\code{\link{crs_check}()},
 \code{\link{datamod}()},
 \code{\link{dep_switch}()},
-\code{\link{ext2poly}()},
 \code{\link{get_clip_ext}()},
-\code{\link{is_bbox_within_reference}()},
-\code{\link{is_within_ref}()},
 \code{\link{par_def_q}()},
-\code{\link{reproject_b2r}()},
+\code{\link{par_map_args}()},
 \code{\link{reproject_std}()},
-\code{\link{vect_valid_repair}()}
+\code{\link{reproject_to_raster}()},
+\code{\link{vect_validate}()}
 }
 \author{
 Insang Song
 }
 \concept{Helper functions}
+\keyword{internal}

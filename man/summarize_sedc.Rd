@@ -44,23 +44,37 @@ See \code{\link[terra:ext]{terra::ext}} for more details. Coordinate systems sho
 \item{...}{Placeholder.}
 }
 \value{
-data.frame (tibble) object with input field names with
+data.frame object with input field names with
 a suffix \code{"_sedc"} where the sums of EDC are stored.
 Additional attributes are attached for the EDC information.
 \itemize{
-\item attr(result, "sedc_bandwidth"): the bandwidth where
+\item \code{attr(result, "sedc_bandwidth")}: the bandwidth where
 concentration reduces to approximately five percent
-\item attr(result, "sedc_threshold"): the threshold distance
+\item \code{attr(result, "sedc_threshold")}: the threshold distance
 at which emission source points are excluded beyond that
 }
 }
 \description{
 Calculate Sum of Exponentially Decaying Contributions (SEDC) covariates
 }
+\details{
+The SEDC is specialized in vector to vector summary of covariates
+with exponential decay. Decaying slope will be defined by \code{sedc_bandwidth},
+where the concentration of the source is reduced to $\\exp(-3)$
+(approximately 5 \\%). This function is useful when users a proper theory
+of the attenuating concentration with the distance from the sources.
+It can be thought of as a fixed bandwidth kernel weighted sum of covariates,
+which encapsulates three steps:
+\itemize{
+\item Calculate the distance between each source and target points.
+\item Calculate the weight of each source point with the exponential decay.
+\item Summarize the weighted covariates.
+}
+}
 \note{
 Distance calculation is done with \code{terra} functions internally.
 Thus, the function internally converts \code{sf} objects in
-\code{point_*} arguments to \code{terra}. Please note that any \code{NA} values
+\verb{point_*} arguments to \code{terra}. Please note that any \code{NA} values
 in the input will be ignored in SEDC calculation.
 }
 \examples{
@@ -83,15 +97,13 @@ summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
 }
 \references{
 \itemize{
-\item \href{https://dx.doi.org/10.1021/es203152a}{Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780. }
-\item Wiesner C. (n.d.). \href{https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html}{Euclidean Sum of Exponentially Decaying Contributions Tutorial}
+\item \href{\doi{10.1021/es203152a}}{Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780.}
+\item Wiesner C. (n.d.). Euclidean Sum of Exponentially Decaying Contributions Tutorial.
 }
 }
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_buffer}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()}
 }

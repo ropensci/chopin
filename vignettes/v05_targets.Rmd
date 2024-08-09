@@ -1,0 +1,225 @@
+---
+title: "targets and grid objects"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{targets and grid objects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+## Objective
+`targets` is a powerful workflow management for reproducibility. `chopin` grid partitioning is a way to parallelize the repeated tasks across unit grids by applying patterns. This vignette demonstrates how to use `targets` and `chopin` together.
+
+## Installation
+Despite the `targets` is not referenced in the `DESCRIPTION` file, it is required to install `targets` package to run the code in this vignette.
+
+```{r}
+rlang::check_installed("targets")
+```
+
+
+## Example
+`par_pad_grid()` or `par_pad_balanced()` functions have an argument `return_wkt` to return the grid partition as well-known text (WKT) format characters. This format is exported to the parallel workers regardless of the parallel backend such as `future::multisession` and `mirai::daemons`, which cannot interoperate with `externalpnt` objects for C++ functions. Using WKT character objects, we can easily convert them to `sf` or `terra` objects **inside** a function running on a parallel worker and use them in the `targets` workflow with standard branching/patterning interface such as `map()`, `cross()`, and others.
+
+The example below will generate a grid partition of the North Carolina state and demonstrate how to use the grid partition in the `targets` workflow.
+
+### Random points in NC
+- For demonstration of `par_pad_grid()`, we use moderately clustered point locations generated inside the counties of North Carolina.
+
+```{r load-package}
+library(chopin)
+library(sf)
+library(spatstat.random)
+
+sf::sf_use_s2(FALSE)
+set.seed(202404)
+
+```
+
+```{r nc-gen-points}
+ncpoly <- system.file("shape/nc.shp", package = "sf")
+ncsf <- sf::read_sf(ncpoly)
+ncsf <- sf::st_transform(ncsf, "EPSG:5070")
+plot(sf::st_geometry(ncsf))
+
+ncpoints <-
+  sf::st_sample(
+    x = ncsf,
+    type = "Thomas",
+    mu = 20,
+    scale = 1e4,
+    kappa = 1.25e-9
+  )
+ncpoints <- sf::st_as_sf(ncpoints)
+ncpoints <- sf::st_set_crs(ncpoints, "EPSG:5070")
+ncpoints$pid <- sprintf("PID-%05d", seq(1, nrow(ncpoints)))
+plot(sf::st_geometry(ncpoints))
+
+```
+
+
+### Grid partition of NC
+```{r}
+ncgrid_sf <-
+  par_pad_grid(
+    input = ncpoints,
+    mode = "grid",
+    nx = 6L,
+    ny = 3L,
+    padding = 1e4L,
+    return_wkt = FALSE
+  )
+
+ncgrid_sf$original
+ncgrid_sf$padded
+```
+Since `sf` objects are exportable to the parallel workers, we can also consider these as a part of the `targets` workflow.
+
+```{r}
+ncgrid_wkt <-
+  par_pad_grid(
+    input = ncpoints,
+    mode = "grid",
+    nx = 6L,
+    ny = 3L,
+    padding = 1e4L,
+    return_wkt = TRUE
+  )
+
+ncgrid_wkt$original
+ncgrid_wkt$padded
+```
+
+
+### Targets workflow
+Assume that we design a function `calc_something()` that calculates something from the grid partition. We can use the grid partition as an input to the function. In `sf` object centered workflow, we can use `sf` functions to interact with the exported grid partition objects. Let's consider a binary spatial operation where `x` and `y` are involved. `x` is a dataset at the variable is calculated whereas `y` is a raster file path from which we extract the values. Please note that SpatRaster objects cannot be exported to parallel workers as it is. We will read the object in parallel workers. To branch out across the grid partition, the function for the unit grid should handle subsetting `x` to narrow down the calculation scope to each grid. Therefore, a synopsis of the function should look like this:
+
+
+```{r}
+calc_something <- function(x, y, unit_grid, pad_grid, ...) {
+  # 0. restore unit_grid and pad_grid to sf objects if they are in WKT format
+  # 1-1. make x subset using intersect logic between x and unit_grid
+  # 1-2. read y subset using intersect logic between y and pad_grid
+  # 2. make buffer of x
+  # 3. do actual calculation (use ... wisely to pass additional arguments)
+  # 4. return the result
+}
+
+```
+
+`map(unit_grid, pad_grid)` to `pattern` argument `tar_target()` will do it for you.
+
+```{r}
+calc_something <- function(x, y, unit_grid, pad_grid, ...) {
+  # 1-1. make x subset using intersect logic between x and unit_grid
+  x <- x[unit_grid, ]
+  # 1-2. read y subset using intersect logic between y and pad_grid
+  yext <- terra::ext(sf::st_bbox(pad_grid))
+  yras <- terra::rast(y, win = yext)
+  # 2. make buffer of x
+  xbuffer <- sf::st_buffer(x, units::set_units(10, "km"))
+  # 3. do actual calculation (use ... wisely to pass additional arguments)
+  xycalc <- exactextractr::exact_extract(
+    yras,
+    xbuffer,
+    force_df = TRUE,
+    fun = "mean",
+    append_cols = "pid", # assume that pid is a unique identifier
+    progress = FALSE
+  )
+  # 4. return the result
+  return(xycalc)
+}
+
+```
+
+`sf` object inherits `data.frame` class. To align this object with `targets` branching, it will be clear to convert this object into a `list` object to pattern across the grid partition. `par_split_list` in chopin does it for you.
+
+```{r}
+ncgrid_sflist <-
+  par_split_list(ncgrid_sf)
+
+```
+
+
+When WKT format is used, the function should be modified to restore the grid partition to `sf` objects. The function should be modified as follows:
+
+```{r}
+calc_something <- function(x, y, unit_grid, pad_grid, ...) {
+  # 0. restore unit_grid and pad_grid to sf objects if they are in WKT format
+  unit_grid <- sf::st_as_sf(wkt = unit_grid)
+  pad_grid <- sf::st_as_sf(wkt = pad_grid)
+  # 1-1. make x subset using intersect logic between x and unit_grid
+  x <- x[unit_grid, ]
+  # 1-2. read y subset using intersect logic between y and pad_grid
+  yext <- terra::ext(sf::st_bbox(pad_grid))
+  yras <- terra::rast(y, win = yext)
+  # 2. make buffer of x
+  xbuffer <- sf::st_buffer(x, units::set_units(10, "km"))
+  # 3. do actual calculation (use ... wisely to pass additional arguments)
+  xycalc <- exactextractr::exact_extract(
+    yras,
+    xbuffer,
+    fun = "mean",
+    force_df = TRUE,
+    append_cols = "pid", # assume that pid is a unique identifier
+    progress = FALSE
+  )
+  # 4. return the result
+  return(xycalc)
+}
+
+```
+
+```{r}
+ncgrid_wktlist <-
+  par_split_list(ncgrid_wkt)
+```
+
+`tar_target` can use this list object with our function `calc_something` to branch out. A workable example of `tar_target` with a proper _targets.R file is as follows:
+
+```r
+list(
+  tar_target(
+    name = points,
+    command = sf::st_read("path_to_points.format")
+  ),
+  tar_target(
+    name = raster,
+    command = "path_to_raster.format",
+    format = "file"
+  ),
+  tar_target(
+    name = chopingrid,
+    command = par_pad_grid(points, input = points, nx = 6L, ny = 3L, padding = 1e4L, return_wkt = FALSE)
+  ),
+  tar_target(
+    name = chopingrid_split,
+    command = mapply(
+      function(listorig, row) {
+        list(listorig$original[row, ], listorig$padded[row, ])
+      },
+      chopingrid, seq_len(nrow(chopingrid$original)),
+      SIMPLIFY = FALSE
+    ),
+    iteration = "list"
+  ),
+  tar_target(
+    name = result,
+    command =
+    calc_something(
+      points, raster,
+      chopingrid_split[[1]], chopingrid_split[[2]]
+    ),
+    pattern = map(chopingrid_split),
+    iteration = "list"
+  )
+)
+```
+
+The target `result` will be a list of `data.frame`s that contain the calculation results.

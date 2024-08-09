@@ -94,7 +94,7 @@ prism <- "/home/felix/Downloads/PRISM_tmax_30yr_normal_800mM5_all_bil"
 prism_files <- list.files(prism, "*.bil$", full.names = TRUE)
 prismr <- terra::rast(prism_files)
 
-grid <- chopin::par_make_gridset()
+grid <- chopin::par_pad_grid()
 chopin::par_grid(
   grid,
   fun_dist = chopin::extract_at,

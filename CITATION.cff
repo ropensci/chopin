@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: chopin
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Insang
+    family-names: Song
+    email: geoissong@gmail.com
+    affiliation: NIEHS
+    orcid: 'https://orcid.org/0000-0001-8732-3256'
+  - given-names: Kyle P.
+    family-names: Messier
+    email: kyle.messier@nih.gov
+    affiliation: NIEHS
+    orcid: 'https://orcid.org/0000-0001-9508-9623'
+repository-code: 'https://github.com/NIEHS/chopin'
+keywords:
+  - spatial data
+  - parallel processing
+license: MIT

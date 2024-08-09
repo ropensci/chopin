@@ -42,7 +42,7 @@ pgsf1e <- pgsf |> dplyr::sample_n(4e5)
 ```
 
 ```{r main_run}
-grid_init <- chopin::par_make_gridset(
+grid_init <- chopin::par_pad_grid(
   pgsf,
   "grid",
   nx = 60L,
@@ -67,7 +67,7 @@ cropscape_extr_multi <-
 
 
 ```{r main_run}
-grid_init1e <- chopin::par_make_gridset(
+grid_init1e <- chopin::par_pad_grid(
   pgsf1e,
   "grid",
   nx = 60L,

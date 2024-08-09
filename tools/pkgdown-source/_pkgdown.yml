@@ -30,10 +30,10 @@ reference:
   - starts_with("clip_")
   - starts_with("is_")
   - starts_with("reproject_")
-  - vect_valid_repair
+  - vect_validate
   - any_class_args
   - datamod
-  - ext2poly
+  - ext_to_poly
   - get_clip_ext
   - rast_short
   - crs_check

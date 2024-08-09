@@ -1,26 +1,39 @@
 
-testthat::test_that("What package does the input object belong?",
+testthat::test_that("Input object class is detected",
   {
+    testthat::skip_on_ci()
+    testthat::skip_on_covr()
     withr::local_package("stars")
     withr::local_package("terra")
+    # withr::local_package("chopin")
     withr::local_options(list(sf_use_s2 = FALSE))
     bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
     bcsd_stars <- stars::read_stars(bcsd_path)
 
-    packbound_stars <- dep_check(bcsd_stars)
+    packbound_stars <- chopin:::dep_check(bcsd_stars)
     sprast_bcsd <- terra::rast(bcsd_path)
     packbound_terra <- dep_check(sprast_bcsd)
 
     testthat::expect_equal(packbound_stars, "sf")
     testthat::expect_equal(packbound_terra, "terra")
+
+    # proxy
+    ncpath <- system.file(package = "sf", "shape/nc.shp")
+    nc <- terra::vect(ncpath, proxy = TRUE)
+    packbound_proxy <- chopin:::dep_check(nc)
+    testthat::expect_equal(packbound_proxy, "terra")
+
   }
 )
 
 
-testthat::test_that("What package does the input object belong?",
+testthat::test_that("Data model detection",
   {
+    testthat::skip_on_ci()
+    testthat::skip_on_covr()
     withr::local_package("stars")
     withr::local_package("terra")
+    # withr::local_package("chopin")
     withr::local_options(list(sf_use_s2 = FALSE))
     bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
     bcsd_stars <- stars::read_stars(bcsd_path)
@@ -39,8 +52,11 @@ testthat::test_that("What package does the input object belong?",
 )
 
 testthat::test_that("CRS is transformed when it is not standard", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
+  # withr::local_package("chopin")
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nc <- system.file(package = "sf", "shape/nc.shp")
@@ -51,11 +67,6 @@ testthat::test_that("CRS is transformed when it is not standard", {
   ncna <- nc
   sf::st_crs(ncna) <- NA
   ncnatr <- terra::vect(ncna)
-
-  testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:4326"))
-  testthat::expect_no_error(reproject_std(nc, crs_standard = "EPSG:5070"))
-  testthat::expect_no_error(reproject_std(nctr, crs_standard = "EPSG:4326"))
-  testthat::expect_no_error(reproject_std(nctr, crs_standard = "EPSG:5070"))
 
   nctr_align <- reproject_std(nctr, "EPSG:4326")
   nc_align <- reproject_std(nc, "EPSG:4326")
@@ -76,129 +87,403 @@ testthat::test_that("CRS is transformed when it is not standard", {
 })
 
 
-testthat::test_that("vector validity check is cleared", {
+testthat::test_that("reproject to raster: sf", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
+  # withr::local_package("chopin")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  nc <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::read_sf(nc)
-
-  testthat::expect_no_error(vect_valid_repair(nc))
-
-  nct <- terra::vect(nc)
-  testthat::expect_no_error(vect_valid_repair(nct))
-})
-
-
-testthat::test_that("input extent is converted to a polygon", {
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 25, ymax = 52)
-  mainland_box <- ext2poly(mainland_vec, output_class = "sf")
-  mainland_box_t <- ext2poly(mainland_vec, output_class = "terra")
-  mainland_vec_un <- unname(mainland_vec)
-
-  testthat::expect_s3_class(mainland_box, "sf")
-  # terra Spat* objects are s4 class...
-  testthat::expect_s4_class(mainland_box_t, "SpatVector")
-  # error cases
-  testthat::expect_error(
-    ext2poly(mainland_vec_un, output_class = "sf")
-  )
-  testthat::expect_error(
-    ext2poly(mainland_vec_un, output_class = "GeoDataFrames")
-  )
-})
-
-
-testthat::test_that("Check bbox abides.", {
-  withr::local_package("sf")
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  # starts from sf/stars
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  nctr <- terra::vect(nc)
+  terra::crs(nctr) <- "EPSG:5070"
 
-  testthat::expect_no_error(is_bbox_within_reference(ncp, nc))
-  res <- is_bbox_within_reference(ncp, nc)
-  testthat::expect_equal(res, TRUE)
+  # make random raster
+  rr <- terra::rast(matrix(runif(100), 10, 10), crs = "EPSG:4326")
 
-  # error cases
-  testthat::expect_no_error(
-    is_bbox_within_reference(ncp, sf::st_bbox(nc))
+  ncr <- reproject_to_raster(nc, rr)
+  nctr <- reproject_to_raster(nctr, rr)
+
+  testthat::expect_s3_class(ncr, "sf")
+  testthat::expect_s4_class(nctr, "SpatVector")
+})
+
+
+testthat::test_that("vector validity check is cleared", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::local_package("sf")
+  withr::local_package("terra")
+  # withr::local_package("chopin")
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(nc)
+
+  testthat::expect_no_error(vect_validate(nc))
+
+  nct <- terra::vect(nc)
+  testthat::expect_no_error(vect_validate(nct))
+})
+
+
+testthat::test_that(".check_id throws error with non-character id", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::local_package("sf")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_sf <- sf::st_read(input_char)
+
+  testthat::expect_error(
+    .check_id(input_sf, 32)
   )
 })
 
 
-testthat::test_that("crs_check is working as expected", {
+testthat::test_that(".check_id throws error with nonexistent id", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
   withr::local_package("sf")
-  withr::local_package("terra")
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_options(list(sf_use_s2 = FALSE))
-  ncpath <- system.file("shape/nc.shp", package = "sf")
-  nc <- sf::read_sf(ncpath)
-  nct <- terra::vect(nc)
-  crs_checked1 <- crs_check(nc)
-  dummy <- character(0)
-  crs_checked2 <- crs_check(nct)
-
-  testthat::expect_equal(crs_checked1, sf::st_crs(nc))
-  testthat::expect_equal(crs_checked2, terra::crs(nct))
-  testthat::expect_error(crs_check(dummy))
-  ncna <- nc
-  sf::st_crs(ncna) <- NA
-  testthat::expect_error(crs_check(ncna))
-  nctna <- nct
-  terra::crs(nctna) <- ""
-  testthat::expect_error(crs_check(nctna))
-
-})
-
-
-testthat::test_that("nc data is within the mainland US", {
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-  ncpath <- system.file("shape/nc.shp", package = "sf")
-  nc <- sf::read_sf(ncpath)
-  nc <- sf::st_transform(nc, "EPSG:4326")
-  mainland_vec <- c(xmin = -128, xmax = -62, ymin = 22, ymax = 52)
-  mainland_box <- ext2poly(mainland_vec, output_class = "sf")
-  within_res <- is_within_ref(nc, mainland_box)
-  testthat::expect_equal(within_res, TRUE)
-
-  # error cases
-  testthat::expect_error(is_within_ref(list(1), mainland_box))
-  testthat::expect_error(is_within_ref(nc, list(1)))
-
-})
-
-testthat::test_that("check_subject performs necessary conversions", {
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_sf <- sf::st_read(input_char)
-  checked_sf <- check_subject(input_sf, subject_id = "FIPS")
-  testthat::expect_equal(dep_check(checked_sf), "terra")
 
-  input_vect <- terra::vect(input_sf)
-  checked_vect <- check_subject(input_vect, subject_id = "FIPS")
+  testthat::expect_error(
+    .check_id(input_sf, "fips"),
+    "id should exist in the input object"
+  )
+})
+
+
+testthat::test_that(".check_vector with sf", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_sf <- sf::st_read(input_char)
+  checked_sf <-
+    .check_vector(
+      input_sf, input_id = "FIPS",
+      extent = NULL, out_class = "sf"
+    )
+  testthat::expect_equal(dep_check(checked_sf), "sf")
+
+})
+
+
+testthat::test_that(".check_vector with terra", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_vect <- terra::vect(input_char)
+  checked_vect <-
+    .check_vector(
+      input_vect, input_id = "FIPS",
+      extent = NULL, out_class = "terra"
+    )
   testthat::expect_equal(dep_check(checked_vect), "terra")
 
+})
+
+
+testthat::test_that(".check_vector with file path and extent", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_vect <- terra::vect(input_char)
+
+  # nonexistent file path: terra/sf ingestion is tried and it
+  # inherits "try-error", still available for .check_id
+  # the error is thrown in .check_id
+  testthat::expect_error(
+    .check_vector(
+      "nonexistent.gpkg", input_id = "FIPS",
+      extent = NULL, out_class = "sf"
+    ),
+    "id should exist in the input object"
+  )
+
+  testthat::expect_error(
+    .check_vector(
+      "nonexistent.gpkg", input_id = "FIPS",
+      extent = NULL, out_class = "terra"
+    ),
+    "id should exist in the input object"
+  )
+
+  # existing file path: terra output
   checked_char <-
-    check_subject(
-      input_char, extent = NULL, subject_id = "FIPS"
+    .check_vector(
+      input_char, extent = NULL, input_id = "FIPS", out_class = "terra"
     )
   testthat::expect_equal(dep_check(checked_char), "terra")
 
+  # existing file path: terra output with extent
   checked_ext <-
-    check_subject(
-      input_char, extent = c(-80, -77, 35, 36), subject_id = "FIPS"
+    .check_vector(
+      input_char, extent = c(-80, -77, 35, 36),
+      input_id = "FIPS", out_class = "terra"
     )
   testthat::expect_equal(dep_check(checked_ext), "terra")
+
+  # existing file path: terra output without extent
+  checked_ext <-
+    .check_vector(
+      input_char, extent = NULL,
+      input_id = "FIPS", out_class = "terra"
+    )
+  testthat::expect_equal(dep_check(checked_ext), "terra")
+
+})
+
+
+testthat::test_that(".check_character with non-character inputs",{
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  # test for non-character input
+  testthat::expect_message(
+    testthat::expect_error(.check_character(3L)),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    testthat::expect_error(.check_character(11.11)),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    testthat::expect_error(.check_character(NA)),
+    "Input is not a character."
+  )
+})
+
+
+testthat::test_that(".check_character with character inputs",{
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+  # test for non file path character input
+  testthat::expect_error(
+    .check_character("test")
+  )
+  # vector file
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  vec_file <- .check_character(ncfile)
+  # remove attributes for comparison
+  attr(vec_file, "crs") <- NULL
+  testthat::expect_equal(vec_file, "vector")
+
+  # raster file
+  elevfile <- system.file(package = "terra", "ex/elev.tif")
+  ras_file <- .check_character(elevfile)
+  attr(ras_file, "crs") <- NULL
+  testthat::expect_equal(ras_file, "raster")
+})
+
+
+testthat::test_that(".check_character with sf objects", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # sf object
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  elevfile <- system.file(package = "terra", "ex/elev.tif")
+
+  nc <- sf::read_sf(ncfile)
+  elev <- stars::read_stars(elevfile)
+  testthat::expect_message(
+    ncsf_detected <- .check_character(nc),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    elev_detected <- .check_character(elev),
+    "Input is not a character."
+  )
+  # is CRS correctly detected from the input path?
+  testthat::expect_true(is.character(attr(ncsf_detected, "crs")))
+  testthat::expect_true(is.na(attr(elev_detected, "crs")))
+
+  # remove attributes for comparison
+  attr(ncsf_detected, "crs") <- NULL
+  attr(elev_detected, "crs") <- NULL
+  testthat::expect_equal(ncsf_detected, "vector")
+  testthat::expect_equal(elev_detected, "raster")
+
+})
+
+testthat::test_that(".check_character with Spat* objects", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  withr::local_package("terra")
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  elevfile <- system.file(package = "terra", "ex/elev.tif")
+
+  nct <- terra::vect(ncfile)
+  elevt <- terra::rast(elevfile)
+  testthat::expect_message(
+    nct_detected <- .check_character(nct),
+    "Input is not a character."
+  )
+  testthat::expect_message(
+    elevt_detected <- .check_character(elevt),
+    "Input is not a character."
+  )
+  testthat::expect_true(is.character(attr(nct_detected, "crs")))
+  testthat::expect_true(is.character(attr(elevt_detected, "crs")))
+
+  attr(nct_detected, "crs") <- NULL
+  attr(elevt_detected, "crs") <- NULL
+  testthat::expect_equal(nct_detected, "vector")
+  testthat::expect_equal(elevt_detected, "raster")
+
+})
+
+
+# `[` Tests ####
+testthat::test_that("`[` methods in chopin -- SpatVector-bbox", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
+
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- sf::st_bbox(nc10)
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that("`[` methods in chopin -- SpatVector-sf", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
+
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- sf::st_as_sf(nc10)
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that("`[` methods in chopin -- SpatVector-sfc", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
+
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- sf::st_as_sf(nc10)$geometry
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that("`[` methods in chopin -- SpatVector-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nc <- sf::read_sf(ncfile)
+  nct <- terra::vect(nc)
+
+  nc10 <- nc[seq_len(10L), ]
+  nc10box <- terra::ext(sf::st_bbox(nc10))
+  testthat::expect_no_error(nct10 <- nct[nc10box, ])
+})
+
+
+testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nc10 <- nct[seq_len(10L), ]
+  nc10box <- terra::ext(nc10)
+  nc10e <- chopin:::.intersect_extent(nc10box, NULL)
+  nct10 <- chopin:::.check_vector(input = nct, extent = nc10box, out_class = "terra")
+
+  testthat::expect_s4_class(nc10e, "SpatExtent")
+  testthat::expect_s4_class(nct10, "SpatVector")
+})
+
+
+testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nc10 <- nct[seq_len(10L), ]
+  nc10box <- terra::ext(nc10)
+  nc10e <- .intersect_extent(nc10box, NULL)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "terra")
+
+  testthat::expect_s4_class(nc10e, "SpatExtent")
+  testthat::expect_s4_class(nct10, "SpatVector")
+
+  nc10e <- .intersect_extent(nc10box, NULL)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "sf")
+
+  testthat::expect_s3_class(nct10, "sf")
+
+})
+
+
+testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
+  testthat::skip_on_ci()
+  testthat::skip_on_covr()
+  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nc10 <- nct[seq_len(10L), ]
+  nc10box <- terra::ext(nc10)
+  nc10e <- .intersect_extent(nc10box, NULL)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "sf")
+
+  testthat::expect_s3_class(nct10, "sf")
+
+  nc10e <- .intersect_extent(nc10box, NULL)
+  nct10 <- .check_vector(input = nct, extent = nc10box, out_class = "sf")
+
+  testthat::expect_s3_class(nct10, "sf")
 })

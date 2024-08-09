@@ -2,24 +2,23 @@
 % Please edit documentation in R/scale_process.R
 \name{par_multirasters}
 \alias{par_multirasters}
-\title{Process a given function over multiple large rasters}
+\title{Parallelize spatial computation over multiple raster files}
 \usage{
-par_multirasters(filenames, debug = FALSE, fun_dist, ...)
+par_multirasters(filenames, fun_dist, ..., .debug = FALSE)
 }
 \arguments{
-\item{filenames}{character(n). A vector or list of
+\item{filenames}{character. A vector or list of
 full file paths of raster files. n is the total number of raster files.}
 
-\item{debug}{logical(1). Default is \code{FALSE}.
-If a unit computation fails, the error message and the file path
+\item{fun_dist}{terra or chopin functions that accept \code{SpatRaster}
+object in an argument. In particular, \code{x} and \code{y} arguments
+should be present and \code{x} should be a \code{SpatRaster}.}
+
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
+
+\item{.debug}{logical(1). Default is \code{FALSE}. If \code{TRUE} and
+a unit computation fails, the error message and the file path
 where the error occurred will be included in the output.}
-
-\item{fun_dist}{sf, terra, or chopin functions.}
-
-\item{...}{Arguments passed to the argument \code{fun_dist}.
-The \strong{second} place should get a vector or raster dataset from which
-you want to extract or calculate values. For example, a raster dataset
-when vector-raster overlay is performed.}
 }
 \value{
 a data.frame object with computation results.
@@ -33,64 +32,60 @@ homogeneous summary functions. Heterogenous raster files refer to
 rasters with different spatial extents and resolutions.
 Cropping a large raster into a small subset even consumes
 a lot of memory and adds processing time.
-This function leverages \code{terra} \code{SpatRaster} proxy
-to distribute computation jobs over multiple cores.
+This function leverages \code{terra} \code{SpatRaster}
+to distribute computation jobs over multiple threads.
 It is assumed that users have multiple large raster files
 in their disk, then each file path is assigned to a thread.
 Each thread will directly read raster values from
 the disk using C++ pointers that operate in terra functions.
 For use, it is strongly recommended to use vector data with
 small and confined spatial extent for computation to avoid
-out-of-memory error. For this, users may need
-to make subsets of input vector objects in advance.
+out-of-memory error. \code{y} argument in \code{fun_dist} will be used as-is.
+That means no preprocessing or subsetting will be
+applied. Please be aware of the spatial extent and size of the
+inputs.
 }
 \examples{
-\dontrun{
 library(terra)
 library(sf)
-library(chopin)
 library(future)
-library(doFuture)
+library(future.mirai)
 sf::sf_use_s2(FALSE)
-registerDoFuture()
-plan(multicore)
+future::plan(future.mirai::mirai_multisession, workers = 2)
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-nccnty <- terra::vect(ncpath, layer = "county")
+nccnty <- sf::st_read(ncpath, layer = "county")
 ncelev <-
-  terra::unwrap(
-    readRDS(
-      system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
-    )
-  )
-terra::crs(ncelev) <- "EPSG:5070"
-names(ncelev) <- c("srtm15")
+  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+ncelevras <- terra::rast(ncelev)
+
 tdir <- tempdir(check = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
-terra::writeRaster(ncelev, file.path(tdir, "test3.tif"), overwrite = TRUE)
+terra::writeRaster(ncelevras, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(ncelevras, file.path(tdir, "test2.tif"), overwrite = TRUE)
 testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
 res <- par_multirasters(
   filenames = testfiles,
-  fun_dist = extract_at_poly,
-  polys = nccnty,
-  surf = ncelev,
+  fun_dist = extract_at,
+  x = ncelev,
+  y = nccnty,
   id = "GEOID",
   func = "mean"
 )
 }
-}
 \seealso{
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
+
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
 \code{\link{par_grid}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
-\code{\link{par_make_gridset}()},
-\code{\link{par_merge_grid}()}
+\code{\link{par_merge_grid}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

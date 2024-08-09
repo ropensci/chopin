@@ -2,52 +2,88 @@
 % Please edit documentation in R/processing.R
 \name{summarize_aw}
 \alias{summarize_aw}
-\title{Area weighted summary using two polygon sf or SpatVector objects}
+\alias{summarize_aw,SpatVector,SpatVector-method}
+\alias{summarize_aw,character,character-method}
+\alias{summarize_aw,sf,sf-method}
+\title{Area weighted summary using two polygon objects}
 \usage{
-summarize_aw(
-  poly_in = NULL,
-  poly_weight = NULL,
+summarize_aw(x, y, ...)
+
+\S4method{summarize_aw}{SpatVector,SpatVector}(
+  x = NULL,
+  y = NULL,
   target_fields = NULL,
-  id_poly_in = "ID",
+  id_x = "ID",
   fun = stats::weighted.mean,
-  extent = NULL
+  extent = NULL,
+  ...
+)
+
+\S4method{summarize_aw}{character,character}(
+  x = NULL,
+  y = NULL,
+  target_fields = NULL,
+  id_x = "ID",
+  fun = stats::weighted.mean,
+  out_class = "terra",
+  extent = NULL,
+  ...
+)
+
+\S4method{summarize_aw}{sf,sf}(
+  x = NULL,
+  y = NULL,
+  target_fields = NULL,
+  id_x = "ID",
+  fun = NULL,
+  extent = NULL,
+  ...
 )
 }
 \arguments{
-\item{poly_in}{A sf/SpatVector object or file path of polygons detectable
+\item{x}{A sf/SpatVector object or file path of polygons detectable
 with GDAL driver at weighted means will be calculated.}
 
-\item{poly_weight}{A sf/SpatVector object or file path of polygons from
+\item{y}{A sf/SpatVector object or file path of polygons from
 which weighted means will be calculated.}
+
+\item{...}{Placeholder.}
 
 \item{target_fields}{character. Field names to calculate area-weighted.}
 
-\item{id_poly_in}{character(1).
-The unique identifier of each polygon in \code{poly_in}.
+\item{id_x}{character(1).
+The unique identifier of each polygon in \code{x}.
 Default is \code{"ID"}.}
 
-\item{fun}{function(1). The function to calculate the weighted summary.
-Default is \code{\link[stats:weighted.mean]{stats::weighted.mean}}. The function must have a \code{w} argument.}
+\item{fun}{function(1)/character(1).
+The function to calculate the weighted summary.
+Default is \code{\link[stats:weighted.mean]{stats::weighted.mean}}. The function must have a \code{w}
+argument. If both \code{x} and \code{y} are \code{sf}, it should be one of
+\code{c("sum", "mean")}. It will determine \code{extensive} argument in
+\code{\link[sf:interpolate_aw]{sf::st_interpolate_aw}}.}
 
-\item{extent}{numeric(4) or SpatExtent object. Extent of clipping \code{poly_in}.
-It only works with \code{poly_in} of character(1) file path.
+\item{extent}{numeric(4) or SpatExtent object. Extent of clipping \code{x}.
+It only works with \code{x} of character(1) file path.
 See \code{\link[terra:ext]{terra::ext}} for more details. Coordinate systems should match.}
+
+\item{out_class}{character(1). "sf" or "terra". Output class.}
 }
 \value{
 A data.frame with all numeric fields of area-weighted means.
 }
 \description{
-When \code{poly_in} and \code{poly_weight} are different classes,
-\code{poly_weight} will be converted to the class of \code{poly_in}.
+When \code{x} and \code{y} are different classes,
+\code{poly_weight} will be converted to the class of \code{x}.
 }
 \note{
-If \code{poly_in} and \code{poly_weight} are characters, they will be
-read as \code{terra::vect} objects.
+\code{x} and \code{y} classes should match.
+If \code{x} and \code{y} are characters, they will be
+read as \code{sf} objects.
 }
 \examples{
 # package
 library(sf)
-sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 nc <- sf::st_transform(nc, 5070)
 pp <- sf::st_sample(nc, size = 300)
@@ -56,15 +92,40 @@ pp[["id"]] <- seq(1, nrow(pp))
 sf::st_crs(pp) <- "EPSG:5070"
 ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 
-system.time(ppb_nc_aw <- summarize_aw(ppb, nc, c("BIR74", "BIR79"), "id"))
+system.time(
+  ppb_nc_aw <-
+    summarize_aw(
+      ppb, nc, c("BIR74", "BIR79"),
+      "id", fun = "sum"
+    )
+)
 summary(ppb_nc_aw)
-#### Example of summarize_aw ends ###
+
+# terra examples
+library(terra)
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+elev <- system.file("ex/elev.tif", package = "terra")
+nc <- terra::vect(ncpath)
+elev <- terra::rast(elev)
+pp <- terra::spatSample(nc, size = 300)
+pp <- terra::project(pp, crs(elev))
+pp <- terra::as.points(pp)
+pp[["id"]] <- seq(1, nrow(pp))
+ppb <- terra::buffer(pp, 20000)
+
+system.time(
+  ppb_nc_aw <-
+    summarize_aw(
+      ppb, nc, c("BIR74", "BIR79"), "id",
+      fun = sum
+    )
+)
+summary(ppb_nc_aw)
+
 }
 \seealso{
 Other Macros for calculation: 
 \code{\link{extract_at}()},
-\code{\link{extract_at_buffer}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_sedc}()}
 }

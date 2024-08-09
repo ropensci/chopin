@@ -6,6 +6,9 @@
 # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
 # * https://testthat.r-lib.org/articles/special-files.html
 
+# https://github.com/r-lib/covr/issues/420
+options(useFancyQuotes = FALSE)
+
 library(testthat)
 library(chopin)
 

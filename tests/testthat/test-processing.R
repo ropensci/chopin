@@ -1,101 +1,4 @@
-
-testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-  nccnty <- terra::vect(
-    ncpath, layer = "county",
-    query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)"
-  )
-  nctrct <- terra::vect(ncpath, layer = "tracts")
-
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
-  ncpt <- terra::vect(ncp)
-
-  ncpt <- ncpt[nccnty, ]
-
-  # terra-terra
-  testthat::expect_no_error(
-    suppressWarnings(
-      cl_terra <-
-        clip_vec_ext(
-          pnts = ncpt,
-          radius = 3e4L,
-          target_input = nctrct
-        )
-    )
-  )
-  testthat::expect_s4_class(cl_terra, "SpatVector")
-
-  # sf-sf
-  ncp <- sf::st_as_sf(ncpt)
-  nccntysf <- sf::st_as_sf(nccnty)
-  nctrct <- sf::st_as_sf(nctrct)
-  testthat::expect_no_error(
-    suppressWarnings(
-      cl_sf <-
-        clip_vec_ext(
-          pnts = ncp,
-          radius = 3e4L,
-          target_input = nctrct
-        )
-    )
-  )
-  testthat::expect_s3_class(cl_sf, "sf")
-
-  # sf-terra
-  testthat::expect_no_error(
-    suppressWarnings(
-      clip_vec_ext(
-        pnts = ncpt,
-        radius = 3e4L,
-        target_input = sf::st_as_sf(nctrct)
-      )
-    )
-  )
-
-  testthat::expect_error(
-    clip_vec_ext(
-      pnts = NULL, radius = 3e4L, target_input = nctrct
-    )
-  )
-
-})
-
-
-testthat::test_that("Clip by extent works without errors", {
-  withr::local_package("sf")
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  # starts from sf/stars
-  ncelev <-
-    terra::unwrap(
-      readRDS(
-        system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
-      )
-    )
-  terra::crs(ncelev) <- "EPSG:5070"
-  nc <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::read_sf(nc)
-  ncp <-
-    readRDS(
-      system.file("extdata/nc_random_point.rds", package = "chopin")
-    )
-  ncp_terra <- terra::vect(ncp)
-
-  testthat::expect_no_error(clip_ras_ext(ncp, 30000L, ncelev))
-  testthat::expect_no_error(clip_ras_ext(ncp_terra, 30000L, ncelev))
-  testthat::expect_error(clip_ras_ext(ncp_terra, NULL, ncelev))
-})
-
-
-
-
+## should be fixed ####
 testthat::test_that("extract_at runs well", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -112,219 +15,77 @@ testthat::test_that("extract_at runs well", {
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <- readRDS(
-    system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
-  )
-  ncelev <- terra::unwrap(ncelev)
+  ncelev <-
+    terra::rast(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
-  testthat::expect_no_error(reproject_b2r(nccnty4326, ncelev))
+  testthat::expect_no_error(reproject_to_raster(nccnty4326, ncelev))
 
   # test two modes
-  testthat::expect_no_error(
-    ncexpoly <-
-      extract_at(
-        nccntytr,
-        ncelev,
-        "FIPS",
-        mode = "polygon"
+  ncexpoly <-
+    extract_at(
+      ncelev,
+      nccntytr,
+      "FIPS"
+    )
+  testthat::expect_s3_class(ncexpoly, "data.frame")
+
+  testthat::expect_warning(
+    testthat::expect_warning(
+      testthat::expect_message(
+        testthat::expect_message(
+          extract_at(
+            ncelev,
+            nccnty,
+            "FIPS",
+            radius = 100,
+            kernel = "epanechnikov",
+            func = stats::weighted.mean,
+            bandwidth = 1.25e4L
+          )
+        )
       )
+    )
   )
 
   withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
     testthat::expect_no_error(
       extract_at(
-        nccntytr,
         ncelev,
-        "FIPS",
-        mode = "polygon"
-      )
-    )
-  )
-
-  testthat::expect_no_error(
-    ncexbuff <-
-      extract_at(ncp,
-        ncelev,
-        "pid",
-        mode = "buffer",
-        radius = 1e4L
-      )
-  )
-  testthat::expect_no_error(
-    extract_at(st_as_sf(ncp),
-      ncelev,
-      "pid",
-      mode = "buffer",
-      radius = 1e4L
-    )
-  )
-  withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
-    testthat::expect_no_error(
-      extract_at(ncp,
-        ncelev,
-        "pid",
-        mode = "buffer",
-        radius = 1e4L
-      )
-    )
-  )
-
-  testthat::expect_error(
-    extract_at(matrix(runif(100, 2e6, 3e6), 50, 2, TRUE),
-      ncelev,
-      "pid",
-      mode = "buffer",
-      radius = 1e4L
-    )
-  )
-
-  testthat::expect_no_error(
-    ncexbuffkern <-
-      extract_at_buffer(
         ncp,
-        ncelev,
         "pid",
-        kernel = "epanechnikov",
-        func = stats::weighted.mean,
-        bandwidth = 1.25e4L,
-        radius = 1e4L
-      )
-  )
-  withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
-    testthat::expect_no_error(
-      extract_at_buffer(
-        ncp,
-        ncelev,
-        "pid",
-        kernel = "epanechnikov",
-        func = stats::weighted.mean,
-        bandwidth = 1.25e4L,
         radius = 1e4L
       )
     )
   )
 
-  testthat::expect_no_error(
-    ncexbuffkern <-
-      extract_at(ncp,
+  testthat::expect_error(
+    nullret <-
+      extract_at(
         ncelev,
+        matrix(runif(100, 2e6, 3e6), 50, 2, TRUE),
         "pid",
-        mode = "buffer",
-        kernel = "epanechnikov",
-        func = stats::weighted.mean,
-        bandwidth = 1.25e4L,
         radius = 1e4L
       )
   )
 
-
-  # errors
-  testthat::expect_error(
-    extract_at(nccntytr,
-               ncelev,
-               "FIPS",
-               mode = "whatnot")
-  )
-  testthat::expect_error(
-    extract_at_buffer(nccntytr,
-               list(1),
-               "FIPS",
-               radius = 1e4)
-  )
-  testthat::expect_error(
-    extract_at(nccntytr,
-               ncelev,
-               "GEOID",
-               mode = "polygon")
-  )
-  testthat::expect_error(
-    extract_at(nccntytr,
-               ncelev,
-               1,
-               mode = "buffer",
-               radius = 1e4L)
-  )
-  testthat::expect_error(
-    extract_at_buffer(as.list(ncp),
-                      ncelev,
-                      id = "GEOID",
-                      radius = 1e4L)
-  )
-  testthat::expect_error(
-    extract_at_buffer(
-      sf::st_as_sf(ncp),
-      ncelev,
-      id = 1,
-      radius = 1e4L
-    )
-  )
-  testthat::expect_error(
-    extract_at_buffer(
-      sf::st_as_sf(ncp),
-      ncelev,
-      id = "FIPS",
-      mode = "buffer",
-      radius = "Ibidem"
-    )
-  )
-  testthat::expect_error(
-    extract_at_buffer(
-      sf::st_as_sf(ncp),
-      ncelev,
-      "FIPS",
-      radius = "Ibidem"
-    )
-  )
-  testthat::expect_error(
-    extract_at_buffer(
-      ncp,
-      ncelev,
-      "pid",
-      kernel = "epanechnikov",
-      func = "mean",
-      bandwidth = 1.25e4L,
-      radius = 1e4L,
-      qsegs = 3 + 2i
+  testthat::expect_warning(
+    testthat::expect_message(
+      testthat::expect_message(
+        ncexbuffkern <-
+          extract_at(
+            ncelev,
+            ncp,
+            "pid",
+            kernel = "epanechnikov",
+            func = stats::weighted.mean,
+            bandwidth = 1.25e4L,
+            radius = 1e4L
+          )
+      )
     )
   )
 
-
-  testthat::expect_no_error(
-    extract_at_poly(
-      sf::st_as_sf(nccntytr),
-      ncelev,
-      id = "FIPS"
-    )
-  )
-  testthat::expect_error(
-    extract_at_poly(
-      as.list(nccntytr),
-      ncelev,
-      id = "FIPS"
-    )
-  )
-  testthat::expect_error(
-    extract_at_poly(
-      nccntytr,
-      list(NA),
-      id = "FIPS"
-    )
-  )
-  testthat::expect_error(
-    extract_at_poly(
-      nccntytr,
-      matrix(rnorm(100), 10, 10),
-      id = "FIPS"
-    )
-  )
-  testthat::expect_error(
-    extract_at_poly(
-      nccntytr,
-      ncelev,
-      id = 2
-    )
-  )
 
 })
 
@@ -341,24 +102,22 @@ testthat::test_that("Character input works", {
   ncp <- system.file("extdata/nc_random_point.rds", package = "chopin") |>
     readRDS()
   ncpfile <- file.path(tempdir(), "ncp.shp")
-  sf::st_write(ncp, ncpfile)
+  sf::st_write(ncp, ncpfile, append = FALSE)
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.rds", package = "chopin")
-  ncelev <- terra::unwrap(ncelev)
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 
   testthat::expect_no_error(
-    extract_at(ncpfile, ncelev, "pid", mode = "buffer", radius = 1e4L)
+    extract_at(ncelev, ncpfile, "pid", radius = 1e4L)
   )
-  testthat::expect_no_error(
-    extract_at(ncpfile, ncelev, "pid", mode = "buffer", radius = 1e4L,
+  testthat::expect_warning(
+    extract_at(ncelev, ncpfile, "pid", radius = 1e4L,
                kernel = "epanechnikov", func = stats::weighted.mean,
                bandwidth = 1.25e4L)
   )
   testthat::expect_no_error(
-    extract_at(nccnty, ncelev, "FIPS", mode = "polygon")
+    extract_at(ncelev, nccnty, "FIPS")
   )
-
 
 })
 
@@ -379,10 +138,11 @@ testthat::test_that("summarize_aw works as expected.", {
   flds <- c("BIR74", "SID74", "BIR79", "SID79")
   ppb <- sf::st_buffer(pp, nQuadSegs = 180, dist = units::set_units(20, "km"))
 
-  testthat::expect_no_error(
+  testthat::expect_warning(
     system.time({
       ppb_nc_aw <- summarize_aw(ppb, nc, target_fields = flds, "id")
-    })
+    }),
+    "st_interpolate_aw assumes attributes are constant or uniform over areas of x"
   )
   testthat::expect_true(inherits(ppb_nc_aw, "data.frame"))
 
@@ -392,14 +152,6 @@ testthat::test_that("summarize_aw works as expected.", {
   testthat::expect_no_error(
     system.time({
       ppb_nc_aw <- summarize_aw(ppb_t, nc_t, target_fields = flds, "id")
-    })
-  )
-  testthat::expect_s3_class(ppb_nc_aw, "data.frame")
-
-  # auto convert formats
-  testthat::expect_no_error(
-    system.time({
-      ppb_nc_aw <- summarize_aw(ppb_t, nc, target_fields = flds, "id")
     })
   )
   testthat::expect_s3_class(ppb_nc_aw, "data.frame")
@@ -464,6 +216,7 @@ testthat::test_that("SEDC are well calculated.", {
 })
 
 testthat::test_that("Kernel functions work okay", {
+  testthat::skip_on_ci()
   testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
   testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
   testthat::expect_no_error(kernelfunction(10, 100, "quartic"))

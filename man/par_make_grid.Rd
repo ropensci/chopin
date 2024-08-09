@@ -30,6 +30,7 @@ these and \code{points_in}. Thus, the number of generated grids may be
 smaller than \code{ncutsx * ncutsy}.
 }
 \examples{
+\dontrun{
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -42,18 +43,20 @@ nc_gr <- par_make_grid(nc_rp, 10L, 6L)
 plot(nc_rp)
 plot(nc_gr, add = TRUE)
 }
+}
 \seealso{
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
 \code{\link{par_grid}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
-\code{\link{par_multirasters}()}
+\code{\link{par_multirasters}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song
 }
 \concept{Parallelization}
+\keyword{internal}

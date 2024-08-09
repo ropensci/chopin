@@ -1,10 +1,9 @@
 tests
 tools
 figure
-containers
+containers/
 input
 .github
-chopin_rmarkdown_litr.rmd
 README.Rmd
 codemeta.json
 _pkgdown.yml
@@ -16,3 +15,8 @@ _pkgdown.yml
 ^\.github$
 ^doc$
 ^Meta$
+\*.qs$
+\*.out$
+\*.error$
+LICENSE.md
+CITATION.cff

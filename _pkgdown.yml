@@ -1,4 +1,4 @@
-url: https://kyle-messier.github.io/chopin
+url: https://NIEHS.github.io/chopin
 template:
   bootstrap: 5
   bootswatch: minty
@@ -11,31 +11,28 @@ navbar:
 reference:
 - title: "Parallelization core functions"
   desc: >
-    Functions for parallelizing chopin, terra and sf geospatial operations
+    Functions for parallelizing `chopin`, `terra` and `sf` geospatial operations
   contents: 
-  - starts_with("par_")
+  - par_grid
+  - par_hierarchy
+  - par_multirasters
+- title: "`par_grid` preparation functions"
+  desc: >
+    Regular grid or equal number partitioning to run `par_grid`
+  contents:
+  - par_pad_grid
+  - par_pad_balanced
+  - par_merge_grid
+  - par_split_list
 - title: "chopin calculation functions"
-  desc: "Functions for streamlining frequently used operations in exposure assessment"
+  desc: "Functions for streamlining oft-used operations"
   contents:
   - starts_with("extract_at")
   - starts_with("summarize_")
-  - kernelfunction
-- title: "Interoperability"
-  desc: "terra-sf conversion support"
-  contents:
-  - starts_with("dep_")
 - title: "Helper functions"
   desc: "Miscellaneous helper functions for subsetting datasets and quick comparison between extents"
   contents:
-  - starts_with("clip_")
-  - starts_with("is_")
-  - starts_with("reproject_")
-  - vect_valid_repair
-  - any_class_args
-  - datamod
-  - ext2poly
-  - get_clip_ext
-  - crs_check
+  - par_map_args
 
 - title: "Dataset"
   desc: "Bundled data in chopin package"

@@ -1,5 +1,5 @@
 
-# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure
+# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure <img src="man/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
 
@@ -16,7 +16,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 ### Objective
 
--   This package automates
+  - This package automates
     [parallelization](https://en.wikipedia.org/wiki/Parallel_computing)
     in spatial operations with `chopin` functions as well as
     [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)
@@ -27,54 +27,35 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 ### For whom `chopin` is useful
 
--   Following user groups will find this package useful to accelerate
-    the covariate calculation process for further analysis and modeling:
-    -   Environmental health researchers and data analysts
-    -   Health geographers and spatial epidemiologists
-    -   Spatial analysts who need to perform geospatial operations with
-        large datasets
--   We assume that users–
-    -   Can run R functions following relevant instructions;
-    -   Have basic knowledge of [geographic information system data
+  - All who need to perform geospatial operations with large datasets
+    may find this package useful to accelerate the covariate calculation
+    process for further analysis and modeling.
+  - We assume that users–
+      - Have basic knowledge of [geographic information system data
         models](https://r.geocompx.org/spatial-class), [coordinate
         systems and
-        transformations](https://gistbok.ucgis.org/bok-topics/coordinate-transformations),
+        transformations](https://doi.org/10.22224/gistbok/2023.1.2),
         [spatial operations](https://r.geocompx.org/spatial-operations),
         and [raster-vector
         overlay](https://r.geocompx.org/raster-vector);
-    -   Understood and planned **what they want to calculate**; and
-    -   Collected **datasets they need**
+      - Understood and planned **what they want to calculate**; and
+      - Collected **datasets they need**
 
-### Notes on data restrictions
+## Overview
 
--   This package works best with **two-dimensional** (**planar**)
-    geometries. Users should disable `s2` spherical geometry mode in
-    `sf` by setting. Running any `chopin` functions at spherical or
-    three-dimensional (e.g., including M/Z dimensions) geometries may
-    produce incorrect or unexpected results.
-
-``` r
-sf::sf_use_s2(FALSE)
-```
-
-## Basic design
-
--   Processing functions accept
-    [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra)’s
+  - Processing functions accept
+    [terra](https://github.com/rspatial/terra)/[sf](https://github.com/r-spatial/sf)
     classes for spatial data. Raster-vector overlay is done with
     `exactextractr`.
--   From version 0.3.0, this package supports three basic functions that
+  - From version 0.8.0, this package supports three basic functions that
     are readily parallelized over multithread environments:
-    -   `extract_at`: extract raster values with point buffers or
-        polygons.
-        -   `extract_at_buffer`: extract raster values at circular
-            buffers; kernel weight can be applied
-        -   `extract_at_poly`
-    -   `summarize_sedc`: calculate sums of [exponentially decaying
+      - `extract_at`: extract raster values with point buffers or
+        polygons with or without kernel weights
+      - `summarize_sedc`: calculate sums of [exponentially decaying
         contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
-    -   `summarize_aw`: area-weighted covariates based on target and
+      - `summarize_aw`: area-weighted covariates based on target and
         reference polygons
--   When processing points/polygons in parallel, the entire study area
+  - When processing points/polygons in parallel, the entire study area
     will be divided into partly overlapped grids or processed through
     its own hierarchy. We suggest two flowcharts to help which function
     to use for parallel processing below. The upper flowchart is
@@ -82,86 +63,96 @@ sf::sf_use_s2(FALSE)
     separated but supplementary to each other. When a user follows the
     raster-oriented one, they might visit the vector-oriented flowchart
     at each end of the raster-oriented flowchart.
-    -   `par_grid`: parallelize over artificial grid polygons that are
-        generated from the maximum extent of inputs. `par_make_gridset`
-        is used to generate the grid polygons before running this
-        function.
-    -   `par_hierarchy`: parallelize over hierarchy coded in identifier
+      - `par_grid`: parallelize over artificial grid polygons that are
+        generated from the maximum extent of inputs. `par_pad_grid` is
+        used to generate the grid polygons before running this function.
+      - `par_hierarchy`: parallelize over hierarchy coded in identifier
         fields (for example, census blocks in each county in the US)
-    -   `par_multirasters`: parallelize over multiple raster files
--   These functions are designed to be used with `future` and `doFuture`
-    packages to parallelize over multiple CPU threads. Users can choose
-    the number of threads to be used in the parallelization process.
-    Users always need to register parallel workers with `future` and
-    `doFuture` before running the three functions above.
+      - `par_multirasters`: parallelize over multiple raster files
+  - These functions are designed to be used with `future` and
+    `future.mirai` packages to parallelize over multiple CPU threads.
+    Users can choose the number of threads to be used in the
+    parallelization process. Users always need to register parallel
+    workers with `future` before running the three functions above.
+
+<!-- end list -->
 
 ``` r
-doFuture::registerDoFuture()
-future::plan(future::multicore, workers = 4L)
+future::plan(future.mirai::mirai_multisession, workers = 4L)
 # future::multisession, future::cluster are available,
 # See future.batchtools and future.callr for other options
 # the number of workers are up to users' choice
 ```
 
-<img src="man/figures/README-flowchart-mermaid-1.png" width="100%" />
+    #> PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.
 
-## To run the examples
+<div id="htmlwidget-55d9d71eaa1d4df2fe0b" style="width:1000px;height:600px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-55d9d71eaa1d4df2fe0b">{"x":{"diagram":"\ngraph LR\n\tn6695079[\"Is the spatial resolution finer than 100 meters?\"]\n\tn11509997[\"Are there multiple rasters?\"]\n\tn72001430[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn27284812[\"Do they have the same extent and resolution?\"]\n\tn83137384[\"Is a single raster larger than your free memory space?\"]\n\tn83318893[\"Do you have memory larger than the total raster file size?\"]\n\tn14786842[\"exact_extract with low max_cells_in_memory\"]\n\tn17102479[\"exact_extract with high max_cells_in_memory argument value\"]\n\tn7037868[\"Stack rasters then process in the single thread\"]\n\tn58642837[\"par_multirasters\"]\n\tn6695079 -->|Yes| n11509997\n\tn6695079 -->|No| n72001430\n\tn11509997 -->|Yes| n27284812\n\tn11509997 -->|No| n83137384\n\tn27284812 -->|Yes| n83318893\n\tn27284812 -->|No| n58642837\n\tn83137384 -->|No| n14786842\n\tn83137384 -->|Yes| n17102479\n\tn83318893 -->|Yes| n7037868\n\tn83318893 -->|No| n58642837\n\n"},"evals":[],"jsHooks":[]}</script>
 
--   RStudio: download and open this document then press “Run All Chunks
-    Above”, “Run All Chunks Below”, or “Restart R and Run All Chunks”,
-    whichever is appropriate.
--   Visual Studio Code (with R extension): download and open this
-    document then press “Run Above” at the last code chunk.
--   If you prefer command line (i.e., in Unix-like operating systems),
-    run:
-
-``` shell
-git clone https://github.com/Spatiotemporal-Exposures-and-Toxicology/chopin
-cd chopin
-Rscript -e \
-"
-knitr::purl(\"README.Rmd\", \"README_run.r\")
-source(\"README_run.r\")
-"
-```
+<div id="htmlwidget-48046f94da65f67e9e2e" style="width:1000px;height:600px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-48046f94da65f67e9e2e">{"x":{"diagram":"\ngraph LR\n\tn21640044[\"Are there 100K+ features in the input vectors?\"]\n\tn84295645[\"Are they hierarchical?\"]\n\tn82902796[\"single thread processing\"]\n\tn34878990[\"Are your split_level have similar number of members?\"]\n\tn27787116[\"Are they spatially clustered?\"]\n\tn89847105[\"par_hierarchy\"]\n\tn94475834[\"par_make_gridset(..., mode = 'grid_quantile') or par_make_gridset_mode = 'grid_advanced')\"]\n\tn77415399[\"par_make_gridset(..., mode = 'grid'\"]\n\tn64849552[\"par_grid\"]\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn34878990 -->|Yes| n89847105\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
 
 ## Installation
 
--   `chopin` can be installed using `remotes::install_github` (also
+  - `chopin` can be installed using `remotes::install_github` (also
     possible with `pak::pak` or `devtools::install_github`).
 
+<!-- end list -->
+
 ``` r
-# install.packages("remotes")
-remotes::install_github("Spatiotemporal-Exposures-and-Toxicology/chopin")
+rlang::check_installed("remotes")
+remotes::install_github("NIEHS/chopin")
 ```
 
 ## Examples
 
--   Examples will navigate `par_grid`, `par_hierarchy`, and
+  - Examples will navigate `par_grid`, `par_hierarchy`, and
     `par_multirasters` functions in `chopin` to parallelize geospatial
     operations.
 
+<!-- end list -->
+
 ``` r
 # check and install packages to run examples
-pkgs <- c("chopin", "dplyr", "sf", "terra",
-          "future", "future.apply", "doFuture", "testthat")
+pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai")
 # install packages if anything is unavailable
 rlang::check_installed(pkgs)
 
+library(chopin)
+library(dplyr)
+#> 
+#> Attaching package: 'dplyr'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
+library(sf)
+#> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.3.1; sf_use_s2() is TRUE
+library(terra)
+#> terra 1.7.78
+library(future)
+library(future.mirai)
+library(mirai)
+
 # disable spherical geometries
-# it does the same as sf::sf_use_s2(FALSE)
-options(sf_use_s2 = FALSE)
+sf::sf_use_s2(FALSE)
+#> Spherical geometry (s2) switched off
+
 # parallelization-safe random number generator
 set.seed(2024, kind = "L'Ecuyer-CMRG")
 ```
 
 ### `par_grid`: parallelize over artificial grid polygons
 
--   Please refer to a small example below for extracting mean altitude
+  - Please refer to a small example below for extracting mean altitude
     values at circular point buffers and census tracts in North
     Carolina.
--   Before running code chunks below, set the cloned `chopin` repository
+  - Before running code chunks below, set the cloned `chopin` repository
     as your working directory with `setwd()`
+
+<!-- end list -->
 
 ``` r
 ncpoly <- system.file("shape/nc.shp", package = "sf")
@@ -174,8 +165,10 @@ plot(sf::st_geometry(ncsf))
 
 #### Generate random points in NC
 
--   Ten thousands random point locations were generated inside the
+  - Ten thousands random point locations were generated inside the
     counties of North Carolina.
+
+<!-- end list -->
 
 ``` r
 ncpoints <- sf::st_sample(ncsf, 1e4)
@@ -188,165 +181,155 @@ plot(sf::st_geometry(ncpoints))
 
 #### Target raster dataset: [Shuttle Radar Topography Mission](https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-1)
 
--   We use an elevation dataset with and a moderate spatial resolution
+  - We use an elevation dataset with and a moderate spatial resolution
     (approximately 400 meters or 0.25 miles).
+
+<!-- end list -->
 
 ``` r
 # data preparation
 wdir <- system.file("extdata", package = "chopin")
-path_srtm <- file.path(wdir, "nc_srtm15_otm.rds")
+srtm <- file.path(wdir, "nc_srtm15_otm.tif")
 
 # terra SpatRaster objects are wrapped when exported to rds file
-srtm <- terra::unwrap(readRDS(path_srtm))
-terra::crs(srtm) <- "EPSG:5070"
-srtm
+srtm_ras <- terra::rast(srtm)
+terra::crs(srtm_ras) <- "EPSG:5070"
+srtm_ras
 #> class       : SpatRaster 
 #> dimensions  : 1534, 2281, 1  (nrow, ncol, nlyr)
 #> resolution  : 391.5026, 391.5026  (x, y)
 #> extent      : 1012872, 1905890, 1219961, 1820526  (xmin, xmax, ymin, ymax)
 #> coord. ref. : NAD83 / Conus Albers (EPSG:5070) 
-#> source(s)   : memory
-#> name        : file928c3830468b 
-#> min value   :        -3589.291 
-#> max value   :         1946.400
-```
-
-``` r
-terra::plot(srtm)
+#> source      : nc_srtm15_otm.tif 
+#> name        :    srtm15 
+#> min value   : -3589.291 
+#> max value   :  1946.400
+terra::plot(srtm_ras)
 ```
 
 <img src="man/figures/README-load-srtm-1.png" width="100%" />
 
 ``` r
-ncpoints_tr <- terra::vect(ncpoints)
+# ncpoints_tr <- terra::vect(ncpoints)
 system.time(
   ncpoints_srtm <-
     chopin::extract_at(
-      vector = ncpoints_tr,
-      raster = srtm,
+      x = srtm,
+      y = ncpoints,
       id = "pid",
       mode = "buffer",
       radius = 1e4L  # 10,000 meters (10 km)
     )
 )
+#> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   9.925   0.197  10.149
+#>   5.025   0.066   5.092
 ```
 
 #### Generate regular grid computational regions
 
--   `chopin::par_make_gridset` takes a spatial dataset to generate
-    regular grid polygons with `nx` and `ny` arguments with padding.
-    Users will have both overlapping (by the degree of `radius`) and
+  - `chopin::par_pad_grid` takes a spatial dataset to generate regular
+    grid polygons with `nx` and `ny` arguments with padding. Users will
+    have both overlapping (by the degree of `radius`) and
     non-overlapping grids, both of which will be utilized to split
     locations and target datasets into sub-datasets for efficient
     processing.
 
+<!-- end list -->
+
 ``` r
 compregions <-
-  chopin::par_make_gridset(
-    ncpoints_tr,
+  chopin::par_pad_grid(
+    ncpoints,
     mode = "grid",
-    nx = 8L,
-    ny = 5L,
+    nx = 2L,
+    ny = 2L,
     padding = 1e4L
   )
+#> Switch sf class to terra...
+#> Switch terra class to sf...
 ```
 
--   `compregions` is a list object with two elements named `original`
+  - `compregions` is a list object with two elements named `original`
     (non-overlapping grid polygons) and `padded` (overlapping by
     `padding`). The figures below illustrate the grid polygons with and
     without overlaps.
 
+<!-- end list -->
+
 ``` r
 names(compregions)
 #> [1] "original" "padded"
-```
 
-``` r
 oldpar <- par()
 par(mfrow = c(2, 1))
-terra::plot(compregions$original, main = "Original grids")
-terra::plot(compregions$padded, main = "Padded grids")
+terra::plot(
+  terra::vect(compregions$original),
+  main = "Original grids"
+)
+terra::plot(
+  terra::vect(compregions$padded),
+  main = "Padded grids"
+)
 ```
 
 <img src="man/figures/README-compare-compregions-1.png" width="100%" />
 
-<!--![](https://i.imgur.com/c0xweeV.png) -->
-
 #### Parallel processing
 
--   Using the grid polygons, we distribute the task of averaging
+  - Using the grid polygons, we distribute the task of averaging
     elevations at 10,000 circular buffer polygons, which are generated
     from the random locations, with 10 kilometers radius by
     `chopin::par_grid`.
--   Users always need to **register** multiple CPU threads (logical
+  - Users always need to **register** multiple CPU threads (logical
     cores) for parallelization.
--   `chopin::par_*` functions are flexible in terms of supporting
+  - `chopin::par_*` functions are flexible in terms of supporting
     generic spatial operations in `sf` and `terra`, especially where two
     datasets are involved.
-    -   Users can inject generic functions’ arguments (parameters) by
+      - Users can inject generic functions’ arguments (parameters) by
         writing them in the ellipsis (`...`) arguments, as demonstrated
         below:
 
+<!-- end list -->
+
 ``` r
-future::plan(future::multicore, workers = 4L)
+future::plan(future.mirai::mirai_multisession, workers = 4L)
 
 system.time(
   ncpoints_srtm_mthr <-
-    chopin::par_grid(
+    par_grid(
       grids = compregions,
-      grid_target_id = NULL,
-      fun_dist = chopin::extract_at,
-      vector = ncpoints_tr,
-      raster = srtm,
+      fun_dist = extract_at,
+      x = srtm,
+      y = ncpoints,
       id = "pid",
-      mode = "buffer",
-      radius = 1e4L
+      radius = 1e4L,
+      .standalone = FALSE
     )
 )
-#> Your input function was successfully run at CGRIDID: 4
-#> Your input function was successfully run at CGRIDID: 5
-#> Warning: [buffer] empty SpatVector
-#> Warning: [buffer] empty SpatVector
-#> Warning: [buffer] empty SpatVector
-#> Your input function was successfully run at CGRIDID: 6
-#> Your input function was successfully run at CGRIDID: 7
-#> Your input function was successfully run at CGRIDID: 8
-#> Your input function was successfully run at CGRIDID: 10
-#> Warning: [buffer] empty SpatVector
-#> Your input function was successfully run at CGRIDID: 11
-#> Your input function was successfully run at CGRIDID: 12
-#> Your input function was successfully run at CGRIDID: 13
-#> Your input function was successfully run at CGRIDID: 14
-#> Your input function was successfully run at CGRIDID: 15
-#> Your input function was successfully run at CGRIDID: 16
-#> Your input function was successfully run at CGRIDID: 17
-#> Your input function was successfully run at CGRIDID: 18
-#> Your input function was successfully run at CGRIDID: 19
-#> Your input function was successfully run at CGRIDID: 20
-#> Your input function was successfully run at CGRIDID: 21
-#> Your input function was successfully run at CGRIDID: 22
-#> Your input function was successfully run at CGRIDID: 23
-#> Your input function was successfully run at CGRIDID: 24
-#> Your input function was successfully run at CGRIDID: 25
-#> Your input function was successfully run at CGRIDID: 26
-#> Your input function was successfully run at CGRIDID: 27
-#> Your input function was successfully run at CGRIDID: 28
-#> Your input function was successfully run at CGRIDID: 29
-#> Your input function was successfully run at CGRIDID: 30
-#> Your input function was successfully run at CGRIDID: 31
-#> Your input function was successfully run at CGRIDID: 32
-#> Your input function was successfully run at CGRIDID: 33
-#> Your input function was successfully run at CGRIDID: 34
-#> Warning: [buffer] empty SpatVector
-#> Your input function was successfully run at CGRIDID: 37
-#> Your input function was successfully run at CGRIDID: 38
-#> Your input function was successfully run at CGRIDID: 39
-#> Warning: [buffer] empty SpatVector
-#> Warning: [buffer] empty SpatVector
+#> ℹ Input is not a character.
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Task at CGRIDID: 1 is successfully dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Task at CGRIDID: 2 is successfully dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Task at CGRIDID: 3 is successfully dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   8.418   1.567   3.447
+#>   0.371   0.016   7.531
+
+ncpoints_srtm <-
+  extract_at(
+    x = srtm,
+    y = ncpoints,
+    id = "pid",
+    radius = 1e4L
+  )
+#> Input is a character. Attempt to read it with terra::rast...
 ```
 
 ``` r
@@ -359,9 +342,9 @@ all.equal(ncpoints_compar$mean, ncpoints_compar$mean_par)
 
 ``` r
 ncpoints_s <-
-    merge(ncpoints, ncpoints_srtm)
+  merge(ncpoints, ncpoints_srtm)
 ncpoints_m <-
-    merge(ncpoints, ncpoints_srtm_mthr)
+  merge(ncpoints, ncpoints_srtm_mthr)
 
 plot(ncpoints_s[, "mean"], main = "Single-thread", pch = 19, cex = 0.33)
 ```
@@ -373,53 +356,47 @@ plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 ```
 
 <img src="man/figures/README-plot results-2.png" width="100%" />
-<!--![](https://i.imgur.com/iaQHWBL.png) -->
-<!--![](https://i.imgur.com/fgOvOff.png) -->
 
 ### `chopin::par_hierarchy`: parallelize geospatial computations using intrinsic data hierarchy
 
--   In real world datasets, we usually have nested/exhaustive
+  - In real world datasets, we usually have nested/exhaustive
     hierarchies. For example, land is organized by
     administrative/jurisdictional borders where multiple levels exist.
     In the U.S. context, a state consists of several counties, counties
     are split into census tracts, and they have a group of block groups.
--   `chopin::par_hierarchy` leverages such hierarchies to parallelize
+  - `chopin::par_hierarchy` leverages such hierarchies to parallelize
     geospatial operations, which means that a group of lower-level
     geographic units in a higher-level geography is assigned to a
     process.
--   A demonstration below shows that census tracts are grouped by their
+  - A demonstration below shows that census tracts are grouped by their
     counties then each county will be processed in a CPU thread.
 
 #### Read data
 
 ``` r
+# nc_hierarchy.gpkg includes two layers: county and tracts
 path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
-```
-
-``` r
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpdYJu7A/temp_libpath16ff5d6da0d43d/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
-```
 
-``` r
 # reproject to Conus Albers Equal Area
 nc_county <- sf::st_transform(nc_county, "EPSG:5070")
 nc_tracts <- sf::st_transform(nc_tracts, "EPSG:5070")
@@ -433,45 +410,147 @@ nc_tracts$COUNTY <- substr(nc_tracts$GEOID, 1, 5)
 system.time(
   nc_elev_tr_single <-
     chopin::extract_at(
-      vector = nc_tracts,
-      raster = srtm,
-      id = "GEOID",
-      mode = "polygon"
+      x = srtm,
+      y = nc_tracts,
+      id = "GEOID"
     )
 )
+#> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   1.798   0.082   1.886
-```
+#>   0.518   0.002   0.520
 
-``` r
 # hierarchical parallelization
 system.time(
   nc_elev_tr_distr <-
     chopin::par_hierarchy(
       regions = nc_county, # higher level geometry
       regions_id = "GEOID", # higher level unique id
-      fun_dist = chopin::extract_at,
-      vector = nc_tracts, # lower level geometry
-      raster = srtm,
+      fun_dist = extract_at,
+      x = srtm,
+      y = nc_tracts, # lower level geometry
       id = "GEOID", # lower level unique id
       func = "mean"
     )
 )
+#> ℹ Input is not a character.
+#> ℹ GEOID is used to stratify the process.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37037 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37001 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37057 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37069 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37155 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37109 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37027 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37063 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37145 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37115 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37151 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37131 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37013 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37159 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37051 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37153 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37093 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37025 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37029 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37169 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37031 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37005 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37139 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37193 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37003 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37083 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37163 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37189 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37173 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37011 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37045 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37125 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37067 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37077 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37185 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37137 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37033 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37107 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37075 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37073 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37161 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37187 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37007 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37135 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37049 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37195 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37061 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37087 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37081 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37099 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37097 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37091 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37149 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37165 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37085 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37105 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37017 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37039 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37035 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37177 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37113 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37143 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37095 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37071 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37101 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37015 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37167 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37079 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37129 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37147 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37141 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37179 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37121 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37133 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37065 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37119 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37199 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37197 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37023 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37191 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37059 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37111 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37183 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37053 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37103 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37041 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37021 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37157 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37117 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37089 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37127 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37009 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37019 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37123 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37181 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37175 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37171 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37043 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>  10.452   2.020   4.324
+#>   0.242   0.102   1.987
 ```
 
 ### `par_multirasters`: parallelize over multiple rasters
 
--   There is a common case of having a large group of raster files at
+  - There is a common case of having a large group of raster files at
     which the same operation should be performed.
--   `chopin::par_multirasters` is for such cases. An example below
+  - `chopin::par_multirasters` is for such cases. An example below
     demonstrates where we have five elevation raster files to calculate
     the average elevation at counties in North Carolina.
 
+<!-- end list -->
+
 ``` r
-nccnty <- terra::vect(nc_data, layer = "county")
-ncelev <- terra::unwrap(readRDS(path_srtm))
+# nccnty <- sf::st_read(nc_data, layer = "county")
+ncelev <- terra::rast(srtm)
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")
 tdir <- tempdir()
@@ -485,9 +564,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpPWsyT6/test1.tif" "/tmp/RtmpPWsyT6/test2.tif"
-#> [3] "/tmp/RtmpPWsyT6/test3.tif" "/tmp/RtmpPWsyT6/test4.tif"
-#> [5] "/tmp/RtmpPWsyT6/test5.tif"
+#> [1] "/tmp/Rtmp1avZwd/test1.tif" "/tmp/Rtmp1avZwd/test2.tif"
+#> [3] "/tmp/Rtmp1avZwd/test3.tif" "/tmp/Rtmp1avZwd/test4.tif"
+#> [5] "/tmp/Rtmp1avZwd/test5.tif"
 ```
 
 ``` r
@@ -495,31 +574,44 @@ system.time(
   res <-
     chopin::par_multirasters(
       filenames = testfiles,
-      fun_dist = chopin::extract_at_poly,
-      polys = nccnty,
-      surf = ncelev,
+      fun_dist = extract_at,
+      x = ncelev,
+      y = nc_county,
       id = "GEOID",
       func = "mean"
     )
 )
+#> ℹ Input is not a character.
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at /tmp/Rtmp1avZwd/test1.tif is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at /tmp/Rtmp1avZwd/test2.tif is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at /tmp/Rtmp1avZwd/test3.tif is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at /tmp/Rtmp1avZwd/test4.tif is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at /tmp/Rtmp1avZwd/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.554   0.633   1.027
-```
-
-``` r
+#>   0.856   0.181   2.123
 knitr::kable(head(res))
 ```
 
-| GEOID |      mean | base_raster               |
-|:------|----------:|:--------------------------|
-| 37037 | 136.80203 | /tmp/RtmpPWsyT6/test1.tif |
-| 37001 | 189.76170 | /tmp/RtmpPWsyT6/test1.tif |
-| 37057 | 231.16968 | /tmp/RtmpPWsyT6/test1.tif |
-| 37069 |  98.03845 | /tmp/RtmpPWsyT6/test1.tif |
-| 37155 |  41.23463 | /tmp/RtmpPWsyT6/test1.tif |
-| 37109 | 270.96933 | /tmp/RtmpPWsyT6/test1.tif |
+|      mean | base\_raster              |
+| --------: | :------------------------ |
+| 136.80203 | /tmp/Rtmp1avZwd/test1.tif |
+| 189.76170 | /tmp/Rtmp1avZwd/test1.tif |
+| 231.16968 | /tmp/Rtmp1avZwd/test1.tif |
+|  98.03845 | /tmp/Rtmp1avZwd/test1.tif |
+|  41.23463 | /tmp/Rtmp1avZwd/test1.tif |
+| 270.96933 | /tmp/Rtmp1avZwd/test1.tif |
 
 ``` r
+
 # remove temporary raster files
 file.remove(testfiles)
 #> [1] TRUE TRUE TRUE TRUE TRUE
@@ -537,50 +629,65 @@ file.remove(testfiles)
 
 ## Parallelization of a generic geospatial operation
 
--   Other than `chopin` internal macros, `chopin::par_*` functions
+  - Other than `chopin` internal macros, `chopin::par_*` functions
     support generic geospatial operations.
--   An example below uses `terra::nearest`, which gets the nearest
+  - An example below uses `terra::nearest`, which gets the nearest
     feature’s attributes, inside `chopin::par_grid`.
+
+<!-- end list -->
 
 ``` r
 path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
 
 # Generate 5000 random points
-pnts <- sf::st_sample(ncsf, 5000)
+pnts <- sf::st_sample(nc_county, 5000)
 pnts <- sf::st_as_sf(pnts)
 # assign identifiers
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
-pnts <- terra::vect(pnts)
-rd1 <- terra::vect(path_ncrd1)
+rd1 <- sf::st_read(path_ncrd1)
+#> Reading layer `ncroads_first' from data source 
+#>   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/ncroads_first.gpkg' 
+#>   using driver `GPKG'
+#> Simple feature collection with 620 features and 4 fields
+#> Geometry type: MULTILINESTRING
+#> Dimension:     XY
+#> Bounding box:  xmin: 1152512 ymin: 1390719 xmax: 1748367 ymax: 1662294
+#> Projected CRS: NAD83 / Conus Albers
 
 # reproject
-pnts <- terra::project(pnts, "EPSG:5070")
-rd1 <- terra::project(rd1, "EPSG:5070")
+pntst <- sf::st_transform(pnts, "EPSG:5070")
+rd1t <- sf::st_transform(rd1, "EPSG:5070")
 
 # generate grids
 nccompreg <-
-  chopin::par_make_gridset(
-    input = pnts,
+  chopin::par_pad_grid(
+    input = pntst,
     mode = "grid",
     nx = 4L,
     ny = 2L,
     padding = 5e4L
   )
+#> Switch sf class to terra...
+#> Switch terra class to sf...
 ```
 
--   The figure below shows the padded grids (50 kilometers), primary
+  - The figure below shows the padded grids (50 kilometers), primary
     roads, and points. Primary roads will be selected by a padded grid
     per iteration and used to calculate the distance from each point to
     the nearest primary road. Padded grids and their overlapping areas
     will look different according to `padding` argument in
-    `chopin::par_make_gridset`.
+    `chopin::par_pad_grid`.
+
+<!-- end list -->
 
 ``` r
 # plot
 terra::plot(nccompreg$padded, border = "orange")
 terra::plot(terra::vect(ncsf), add = TRUE)
-terra::plot(rd1, col = "blue", add = TRUE)
-terra::plot(pnts, add = TRUE, cex = 0.3)
+terra::plot(rd1t, col = "blue", add = TRUE)
+#> Warning in plot.sf(rd1t, col = "blue", add = TRUE): ignoring all but the first
+#> attribute
+terra::plot(pntst, add = TRUE, cex = 0.3)
 legend(1.02e6, 1.72e6,
        legend = c("Computation grids (50km padding)", "Major roads"),
        lty = 1, lwd = 1, col = c("orange", "blue"),
@@ -592,69 +699,94 @@ legend(1.02e6, 1.72e6,
 ``` r
 # terra::nearest run
 system.time(
-  restr <- terra::nearest(x = pnts, y = rd1)
+  restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.462   0.003   0.466
-```
+#>   0.423   0.000   0.422
 
-``` r
+pnt_path <- file.path(tdir, "pntst.gpkg")
+sf::st_write(pntst, pnt_path)
+#> Writing layer `pntst' to data source `/tmp/Rtmp1avZwd/pntst.gpkg' using driver `GPKG'
+#> Writing 5000 features with 1 fields and geometry type Point.
+
 # we use four threads that were configured above
 system.time(
-  res <-
+  resd <-
     chopin::par_grid(
       grids = nccompreg,
-      fun_dist = terra::nearest,
-      x = pnts,
-      y = rd1
+      fun_dist = nearest,
+      x = pnt_path,
+      y = path_ncrd1,
+      pad_y = TRUE
     )
 )
-#> Your input function was successfully run at CGRIDID: 1
-#> Your input function was successfully run at CGRIDID: 2
-#> Your input function was successfully run at CGRIDID: 3
-#> Your input function was successfully run at CGRIDID: 4
-#> Your input function was successfully run at CGRIDID: 5
-#> Your input function was successfully run at CGRIDID: 6
-#> Your input function was successfully run at CGRIDID: 7
-#> Your input function was successfully run at CGRIDID: 8
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 1 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 2 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 3 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 4 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 5 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 6 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 7 is successfully dispatched.
+#> 
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Input is a character. Trying to read with terra .
+#> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.776   0.562   0.521
+#>   0.083   0.005   0.539
 ```
 
--   We will compare the results from the single-thread and multi-thread
+  - We will compare the results from the single-thread and multi-thread
     calculation.
 
+<!-- end list -->
+
 ``` r
-resj <- merge(restr, res, by = c("from_x", "from_y"))
+resj <- merge(restr, resd, by = c("from_x", "from_y"))
 all.equal(resj$distance.x, resj$distance.y)
 #> [1] TRUE
 ```
 
--   Users should be mindful of potential caveats in the parallelization
+  - Users should be mindful of potential caveats in the parallelization
     of nearest feature search, which may result in no or excess distance
     depending on the distribution of the target dataset to which the
     nearest feature is searched.
-    -   For example, when one wants to calculate the nearest interstate
+      - For example, when one wants to calculate the nearest interstate
         from rural homes with fine grids, some grids may have no
         interstates then homes in such grids will not get any distance
         to the nearest interstate.
-    -   Such problems can be avoided by choosing `nx`, `ny`, and
-        `padding` values in `par_make_gridset` meticulously.
+      - Such problems can be avoided by choosing `nx`, `ny`, and
+        `padding` values in `par_pad_grid` meticulously.
 
-## Why parallelization is slower than the ordinary function run?
+### Notes on data restrictions
 
--   Parallelization may underperform when the datasets are too small to
-    take advantage of divide-and-compute approach, where parallelization
-    overhead is involved. Overhead here refers to the required amount of
-    computational resources for transferring objects to multiple
-    processes.
--   Since the demonstrations above use quite small datasets, the
-    advantage of parallelization was not as noticeable as it was
-    expected. Should a large amount of data (spatial/temporal resolution
-    or number of files, for example) be processed, users could see the
-    efficiency of this package. Please refer to a
-    [vignette](https://kyle-messier.github.io/chopin/articles/v02_climate_examples.html)
-    in this package for the demonstration of various climate/weather
-    datasets.
+  - `chopin` works best with **two-dimensional** (**planar**)
+    geometries. Users should disable `s2` spherical geometry mode in
+    `sf` by setting. Running any `chopin` functions at spherical or
+    three-dimensional (e.g., including M/Z dimensions) geometries may
+    produce incorrect or unexpected results.
 
-#### Last edited: March 22, 2024
+<!-- end list -->
+
+``` r
+sf::sf_use_s2(FALSE)
+```

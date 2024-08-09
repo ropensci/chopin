@@ -2,45 +2,40 @@
 % Please edit documentation in R/scale_process.R
 \name{par_grid}
 \alias{par_grid}
-\title{Process a given function in the entire or partial computational grids}
+\title{Parallelize spatial computation over the computational grids}
 \usage{
-par_grid(grids, grid_target_id = NULL, debug = FALSE, fun_dist, ...)
+par_grid(grids, fun_dist, ..., pad_y = FALSE, .debug = FALSE)
 }
 \arguments{
-\item{grids}{sf/SpatVector object. Computational grids.
+\item{grids}{List of two sf/SpatVector objects. Computational grids.
 It takes a strict assumption that the grid input is
-an output of \code{par_make_gridset}.
-If missing or NULL is entered, \code{par_make_gridset} is internally
-called. In this case, the \strong{first} element of the ellipsis argument
-\code{...} is considered \code{input} in \code{par_make_gridset} and \code{mode} is fixed
-as "grid"`. See \code{\link[=par_make_gridset]{par_make_gridset()}} for details.}
+an output of `par_pad_grid``.}
 
-\item{grid_target_id}{character(1) or numeric(2).
-Default is NULL. If NULL, all grid_ids are used.
-\code{"id_from:id_to"} format or
-\code{c(unique(grid_id)[id_from], unique(grid_id)[id_to])}}
+\item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.
+This function should have \code{x} and \code{y} arguments.}
 
-\item{debug}{logical(1). Default is \code{FALSE}. Otherwise,
+\item{...}{Arguments passed to the argument \code{fun_dist}.}
+
+\item{pad_y}{logical(1). Whether to filter y with the padded grid.
+Should be TRUE when x is where the values are calculated.
+Default is \code{FALSE}. In the reverse case, like \code{terra::extent} or
+\code{exactextractr::exact_extract}, the raster (x) extent should be set
+with the padded grid.}
+
+\item{.debug}{logical(1). Default is \code{FALSE}. Otherwise,
 if a unit computation fails, the error message and the \code{CGRIDID}
 value where the error occurred will be included in the output.}
-
-\item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.}
-
-\item{...}{Arguments passed to the argument \code{fun_dist}.
-The \strong{second} place should get a vector or raster dataset from which
-you want to extract or calculate values. For example, a raster dataset
-when vector-raster overlay is performed.}
 }
 \value{
 a data.frame object with computation results.
-For entries of the results, consult the function used in
-\code{fun_dist} argument.
+For entries of the results, consult the documentation of the function put
+in \code{fun_dist} argument.
 }
 \description{
 \link[future:multicore]{future::multicore}, \link[future:multisession]{future::multisession}, \link[future:cluster]{future::cluster}
-will parallelize the work in each grid.
-For details of the terminology in \code{future} package,
-refer to \link[future]{plan}. This function assumes that
+\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession} in \link[future:plan]{future::plan} will parallelize
+the work in each grid. For details of the terminology in \code{future} package,
+refer to \code{\link[future:plan]{future::plan}}. This function assumes that
 users have one raster file and a sizable and spatially distributed
 target locations. Each thread will process
 the nearest integer of $|N_g| / |N_t|$ grids
@@ -48,9 +43,8 @@ where $|N_g|$ denotes the number of grids and $|N_t|$ denotes
 the number of threads.
 }
 \note{
-In dynamic dots (\code{...}), the first and second
-arguments should be the \code{fun_dist} arguments where
-sf/SpatVector objects are accepted.
+In dynamic dots (\code{...}), \code{fun_dist} arguments should include
+x and y where sf/terra class objects or file paths are accepted.
 Virtually any sf/terra functions that accept two arguments
 can be put in \code{fun_dist}, but please be advised that
 some spatial operations do not necessarily give the
@@ -61,62 +55,53 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
-\dontrun{
+library(sf)
+library(future)
+library(future.mirai)
+plan(mirai_multisession, workers = 2)
 ncpath <- system.file("shape/nc.shp", package = "sf")
-ncpoly <- terra::vect(ncpath) |>
-  terra::project("EPSG:5070")
+ncpoly <- sf::st_read(ncpath)
+# sf object
 ncpnts <-
   readRDS(
     system.file("extdata/nc_random_point.rds", package = "chopin")
   )
-ncpnts <- terra::vect(ncpnts)
-ncpnts <- terra::project(ncpnts, "EPSG:5070")
+# file path
 ncelev <-
-  terra::unwrap(
-    readRDS(system.file("extdata/nc_srtm15_otm.rds", package = "chopin"))
-  )
-terra::crs(ncelev) <- "EPSG:5070"
-names(ncelev) <- c("srtm15")
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
 
-ncsamp <-
-  terra::spatSample(
-    terra::ext(ncelev),
-    1e4L,
-    lonlat = FALSE,
-    as.points = TRUE
-  )
-ncsamp$kid <- sprintf("K-\%05d", seq(1, nrow(ncsamp)))
 nccompreg <-
-  par_make_gridset(
+  chopin::par_pad_grid(
     input = ncpnts,
     mode = "grid",
-    nx = 6L,
-    ny = 4L,
-    padding = 3e4L
+    nx = 4L,
+    ny = 2L,
+    padding = 5e3L
   )
 res <-
   par_grid(
     grids = nccompreg,
-    grid_target_id = NULL,
-    fun_dist = extract_at_buffer,
-    points = ncpnts,
-    surf = ncelev,
+    fun_dist = extract_at,
+    x = ncelev,
+    y = ncpnts,
     qsegs = 90L,
     radius = 5e3L,
     id = "pid"
   )
 }
-}
 \seealso{
+\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
+
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
-\code{\link{par_fallback}()},
-\code{\link{par_group_grid}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_make_grid}()},
-\code{\link{par_make_gridset}()},
 \code{\link{par_merge_grid}()},
-\code{\link{par_multirasters}()}
+\code{\link{par_multirasters}()},
+\code{\link{par_pad_balanced}()},
+\code{\link{par_pad_grid}()},
+\code{\link{par_split_list}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

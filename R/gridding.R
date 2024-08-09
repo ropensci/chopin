@@ -16,48 +16,59 @@
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 # nolint start
 #' @param unit character(1). The length unit for padding (optional).
-#'   units::set_units is used for padding when sf object is used.
-#'   See [link](https://cran.r-project.org/web/packages/units/vignettes/measurement_units_in_R.html)
+#'   `units::set_units` is used for padding when `sf` object is used.
+#'   See [link](https://CRAN.R-project.org/package=units/vignettes/measurement_units_in_R.html)
 #'   for the list of acceptable unit forms.
 #' @param quantiles numeric. Quantiles for `grid_quantile` mode.
 #' @param merge_max integer(1). Maximum number of grids to merge
 #'   per merged set.
+#' @param return_wkt logical(1). Return WKT format. When `TRUE`,
+#'   the return value will be a list of two WKT strings.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
-#'  * \code{original}: exhaustive and non-overlapping
+#'  * `original`: exhaustive (filling completely) and non-overlapping
 #'  grid polygons in the class of input
-#'  * \code{padded}: a square buffer of each polygon in
-#'  \code{original}. Used for computation.
+#'  * `padded`: a square buffer of each polygon in
+#'  `original`. Used for computation.
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
 #'  Each grid will be buffered by the radius.
-#' @seealso [par_cut_coords], [par_merge_grid]
+#' @seealso [`par_merge_grid`]
 #' @author Insang Song
 #' @examples
 #' # data
 #' library(sf)
+#' options(sf_use_s2 = FALSE)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' nc <- read_sf(ncpath)
 #' nc <- st_transform(nc, "EPSG:5070")
+#'
 #' # run: nx and ny should strictly be integers
-#' # In the example below, nx is 12L, not 12.
 #' nc_comp_region <-
-#'   par_make_gridset(
+#'   par_pad_grid(
 #'     nc,
 #'     mode = "grid",
-#'     nx = 12L, ny = 8L,
+#'     nx = 4L, ny = 2L,
 #'     padding = 10000)
 #' par(mfcol = c(1, 2))
-#' plot(nc_comp_region$original)
-#' plot(nc_comp_region$padded)
-#' @importFrom sf st_crs
-#' @importFrom sf st_set_crs
-#' @importFrom terra crs
-#' @importFrom terra set.crs
-#' @importFrom terra buffer
+#' plot(nc_comp_region$original$geometry)
+#' plot(nc_comp_region$padded$geometry)
+#'
+#' nc_comp_region_wkt <-
+#'   par_pad_grid(
+#'     nc,
+#'     mode = "grid",
+#'     nx = 4L, ny = 2L,
+#'     padding = 10000,
+#'     return_wkt = TRUE)
+#' nc_comp_region_wkt$original
+#' nc_comp_region_wkt$padded
+#' @importFrom sf st_crs st_set_crs st_as_text
+#' @importFrom terra crs set.crs buffer geom
+#' @importFrom cli cli_inform cli_abort
 #' @export
-par_make_gridset <-
+par_pad_grid <-
   function(
       input,
       mode = c("grid", "grid_advanced", "grid_quantile"),
@@ -68,6 +79,7 @@ par_make_gridset <-
       unit = NULL,
       quantiles = NULL,
       merge_max = NULL,
+      return_wkt = FALSE,
       ...) {
     mode <- match.arg(mode)
 
@@ -75,15 +87,17 @@ par_make_gridset <-
       is.integer(nx),
       is.integer(ny)
     )) {
-      stop("nx, ny must be integer.\n")
+      cli::cli_abort("nx, ny must be integer.\n")
     }
     if (!is.numeric(padding)) {
-      message(
-        "padding should be numeric. Try converting padding to numeric...\n"
+      cli::cli_alert_info(
+        "padding should be numeric. Try converting padding to numeric..."
       )
       padding <- as.numeric(padding)
       if (any(inherits(padding, "try-error"), is.na(padding))) {
-        stop("padding is not convertible to numeric or converted to NA.\n")
+        cli::cli_abort(
+          "padding is not convertible to numeric or converted to NA."
+        )
       }
     }
 
@@ -119,8 +133,7 @@ par_make_gridset <-
             )
           }
         )
-      
-      # grid_reg <- sf::st_set_crs(grid_reg, sf::st_crs(input))
+
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
       grid_reg <-
@@ -149,52 +162,69 @@ par_make_gridset <-
     grid_results <-
       list(original = grid_reg,
            padded = grid_reg_pad)
+
+    if (return_wkt) {
+      grid_results <-
+        Map(
+          function(x) {
+            if (dep_check(grid_reg) == "sf") {
+              sf::st_as_text(x[[attr(x, "sf_column")]])
+            } else {
+              terra::geom(x, wkt = TRUE)
+            }
+          },
+          grid_results
+        )
+    }
+
     return(grid_results)
 
   }
 
 
-#' Extension of par_group_balanced for padded grids
-#' @description This function is an extension of `par_group_balanced`
-#' to be compatible with `par_grid`, for which a set of padded grids
-#' of the extent of input point subsets
-#' (as recorded in the field named `"CGRIDID"`)
-#' is generated out of input points along with the output of
-#' `par_group_balanced`.
+#' Extension of par_make_balanced for padded grids
+#' @description This function is an extension of `par_make_balanced`
+#'   to be compatible with `par_make_grid`, for which a set of padded grids
+#'   of the extent of input point subsets
+#'   (as recorded in the field named `"CGRIDID"`)
+#'   is generated out of input points along with the output of
+#'   `par_make_balanced`.
 #' @family Parallelization
-#' @param points_in `sf` or `SpatVector` object.
+#' @param points_in `sf` or `SpatVector` object. Point geometries.
 #' @param ngroups integer(1). The number of groups.
 #' @param padding numeric(1). A extrusion factor to make buffer to
 #'  clip actual datasets. Depending on the length unit of the CRS of input.
 #' @returns A list of two,
-#'  * \code{original}: exhaustive and non-overlapping
+#'  * `original`: exhaustive and non-overlapping
 #'  grid polygons in the class of input
-#'  * \code{padded}: a square buffer of each polygon in
-#'  \code{original}. Used for computation.
+#'  * `padded`: a square buffer of each polygon in `original`.
+#'  Used for computation.
 #' @author Insang Song
 #' @examples
 #' library(terra)
 #' library(sf)
+#' options(sf_use_s2 = FALSE)
+#'
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
 #' nc <- terra::vect(ncpath)
 #' nc_rp <- terra::spatSample(nc, 1000)
-#' nc_gr <- par_group_grid(nc_rp, 10L, 1000)
+#'
+#' nc_gr <- par_pad_balanced(nc_rp, 10L, 1000)
 #' nc_gr
-#' @importFrom terra as.polygons
-#' @importFrom terra ext
-#' @importFrom terra buffer
+#' @importFrom terra as.polygons ext buffer
+#' @importFrom cli cli_inform cli_abort
 #' @export
-par_group_grid <-
+par_pad_balanced <-
   function(
     points_in = NULL,
     ngroups,
     padding
   ) {
     if (missing(ngroups)) {
-      stop("ngroups should be specified.\n")
+      cli::cli_abort("ngroups should be specified.\n")
     }
     if (!is.numeric(padding)) {
-      message(
+      cli::cli_inform(
         "padding should be numeric. Try converting padding to numeric...\n"
       )
       padding <- as.numeric(padding)
@@ -203,13 +233,15 @@ par_group_grid <-
           inherits(padding, "try-error"), is.na(padding), missing(padding)
         )
       ) {
-        stop("padding is not convertible to numeric or converted to NA.\n")
+        cli::cli_abort(
+          "padding is not convertible to numeric or converted to NA."
+        )
       }
     }
     if (is.character(points_in)) {
-      points_in <- try(terra::vect(points_in, proxy = TRUE))
+      points_in <- try(terra::vect(points_in, proxy = TRUE), silent = TRUE)
     }
-    pgroups <- par_group_balanced(points_in, ngroups)
+    pgroups <- par_make_balanced(points_in, ngroups)
 
     grid_p <- lapply(
       split(pgroups, pgroups$CGRIDID),
@@ -240,6 +272,7 @@ par_group_grid <-
 
 #' @title Generate grid polygons
 #' @family Parallelization
+#' @keywords internal
 #' @description Returns a sf object that includes x- and y- index
 #' by using two inputs ncutsx and ncutsy, which are x- and
 #' y-directional splits, respectively.
@@ -255,6 +288,7 @@ par_group_grid <-
 #' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -266,11 +300,9 @@ par_group_grid <-
 #'
 #' plot(nc_rp)
 #' plot(nc_gr, add = TRUE)
-#' @importFrom terra rast
-#' @importFrom terra as.polygons
-#' @importFrom sf st_as_sf
-#' @importFrom sf st_make_grid
-#' @export
+#' }
+#' @importFrom terra rast as.polygons
+#' @importFrom sf st_as_sf st_make_grid
 par_make_grid <-
   function(
     points_in = NULL,
@@ -299,27 +331,79 @@ par_make_grid <-
         ) |>
         terra::as.polygons()
       )
-    # grid select
-    # grid_out <- grid_out[points_in, ]
-    ## TODO: grid_out is not using actual dataset; par_grid will handle that
-    ## in a way that returning NULL first then
-    ## filtering the list with lst[sapply(lst, function(x) !is.null(x)]
 
     grid_out$CGRIDID <- seq_len(nrow(grid_out))
     return(grid_out)
   }
 
 
+#' Generate groups based on balanced clustering
+#' @description For balancing computational loads, the function uses
+#' the `anticlust` package to cluster the input points. The number of clusters
+#' is determined by the `num_cluster` argument. Each cluster will have
+#' equal number of points. Grids will be generated based on the cluster
+#' extents. At the lower level, the function uses [terra::distance()]
+#' function to calculate the Euclidean distance between points.
+#' @note This function is only for two-dimensional points.
+#' The results will be irregular grids with or without overlapping parts.
+#' @param points_in `sf` or `SpatVector` object. Target points of computation.
+#' @param n_clusters integer(1). The number of clusters.
+#' @returns `SpatVector` object with a field `"CGRIDID"`.
+#' @examples
+#' \dontrun{
+#' library(terra)
+#' library(anticlust)
+#' data(ncpoints, package = "chopin")
+#'
+#' ncp <- terra::vect(
+#'   ncpoints, geom = c("X", "Y"),
+#'   keepgeom = FALSE, crs = "EPSG:5070"
+#' )
+#'
+#' # 2,304 points / 12 = 192 points per cluster
+#' ncpbal <- par_make_balanced(ncp, 12)
+#' ncpbal
+#' }
+#' @author Insang Song
+#' @importFrom anticlust balanced_clustering
+#' @importFrom terra vect distance
+#' @importFrom stats dist
+#' @importFrom cli cli_abort
+#' @keywords internal
+par_make_balanced <- function(
+  points_in = NULL,
+  n_clusters = NULL
+) {
+  if (!is.numeric(n_clusters)) {
+    cli::cli_abort(c("x" = "n_clusters should be numeric."))
+  }
+  if (n_clusters < 2) {
+    cli::cli_abort(c("x" = "n_clusters should be greater than 1."))
+  }
+  if (dep_check(points_in) == "sf") {
+    points_in <- terra::vect(points_in)
+  }
+  # define dissimilarity based on Euclidean distance
+  dissim <- terra::distance(points_in)
+  cl <- anticlust::balanced_clustering(dissim, K = n_clusters)
+  points_in$CGRIDID <- cl
+  return(points_in)
+}
+
+
 #' Quantile definition
 #' @family Helper functions
+#' @keywords internal
 #' @param steps integer(1). The number of quantiles.
+#' @importFrom cli cli_abort
 #' @returns numeric vector of quantiles.
 #' @examples
+#' \dontrun{
 #' par_def_q(5L)
-#' @export
+#' }
 par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
-    stop("steps should be greater than 1.")
+    cli::cli_abort(c("x" = "steps should be greater than 1."))
   }
   quantiles <- seq(0, 1, length.out = steps + 1)
   return(quantiles)
@@ -329,53 +413,59 @@ par_def_q <- function(steps = 4L) {
 #' @title Partition coordinates into quantile polygons
 #' @note This function is only for two-dimensional points.
 #' @family Parallelization
+#' @keywords internal
 #' @param x numeric/sf/SpatVector. x-coordinates (if numeric).
 #' @param y numeric. y-coordinates.
 #' @param quantiles numeric vector. Quantiles.
 #' @returns A `SpatVector` object with field `CGRIDID`.
 #' @examples
+#' \dontrun{
 #' library(terra)
+#'
 #' random_points <-
 #'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-#' quantiles <- par_def_q(4L)
+#' quantiles <- seq(0, 1, length.out = 5L)
 #' qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
 #' clustered_points <-
 #'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
+#'
 #' qpoly_c <- par_cut_coords(clustered_points$x, clustered_points$y, quantiles)
+#'
 #' par(mfcol = c(1, 2))
 #' plot(qpoly)
 #' plot(qpoly_c)
 #' par(mfcol = c(1, 1))
+#'
 #' cvect <- terra::vect(clustered_points, geom = c("x", "y"))
 #' plot(cvect)
 #' plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
+#'
 #' qcv <- intersect(cvect, qpoly_c)
 #' table(qcv$CGRIDID)
 #' sum(table(qcv$CGRIDID)) # should be 1000
-#' @importFrom methods is
-#' @importFrom sf st_coordinates
-#' @importFrom terra crds
-#' @importFrom terra ext
-#' @importFrom terra as.polygons
-#' @importFrom stats setNames
-#' @importFrom stats quantile
-#' @export
+#' }
+#' @importFrom sf st_coordinates st_zm st_geometry_type st_centroid
+#' @importFrom terra crds ext as.polygons geomtype
+#' @importFrom stats setNames quantile
+#' @importFrom cli cli_abort
 par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
-  if (any(methods::is(x, "sf"), methods::is(x, "SpatVector"))) {
-    coord <- if (methods::is(x, "sf")) sf::st_coordinates else terra::crds
+  if (inherits(x, c("sf", "SpatVector"))) {
+    coord <- if (inherits(x, "sf")) sf::st_coordinates else terra::crds
     detectgeom <-
-      if (methods::is(x, "sf")) sf::st_geometry_type else terra::geomtype
+      if (inherits(x, "sf")) sf::st_geometry_type else terra::geomtype
     center <- if (methods::is(x, "sf")) sf::st_centroid else terra::centroids
+    if (inherits(x, "sf")) {
+      x <- sf::st_zm(x, drop = TRUE)
+    }
     if (any(grepl("polygon", tolower(unique(detectgeom(x)))))) {
       x <- center(x)
     }
-
     invect <- coord(x)
     x <- invect[, 1]
     y <- invect[, 2]
   }
   if (length(x) != length(y)) {
-    stop("x and y should have the same length.")
+    cli::cli_abort(c("x" = "x and y should have the same length."))
   }
   x_quantiles <- stats::quantile(x, probs = quantiles)
   y_quantiles <- stats::quantile(y, probs = quantiles)
@@ -433,26 +523,27 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
 #'  fewer target features than the threshold.
 #'  This function strongly assumes that the input
-#'  is returned from the par_make_grid,
+#'  is returned from the [`par_make_grid`],
 #'  which has `"CGRIDID"` as the unique id field.
 #' @note This function will not work properly if `grid_in` has
-#' more than one million grids.
+#'   more than one million grids.
 #' @author Insang Song
 #' @param points_in `sf` or `SpatVector` object. Target points of computation.
 #' @param grid_in `sf` or `SpatVector` object.
-#' The grid generated by [`par_make_grid`].
+#'   The grid generated by the internal function `par_make_grid`.
 #' @param grid_min_features integer(1). Threshold to merge adjacent grids.
 #' @param merge_max integer(1).
-#' Maximum number of grids to merge per merged set. Default is 4.
-#' For example, if the number of grids to merge is 20 and `merge_max` is 10,
-#' the function will split the 20 grids into two sets of 10 grids.
+#'   Maximum number of grids to merge per merged set. Default is 4.
+#'   For example, if the number of grids to merge is 20 and `merge_max` is 10,
+#'   the function will split the 20 grids into two sets of 10 grids.
 #' @returns A `sf` or `SpatVector` object of computation grids.
 #' @examples
-#' \dontrun{
 #' library(sf)
 #' library(igraph)
 #' library(dplyr)
 #' library(spatstat.random)
+#' options(sf_use_s2 = FALSE)
+#'
 #' dg <- sf::st_as_sfc(st_bbox(c(xmin = 0, ymin = 0, xmax = 8e5, ymax = 6e5)))
 #' sf::st_crs(dg) <- 5070
 #' dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
@@ -462,28 +553,19 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' scale = 15000, type = "Thomas")
 #' sf::st_crs(dg_sample) <- sf::st_crs(dg)
 #' dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
-#' plot(dg_merged$geometry)
-#' }
+#'
+#' plot(sf::st_geometry(dg_merged))
+# nolint start
 #' @references
-#' * Polsby DD, Popper FJ. (1991).
-#'   The Third Criterion: Compactness as a Procedural Safeguard Against
-#'   Partisan Gerrymandering. _Yale Law & Policy Review_,
-#'   9(2), 301–353. [Link](http://hdl.handle.net/20.500.13051/17448)
-#' @importFrom dplyr group_by
-#' @importFrom dplyr summarize
-#' @importFrom dplyr ungroup
-#' @importFrom dplyr n
-#' @importFrom sf st_relate
-#' @importFrom sf st_length
-#' @importFrom sf st_cast
-#' @importFrom sf st_intersects
-#' @importFrom sf st_as_sf
-#' @importFrom sf st_area
+#' * [Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353.](https://hdl.handle.net/20.500.13051/17448)
+# nolint end
+#' @importFrom dplyr group_by summarize ungroup n
+#' @importFrom sf st_relate st_length st_cast st_intersects st_as_sf st_area
 #' @importFrom rlang sym
-#' @importFrom igraph graph_from_edgelist
-#' @importFrom igraph mst
-#' @importFrom igraph components
+#' @importFrom igraph graph_from_edgelist mst components
+#' @importFrom dplyr %>%
 #' @importFrom utils combn
+#' @importFrom cli cli_inform cli_alert_info
 #' @export
 par_merge_grid <-
   function(
@@ -510,12 +592,7 @@ par_merge_grid <-
     n_points_in_grid <- lengths(sf::st_intersects(grid_pc, points_pc))
     grid_target <- (n_points_in_grid < grid_min_features)
 
-    # 2. concatenate self and contiguity grid indices
-    grid_self <- sf::st_relate(grid_pc, grid_pc, pattern = "2********")
-    grid_rook <- sf::st_relate(grid_pc, grid_pc, pattern = "F***1****")
-    # 3. merge self and rook neighbors
-    grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
-    # 4. conditional 1: the number of points per grid exceed the threshold?
+    # 2. conditional 1: the number of points per grid exceed the threshold?
     if (
       any(
         sum(grid_target) < 2,
@@ -523,18 +600,26 @@ par_merge_grid <-
         is.na(grid_target)
       )
     ) {
-      message(
-        sprintf(
-          "Threshold is too low. Return the original grid.
-           Please try higher threshold.
-           Minimum number of points in grids: %d, your threshold: %d\n",
-          min(n_points_in_grid), grid_min_features
+      cli::cli_alert_info(
+        paste0(
+          "Threshold is too low. Return the original grid.\n",
+          sprintf(
+            "Please try higher threshold. your threshold: %d\n",
+            grid_min_features
+          ),
+          "Top-10 non-zero number of points in grids: ",
+          paste(sort(n_points_in_grid)[1:10], collapse = ", ")
         )
       )
       # changed to grid_pc (0.6.4)
       return(grid_pc)
     }
 
+    # 3. concatenate self and contiguity grid indices
+    grid_self <- sf::st_relate(grid_pc, grid_pc, pattern = "2********")
+    grid_rook <- sf::st_relate(grid_pc, grid_pc, pattern = "F***1****")
+    # 4. merge self and rook neighbors
+    grid_selfrook <- mapply(c, grid_self, grid_rook, SIMPLIFY = FALSE)
     # leave only actual index rather than logical
     grid_lt_threshold_idx <- seq(1, nrow(grid_pc))[grid_target]
 
@@ -550,18 +635,31 @@ par_merge_grid <-
       identified[vapply(identified, FUN = length, FUN.VALUE = numeric(1)) > 1]
     # 8. conditional 2: if there is no grid to merge
     if (length(identified) == 0) {
-      message("No grid to merge.\n")
+      cli::cli_alert_info("No grid to merge.\n")
       # changed to grid_pc (0.6.4)
       return(grid_pc)
     }
     # 9. Minimum spanning tree: find the connected components
     identified_graph <-
-      lapply(identified, function(x) t(utils::combn(x, 2))) |>
-      Reduce(f = rbind, x = _) |>
-      unique() |>
-      apply(X = _, 2, as.character) |>
-      igraph::graph_from_edgelist(el = _, directed = 0) |>
-      igraph::mst() |>
+      lapply(identified, function(x) t(utils::combn(x, 2)))
+
+    # 9-1. (added 0.7.5) single row identified_graph exception
+    identified_graph <-
+      identified_graph %>%
+      Reduce(f = rbind) %>%
+      unique() %>%
+      apply(MARGIN = 2, FUN = as.character)
+    # exception control: if nrow is 1 at unique(),
+    # the result here will be a vector of length 2.
+    # restore to matrix
+    if (is.vector(identified_graph)) {
+      identified_graph <-
+        matrix(identified_graph, nrow = 1)
+    }
+    identified_graph <-
+      identified_graph %>%
+      igraph::graph_from_edgelist(directed = FALSE) %>%
+      igraph::mst() %>%
       igraph::components()
 
     identified_graph_member <- identified_graph$membership
@@ -590,10 +688,12 @@ par_merge_grid <-
           which(graph_member_excess == unique(graph_member_excess)[i])
         graph_member_excess_repl <-
           graph_member_excess[graph_member_excess_this]
+        # TO SELF:
         # 1e6 is arbitrarily chosen; it should be large enough to avoid
-        # conflicts with the original membership
-        # I do believe this number will not be changed as 1e6+
-        # computation grids are not practical
+        # conflicts with the original membership.
+        # I do believe this number is sufficient as 1e6+
+        # computation grids are not practical.
+
         # split chunks length of merge_max
         graph_member_excess_split <-
           split(
@@ -639,9 +739,9 @@ par_merge_grid <-
     grid_out <- grid_pc
     grid_out[["CGRIDID"]][merge_idx] <- merge_member_label
 
-    grid_out <- grid_out |>
-      dplyr::group_by(!!rlang::sym("CGRIDID")) |>
-      dplyr::summarize(n_merged = dplyr::n()) |>
+    grid_out <- grid_out %>%
+      dplyr::group_by(!!rlang::sym("CGRIDID")) %>%
+      dplyr::summarize(n_merged = dplyr::n()) %>%
       dplyr::ungroup()
 
     ## 13. Polsby-Popper test for shape compactness
@@ -659,8 +759,12 @@ par_merge_grid <-
     # possibly will make it defined by users.
     if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
           any(par_merge_gridd_pptest < 0.3)) {
-      message("The reduced computational regions have too complex shapes.
-      Consider increasing thresholds or using the original grids.\n")
+      cli::cli_alert_info(
+        paste0(
+          "The merged polygons have too complex shapes.\n",
+          "Increase threshold or use the original grids."
+        )
+      )
     }
     if (dep_check(points_in) != dep_check(grid_out)) {
       grid_out <- dep_switch(grid_out)
@@ -670,51 +774,51 @@ par_merge_grid <-
   }
 
 
-#' Generate groups based on balanced clustering
-#' @description For balancing computational loads, the function uses
-#' the `anticlust` package to cluster the input points. The number of clusters
-#' is determined by the `num_cluster` argument. Each cluster will have
-#' equal number of points. Grids will be generated based on the cluster
-#' extents. At the lower level, the function uses [terra::distance()]
-#' function to calculate the Euclidean distance between points.
-#' @note This function is only for two-dimensional points.
-#' The results will be inexhaustive grids.
-#' @param points_in `sf` or `SpatVector` object. Target points of computation.
-#' @param n_clusters integer(1). The number of clusters.
-#' @returns `SpatVector` object with a field `"CGRIDID"`.
+
+#' Split grid list to a nested list of row-wise data frames
+#' @family Parallelization
+#' @param gridlist list. Output of [`par_pad_grid`] or [`par_pad_balanced`]
+#' @details If the input is a data frame, the function will return a list of
+#' two data frames: `original` and `padded`. If the input is a WKT vector,
+#' the function will return a list of two WKT strings: `original` and `padded`.
+#' @returns A nested list of data frames or WKT strings.
 #' @examples
+#' library(sf)
 #' library(terra)
-#' library(anticlust)
-#' data(ncpoints, package = "chopin")
-#' ncp <- terra::vect(
-#'   ncpoints, geom = c("X", "Y"),
-#'   keepgeom = FALSE, crs = "EPSG:5070"
-#' )
-#' # 2,304 points / 12 = 192 points per cluster
-#' ncpbal <- par_group_balanced(ncp, 12)
-#' ncpbal
-#' @author Insang Song
-#' @importFrom anticlust balanced_clustering
-#' @importFrom terra vect
-#' @importFrom terra distance
-#' @importFrom stats dist
+#' options(sf_use_s2 = FALSE)
+#'
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' nc <- read_sf(ncpath)
+#' nc <- st_transform(nc, "EPSG:5070")
+#' nc_comp_region <-
+#'   par_pad_grid(
+#'     nc,
+#'     mode = "grid",
+#'     nx = 4L, ny = 2L,
+#'     padding = 10000)
+#' par_split_list(nc_comp_region)
 #' @export
-par_group_balanced <- function(
-  points_in = NULL,
-  n_clusters = NULL
-) {
-  if (!is.numeric(n_clusters)) {
-    stop("n_clusters should be numeric.\n")
+par_split_list <-
+  function(gridlist) {
+    isdf <- inherits(gridlist[[1]], "data.frame")
+    lenlist <-
+      if (isdf) {
+        nrow(gridlist[[1]])
+      } else {
+        # WKT vector case
+        length(gridlist[[1]])
+      }
+    list_nest <- vector("list", length = lenlist)
+    for (i in seq_len(lenlist)) {
+      if (isdf) {
+        list_nest[[i]] <-
+          list(original = gridlist[[1]][i, ],
+               padded = gridlist[[2]][i, ])
+      } else {
+        list_nest[[i]] <-
+          list(original = gridlist[[1]][i],
+               padded = gridlist[[2]][i])
+      }
+    }
+    return(list_nest)
   }
-  if (n_clusters < 2) {
-    stop("n_clusters should be greater than 1.\n")
-  }
-  if (dep_check(points_in) == "sf") {
-    points_in <- terra::vect(points_in)
-  }
-  # define dissimilarity based on Euclidean distance
-  dissim <- terra::distance(points_in)
-  cl <- anticlust::balanced_clustering(dissim, K = n_clusters)
-  points_in$CGRIDID <- cl
-  return(points_in)
-}

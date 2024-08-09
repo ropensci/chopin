@@ -2,33 +2,146 @@
 % Please edit documentation in R/processing.R
 \name{extract_at}
 \alias{extract_at}
+\alias{extract_at,SpatRaster,sf-method}
+\alias{extract_at,character,character-method}
+\alias{extract_at,SpatRaster,character-method}
+\alias{extract_at,SpatRaster,SpatVector-method}
+\alias{extract_at,character,sf-method}
+\alias{extract_at,character,SpatVector-method}
 \title{Extract raster values with point buffers or polygons}
 \usage{
-extract_at(
-  vector = NULL,
-  raster = NULL,
+extract_at(x, y, ...)
+
+\S4method{extract_at}{SpatRaster,sf}(
+  x = NULL,
+  y = NULL,
   id = NULL,
   func = "mean",
-  mode = c("polygon", "buffer"),
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  kernel_func = stats::weighted.mean,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  .standalone = TRUE,
+  ...
+)
+
+\S4method{extract_at}{character,character}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  kernel_func = stats::weighted.mean,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  .standalone = TRUE,
+  ...
+)
+
+\S4method{extract_at}{SpatRaster,character}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  kernel_func = stats::weighted.mean,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  .standalone = TRUE,
+  ...
+)
+
+\S4method{extract_at}{SpatRaster,SpatVector}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  kernel_func = stats::weighted.mean,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  .standalone = TRUE,
+  ...
+)
+
+\S4method{extract_at}{character,sf}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent = NULL,
+  radius = NULL,
+  out_class = "sf",
+  kernel = NULL,
+  kernel_func = stats::weighted.mean,
+  bandwidth = NULL,
+  max_cells = 3e+07,
+  .standalone = TRUE,
+  ...
+)
+
+\S4method{extract_at}{character,SpatVector}(
+  x = NULL,
+  y = NULL,
+  id = NULL,
+  func = "mean",
+  extent,
+  radius,
+  out_class = "sf",
+  kernel = NULL,
+  kernel_func = stats::weighted.mean,
+  bandwidth,
+  max_cells = 3e+07,
+  .standalone = TRUE,
   ...
 )
 }
 \arguments{
-\item{vector}{\code{sf}/\code{SpatVector} object.}
+\item{x}{\code{SpatRaster} object or file path(s) with extensions
+that are GDAL-compatible. When multiple file paths are used, the rasters
+must have the same extent and resolution.}
 
-\item{raster}{\code{SpatRaster} object. or file path(s) with extensions
-that are GDAL-compatible.}
+\item{y}{\code{sf}/\code{SpatVector} object or file path.}
+
+\item{...}{Placeholder.}
 
 \item{id}{character(1). Unique identifier of each point.}
 
 \item{func}{function taking one numeric vector argument.}
 
-\item{mode}{one of \code{"polygon"}
-(generic polygons to extract raster values with) or
-\code{"buffer"} (point with buffer radius)}
+\item{extent}{numeric(4) or SpatExtent. Extent of clipping vector.
+It only works with \code{points} of character(1) file path.}
 
-\item{...}{Placeholder.
-See \code{?extract_at_buffer} for details.}
+\item{radius}{numeric(1). Buffer radius.}
+
+\item{out_class}{character(1). Output class. One of \code{sf} or \code{terra}.}
+
+\item{kernel}{character(1). Name of a kernel function
+One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
+
+\item{kernel_func}{function.
+Kernel function to apply to the extracted values.}
+
+\item{bandwidth}{numeric(1). Kernel bandwidth.}
+
+\item{max_cells}{integer(1). Maximum number of cells in memory.}
+
+\item{.standalone}{logical(1). Default is \code{TRUE}, which means that
+the function will be executed in a standalone mode.
+When using this function in \verb{par_*} functions,
+set this to \code{FALSE}.}
 }
 \value{
 A data.frame object with summarized raster values with
@@ -37,15 +150,45 @@ respect to the mode (polygon or buffer) and the function.
 \description{
 Extract raster values with point buffers or polygons
 }
+\details{
+Inputs are preprocessed in different ways depending on the class.
+\itemize{
+\item Vector inputs in \code{y}: \code{sf} is preferred, thus character and \code{SpatVector}
+inputs will be converted to \code{sf} object. If \code{radius} is not NULL,
+\code{sf::st_buffer} is used to generate circular buffers as subsequent
+raster-vector overlay is done with \code{exactextractr::exact_extract}.
+\item Raster input in \code{x}: \code{SpatRaster} is preferred. If the input is not
+\code{SpatRaster}, it will be converted to \code{SpatRaster} object.
+}
+}
 \examples{
-## See ?extract_at_poly and ?extract_at_buffer
+ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
+rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+nc <- terra::vect(ncpath)
+nc <- terra::project(nc, "EPSG:5070")
+rrast <- terra::rast(nc, nrow = 100, ncol = 220)
+ncr <- terra::rasterize(nc, rrast)
+terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
+rpnt$pid <- sprintf("ID-\%02d", seq(1, 16))
+
+extract_at(rrast, rpnt, "pid", "mean", radius = 1000)
+extract_at(rrast, nc, "NAME", "mean")
+extract_at(rrast, ncpath, "NAME", "mean")
+extract_at(
+  rrast, ncpath, "NAME", "mean",
+  kernel = "epanechnikov",
+  bandwidth = 1e5
+)
+extract_at(
+  rastpath, ncpath, "NAME", "mean",
+  kernel = "epanechnikov",
+  bandwidth = 1e5
+)
 }
 \seealso{
-\link{extract_at_poly}, \link{extract_at_buffer}
-
 Other Macros for calculation: 
-\code{\link{extract_at_buffer}()},
-\code{\link{extract_at_poly}()},
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
 \code{\link{summarize_sedc}()}

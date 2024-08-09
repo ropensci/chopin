@@ -5,6 +5,8 @@
 /tools/largedata/
 
 # Slurm logs
+*.sh
+**/*.log
 **/*.out
 **/*.error
 
