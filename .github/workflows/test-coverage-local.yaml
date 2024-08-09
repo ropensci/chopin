@@ -39,7 +39,7 @@ jobs:
 
       - name: Test coverage
         run: |
-          Rscript -e "covpack<-covr::package_coverage(install_path='${{ github.workspace }}/cov', lib.loc=.libPaths(), clean=FALSE); \
+          Rscript -e "covpack<-covr::package_coverage(install_path='${{ github.workspace }}/cov', clean=FALSE); \
           covd<-covr::coverage_to_list(covpack)$totalcoverage; \
           write.table(covd[length(covd)], file = '${{ github.workspace }}/local_cov.Rout', row.names = F, col.names = F)"
         shell: bash

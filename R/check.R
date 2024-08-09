@@ -1128,6 +1128,10 @@ setMethod(
 #' @noRd
 .check_package <-
   function(fun) {
+    library(sf)
+    library(terra)
+    options(sf_use_s2 = FALSE)
+
     funname <- find(fun)
     pkgname <- gsub("package:", "", funname)
     pkgname <- grep("terra|sf|chopin", pkgname, value = TRUE)
