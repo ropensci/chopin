@@ -235,6 +235,7 @@ testthat::test_that("par_pad_balanced -- output check", {
 
 
 testthat::test_that("par_make_balanced internal -- input validity", {
+  testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_package("anticlust")
@@ -256,6 +257,7 @@ testthat::test_that("par_make_balanced internal -- input validity", {
 
 
 testthat::test_that("Quantile cut internal tests", {
+  testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))

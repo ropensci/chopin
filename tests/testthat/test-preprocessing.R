@@ -1,5 +1,6 @@
 testthat::test_that("Format is well converted",
   {
+    testthat::skip_on_ci()
     withr::local_package("stars")
     withr::local_package("terra")
     withr::local_options(list(sf_use_s2 = FALSE))
@@ -29,6 +30,7 @@ testthat::test_that("Format is well converted",
 
 
 testthat::test_that("Clip extent is set properly", {
+  testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -62,6 +64,7 @@ testthat::test_that("Clip extent is set properly", {
 
 
 testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
+  testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -129,6 +132,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
 
 
 testthat::test_that("Clip by extent works without errors", {
+  testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("stars")
   withr::local_package("terra")

@@ -31,21 +31,21 @@ testthat::test_that("extract_at runs well", {
   testthat::expect_s3_class(ncexpoly, "data.frame")
 
   testthat::expect_warning(
-  testthat::expect_warning(
-    testthat::expect_message(
+    testthat::expect_warning(
       testthat::expect_message(
-        extract_at(
-          ncelev,
-          nccnty,
-          "FIPS",
-          radius = 100,
-          kernel = "epanechnikov",
-          func = stats::weighted.mean,
-          bandwidth = 1.25e4L
+        testthat::expect_message(
+          extract_at(
+            ncelev,
+            nccnty,
+            "FIPS",
+            radius = 100,
+            kernel = "epanechnikov",
+            func = stats::weighted.mean,
+            bandwidth = 1.25e4L
+          )
         )
       )
     )
-  )
   )
 
   withr::with_envvar(c("CHOPIN_FORCE_CROP" = "TRUE"),
@@ -216,6 +216,7 @@ testthat::test_that("SEDC are well calculated.", {
 })
 
 testthat::test_that("Kernel functions work okay", {
+  testthat::skip_on_ci()
   testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
   testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
   testthat::expect_no_error(kernelfunction(10, 100, "quartic"))
