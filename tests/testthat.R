@@ -14,4 +14,4 @@ library(sf)
 library(chopin)
 options(sf_use_s2 = FALSE)
 
-test_package("chopin")
+test_check("chopin")
