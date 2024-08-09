@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7.20240807</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240809</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,19 +116,13 @@
 </li>
 <li>These functions are designed to be used with <code>future</code> and <code>future.mirai</code> packages to parallelize over multiple CPU threads. Users can choose the number of threads to be used in the parallelization process. Users always need to register parallel workers with <code>future</code> before running the three functions above.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future.mirai</span><span class="fu">::</span><span class="va"><a href="https://future.mirai.futureverse.org/reference/mirai_multisession.html" class="external-link">mirai_multisession</a></span>, workers <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span></span>
 <span><span class="co"># future::multisession, future::cluster are available,</span></span>
 <span><span class="co"># See future.batchtools and future.callr for other options</span></span>
 <span><span class="co"># the number of workers are up to users' choice</span></span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co">#&gt; PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.</span></span></code></pre></div>
-<div id="htmlwidget-55d9d71eaa1d4df2fe0b" class="DiagrammeR html-widget" style="width:1000px;height:600px;">
-
-</div>
-<script type="application/json" data-for="htmlwidget-55d9d71eaa1d4df2fe0b">{"x":{"diagram":"\ngraph LR\n\tn6695079[\"Is the spatial resolution finer than 100 meters?\"]\n\tn11509997[\"Are there multiple rasters?\"]\n\tn72001430[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn27284812[\"Do they have the same extent and resolution?\"]\n\tn83137384[\"Is a single raster larger than your free memory space?\"]\n\tn83318893[\"Do you have memory larger than the total raster file size?\"]\n\tn14786842[\"exact_extract with low max_cells_in_memory\"]\n\tn17102479[\"exact_extract with high max_cells_in_memory argument value\"]\n\tn7037868[\"Stack rasters then process in the single thread\"]\n\tn58642837[\"par_multirasters\"]\n\tn6695079 -->|Yes| n11509997\n\tn6695079 -->|No| n72001430\n\tn11509997 -->|Yes| n27284812\n\tn11509997 -->|No| n83137384\n\tn27284812 -->|Yes| n83318893\n\tn27284812 -->|No| n58642837\n\tn83137384 -->|No| n14786842\n\tn83137384 -->|Yes| n17102479\n\tn83318893 -->|Yes| n7037868\n\tn83318893 -->|No| n58642837\n\n"},"evals":[],"jsHooks":[]}</script><div id="htmlwidget-48046f94da65f67e9e2e" class="DiagrammeR html-widget" style="width:1000px;height:600px;">
-
-</div>
-<script type="application/json" data-for="htmlwidget-48046f94da65f67e9e2e">{"x":{"diagram":"\ngraph LR\n\tn21640044[\"Are there 100K+ features in the input vectors?\"]\n\tn84295645[\"Are they hierarchical?\"]\n\tn82902796[\"single thread processing\"]\n\tn34878990[\"Are your split_level have similar number of members?\"]\n\tn27787116[\"Are they spatially clustered?\"]\n\tn89847105[\"par_hierarchy\"]\n\tn94475834[\"par_make_gridset(..., mode = 'grid_quantile') or par_make_gridset_mode = 'grid_advanced')\"]\n\tn77415399[\"par_make_gridset(..., mode = 'grid'\"]\n\tn64849552[\"par_grid\"]\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn34878990 -->|Yes| n89847105\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
+<p><img src="reference/figures/README-flowchart-mermaid-raster-1.png" width="100%"></p>
+<p><img src="reference/figures/README-flowchart-mermaid-vector-1.png" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -137,7 +131,7 @@
 <li>
 <code>chopin</code> can be installed using <code><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">remotes::install_github</a></code> (also possible with <code><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak::pak</a></code> or <code><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">devtools::install_github</a></code>).</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">check_installed</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"NIEHS/chopin"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -147,7 +141,7 @@
 <ul>
 <li>Examples will navigate <code>par_grid</code>, <code>par_hierarchy</code>, and <code>par_multirasters</code> functions in <code>chopin</code> to parallelize geospatial operations.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># check and install packages to run examples</span></span>
 <span><span class="va">pkgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chopin"</span>, <span class="st">"dplyr"</span>, <span class="st">"sf"</span>, <span class="st">"terra"</span>, <span class="st">"future"</span>, <span class="st">"future.mirai"</span>, <span class="st">"mirai"</span><span class="op">)</span></span>
 <span><span class="co"># install packages if anything is unavailable</span></span>
@@ -164,7 +158,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.3.1; sf_use_s2() is TRUE</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.12.1, GDAL 3.8.5, PROJ 9.4.0; sf_use_s2() is TRUE</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; terra 1.7.78</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.futureverse.org" class="external-link">future</a></span><span class="op">)</span></span>
@@ -186,7 +180,7 @@
 <li>Before running code chunks below, set the cloned <code>chopin</code> repository as your working directory with <code><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd()</a></code>
 </li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"shape/nc.shp"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">read_sf</a></span><span class="op">(</span><span class="va">ncpoly</span><span class="op">)</span></span>
 <span><span class="va">ncsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="st">"EPSG:5070"</span><span class="op">)</span></span>
@@ -198,7 +192,7 @@
 <ul>
 <li>Ten thousands random point locations were generated inside the counties of North Carolina.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoints</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_sample.html" class="external-link">st_sample</a></span><span class="op">(</span><span class="va">ncsf</span>, <span class="fl">1e4</span><span class="op">)</span></span>
 <span><span class="va">ncpoints</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ncpoints</span><span class="op">)</span></span>
 <span><span class="va">ncpoints</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"PID-%05d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1e4</span><span class="op">)</span><span class="op">)</span></span>
@@ -212,7 +206,7 @@
 <ul>
 <li>We use an elevation dataset with and a moderate spatial resolution (approximately 400 meters or 0.25 miles).</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># data preparation</span></span>
 <span><span class="va">wdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, package <span class="op">=</span> <span class="st">"chopin"</span><span class="op">)</span></span>
 <span><span class="va">srtm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"nc_srtm15_otm.tif"</span><span class="op">)</span></span>
@@ -232,7 +226,7 @@
 <span><span class="co">#&gt; max value   :  1946.400</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srtm_ras</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-load-srtm-1.png" width="100%"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ncpoints_tr &lt;- terra::vect(ncpoints)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">ncpoints_srtm</span> <span class="op">&lt;-</span></span>
@@ -246,7 +240,7 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   5.025   0.066   5.092</span></span></code></pre></div>
+<span><span class="co">#&gt;   7.236   0.224   7.551</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
@@ -255,7 +249,7 @@
 <li>
 <code><a href="reference/par_pad_grid.html">chopin::par_pad_grid</a></code> takes a spatial dataset to generate regular grid polygons with <code>nx</code> and <code>ny</code> arguments with padding. Users will have both overlapping (by the degree of <code>radius</code>) and non-overlapping grids, both of which will be utilized to split locations and target datasets into sub-datasets for efficient processing.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">compregions</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_pad_grid.html">par_pad_grid</a></span><span class="op">(</span></span>
 <span>    <span class="va">ncpoints</span>,</span>
@@ -270,7 +264,7 @@
 <li>
 <code>compregions</code> is a list object with two elements named <code>original</code> (non-overlapping grid polygons) and <code>padded</code> (overlapping by <code>padding</code>). The figures below illustrate the grid polygons with and without overlaps.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">compregions</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "original" "padded"</span></span>
 <span></span>
@@ -299,7 +293,7 @@
 </ul>
 </li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future.mirai</span><span class="fu">::</span><span class="va"><a href="https://future.mirai.futureverse.org/reference/mirai_multisession.html" class="external-link">mirai_multisession</a></span>, workers <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -327,7 +321,7 @@
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt; ℹ Task at CGRIDID: 4 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.371   0.016   7.531</span></span>
+<span><span class="co">#&gt;   0.364   0.008   7.934</span></span>
 <span></span>
 <span><span class="va">ncpoints_srtm</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="reference/extract_at.html">extract_at</a></span><span class="op">(</span></span>
@@ -337,13 +331,13 @@
 <span>    radius <span class="op">=</span> <span class="fl">1e4L</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">ncpoints_srtm_mthr</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"mean_par"</span></span>
 <span><span class="va">ncpoints_compar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints_srtm</span>, <span class="va">ncpoints_srtm_mthr</span><span class="op">)</span></span>
 <span><span class="co"># Are the calculations equal?</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">ncpoints_compar</span><span class="op">$</span><span class="va">mean</span>, <span class="va">ncpoints_compar</span><span class="op">$</span><span class="va">mean_par</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncpoints_s</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">ncpoints</span>, <span class="va">ncpoints_srtm</span><span class="op">)</span></span>
 <span><span class="va">ncpoints_m</span> <span class="op">&lt;-</span></span>
@@ -351,7 +345,7 @@
 <span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_s</span><span class="op">[</span>, <span class="st">"mean"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Single-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot%20results-1.png" width="100%"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ncpoints_m</span><span class="op">[</span>, <span class="st">"mean_par"</span><span class="op">]</span>, main <span class="op">=</span> <span class="st">"Multi-thread"</span>, pch <span class="op">=</span> <span class="fl">19</span>, cex <span class="op">=</span> <span class="fl">0.33</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-plot%20results-2.png" width="100%"></p>
 </div>
@@ -369,14 +363,14 @@
 <div class="section level4">
 <h4 id="read-data">Read data<a class="anchor" aria-label="anchor" href="#read-data"></a>
 </h4>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># nc_hierarchy.gpkg includes two layers: county and tracts</span></span>
 <span><span class="va">path_nchrchy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"nc_hierarchy.gpkg"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">nc_data</span> <span class="op">&lt;-</span> <span class="va">path_nchrchy</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `county' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/Rtmp7rdVW4/temp_libpath29c5bd5fea1cd2/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 100 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
@@ -385,7 +379,7 @@
 <span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
 <span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `tracts' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/Rtmp7rdVW4/temp_libpath29c5bd5fea1cd2/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2672 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
@@ -401,7 +395,7 @@
 <div class="section level4">
 <h4 id="extract-average-srtm-elevations-by-single-and-multiple-threads">Extract average SRTM elevations by single and multiple threads<a class="anchor" aria-label="anchor" href="#extract-average-srtm-elevations-by-single-and-multiple-threads"></a>
 </h4>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># single-thread</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_elev_tr_single</span> <span class="op">&lt;-</span></span>
@@ -413,7 +407,7 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.518   0.002   0.520</span></span>
+<span><span class="co">#&gt;   0.903   0.030   0.935</span></span>
 <span></span>
 <span><span class="co"># hierarchical parallelization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -531,7 +525,7 @@
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.242   0.102   1.987</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.242   0.076   1.991</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -543,7 +537,7 @@
 <li>
 <code><a href="reference/par_multirasters.html">chopin::par_multirasters</a></code> is for such cases. An example below demonstrates where we have five elevation raster files to calculate the average elevation at counties in North Carolina.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># nccnty &lt;- sf::st_read(nc_data, layer = "county")</span></span>
 <span><span class="va">ncelev</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">srtm</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">ncelev</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:5070"</span></span>
@@ -559,10 +553,10 @@
 <span><span class="co"># check if the raster files were exported as expected</span></span>
 <span><span class="va">testfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span>, pattern <span class="op">=</span> <span class="st">"*.tif$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">testfiles</span></span>
-<span><span class="co">#&gt; [1] "/tmp/Rtmp1avZwd/test1.tif" "/tmp/Rtmp1avZwd/test2.tif"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/Rtmp1avZwd/test3.tif" "/tmp/Rtmp1avZwd/test4.tif"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/Rtmp1avZwd/test5.tif"</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "/tmp/Rtmpr29PnC/test1.tif" "/tmp/Rtmpr29PnC/test2.tif"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/Rtmpr29PnC/test3.tif" "/tmp/Rtmpr29PnC/test4.tif"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/Rtmpr29PnC/test5.tif"</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">chopin</span><span class="fu">::</span><span class="fu"><a href="reference/par_multirasters.html">par_multirasters</a></span><span class="op">(</span></span>
@@ -576,21 +570,21 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; ℹ Input is not a character.</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test1.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test1.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test2.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test2.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test3.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test3.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test4.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test4.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp1avZwd/test5.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test5.tif is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.856   0.181   2.123</span></span>
+<span><span class="co">#&gt;   1.685   0.134   2.765</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -600,33 +594,32 @@
 <tbody>
 <tr class="odd">
 <td align="right">136.80203</td>
-<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
+<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">189.76170</td>
-<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
+<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="right">231.16968</td>
-<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
+<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">98.03845</td>
-<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
+<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="right">41.23463</td>
-<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
+<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">270.96933</td>
-<td align="left">/tmp/Rtmp1avZwd/test1.tif</td>
+<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># remove temporary raster files</span></span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># remove temporary raster files</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.remove</a></span><span class="op">(</span><span class="va">testfiles</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE TRUE TRUE TRUE TRUE</span></span></code></pre></div>
 <!--| GEOID |      mean |
@@ -647,7 +640,7 @@
 <li>Other than <code>chopin</code> internal macros, <code>chopin::par_*</code> functions support generic geospatial operations.</li>
 <li>An example below uses <code><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">terra::nearest</a></code>, which gets the nearest feature’s attributes, inside <code><a href="reference/par_grid.html">chopin::par_grid</a></code>.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path_ncrd1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">wdir</span>, <span class="st">"ncroads_first.gpkg"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate 5000 random points</span></span>
@@ -657,7 +650,7 @@
 <span><span class="va">pnts</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"RPID-%04d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5000</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">rd1</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">path_ncrd1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `ncroads_first' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp9TGUc8/temp_libpath3e8f7d6dbd96/chopin/extdata/ncroads_first.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/Rtmp7rdVW4/temp_libpath29c5bd5fea1cd2/chopin/extdata/ncroads_first.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 620 features and 4 fields</span></span>
 <span><span class="co">#&gt; Geometry type: MULTILINESTRING</span></span>
@@ -683,7 +676,7 @@
 <ul>
 <li>The figure below shows the padded grids (50 kilometers), primary roads, and points. Primary roads will be selected by a padded grid per iteration and used to calculate the distance from each point to the nearest primary road. Padded grids and their overlapping areas will look different according to <code>padding</code> argument in <code><a href="reference/par_pad_grid.html">chopin::par_pad_grid</a></code>.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">nccompreg</span><span class="op">$</span><span class="va">padded</span>, border <span class="op">=</span> <span class="st">"orange"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ncsf</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -696,17 +689,17 @@
 <span>       lty <span class="op">=</span> <span class="fl">1</span>, lwd <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"orange"</span>, <span class="st">"blue"</span><span class="op">)</span>,</span>
 <span>       cex <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-map-all-1.png" width="100%"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># terra::nearest run</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">pntst</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">rd1t</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.423   0.000   0.422</span></span>
+<span><span class="co">#&gt;   0.602   0.000   0.603</span></span>
 <span></span>
 <span><span class="va">pnt_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">tdir</span>, <span class="st">"pntst.gpkg"</span><span class="op">)</span></span>
 <span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_write.html" class="external-link">st_write</a></span><span class="op">(</span><span class="va">pntst</span>, <span class="va">pnt_path</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/Rtmp1avZwd/pntst.gpkg' using driver `GPKG'</span></span>
+<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/Rtmpr29PnC/pntst.gpkg' using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Writing 5000 features with 1 fields and geometry type Point.</span></span>
 <span></span>
 <span><span class="co"># we use four threads that were configured above</span></span>
@@ -752,11 +745,11 @@
 <span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
 <span><span class="co">#&gt; ℹ Task at CGRIDID: 8 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.083   0.005   0.539</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.082   0.002   0.447</span></span></code></pre></div>
 <ul>
 <li>We will compare the results from the single-thread and multi-thread calculation.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">resj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">restr</span>, <span class="va">resd</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from_x"</span>, <span class="st">"from_y"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">resj</span><span class="op">$</span><span class="va">distance.x</span>, <span class="va">resj</span><span class="op">$</span><span class="va">distance.y</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
@@ -775,7 +768,7 @@
 <li>
 <code>chopin</code> works best with <strong>two-dimensional</strong> (<strong>planar</strong>) geometries. Users should disable <code>s2</code> spherical geometry mode in <code>sf</code> by setting. Running any <code>chopin</code> functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.</li>
 </ul>
-<!-- end list --><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
