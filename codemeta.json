@@ -7,7 +7,7 @@
   "codeRepository": "https://github.com/NIEHS/chopin",
   "issueTracker": "https://github.com/NIEHS/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.7.8.20240809",
+  "version": "0.7.8.20240814",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -368,7 +368,7 @@
     },
     "SystemRequirements": "NetCDF4"
   },
-  "fileSize": "27931.947KB",
+  "fileSize": "27932.011KB",
   "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],

@@ -1130,7 +1130,7 @@ setMethod(
 .check_package <-
   function(fun) {
     candidates <- c("sf", "terra", "chopin")
-    # funname <- find(fun)
+
     pkgname <-
       vapply(candidates,
         function(x) {
@@ -1138,14 +1138,17 @@ setMethod(
             environmentName(
               findFunction(
                 f = fun,
-                where = getNamespace(x))[[1]]
+                where = getNamespace(x)
+              )[[1]]
             ),
-            error = function(e){"error"}
+            error = function(e){
+              "error"
+            }
           )
         },
         FUN.VALUE = character(1)
       )
-    # pkgname <- gsub("package:", "", funname)
+
     pkgname <- grep("^(terra|sf|chopin)$", pkgname, value = TRUE)
     if (length(pkgname) == 0) {
       cli::cli_abort("No parent package is found.")

@@ -1117,3 +1117,19 @@ testthat::test_that(
     future::plan(future::sequential)
   }
 )
+
+
+# par_map_args tests ####
+testthat::test_that("par_map_args works", {
+  example_fun <- function(x, y, z = 1) {
+    return(c(x = x, y = y, z = z))
+  }
+
+  # Example usage of map_args_xy
+  testthat::expect_no_error(
+    result <-
+      par_map_args(fun = example_fun,
+                   name_match = list(a = "x", b = "y"),
+                   a = 10, b = 20, z = 5)
+  )
+})
