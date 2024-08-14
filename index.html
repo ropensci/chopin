@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240809</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240814</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,8 +56,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="chopin-computation-for-climate-and-health-research-on-parallelized-infrastructure-">
-<code>chopin</code>: Computation for Climate and Health research On Parallelized INfrastructure <img src="reference/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal"><a class="anchor" aria-label="anchor" href="#chopin-computation-for-climate-and-health-research-on-parallelized-infrastructure-"></a>
+<div class="page-header"><h1 id="computation-of-spatial-data-by-hierarchical-and-objective-partitioning-of-inputs-for-parallel-processing-">Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="reference/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal"><a class="anchor" aria-label="anchor" href="#computation-of-spatial-data-by-hierarchical-and-objective-partitioning-of-inputs-for-parallel-processing-"></a>
 </h1></div>
 <!-- badges: start -->
 
@@ -240,7 +239,7 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   7.236   0.224   7.551</span></span></code></pre></div>
+<span><span class="co">#&gt;   7.177   0.227   7.426</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
@@ -321,7 +320,7 @@
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt; ℹ Task at CGRIDID: 4 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.364   0.008   7.934</span></span>
+<span><span class="co">#&gt;   0.269   0.007   7.656</span></span>
 <span></span>
 <span><span class="va">ncpoints_srtm</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="reference/extract_at.html">extract_at</a></span><span class="op">(</span></span>
@@ -370,7 +369,7 @@
 <span><span class="va">nc_data</span> <span class="op">&lt;-</span> <span class="va">path_nchrchy</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `county' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp7rdVW4/temp_libpath29c5bd5fea1cd2/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpW75c95/temp_libpath2a53f823dd4dd7/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 100 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
@@ -379,7 +378,7 @@
 <span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
 <span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `tracts' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp7rdVW4/temp_libpath29c5bd5fea1cd2/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpW75c95/temp_libpath2a53f823dd4dd7/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2672 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
@@ -407,7 +406,7 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.903   0.030   0.935</span></span>
+<span><span class="co">#&gt;   0.893   0.007   0.902</span></span>
 <span></span>
 <span><span class="co"># hierarchical parallelization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -525,7 +524,7 @@
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.242   0.076   1.991</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.222   0.071   2.007</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -553,9 +552,9 @@
 <span><span class="co"># check if the raster files were exported as expected</span></span>
 <span><span class="va">testfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span>, pattern <span class="op">=</span> <span class="st">"*.tif$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">testfiles</span></span>
-<span><span class="co">#&gt; [1] "/tmp/Rtmpr29PnC/test1.tif" "/tmp/Rtmpr29PnC/test2.tif"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/Rtmpr29PnC/test3.tif" "/tmp/Rtmpr29PnC/test4.tif"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/Rtmpr29PnC/test5.tif"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/tmp/RtmpZf1L16/test1.tif" "/tmp/RtmpZf1L16/test2.tif"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/RtmpZf1L16/test3.tif" "/tmp/RtmpZf1L16/test4.tif"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/RtmpZf1L16/test5.tif"</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
@@ -570,21 +569,21 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; ℹ Input is not a character.</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test1.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpZf1L16/test1.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test2.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpZf1L16/test2.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test3.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpZf1L16/test3.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test4.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpZf1L16/test4.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmpr29PnC/test5.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpZf1L16/test5.tif is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.685   0.134   2.765</span></span>
+<span><span class="co">#&gt;   1.693   0.139   2.764</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -594,27 +593,27 @@
 <tbody>
 <tr class="odd">
 <td align="right">136.80203</td>
-<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
+<td align="left">/tmp/RtmpZf1L16/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">189.76170</td>
-<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
+<td align="left">/tmp/RtmpZf1L16/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="right">231.16968</td>
-<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
+<td align="left">/tmp/RtmpZf1L16/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">98.03845</td>
-<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
+<td align="left">/tmp/RtmpZf1L16/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="right">41.23463</td>
-<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
+<td align="left">/tmp/RtmpZf1L16/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">270.96933</td>
-<td align="left">/tmp/Rtmpr29PnC/test1.tif</td>
+<td align="left">/tmp/RtmpZf1L16/test1.tif</td>
 </tr>
 </tbody>
 </table>
@@ -650,7 +649,7 @@
 <span><span class="va">pnts</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"RPID-%04d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5000</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">rd1</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">path_ncrd1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `ncroads_first' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp7rdVW4/temp_libpath29c5bd5fea1cd2/chopin/extdata/ncroads_first.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpW75c95/temp_libpath2a53f823dd4dd7/chopin/extdata/ncroads_first.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 620 features and 4 fields</span></span>
 <span><span class="co">#&gt; Geometry type: MULTILINESTRING</span></span>
@@ -695,11 +694,11 @@
 <span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">pntst</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">rd1t</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.602   0.000   0.603</span></span>
+<span><span class="co">#&gt;   0.598   0.000   0.600</span></span>
 <span></span>
 <span><span class="va">pnt_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">tdir</span>, <span class="st">"pntst.gpkg"</span><span class="op">)</span></span>
 <span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_write.html" class="external-link">st_write</a></span><span class="op">(</span><span class="va">pntst</span>, <span class="va">pnt_path</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/Rtmpr29PnC/pntst.gpkg' using driver `GPKG'</span></span>
+<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/RtmpZf1L16/pntst.gpkg' using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Writing 5000 features with 1 fields and geometry type Point.</span></span>
 <span></span>
 <span><span class="co"># we use four threads that were configured above</span></span>
@@ -745,7 +744,7 @@
 <span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
 <span><span class="co">#&gt; ℹ Task at CGRIDID: 8 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.082   0.002   0.447</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.075   0.006   0.443</span></span></code></pre></div>
 <ul>
 <li>We will compare the results from the single-thread and multi-thread calculation.</li>
 </ul>
