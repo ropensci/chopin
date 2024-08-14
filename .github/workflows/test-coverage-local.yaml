@@ -45,6 +45,12 @@ jobs:
           write.table(covd[length(covd)], file = '${{ github.workspace }}/local_cov.Rout', row.names = F, col.names = F)"
         shell: bash
 
+      - name: Upload covr report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: covr-report
+          path: ${{ github.workspace }}/chopin-coverage-report.html
+
       - name: Get Values
         id: get-values
         shell: bash
@@ -82,9 +88,9 @@ jobs:
         with:
           ref: ${{ github.ref }} 
 
-      - name: Upload artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-outputs
-          path: ${{ github.workspace }}
+      # - name: Upload artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-outputs
+      #     path: ${{ github.workspace }}/**

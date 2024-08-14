@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# `chopin`: Computation for Climate and Health research On Parallelized INfrastructure <img src="man/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
+# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="man/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
 [![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
@@ -81,10 +81,9 @@ graph LR
 	n83137384 -->|Yes| n17102479
 	n83318893 -->|Yes| n7037868
 	n83318893 -->|No| n58642837
-
 '
 
-DiagrammeR::mermaid(mermaid_chart_raster, width = 1000, height = 600)
+DiagrammeR::mermaid(mermaid_chart_raster, width = 500, height = 1200)
 ```
 
 ```{r flowchart-mermaid-vector, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
@@ -94,25 +93,28 @@ graph LR
 	n21640044["Are there 100K+ features in the input vectors?"]
 	n84295645["Are they hierarchical?"]
 	n82902796["single thread processing"]
-	n34878990["Are your split_level have similar number of members?"]
+	n34878990["Are the data grouped in similar sizes?"]
 	n27787116["Are they spatially clustered?"]
 	n89847105["par_hierarchy"]
-	n94475834["par_make_gridset(..., mode = \'grid_quantile\') or par_make_gridset_mode = \'grid_advanced\')"]
-	n77415399["par_make_gridset(..., mode = \'grid\'"]
+  n90014927["par_pad_balanced"]
+	n94475834["par_pad_grid(..., mode = \'grid_quantile\') or par_make_gridset_mode = \'grid_advanced\')"]
+	n77415399["par_pad_grid(..., mode = \'grid\'"]
 	n64849552["par_grid"]
 	n21640044 -->|Yes| n84295645
 	n21640044 -->|No| n82902796
 	n84295645 -->|Yes| n34878990
 	n84295645 -->|No| n27787116
 	n34878990 -->|Yes| n89847105
+  n34878990 -->|No| n90014927
 	n34878990 -->|No| n94475834
 	n27787116 -->|Yes| n94475834
 	n27787116 -->|No| n77415399
+  n90014927 --> n64849552
 	n94475834 --> n64849552
 	n77415399 --> n64849552
 '
 
-DiagrammeR::mermaid(mermaid_chart_vector, width = 1000, height = 600)
+DiagrammeR::mermaid(mermaid_chart_vector, width = 500, height = 1200)
 ```
 
 
