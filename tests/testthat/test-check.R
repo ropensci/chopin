@@ -1,8 +1,7 @@
-
+# dep_check tests ####
 testthat::test_that("Input object class is detected",
   {
-    testthat::skip_on_ci()
-    testthat::skip_on_covr()
+    # testthat::skip_on_ci()
     withr::local_package("stars")
     withr::local_package("terra")
     # withr::local_package("chopin")
@@ -26,11 +25,11 @@ testthat::test_that("Input object class is detected",
   }
 )
 
-
+# datamod tests ####
 testthat::test_that("Data model detection",
   {
-    testthat::skip_on_ci()
-    testthat::skip_on_covr()
+    # testthat::skip_on_ci()
+    # testthat::skip_on_covr()
     withr::local_package("stars")
     withr::local_package("terra")
     # withr::local_package("chopin")
@@ -41,8 +40,8 @@ testthat::test_that("Data model detection",
     nc <- system.file(package = "sf", "shape/nc.shp")
     nc <- sf::read_sf(nc)
 
-    datatype_stars <- datamod(bcsd_stars)
-    datatype_sf <- datamod(nc)
+    datatype_stars <- chopin:::datamod(bcsd_stars)
+    datatype_sf <- chopin:::datamod(nc)
 
     testthat::expect_equal(datatype_stars, "raster")
     testthat::expect_equal(datatype_sf, "vector")
@@ -51,9 +50,10 @@ testthat::test_that("Data model detection",
   }
 )
 
+# reproject_std tests ####
 testthat::test_that("CRS is transformed when it is not standard", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
@@ -68,8 +68,8 @@ testthat::test_that("CRS is transformed when it is not standard", {
   sf::st_crs(ncna) <- NA
   ncnatr <- terra::vect(ncna)
 
-  nctr_align <- reproject_std(nctr, "EPSG:4326")
-  nc_align <- reproject_std(nc, "EPSG:4326")
+  nctr_align <- chopin:::reproject_std(nctr, "EPSG:4326")
+  nc_align <- chopin:::reproject_std(nc, "EPSG:4326")
 
   testthat::expect_s3_class(nc_align, "sf")
   testthat::expect_s4_class(nctr_align, "SpatVector")
@@ -82,14 +82,15 @@ testthat::test_that("CRS is transformed when it is not standard", {
 
   terra::crs(ncnatr) <- NULL
   # error case
-  testthat::expect_error(reproject_std(ncnatr, "EPSG:4326"))
+  testthat::expect_error(chopin:::reproject_std(ncnatr, "EPSG:4326"))
 
 })
 
 
+# reproject_to_raster tests ####
 testthat::test_that("reproject to raster: sf", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
@@ -104,17 +105,17 @@ testthat::test_that("reproject to raster: sf", {
   # make random raster
   rr <- terra::rast(matrix(runif(100), 10, 10), crs = "EPSG:4326")
 
-  ncr <- reproject_to_raster(nc, rr)
-  nctr <- reproject_to_raster(nctr, rr)
+  ncr <- chopin:::reproject_to_raster(nc, rr)
+  nctr <- chopin:::reproject_to_raster(nctr, rr)
 
   testthat::expect_s3_class(ncr, "sf")
   testthat::expect_s4_class(nctr, "SpatVector")
 })
 
-
+# vect_validate tests ####
 testthat::test_that("vector validity check is cleared", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
@@ -124,16 +125,16 @@ testthat::test_that("vector validity check is cleared", {
   nc <- system.file(package = "sf", "shape/nc.shp")
   nc <- sf::read_sf(nc)
 
-  testthat::expect_no_error(vect_validate(nc))
+  testthat::expect_no_error(chopin:::vect_validate(nc))
 
   nct <- terra::vect(nc)
-  testthat::expect_no_error(vect_validate(nct))
+  testthat::expect_no_error(chopin:::vect_validate(nct))
 })
 
-
+# .check_id tests ####
 testthat::test_that(".check_id throws error with non-character id", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_options(list(sf_use_s2 = FALSE))
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
@@ -141,14 +142,14 @@ testthat::test_that(".check_id throws error with non-character id", {
   input_sf <- sf::st_read(input_char)
 
   testthat::expect_error(
-    .check_id(input_sf, 32)
+    chopin:::.check_id(input_sf, 32)
   )
 })
 
 
 testthat::test_that(".check_id throws error with nonexistent id", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -156,47 +157,48 @@ testthat::test_that(".check_id throws error with nonexistent id", {
   input_sf <- sf::st_read(input_char)
 
   testthat::expect_error(
-    .check_id(input_sf, "fips"),
+    chopin:::.check_id(input_sf, "fips"),
     "id should exist in the input object"
   )
 })
 
 
+# .check_vector tests ####
 testthat::test_that(".check_vector with sf", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_sf <- sf::st_read(input_char)
   checked_sf <-
-    .check_vector(
+    chopin:::.check_vector(
       input_sf, input_id = "FIPS",
       extent = NULL, out_class = "sf"
     )
-  testthat::expect_equal(dep_check(checked_sf), "sf")
+  testthat::expect_equal(chopin:::dep_check(checked_sf), "sf")
 
 })
 
 
 testthat::test_that(".check_vector with terra", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_vect <- terra::vect(input_char)
   checked_vect <-
-    .check_vector(
+    chopin:::.check_vector(
       input_vect, input_id = "FIPS",
       extent = NULL, out_class = "terra"
     )
-  testthat::expect_equal(dep_check(checked_vect), "terra")
+  testthat::expect_equal(chopin:::dep_check(checked_vect), "terra")
 
 })
 
 
 testthat::test_that(".check_vector with file path and extent", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_vect <- terra::vect(input_char)
@@ -205,7 +207,7 @@ testthat::test_that(".check_vector with file path and extent", {
   # inherits "try-error", still available for .check_id
   # the error is thrown in .check_id
   testthat::expect_error(
-    .check_vector(
+    chopin:::.check_vector(
       "nonexistent.gpkg", input_id = "FIPS",
       extent = NULL, out_class = "sf"
     ),
@@ -213,7 +215,7 @@ testthat::test_that(".check_vector with file path and extent", {
   )
 
   testthat::expect_error(
-    .check_vector(
+    chopin:::.check_vector(
       "nonexistent.gpkg", input_id = "FIPS",
       extent = NULL, out_class = "terra"
     ),
@@ -222,33 +224,87 @@ testthat::test_that(".check_vector with file path and extent", {
 
   # existing file path: terra output
   checked_char <-
-    .check_vector(
+    chopin:::.check_vector(
       input_char, extent = NULL, input_id = "FIPS", out_class = "terra"
     )
-  testthat::expect_equal(dep_check(checked_char), "terra")
+  testthat::expect_equal(chopin:::dep_check(checked_char), "terra")
 
   # existing file path: terra output with extent
   checked_ext <-
-    .check_vector(
+    chopin:::.check_vector(
       input_char, extent = c(-80, -77, 35, 36),
       input_id = "FIPS", out_class = "terra"
     )
-  testthat::expect_equal(dep_check(checked_ext), "terra")
+  testthat::expect_equal(chopin:::dep_check(checked_ext), "terra")
 
   # existing file path: terra output without extent
   checked_ext <-
-    .check_vector(
+    chopin:::.check_vector(
       input_char, extent = NULL,
       input_id = "FIPS", out_class = "terra"
     )
-  testthat::expect_equal(dep_check(checked_ext), "terra")
+  testthat::expect_equal(chopin:::dep_check(checked_ext), "terra")
 
 })
 
 
+testthat::test_that("vect_validate repairs input vector data", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_sf <-
+    sf::st_as_sf(
+      data.frame(
+        wkt = sf::st_as_text(sf::st_polygon(
+          list(rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1), c(0, 0)))
+        ))
+      ),
+      wkt = "wkt"
+    )
+  testthat::expect_true(
+    sf::st_is_valid(chopin:::vect_validate(input_sf))
+  )
+
+  input_terra <- terra::vect(input_sf)
+  testthat::expect_true(
+    terra::is.valid(chopin:::vect_validate(input_terra))
+  )
+})
+
+testthat::test_that(".intersect_extent returns the intersection extent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_sf <- sf::st_as_sf(
+    data.frame(wkt = "POLYGON ((-1 -1, 1 -1, 1 1, -1 1, -1 -1))"),
+    wkt = "wkt"
+  )
+  extent_sf <-
+    sf::st_as_text(
+      sf::st_as_sfc(sf::st_bbox(c(xmin = -1, ymin = -1, xmax = 1, ymax = 1)))
+    )
+  ext_chopin <- chopin:::.intersect_extent(input_sf, "sf")
+  ext_chopin <-
+    sf::st_as_text(
+      sf::st_as_sfc(sf::st_bbox(ext_chopin))
+    )
+  testthat::expect_equal(
+    ext_chopin, extent_sf
+  )
+
+  input_terra <- terra::vect(input_sf)
+  extent_terra <- terra::ext(input_terra)
+  testthat::expect_no_error(
+    chopin:::.intersect_extent(input_terra, "terra")
+  )
+})
+
+
 testthat::test_that(".check_character with non-character inputs",{
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # test for non-character input
   testthat::expect_message(
@@ -267,8 +323,8 @@ testthat::test_that(".check_character with non-character inputs",{
 
 
 testthat::test_that(".check_character with character inputs",{
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
@@ -293,8 +349,8 @@ testthat::test_that(".check_character with character inputs",{
 
 
 testthat::test_that(".check_character with sf objects", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("stars")
@@ -327,8 +383,8 @@ testthat::test_that(".check_character with sf objects", {
 })
 
 testthat::test_that(".check_character with Spat* objects", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("terra")
 
@@ -418,8 +474,8 @@ testthat::test_that("`[` methods in chopin -- SpatVector-SpatExtent", {
 
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -438,8 +494,8 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")
@@ -465,8 +521,8 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_package("sf")
   withr::local_package("terra")

@@ -339,10 +339,10 @@ testthat::test_that("SEDC warning message with multiple fields overlapped", {
 })
 
 testthat::test_that("Kernel functions work okay", {
-  testthat::skip_on_ci()
-  testthat::expect_error(kernelfunction(10, 100, "hyperbolic"))
-  testthat::expect_no_error(kernelfunction(10, 100, "uniform"))
-  testthat::expect_no_error(kernelfunction(10, 100, "quartic"))
-  testthat::expect_no_error(kernelfunction(10, 100, "triweight"))
-  testthat::expect_no_error(kernelfunction(10, 100, "epanechnikov"))
+  # testthat::skip_on_ci()
+  testthat::expect_error(chopin:::kernelfunction(10, 100, "hyperbolic"))
+  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "uniform"))
+  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "quartic"))
+  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "triweight"))
+  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "epanechnikov"))
 })

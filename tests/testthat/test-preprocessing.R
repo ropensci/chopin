@@ -1,6 +1,6 @@
 testthat::test_that("Format is well converted",
   {
-    testthat::skip_on_ci()
+    # testthat::skip_on_ci()
     withr::local_package("stars")
     withr::local_package("terra")
     withr::local_options(list(sf_use_s2 = FALSE))
@@ -11,26 +11,26 @@ testthat::test_that("Format is well converted",
     nc <- system.file(package = "sf", "shape/nc.shp")
     nc <- sf::read_sf(nc)
 
-    stars_bcsd_tr <- dep_switch(bcsd_stars)
-    sf_nc_tr <- dep_switch(nc)
+    stars_bcsd_tr <- chopin:::dep_switch(bcsd_stars)
+    sf_nc_tr <- chopin:::dep_switch(nc)
 
-    testthat::expect_equal(dep_check(stars_bcsd_tr), "terra")
-    testthat::expect_equal(dep_check(sf_nc_tr), "terra")
+    testthat::expect_equal(chopin:::dep_check(stars_bcsd_tr), "terra")
+    testthat::expect_equal(chopin:::dep_check(sf_nc_tr), "terra")
 
-    stars_bcsd_trb <- dep_switch(stars_bcsd_tr)
-    sf_nc_trb <- dep_switch(sf_nc_tr)
+    stars_bcsd_trb <- chopin:::dep_switch(stars_bcsd_tr)
+    sf_nc_trb <- chopin:::dep_switch(sf_nc_tr)
 
-    testthat::expect_equal(dep_check(stars_bcsd_trb), "sf")
-    testthat::expect_equal(dep_check(sf_nc_trb), "sf")
+    testthat::expect_equal(chopin:::dep_check(stars_bcsd_trb), "sf")
+    testthat::expect_equal(chopin:::dep_check(sf_nc_trb), "sf")
 
-    testthat::expect_error(dep_check(list(1, 2)))
-    testthat::expect_error(dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE)))
+    testthat::expect_error(chopin:::dep_check(list(1, 2)))
+    testthat::expect_error(chopin:::dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE)))
   }
 )
 
 
 testthat::test_that("Clip extent is set properly", {
-  testthat::skip_on_ci()
+  # testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -44,10 +44,10 @@ testthat::test_that("Clip extent is set properly", {
 
   radius <- 1e4L
 
-  (nc_ext_sf <- get_clip_ext(nc, radius))
+  (nc_ext_sf <- chopin:::get_clip_ext(nc, radius))
 
   nct <- terra::vect(nc)
-  (nc_ext_terra <- get_clip_ext(nct, radius))
+  (nc_ext_terra <- chopin:::et_clip_ext(nct, radius))
 
   (proper_xmin <- sf::st_bbox(nc)[1] - (1.1 * radius))
 
@@ -64,7 +64,7 @@ testthat::test_that("Clip extent is set properly", {
 
 
 testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
-  testthat::skip_on_ci()
+  # testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -132,7 +132,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
 
 
 testthat::test_that("Clip by extent works without errors", {
-  testthat::skip_on_ci()
+  # testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("stars")
   withr::local_package("terra")
