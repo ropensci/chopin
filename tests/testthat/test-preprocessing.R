@@ -47,7 +47,7 @@ testthat::test_that("Clip extent is set properly", {
   (nc_ext_sf <- chopin:::get_clip_ext(nc, radius))
 
   nct <- terra::vect(nc)
-  (nc_ext_terra <- chopin:::et_clip_ext(nct, radius))
+  (nc_ext_terra <- chopin:::get_clip_ext(nct, radius))
 
   (proper_xmin <- sf::st_bbox(nc)[1] - (1.1 * radius))
 
@@ -86,7 +86,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   testthat::expect_no_error(
     suppressWarnings(
       cl_terra <-
-        clip_vec_ext(
+        chopin:::clip_vec_ext(
           x = ncpt,
           radius = 3e4L,
           y = nctrct
@@ -102,7 +102,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   testthat::expect_no_error(
     suppressWarnings(
       cl_sf <-
-        clip_vec_ext(
+        chopin:::clip_vec_ext(
           x = ncp,
           radius = 3e4L,
           y = nctrct
@@ -114,7 +114,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   # sf-terra
   testthat::expect_no_error(
     suppressWarnings(
-      clip_vec_ext(
+      chopin:::clip_vec_ext(
         x = ncpt,
         radius = 3e4L,
         y = sf::st_as_sf(nctrct)
@@ -123,7 +123,7 @@ testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
   )
 
   testthat::expect_error(
-    clip_vec_ext(
+    chopin:::clip_vec_ext(
       x = NULL, radius = 3e4L, y = nctrct
     )
   )
@@ -151,7 +151,7 @@ testthat::test_that("Clip by extent works without errors", {
     )
   ncp_terra <- terra::vect(ncp)
 
-  testthat::expect_no_error(clip_ras_ext(ncelev, ncp, 30000L))
-  testthat::expect_no_error(clip_ras_ext(ncelev, ncp_terra, 30000L))
-  testthat::expect_error(clip_ras_ext(ncelev, ncp_terra, NULL))
+  testthat::expect_no_error(chopin:::clip_ras_ext(ncelev, ncp, 30000L))
+  testthat::expect_no_error(chopin:::clip_ras_ext(ncelev, ncp_terra, 30000L))
+  testthat::expect_error(chopin:::clip_ras_ext(ncelev, ncp_terra, NULL))
 })

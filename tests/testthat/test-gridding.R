@@ -80,7 +80,7 @@ testthat::test_that("par_pad_grid with other modes", {
       ncp,
       mode = "grid_quantile",
       padding = 3e4L,
-      quantiles = par_def_q(5L)
+      quantiles = chopin:::par_def_q(5L)
     )
   )
 
@@ -207,7 +207,7 @@ testthat::test_that("par_pad_balanced -- input validity", {
 
   # par_make_balanced: ID assignment
   testthat::expect_true(
-    "CGRIDID" %in% names(par_make_balanced(rv, 10))
+    "CGRIDID" %in% names(chopin:::par_make_balanced(rv, 10))
   )
 })
 
@@ -242,16 +242,16 @@ testthat::test_that("par_make_balanced internal -- input validity", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   testthat::expect_error(
-    par_make_balanced(rv, NULL)
+    chopin:::par_make_balanced(rv, NULL)
   )
   testthat::expect_error(
-    par_make_balanced(rv, "five")
+    chopin:::par_make_balanced(rv, "five")
   )
   testthat::expect_error(
-    suppressWarnings(par_make_balanced(rv, 5L, "radius"))
+    suppressWarnings(chopin:::par_make_balanced(rv, 5L, "radius"))
   )
   testthat::expect_error(
-    par_make_balanced(rv, 5L, NA)
+    chopin:::par_make_balanced(rv, 5L, NA)
   )
 })
 
@@ -271,27 +271,27 @@ testthat::test_that("Quantile cut internal tests", {
     y = runif(1000, 0, 100)
   )
   N <- 4L
-  quantiles <- par_def_q(N)
+  quantiles <- chopin:::par_def_q(N)
 
   testthat::expect_equal(length(quantiles), 5)
   testthat::expect_error(
-    par_def_q(1L),
+    chopin:::par_def_q(1L),
     "steps should be greater than 1."
   )
 
   testthat::expect_error(
-    par_cut_coords(randpoints$x, randpoints$y[seq(1, 10)], quantiles),
+    chopin:::par_cut_coords(randpoints$x, randpoints$y[seq(1, 10)], quantiles),
     "x and y should have the same length."
   )
 
   testthat::expect_error(
-    par_cut_coords(randpoints$x, c(1, 0, 4), quantiles),
+    chopin:::par_cut_coords(randpoints$x, c(1, 0, 4), quantiles),
     "x and y should have the same length."
   )
 
   # output should have Nquantiles * Nquantiles elements
   testthat::expect_equal(
-    nrow(par_cut_coords(randpoints$x, randpoints$y, quantiles)), N^2
+    nrow(chopin:::par_cut_coords(randpoints$x, randpoints$y, quantiles)), N^2
   )
 
   # polygon case
@@ -300,7 +300,7 @@ testthat::test_that("Quantile cut internal tests", {
 
   testthat::expect_warning(
     testthat::expect_warning(
-      par_cut_coords(nc, NULL, par_def_q(3L)),
+      chopin:::par_cut_coords(nc, NULL, chopin:::par_def_q(3L)),
       "st_centroid assumes attributes are constant over geometries"
     ),
     "st_centroid does not give correct centroids for longitude/latitude"

@@ -19,7 +19,7 @@ testthat::test_that("extract_at runs well", {
     terra::rast(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
-  testthat::expect_no_error(reproject_to_raster(nccnty4326, ncelev))
+  testthat::expect_no_error(chopin:::reproject_to_raster(nccnty4326, ncelev))
 
   # test two modes
   ncexpoly <-
@@ -134,6 +134,8 @@ testthat::test_that("summarize_aw works -- character-character", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   nc <- sf::st_read(ncpath)
   nc <- sf::st_transform(nc, 5070)
+  nctemppath <- file.path(tempdir(), "ncr.shp")
+  sf::st_write(nc, nctemppath, append = FALSE)
   pp <- sf::st_sample(nc, size = 300)
   pp <- sf::st_as_sf(pp)
   pp[["id"]] <- seq(1, nrow(pp))
@@ -144,7 +146,7 @@ testthat::test_that("summarize_aw works -- character-character", {
   sf::st_write(ppb, ppbpath, append = FALSE)
 
   system.time({
-    ppb_nc_aw <- summarize_aw(ppbpath, ncpath, target_fields = flds, "id")
+    ppb_nc_aw <- summarize_aw(ppbpath, nctemppath, target_fields = flds, "id")
   })
   testthat::expect_true(inherits(ppb_nc_aw, "data.frame"))
 
@@ -238,7 +240,7 @@ testthat::test_that("summarize_aw works -- error cases", {
 })
 
 
-
+# SEDC tests ####
 testthat::test_that("SEDC are well calculated.", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -338,6 +340,7 @@ testthat::test_that("SEDC warning message with multiple fields overlapped", {
 
 })
 
+# Kernel functions ####
 testthat::test_that("Kernel functions work okay", {
   # testthat::skip_on_ci()
   testthat::expect_error(chopin:::kernelfunction(10, 100, "hyperbolic"))
