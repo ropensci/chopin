@@ -119,7 +119,6 @@ testthat::test_that("vector validity check is cleared", {
   withr::local_package("sf")
   withr::local_package("terra")
   # withr::local_package("chopin")
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nc <- system.file(package = "sf", "shape/nc.shp")
@@ -137,7 +136,6 @@ testthat::test_that(".check_id throws error with non-character id", {
   # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_options(list(sf_use_s2 = FALSE))
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_sf <- sf::st_read(input_char)
 
