@@ -53,8 +53,8 @@ poly_weight will be converted to the class of x."></head><body>
 <span></span>
 <span><span class="co"># S4 method for class 'SpatVector,SpatVector'</span></span>
 <span><span class="fu">summarize_aw</span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">y</span>,</span>
 <span>  target_fields <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id_x <span class="op">=</span> <span class="st">"ID"</span>,</span>
 <span>  fun <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean</a></span>,</span>
@@ -64,8 +64,8 @@ poly_weight will be converted to the class of x."></head><body>
 <span></span>
 <span><span class="co"># S4 method for class 'character,character'</span></span>
 <span><span class="fu">summarize_aw</span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">y</span>,</span>
 <span>  target_fields <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id_x <span class="op">=</span> <span class="st">"ID"</span>,</span>
 <span>  fun <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean</a></span>,</span>
@@ -76,8 +76,8 @@ poly_weight will be converted to the class of x."></head><body>
 <span></span>
 <span><span class="co"># S4 method for class 'sf,sf'</span></span>
 <span><span class="fu">summarize_aw</span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">y</span>,</span>
 <span>  target_fields <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  id_x <span class="op">=</span> <span class="st">"ID"</span>,</span>
 <span>  fun <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -184,7 +184,7 @@ read as <code>sf</code> objects.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>st_interpolate_aw assumes attributes are constant or uniform over areas of x</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    user  system elapsed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.365   0.000   0.365 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.370   0.000   0.371 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      BIR74             BIR79                  geometry  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :  159.6   Min.   :  244.7   POLYGON      :300  </span>
@@ -216,7 +216,7 @@ read as <code>sf</code> objects.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>[intersect] different crs</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    user  system elapsed </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.085   0.000   0.085 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.083   0.000   0.084 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ppb_nc_aw</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        id             BIR74               BIR79          </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :  1.00   Min.   :2.453e+08   Min.   :2.453e+08  </span>
