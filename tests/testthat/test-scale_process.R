@@ -8,7 +8,6 @@ testthat::test_that(".par_screen -- vector", {
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
-  withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # Reading data
   ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -16,7 +15,7 @@ testthat::test_that(".par_screen -- vector", {
     terra::project("EPSG:5070")
 
   scr_terra <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "vector",
       input = ncpath,
       input_id = "FIPS",
@@ -24,7 +23,7 @@ testthat::test_that(".par_screen -- vector", {
     )
 
   scr_sf <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "vector",
       input = ncpath,
       input_id = "FIPS",
@@ -36,7 +35,7 @@ testthat::test_that(".par_screen -- vector", {
 
   # sf into terra
   scr_sfterra <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "vector",
       input = scr_sf,
       input_id = "FIPS",
@@ -44,7 +43,7 @@ testthat::test_that(".par_screen -- vector", {
     )
   # sf (as is)
   scr_sfsf <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "vector",
       input = scr_sf,
       input_id = "FIPS",
@@ -55,7 +54,7 @@ testthat::test_that(".par_screen -- vector", {
 
   # terra into sf
   scr_terrasf <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "vector",
       input = scr_terra,
       input_id = "FIPS",
@@ -63,7 +62,7 @@ testthat::test_that(".par_screen -- vector", {
     )
   # terra (as is)
   scr_terraterra <-
-    .par_screen(
+    chopin:::.par_screen(
       type = "vector",
       input = scr_terra,
       input_id = "FIPS",
@@ -77,16 +76,15 @@ testthat::test_that(".par_screen -- vector", {
 
 
 testthat::test_that(".par_screen -- raster", {
-  testthat::skip_on_ci()
-  testthat::skip_on_covr()
+  # testthat::skip_on_ci()
+  # testthat::skip_on_covr()
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("dplyr")
-  # withr::local_package("chopin")
+  withr::local_package("chopin")
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
-  # withr::with_dir(testthat::test_path("../.."), devtools::load_all())
   # Reading data
   ## NC counties polygon
   bundleras <- system.file("ex/elev.tif", package = "terra")

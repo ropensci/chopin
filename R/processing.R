@@ -765,8 +765,8 @@ setGeneric("summarize_aw", function(x, y, ...) standardGeneric("summarize_aw"))
 #' @export
 setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"),
   function(
-    x = NULL,
-    y = NULL,
+    x,
+    y,
     target_fields = NULL,
     id_x = "ID",
     fun = stats::weighted.mean,
@@ -803,8 +803,8 @@ setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"),
 #' @export
 setMethod("summarize_aw", signature(x = "character", y = "character"),
   function(
-    x = NULL,
-    y = NULL,
+    x,
+    y,
     target_fields = NULL,
     id_x = "ID",
     fun = stats::weighted.mean,
@@ -843,8 +843,8 @@ setMethod("summarize_aw", signature(x = "character", y = "character"),
 #' @export
 setMethod("summarize_aw", signature(x = "sf", y = "sf"),
   function(
-    x = NULL,
-    y = NULL,
+    x,
+    y,
     target_fields = NULL,
     id_x = "ID",
     fun = NULL,

@@ -10,8 +10,8 @@
 summarize_aw(x, y, ...)
 
 \S4method{summarize_aw}{SpatVector,SpatVector}(
-  x = NULL,
-  y = NULL,
+  x,
+  y,
   target_fields = NULL,
   id_x = "ID",
   fun = stats::weighted.mean,
@@ -20,8 +20,8 @@ summarize_aw(x, y, ...)
 )
 
 \S4method{summarize_aw}{character,character}(
-  x = NULL,
-  y = NULL,
+  x,
+  y,
   target_fields = NULL,
   id_x = "ID",
   fun = stats::weighted.mean,
@@ -31,8 +31,8 @@ summarize_aw(x, y, ...)
 )
 
 \S4method{summarize_aw}{sf,sf}(
-  x = NULL,
-  y = NULL,
+  x,
+  y,
   target_fields = NULL,
   id_x = "ID",
   fun = NULL,

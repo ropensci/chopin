@@ -51,6 +51,13 @@ jobs:
           name: covr-report
           path: ${{ github.workspace }}/chopin-coverage-report.html
 
+      - name: Upload workspace dump as artifact if the test fails
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-outputs
+          path: ${{ github.workspace }}/**
+
       - name: Get Values
         id: get-values
         shell: bash

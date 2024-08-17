@@ -83,7 +83,7 @@ graph LR
 	n83318893 -->|No| n58642837
 '
 
-DiagrammeR::mermaid(mermaid_chart_raster, width = 500, height = 1200)
+DiagrammeR::mermaid(mermaid_chart_raster, width = 1200, height = 400)
 ```
 
 ```{r flowchart-mermaid-vector, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
@@ -114,7 +114,7 @@ graph LR
 	n77415399 --> n64849552
 '
 
-DiagrammeR::mermaid(mermaid_chart_vector, width = 500, height = 1200)
+DiagrammeR::mermaid(mermaid_chart_vector, width = 1200, height = 400)
 ```
 
 
