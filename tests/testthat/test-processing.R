@@ -1,5 +1,5 @@
-## should be fixed ####
-testthat::test_that("extract_at runs well", {
+
+testthat::test_that("extract_at -- character-character inputs", {
   withr::local_package("sf")
   withr::local_package("stars")
   withr::local_package("terra")
@@ -90,6 +90,326 @@ testthat::test_that("extract_at runs well", {
 })
 
 
+testthat::test_that("extract_at -- SpatRaster-character inputs", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  ncp <- terra::vect(ncp)
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <-
+    terra::rast(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
+
+  # test two modes
+  ncexpoly <-
+    chopin::extract_at(
+      ncelev,
+      nccnty,
+      "FIPS"
+    )
+  testthat::expect_s3_class(ncexpoly, "data.frame")
+
+  testthat::expect_warning(
+    testthat::expect_warning(
+      testthat::expect_message(
+        testthat::expect_message(
+          chopin::extract_at(
+            ncelev,
+            nccnty,
+            "FIPS",
+            radius = 100,
+            kernel = "epanechnikov",
+            func = stats::weighted.mean,
+            bandwidth = 1.25e4L
+          )
+        )
+      )
+    )
+  )
+
+})
+
+
+testthat::test_that("extract_at -- character-sf inputs", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  # starts from sf/stars
+  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  nccnty <- sf::st_read(nccnty)
+  ncelev <-
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  # test two modes
+  ncexpoly <-
+    chopin::extract_at(
+      ncelev,
+      nccnty,
+      "FIPS"
+    )
+  testthat::expect_s3_class(ncexpoly, "data.frame")
+
+  testthat::expect_warning(
+    testthat::expect_warning(
+      testthat::expect_message(
+        testthat::expect_message(
+          chopin::extract_at(
+            ncelev,
+            nccnty,
+            "FIPS",
+            radius = 100,
+            kernel = "epanechnikov",
+            func = stats::weighted.mean,
+            bandwidth = 1.25e4L
+          )
+        )
+      )
+    )
+  )
+
+})
+
+
+testthat::test_that("extract_at -- character-SpatVector inputs", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  nccnty <- terra::vect(nccnty)
+  ncelev <-
+    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  # test two modes
+  ncexpoly <-
+    chopin::extract_at(
+      x = ncelev,
+      y = nccnty,
+      id = "FIPS",
+      extent = NULL
+    )
+  testthat::expect_s3_class(ncexpoly, "data.frame")
+
+  testthat::expect_warning(
+    testthat::expect_warning(
+      testthat::expect_message(
+        testthat::expect_message(
+          chopin::extract_at(
+            ncelev,
+            nccnty,
+            "FIPS",
+            radius = 100,
+            kernel = "epanechnikov",
+            func = stats::weighted.mean,
+            bandwidth = 1.25e4L
+          )
+        )
+      )
+    )
+  )
+
+})
+
+
+## .extract_at tests ####
+testthat::test_that(".extract_at + character inputs without kernel weighting", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  testthat::expect_no_error(
+    chopin:::.extract_at(ncelev, nccnty, "FIPS", max_cells = 3e7)
+  )
+
+})
+
+
+testthat::test_that(".extract_at + terra inputs without kernel weighting", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  cnty <- terra::vect(nccnty)
+  elev <- terra::rast(ncelev)
+  testthat::expect_no_error(
+    chopin:::.extract_at(elev, cnty, "FIPS", max_cells = 3e7)
+  )
+
+  testthat::expect_warning(
+    chopin:::.extract_at(elev, cnty, "FIPS", radius = 1e3, max_cells = 3e7),
+    "Buffer is set with non-point geometries."
+  )
+
+})
+
+
+testthat::test_that(".extract_at + terra/sf inputs without kernel weighting", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  cnty <- sf::st_read(nccnty)
+  elev <- terra::rast(ncelev)
+
+  testthat::expect_warning(
+    chopin:::.extract_at(elev, cnty, "FIPS", radius = 1e3, max_cells = 3e7),
+    "Buffer is set with non-point geometries."
+  )
+
+})
+
+testthat::test_that(".extract_at + character inputs with kernel weighting", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  cnty <- terra::vect(nccnty)
+  cntycent <- terra::centroids(cnty)
+
+  # polygon input + kernel + no bandwidth: error
+  testthat::expect_error(
+    chopin:::.extract_at(
+      ncelev,
+      nccnty,
+      id = "FIPS",
+      kernel = "epanechnikov",
+      bandwidth = NULL,
+      max_cells = 3e7
+    )
+  )
+
+  # polygon input + kernel + bandwidth: warning (converted to point)
+  testthat::expect_message(
+    testthat::expect_warning(
+      chopin:::.extract_at(
+        ncelev,
+        nccnty,
+        id = "FIPS",
+        kernel = "epanechnikov",
+        bandwidth = 3000,
+        max_cells = 3e7
+      )
+    )
+  )
+
+  # point input + no kernel + no bandwidth: error
+  testthat::expect_error(
+    chopin:::.extract_at(
+      ncelev,
+      cntycent,
+      id = "FIPS",
+      kernel = NULL,
+      max_cells = 3e7
+    )
+  )
+
+  # point input + kernel + no bandwidth: error
+  testthat::expect_error(
+    chopin:::.extract_at(
+      ncelev,
+      cntycent,
+      id = "FIPS",
+      kernel = "epanechnikov",
+      bandwidth = NULL,
+      max_cells = 3e7
+    )
+  )
+
+  # point input + radius + kernel + bandwidth: message
+  testthat::expect_message(
+    chopin:::.extract_at(
+      ncelev,
+      cntycent,
+      radius = 1000,
+      id = "FIPS",
+      kernel = "epanechnikov",
+      bandwidth = 3000,
+      max_cells = 3e7
+    )
+  )
+
+})
+
+## .kernel_weighting tests ####
+testthat::test_that(".kernel_weighting works", {
+  withr::local_package("sf")
+  withr::local_package("stars")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+  withr::local_package("exactextractr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+
+  elev <- terra::rast(ncelev)
+  cnty <- sf::st_read(nccnty)
+  cnty <- sf::st_transform(cnty, terra::crs(elev))
+
+  extr <- exactextractr::exact_extract(
+    elev,
+    cnty,
+    force_df = TRUE,
+    include_cols = "FIPS",
+    include_area = TRUE,
+    include_xy = TRUE,
+    progress = FALSE
+  )
+
+  # polygon input + kernel: error
+  testthat::expect_warning(
+    chopin:::.kernel_weighting(
+      x_ras = elev,
+      y_vec = cnty,
+      id = "FIPS",
+      extracted = extr,
+      kernel = "epanechnikov",
+      bandwidth = 1000
+    )
+  )
+
+})
+
+
+
+## .check_character tests ####
 testthat::test_that("Character input works", {
   withr::local_package("sf")
   withr::local_package("stars")
@@ -341,11 +661,12 @@ testthat::test_that("SEDC warning message with multiple fields overlapped", {
 })
 
 # Kernel functions ####
-testthat::test_that("Kernel functions work okay", {
-  # testthat::skip_on_ci()
+testthat::test_that("Kernel functions work", {
   testthat::expect_error(chopin:::kernelfunction(10, 100, "hyperbolic"))
   testthat::expect_no_error(chopin:::kernelfunction(10, 100, "uniform"))
   testthat::expect_no_error(chopin:::kernelfunction(10, 100, "quartic"))
   testthat::expect_no_error(chopin:::kernelfunction(10, 100, "triweight"))
   testthat::expect_no_error(chopin:::kernelfunction(10, 100, "epanechnikov"))
 })
+
+

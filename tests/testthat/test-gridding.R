@@ -307,3 +307,55 @@ testthat::test_that("Quantile cut internal tests", {
   )
 
 })
+
+# par_split_list tests ####
+testthat::test_that("par_split_list returns correct output", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  nc <- read_sf(ncpath)
+  nc <- st_transform(nc, "EPSG:5070")
+  nc_comp_region <-
+    par_pad_grid(
+      nc,
+      mode = "grid",
+      nx = 4L, ny = 2L,
+      padding = 10000
+    )
+
+  ps <- par_split_list(nc_comp_region)
+
+  testthat::expect_true(is.list(ps))
+  testthat::expect_equal(length(ps), 8)
+
+  # WKT mode
+  nc_comp_region_wkt <-
+    par_pad_grid(
+      nc,
+      mode = "grid",
+      nx = 4L, ny = 2L,
+      padding = 10000,
+      return_wkt = TRUE
+    )
+  psw <- par_split_list(nc_comp_region_wkt)
+
+  testthat::expect_true(is.list(psw))
+  testthat::expect_equal(length(psw), 8)
+  testthat::expect_true(is.character(psw[[1]]$original))
+
+
+  # Create sample input
+  gridlist <- list(data.frame(x = c(1, 2, 3, 4, 5),
+                              y = c(1, 2, 3, 4, 5)),
+                   data.frame(x = c(8, 6, 4, 0, -1),
+                              y = c(7, 5, 3, 0, -1)))
+
+  # Call the function
+  result <- par_split_list(gridlist)
+
+  # Check the output
+  testthat::expect_equal(result[[1]]$original, data.frame(x = 1, y = 1))
+  testthat::expect_equal(result[[1]]$padded, data.frame(x = 8, y = 7))
+})

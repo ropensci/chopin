@@ -127,7 +127,7 @@ kernelfunction <-
 #' @param id character(1). Name of unique identifier field.
 #' @param func character(1)/function. supported function names or functions
 #'   taking `x` and `w` in `exactextractr::exact_extract`
-#' @param extent numeric
+#' @param extent numeric. Passed to .check_vector
 #' @param radius numeric(1).
 #' @param out_class character(1). "sf" or "terra"
 #' @param kernel character(1). Name of kernel functions [kernelfunction]
@@ -492,12 +492,12 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
-    extent,
-    radius,
+    extent = NULL,
+    radius = NULL,
     out_class = "sf",
     kernel = NULL,
     kernel_func = stats::weighted.mean,
-    bandwidth,
+    bandwidth = NULL,
     max_cells = 3e+07,
     .standalone = TRUE,
     ...

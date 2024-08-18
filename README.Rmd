@@ -57,6 +57,18 @@ future::plan(future.mirai::mirai_multisession, workers = 4L)
 # the number of workers are up to users' choice
 ```
 
+
+### Function selection guide
+
+We provide two flowcharts to help users choose the right function for parallel processing. The raster-oriented flowchart is for users who want to start with raster data, and the vector-oriented flowchart is for users with large vector data.
+
+In **raster-oriented selection**, we suggest four factors to consider:
+- Number of raster files: for multiple files, `par_multirasters` is recommended. When there are multiple rasters that share the same extent and resolution, consider stacking the rasters into multilayer SpatRaster object by calling `terra::rast(filenames)`.
+- Raster resolution: We suggest 100 meters as a threshold. Rasters with resolution coarser than 100 meters and a few layers would be better for the direct call of `exactextractr::exact_extract()`.
+- Raster extent: Using `SpatRaster` in `exactextractr::exact_extract()` is often minimally affected by the raster extent.
+- Memory size: `max_cells_in_memory` argument value of `exactextractr::exact_extract()`, raster resolution, and the number of layers in `SpatRaster` are multiplicatively related to the memory usage.
+
+
 ```{r flowchart-mermaid-raster, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
 mermaid_chart_raster <-
 '
@@ -85,6 +97,11 @@ graph LR
 
 DiagrammeR::mermaid(mermaid_chart_raster, width = 1200, height = 400)
 ```
+
+For **vector-oriented selection**, we suggest three factors to consider:
+- Number of features: When the number of features is over 100,000, consider using `par_grid` or `par_hierarchy` to split the data into smaller chunks.
+- Hierarchical structure: If the data has a hierarchical structure, consider using `par_hierarchy` to parallelize the operation.
+- Data grouping: If the data needs to be grouped in similar sizes, consider using `par_pad_balanced` or `par_pad_grid` with `mode = "grid_quantile"`.
 
 ```{r flowchart-mermaid-vector, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
 mermaid_chart_vector <-
