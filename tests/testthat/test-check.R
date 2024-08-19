@@ -290,9 +290,27 @@ testthat::test_that(".intersect_extent returns the intersection extent", {
 
   input_terra <- terra::vect(input_sf)
   extent_terra <- terra::ext(input_terra)
-  testthat::expect_no_error(
-    chopin:::.intersect_extent(input_terra, "terra")
+  ie_trtr <- chopin:::.intersect_extent(input_terra, "terra")
+  ie_trsf <- chopin:::.intersect_extent(input_terra, "sf")
+
+  testthat::expect_s4_class(ie_trtr, "SpatExtent")
+  testthat::expect_true(class(ie_trsf)[1] == "bbox")
+
+  input_num <- c(-0.5, 1, -0.5, 1)
+  testthat::expect_error(
+    chopin:::.intersect_extent(input_num, "land")
   )
+
+  testthat::expect_no_error(
+    ie_sf <- chopin:::.intersect_extent(input_num, "sf")
+  )
+  testthat::expect_true(inherits(ie_sf, "sfc"))
+  testthat::expect_no_error(
+    ie_tr <- chopin:::.intersect_extent(input_num, "terra")
+  )
+  testthat::expect_s4_class(ie_tr, "SpatExtent")
+
+
 })
 
 
@@ -541,4 +559,26 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
   nct10 <- chopin:::.check_vector(input = nct, extent = nc10box, out_class = "sf")
 
   testthat::expect_s3_class(nct10, "sf")
+})
+
+
+testthat::test_that(".check_vector -- character and sf", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncfile <- system.file(package = "sf", "shape/nc.shp")
+  nct <- terra::vect(ncfile)
+
+  nctex <- terra::as.polygons(terra::ext(nct))
+  nctex <- terra::set.crs(nctex, terra::crs(nct))
+  nctex <- sf::st_as_sf(nctex)
+
+  cv_chsfsf <-
+    chopin:::.check_vector(ncfile, extent = nctex, out_class = "sf")
+  cv_chsftr <-
+    chopin:::.check_vector(ncfile, extent = nctex, out_class = "terra")
+
+  testthat::expect_s3_class(cv_chsfsf, "sf")
+  testthat::expect_s4_class(cv_chsftr, "SpatVector")
 })
