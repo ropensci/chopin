@@ -161,9 +161,9 @@ testthat::test_that(".check_id throws error with nonexistent id", {
 
 
 # .check_vector tests ####
-testthat::test_that(".check_vector with sf", {
-  # testthat::skip_on_ci()
-  # testthat::skip_on_covr()
+# input = sf ####
+testthat::test_that(".check_vector with sf-NULL", {
+
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_sf <- sf::st_read(input_char)
   checked_sf <-
@@ -173,27 +173,310 @@ testthat::test_that(".check_vector with sf", {
     )
   testthat::expect_equal(chopin:::dep_check(checked_sf), "sf")
 
-})
-
-
-testthat::test_that(".check_vector with terra", {
-  # testthat::skip_on_ci()
-  # testthat::skip_on_covr()
-  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
-  input_vect <- terra::vect(input_char)
-  checked_vect <-
+  checked_terra <-
     chopin:::.check_vector(
-      input_vect, input_id = "FIPS",
+      input_sf, input_id = "FIPS",
       extent = NULL, out_class = "terra"
     )
-  testthat::expect_equal(chopin:::dep_check(checked_vect), "terra")
+  testthat::expect_equal(chopin:::dep_check(checked_terra), "terra")
+
+  testthat::expect_error(chopin:::.check_vector(
+    input = input_sf,
+    input_id = "FIPS",
+    extent = NULL,
+    out_class = "land"
+  ))
+})
+
+# input = sf ####
+testthat::test_that(".check_vector with sf-numeric", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  input_sf <- sf::st_read(input_char)
+  num_ext <- c(-88, -80, 33, 36)
+  num_ext_bbox <- sf::st_as_sfc(sf::st_bbox(terra::ext(num_ext)))
+  num_ext_bbox <- sf::st_set_crs(num_ext_bbox, sf::st_crs(input_sf))
+  input_sf_sub <- input_sf[num_ext_bbox, ]
+
+  checked_sf <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = num_ext, out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_sf), "sf")
+  testthat::expect_true(nrow(input_sf_sub) == nrow(checked_sf))
+
+  checked_terra <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = num_ext, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_terra), "terra")
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = num_ext, out_class = "land"
+    )
+
+  )
+})
+
+
+testthat::test_that(".check_vector with sf-SpatVector", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_bbox(sf::st_buffer(input_sfu, 2000))
+  input_sfu <- terra::ext(input_sfu)
+
+  checked_sf <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_sf), "sf")
+
+  checked_terra <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_terra), "terra")
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "land"
+    )
+  )
 
 })
 
 
-testthat::test_that(".check_vector with file path and extent", {
-  # testthat::skip_on_ci()
-  # testthat::skip_on_covr()
+testthat::test_that(".check_vector with sf-sf", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+
+  checked_sf <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_sf), "sf")
+
+  checked_terra <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_terra), "terra")
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "land"
+    )
+  )
+
+})
+
+testthat::test_that(".check_vector with sf-SpatVector", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+  input_sfu <- terra::vect(input_sfu)
+
+  checked_sf <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_sf), "sf")
+
+  checked_terra <-
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_terra), "terra")
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_sf, input_id = "FIPS",
+      extent = input_sfu, out_class = "land"
+    )
+  )
+
+})
+
+
+# input = terra ####
+testthat::test_that(".check_vector with terra-SpatExtent", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_vect <- terra::vect(input_char)
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+  input_sfu <- terra::vect(input_sfu)
+  input_sfu <- terra::ext(input_sfu)
+
+  checked_trextr <-
+    chopin:::.check_vector(
+      input_vect, input_id = "FIPS",
+      extent = input_sfu, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_trextr), "terra")
+
+  testthat::expect_message(
+    checked_trexsf <-
+      chopin:::.check_vector(
+        input_vect, input_id = "FIPS",
+        extent = input_sfu, out_class = "sf"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_trexsf), "sf")
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_vect, input_id = "FIPS",
+      extent = input_sfu, out_class = "land"
+    )
+  )
+})
+
+
+testthat::test_that(".check_vector with terra-SpatVector", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_vect <- terra::vect(input_char)
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+  input_sfu <- terra::vect(input_sfu)
+
+  checked_trextr <-
+    chopin:::.check_vector(
+      input_vect, input_id = "FIPS",
+      extent = input_sfu, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_trextr), "terra")
+
+  testthat::expect_message(
+    checked_trexsf <-
+      chopin:::.check_vector(
+        input_vect, input_id = "FIPS",
+        extent = input_sfu, out_class = "sf"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_trexsf), "sf")
+
+  testthat::expect_message(
+    checked_trexsf <-
+      chopin:::.check_vector(
+        input_vect, input_id = NULL,
+        extent = input_sfu, out_class = "sf"
+      )
+  )
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_vect, input_id = "FIPS",
+      extent = input_sfu, out_class = "land"
+    )
+  )
+})
+
+
+testthat::test_that(".check_vector with terra-sf", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_vect <- terra::vect(input_char)
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+
+  checked_trsftr <-
+    chopin:::.check_vector(
+      input_vect, input_id = "FIPS",
+      extent = input_sfu, out_class = "terra"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_trsftr), "terra")
+
+  testthat::expect_message(
+    checked_trsfsf <-
+      chopin:::.check_vector(
+        input_vect, input_id = "FIPS",
+        extent = input_sfu, out_class = "sf"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_trsfsf), "sf")
+
+  testthat::expect_message(
+    checked_trsfsf <-
+      chopin:::.check_vector(
+        input_vect, input_id = NULL,
+        extent = input_sfu, out_class = "sf"
+      )
+  )
+
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_vect, input_id = "FIPS",
+      extent = input_sfu, out_class = "land"
+    )
+  )
+})
+
+
+
+
+# input = character ####
+testthat::test_that(".check_vector with file path-NULL", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
   input_char <- system.file("gpkg/nc.gpkg", package = "sf")
   input_vect <- terra::vect(input_char)
 
@@ -242,6 +525,163 @@ testthat::test_that(".check_vector with file path and extent", {
 })
 
 
+testthat::test_that(".check_vector with file path-NULL", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+
+  # existing file path: terra output
+  testthat::expect_message(
+    checked_chrtr <-
+      chopin:::.check_vector(
+        input_char, extent = NULL, input_id = "FIPS", out_class = "terra"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_chrtr), "terra")
+
+  # existing file path: terra output with extent
+  checked_chrsf <-
+    chopin:::.check_vector(
+      input_char, extent = NULL,
+      input_id = "FIPS", out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_chrsf), "sf")
+
+  # invalid out_class
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_char, extent = NULL,
+      input_id = "FIPS", out_class = "land"
+    )
+  )
+
+})
+
+
+testthat::test_that(".check_vector with file path-numeric", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  num_ext <- c(-88, -78, 34, 36)
+
+  # existing file path: terra output
+  testthat::expect_message(
+    checked_chrtr <-
+      chopin:::.check_vector(
+        input_char, extent = num_ext, input_id = "FIPS", out_class = "terra"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_chrtr), "terra")
+
+  # existing file path: terra output with extent
+  checked_chrsf <-
+    chopin:::.check_vector(
+      input_char, extent = num_ext,
+      input_id = "FIPS", out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_chrsf), "sf")
+
+  # invalid out_class
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_char, extent = num_ext,
+      input_id = "FIPS", out_class = "land"
+    )
+  )
+
+})
+
+
+testthat::test_that(".check_vector with file path-sf", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_vect <- terra::vect(input_char)
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+
+  # existing file path: terra output
+  testthat::expect_message(
+    checked_chrtr <-
+      chopin:::.check_vector(
+        input_char, extent = input_sfu, input_id = "FIPS", out_class = "terra"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_chrtr), "terra")
+
+  # existing file path: terra output with extent
+  checked_chrsf <-
+    chopin:::.check_vector(
+      input_char, extent = input_sfu,
+      input_id = "FIPS", out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_chrsf), "sf")
+
+  # invalid out_class
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_char, extent = input_sfu,
+      input_id = "FIPS", out_class = "land"
+    )
+  )
+
+})
+
+
+
+testthat::test_that(".check_vector with file path-SpatVector", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  input_char <- system.file("gpkg/nc.gpkg", package = "sf")
+  name_filter <- c("Orange", "Durham", "Wake")
+  input_vect <- terra::vect(input_char)
+  input_sf <- sf::st_read(input_char)
+  input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+  input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+  input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+  input_sfu <- terra::vect(input_sfu)
+
+  # existing file path: terra output
+  testthat::expect_message(
+    checked_chrtr <-
+      chopin:::.check_vector(
+        input_char, extent = input_sfu, input_id = "FIPS", out_class = "terra"
+      )
+  )
+  testthat::expect_equal(chopin:::dep_check(checked_chrtr), "terra")
+
+  # existing file path: terra output with extent
+  checked_chrsf <-
+    chopin:::.check_vector(
+      input_char, extent = input_sfu,
+      input_id = "FIPS", out_class = "sf"
+    )
+  testthat::expect_equal(chopin:::dep_check(checked_chrsf), "sf")
+
+  # invalid out_class
+  testthat::expect_error(
+    chopin:::.check_vector(
+      input_char, extent = input_sfu,
+      input_id = "FIPS", out_class = "land"
+    )
+  )
+
+})
+
+
+
+# vect_validate ####
 testthat::test_that("vect_validate repairs input vector data", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -266,6 +706,39 @@ testthat::test_that("vect_validate repairs input vector data", {
   )
 })
 
+
+# .intersect tests ####
+testthat::test_that(
+  ".intersect unifies different package objects and intersects", {
+    withr::local_package("sf")
+    withr::local_package("terra")
+    withr::local_options(list(sf_use_s2 = FALSE))
+
+    path_ras <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+    path_vec <- system.file("gpkg/nc.gpkg", package = "sf")
+
+    ras <- terra::rast(path_ras)
+    vec <- sf::st_read(path_vec)
+    vec <- sf::st_transform(vec, terra::crs(ras))
+
+    name_filter <- c("Orange", "Durham", "Wake")
+    input_vect <- terra::vect(path_vec)
+    input_sf <- sf::st_read(path_vec)
+    input_sfu <- sf::st_union(input_sf[input_sf$NAME %in% name_filter, ])
+    input_sfu <- sf::st_transform(input_sfu, "EPSG:5070")
+    input_sfu <- sf::st_as_sf(sf::st_buffer(input_sfu, 2000))
+
+    testthat::expect_no_error(
+      rasvec <- chopin:::.intersect(x = ras, y = vec)
+    )
+    testthat::expect_no_error(
+      rasvec <- chopin:::.intersect(x = vec, y = input_sfu)
+    )
+  })
+
+
+
+# .intersect_extent tests ####
 testthat::test_that(".intersect_extent returns the intersection extent", {
   withr::local_package("sf")
   withr::local_package("terra")
@@ -314,7 +787,8 @@ testthat::test_that(".intersect_extent returns the intersection extent", {
 })
 
 
-testthat::test_that(".check_character with non-character inputs",{
+# .check_character ####
+testthat::test_that(".check_character with non-character inputs", {
   # testthat::skip_on_ci()
   # testthat::skip_on_covr()
   # test for non-character input
@@ -333,7 +807,7 @@ testthat::test_that(".check_character with non-character inputs",{
 })
 
 
-testthat::test_that(".check_character with character inputs",{
+testthat::test_that(".check_character with character inputs", {
   # testthat::skip_on_ci()
   # testthat::skip_on_covr()
   withr::local_package("sf")
@@ -492,6 +966,7 @@ testthat::test_that("`[` methods in chopin -- SpatVector-SpatExtent", {
 })
 
 
+# .check_vector test duplicates: READY TO REMOVE ####
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
   # testthat::skip_on_ci()
   # testthat::skip_on_covr()
@@ -513,8 +988,6 @@ testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
 
 
 testthat::test_that(".check_vector -- SpatVector-SpatExtent", {
-  # testthat::skip_on_ci()
-  # testthat::skip_on_covr()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -582,3 +1055,40 @@ testthat::test_that(".check_vector -- character and sf", {
   testthat::expect_s3_class(cv_chsfsf, "sf")
   testthat::expect_s4_class(cv_chsftr, "SpatVector")
 })
+
+# ^^^ READY TO REMOVE ^^^ ####
+
+
+
+# .check_raster tests ####
+testthat::test_that(
+  ".check_raster distinguishes SpatRasterCollection from SpatRaster", {
+    withr::local_package("terra")
+
+    # neither SpatRaster nor character
+    testthat::expect_error(
+      chopin::.check_raster(1L)
+    )
+
+    path_ras <- system.file("ex/elev.tif", package = "terra")
+    ras1 <- terra::rast(path_ras)
+    ras2 <- terra::rast(path_ras)
+    rascol <- terra::sprc(ras1, ras2)
+
+    # SpatRasterCollection will abort the function call
+    testthat::expect_error(
+      chopin:::.check_raster(rascol)
+    )
+
+    testthat::expect_message(
+      rasread <- chopin:::.check_raster(path_ras)
+    )
+
+    num_ext <- c(6.0, 6.3, 49.7, 50.0)
+    testthat::expect_message(
+      rassub <- chopin:::.check_raster(path_ras, num_ext)
+    )
+    testthat::expect_s4_class(rassub, "SpatRaster")
+
+  }
+)

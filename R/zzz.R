@@ -1,3 +1,4 @@
+# nocov start
 #' @importFrom utils packageVersion
 #' @noRd
 .onAttach <- function(libname, pkgname) {
@@ -5,3 +6,4 @@
     packageStartupMessage(pkgname, " ", packageVersion(pkgname))
   }
 }
+# nocov end

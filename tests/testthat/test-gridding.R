@@ -86,6 +86,27 @@ testthat::test_that("par_pad_grid with other modes", {
 
 })
 
+## par_make_grid
+testthat::test_that("par_make_grid file path input", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- system.file("shape/nc.shp", package = "sf")
+  nc <- sf::read_sf(nc)
+  nc <- sf::st_transform(nc, "EPSG:5070")
+  suppressWarnings(ncc <- sf::st_centroid(nc, of_largest_polygon = TRUE))
+  tmpdir <- tempdir()
+  filepath <- file.path(tmpdir, "cents.shp")
+  sf::st_write(ncc, filepath, append = FALSE)
+  testthat::expect_no_error(
+    ncc_mg <- chopin:::par_make_grid(filepath, ncutsx = 10L, ncutsy = 10L)
+  )
+  testthat::expect_true(inherits(ncc_mg, "sf"))
+})
+
+
+
 ## grid merge ####
 testthat::test_that("Grid merging internal function too low threshold-- ", {
   withr::local_package("sf")
@@ -257,7 +278,6 @@ testthat::test_that("par_make_balanced internal -- input validity", {
 
 
 testthat::test_that("Quantile cut internal tests", {
-  # testthat::skip_on_ci()
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -307,6 +327,37 @@ testthat::test_that("Quantile cut internal tests", {
   )
 
 })
+
+
+testthat::test_that("par_pad_balanced exceptions", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  nc <- read_sf(ncpath)
+  nc <- st_transform(nc, "EPSG:5070")
+  suppressWarnings(
+    ncc <- st_centroid(nc, of_largest_polygon = TRUE)
+  )
+
+  testthat::expect_error(
+    chopin::par_pad_balanced(ncc, padding = 1300)
+  )
+  testthat::expect_error(
+    chopin::par_pad_balanced(ncc, ngroups = 10L)
+  )
+
+  # tmpdir <- tempdir()
+  # filepath <- file.path(tmpdir, "cents.shp")
+  # sf::st_write(ncc, filepath, append = FALSE)
+  # testthat::expect_no_error(
+  #   ncc_ppb <- chopin::par_pad_balanced(filepath, ngroups = 10L, padding = 1e4)
+  # )
+  # testthat::expect_true(inherits(ncc_ppb[[1]], "SpatVector"))
+})
+
+
 
 # par_split_list tests ####
 testthat::test_that("par_split_list returns correct output", {
