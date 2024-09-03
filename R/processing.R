@@ -241,6 +241,8 @@ kernelfunction <-
 #' @param y `sf`/`SpatVector` object or file path.
 #' @param id character(1). Unique identifier of each point.
 #' @param func function taking one numeric vector argument.
+#'   Default is `"mean"` for all supported signatures in arguments
+#'  `x` and `y`.
 #' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
 #'  It only works with `points` of character(1) file path.
 #' @param radius numeric(1). Buffer radius.
@@ -249,6 +251,7 @@ kernelfunction <-
 #' One of `"uniform"`, `"triweight"`, `"quartic"`, and `"epanechnikov"`
 #' @param kernel_func function.
 #'   Kernel function to apply to the extracted values.
+#'   Default is [`stats::weighted.mean()`]
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @param max_cells integer(1). Maximum number of cells in memory.
 #' @param .standalone logical(1). Default is `TRUE`, which means that

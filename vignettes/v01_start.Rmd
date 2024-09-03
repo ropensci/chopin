@@ -169,11 +169,19 @@ tail(pm)
 ```
 
 
+## Caveats
 
-## Why parallelization is slower than the ordinary function run?
+### Why parallelization is slower than the ordinary function run?
 - Parallelization may underperform when the datasets are too small to take advantage of divide-and-compute approach, where parallelization overhead is involved. Overhead here refers to the required amount of computational resources for transferring objects to multiple processes.
 - Since the demonstrations above use quite small datasets, the advantage of parallelization was not as noticeable as it was expected. Should a large amount of data (spatial/temporal resolution or number of files, for example) be processed, users could find the efficiency of this package. A vignette in this package demonstrates use cases extracting various climate/weather datasets.
 
+
+### Notes on data restrictions
+`chopin` works best with **two-dimensional** (**planar**) geometries. Users should disable `s2` spherical geometry mode in `sf` by setting. Running any `chopin` functions at spherical or three-dimensional (e.g., including M/Z dimensions) geometries may produce incorrect or unexpected results.
+
+```r
+sf::sf_use_s2(FALSE)
+```
 
 <!-- --- end of file --- -->
 

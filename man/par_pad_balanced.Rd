@@ -7,7 +7,8 @@
 par_pad_balanced(points_in = NULL, ngroups, padding)
 }
 \arguments{
-\item{points_in}{\code{sf} or \code{SpatVector} object. Point geometries.}
+\item{points_in}{\code{sf} or \code{SpatVector} object. Point geometries.
+Default is NULL.}
 
 \item{ngroups}{integer(1). The number of groups.}
 
@@ -24,12 +25,12 @@ Used for computation.
 }
 }
 \description{
-This function is an extension of \code{par_make_balanced}
-to be compatible with \code{par_make_grid}, for which a set of padded grids
-of the extent of input point subsets
+This function utilizes \code{\link[anticlust:balanced_clustering]{anticlust::balanced_clustering()}}
+to split the input into equal size subgroups then transform the data
+to be compatible with the output of \code{\link{par_pad_grid}}, for which
+a set of padded grids of the extent of input point subsets
 (as recorded in the field named \code{"CGRIDID"})
-is generated out of input points along with the output of
-\code{par_make_balanced}.
+is generated out of input points.
 }
 \examples{
 library(terra)

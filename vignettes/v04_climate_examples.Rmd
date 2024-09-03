@@ -47,7 +47,7 @@ The spatial resolution of TerraClimate data commensurates 5 km in the equator, w
 
 ## Prepare target datasets
 
-We will consider the populated places centroids in the mainland United States (i.e., excluding Alaska, Hawaii, and the territories). We will use the `tigris` package to download the data.
+We will consider the populated places centroids in the mainland United States (i.e., excluding Alaska, Hawaii, and the territories). We will use the [`tigris`](https://cran.r-project.org/web/packages/tigris/index.html) package to download the data.
 
 |                Data                | Number of features | Source                                    | Type    |
 |:-------------------:|:----------------|:----------------|:----------------|
@@ -106,7 +106,7 @@ popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
 
 # TerraClimate
 
-TerraClimate data are provided in yearly NetCDF files, each of which contains monthly layers. We will read the data with the `terra` package and preprocess the data to extract the annual mean and sum of the bands by types of columns. 
+TerraClimate data are provided in yearly NetCDF files, each of which contains monthly layers. We will read the data with the [`terra`](https://cran.r-project.org/web/packages/terra/index.html) package and preprocess the data to extract the annual mean and sum of the bands by types of columns. 
 
 
 ```r

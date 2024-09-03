@@ -148,6 +148,51 @@
 #'     .debug = TRUE
 #'   )
 #' ```
+#'
+#' @section Function selection guide for `par_*()`:
+#' We provide two flowcharts to help users choose the right function for
+#' parallel processing. The raster-oriented flowchart is for users who
+#' want to start with raster data, and the vector-oriented flowchart
+#' is for users with large vector data.
+#'
+#' In **raster-oriented selection**, we suggest four factors to consider:
+#'
+#' - Number of raster files: for multiple files, `par_multirasters` is recommended. When there are multiple rasters that share the same extent and resolution, consider stacking the rasters into multilayer SpatRaster object by calling `terra::rast(filenames)`.
+#' - Raster resolution: We suggest 100 meters as a threshold. Rasters with resolution coarser than 100 meters and a few layers would be better for the direct call of `exactextractr::exact_extract()`.
+#' - Raster extent: Using `SpatRaster` in `exactextractr::exact_extract()` is often minimally affected by the raster extent.
+#' - Memory size: `max_cells_in_memory` argument value of `exactextractr::exact_extract()`, raster resolution, and the number of layers in `SpatRaster` are multiplicatively related to the memory usage.
+#'
+#' For **vector-oriented selection**, we suggest three factors to consider:
+#' - Number of features: When the number of features is over 100,000, consider using `par_grid` or `par_hierarchy` to split the data into smaller chunks.
+#' - Hierarchical structure: If the data has a hierarchical structure, consider using `par_hierarchy` to parallelize the operation.
+#' - Data grouping: If the data needs to be grouped in similar sizes, consider using `par_pad_balanced` or `par_pad_grid` with `mode = "grid_quantile"`.
+#'
+#'
+#' @section Caveats:
+#' **Why parallelization is slower than the ordinary function run?**
+#' Parallelization may underperform when the datasets are too small
+#' to take advantage of divide-and-compute approach, where
+#' parallelization overhead is involved. Overhead here refers to
+#' the required amount of computational resources for transferring
+#' objects to multiple processes. Since the demonstrations above
+#' use quite small datasets, the advantage of parallelization was not
+#' as noticeable as it was expected. Should a large amount of
+#' data (spatial/temporal resolution or number of files,
+#' for example) be processed, users could find the efficiency of this
+#' package. A vignette in this package demonstrates use cases
+#' extracting various climate/weather datasets.
+#'
+#' **Notes on data restrictions**
+#'
+#' `chopin` works best with **two-dimensional** (**planar**) geometries.
+#' Users should disable `s2` spherical geometry mode in `sf` by setting.
+#' Running any `chopin` functions at spherical or three-dimensional
+#' (e.g., including M/Z dimensions) geometries
+#' may produce incorrect or unexpected results.
+#'
+#' ```r
+#' sf::sf_use_s2(FALSE)
+#' ```
 ## usethis namespace: end
 "_PACKAGE"
 #nolint end
