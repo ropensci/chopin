@@ -157,6 +157,56 @@ pm <-
 }\if{html}{\out{</div>}}
 }
 
+\section{Function selection guide for \verb{par_*()}}{
+
+We provide two flowcharts to help users choose the right function for
+parallel processing. The raster-oriented flowchart is for users who
+want to start with raster data, and the vector-oriented flowchart
+is for users with large vector data.
+
+In \strong{raster-oriented selection}, we suggest four factors to consider:
+\itemize{
+\item Number of raster files: for multiple files, \code{par_multirasters} is recommended. When there are multiple rasters that share the same extent and resolution, consider stacking the rasters into multilayer SpatRaster object by calling \code{terra::rast(filenames)}.
+\item Raster resolution: We suggest 100 meters as a threshold. Rasters with resolution coarser than 100 meters and a few layers would be better for the direct call of \code{exactextractr::exact_extract()}.
+\item Raster extent: Using \code{SpatRaster} in \code{exactextractr::exact_extract()} is often minimally affected by the raster extent.
+\item Memory size: \code{max_cells_in_memory} argument value of \code{exactextractr::exact_extract()}, raster resolution, and the number of layers in \code{SpatRaster} are multiplicatively related to the memory usage.
+}
+
+For \strong{vector-oriented selection}, we suggest three factors to consider:
+\itemize{
+\item Number of features: When the number of features is over 100,000, consider using \code{par_grid} or \code{par_hierarchy} to split the data into smaller chunks.
+\item Hierarchical structure: If the data has a hierarchical structure, consider using \code{par_hierarchy} to parallelize the operation.
+\item Data grouping: If the data needs to be grouped in similar sizes, consider using \code{par_pad_balanced} or \code{par_pad_grid} with \code{mode = "grid_quantile"}.
+}
+}
+
+\section{Caveats}{
+
+\strong{Why parallelization is slower than the ordinary function run?}
+Parallelization may underperform when the datasets are too small
+to take advantage of divide-and-compute approach, where
+parallelization overhead is involved. Overhead here refers to
+the required amount of computational resources for transferring
+objects to multiple processes. Since the demonstrations above
+use quite small datasets, the advantage of parallelization was not
+as noticeable as it was expected. Should a large amount of
+data (spatial/temporal resolution or number of files,
+for example) be processed, users could find the efficiency of this
+package. A vignette in this package demonstrates use cases
+extracting various climate/weather datasets.
+
+\strong{Notes on data restrictions}
+
+\code{chopin} works best with \strong{two-dimensional} (\strong{planar}) geometries.
+Users should disable \code{s2} spherical geometry mode in \code{sf} by setting.
+Running any \code{chopin} functions at spherical or three-dimensional
+(e.g., including M/Z dimensions) geometries
+may produce incorrect or unexpected results.
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{sf::sf_use_s2(FALSE)
+}\if{html}{\out{</div>}}
+}
+
 \seealso{
 Useful links:
 \itemize{

@@ -11,7 +11,9 @@ get_clip_ext(pnts, radius, extrusion = 1.1)
 
 \item{radius}{numeric(1). Buffer radius. It is assumed to be in meters}
 
-\item{extrusion}{numeric(1). The extent extrusion factor.}
+\item{extrusion}{numeric(1). The extent extrusion factor.
+Default is 1.1, meaning that the actual padding is 10 percent
+wider than \code{radius}.}
 }
 \value{
 A \code{terra::ext} or sfc_POLYGON object of the computation extent.

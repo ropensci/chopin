@@ -97,12 +97,12 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
-  extent,
-  radius,
+  extent = NULL,
+  radius = NULL,
   out_class = "sf",
   kernel = NULL,
   kernel_func = stats::weighted.mean,
-  bandwidth,
+  bandwidth = NULL,
   max_cells = 3e+07,
   .standalone = TRUE,
   ...
@@ -119,7 +119,9 @@ must have the same extent and resolution.}
 
 \item{id}{character(1). Unique identifier of each point.}
 
-\item{func}{function taking one numeric vector argument.}
+\item{func}{function taking one numeric vector argument.
+Default is \code{"mean"} for all supported signatures in arguments
+\code{x} and \code{y}.}
 
 \item{extent}{numeric(4) or SpatExtent. Extent of clipping vector.
 It only works with \code{points} of character(1) file path.}
@@ -132,7 +134,8 @@ It only works with \code{points} of character(1) file path.}
 One of \code{"uniform"}, \code{"triweight"}, \code{"quartic"}, and \code{"epanechnikov"}}
 
 \item{kernel_func}{function.
-Kernel function to apply to the extracted values.}
+Kernel function to apply to the extracted values.
+Default is \code{\link[stats:weighted.mean]{stats::weighted.mean()}}}
 
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 

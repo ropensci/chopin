@@ -94,10 +94,3 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }} 
-
-      # - name: Upload artifacts
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-outputs
-      #     path: ${{ github.workspace }}/**

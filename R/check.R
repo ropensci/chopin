@@ -525,6 +525,15 @@ setMethod(
 
 }
 
+#' Check package name for outcome class definition
+#' @keywords internal
+#' @noRd
+.check_pkgname <- function(out) {
+  if (!out %in% c("sf", "terra")) {
+    cli::cli_abort(c("out_class should be one of sf or terra."))
+  }
+}
+
 
 
 ## .check_vector ####
@@ -584,9 +593,7 @@ setMethod(
   signature(input = "character", input_id = "ANY",
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
 
     cli::cli_inform(
       c("i" =
@@ -622,9 +629,7 @@ setMethod(
   signature(input = "character", input_id = "ANY",
             extent = "numeric", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
 
     cli::cli_inform(
       c("i" =
@@ -659,9 +664,7 @@ setMethod(
   signature(input = "character", input_id = "ANY",
             extent = "sf", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra.\n"))
-    }
+    .check_pkgname(out = out_class)
 
     cli::cli_inform(
       c("i" =
@@ -696,9 +699,7 @@ setMethod(
   signature(input = "character", input_id = "ANY",
             extent = "SpatVector", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
 
     cli::cli_inform(
       c("i" =
@@ -734,9 +735,7 @@ setMethod(
   signature(input = "character", input_id = "ANY",
             extent = "SpatExtent", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
 
     cli::cli_inform(
       c("i" =
@@ -770,9 +769,7 @@ setMethod(
   signature(input = "sf", input_id = "ANY",
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
     input <- .check_id(input, input_id)
 
     if (out_class == "terra") {
@@ -805,12 +802,12 @@ setMethod(
   signature(input = "sf", input_id = "ANY",
             extent = "numeric", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
     if (out_class == "terra") {
+      input <- terra::vect(input)
       extent <- terra::ext(extent)
       input <- input[extent, ]
     }
@@ -836,9 +833,8 @@ setMethod(
   signature(input = "sf", input_id = "ANY",
             extent = "SpatExtent", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
     if (out_class == "sf") {
@@ -865,9 +861,8 @@ setMethod(
   signature(input = "sf", input_id = "ANY",
             extent = "sf", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
     if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
@@ -892,17 +887,16 @@ setMethod(
   signature(input = "sf", input_id = "ANY",
             extent = "SpatVector", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
-    if (!is.null(extent)) {
-      if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
-        extent <- reproject_std(extent, terra::crs(input))
-      }
-      input <- input[extent, ]
+    if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+      extent <- reproject_std(extent, terra::crs(input))
     }
+    extent <- sf::st_as_sf(extent)
+    input <- input[extent, ]
+
     if (out_class == "terra") {
       input <- terra::vect(input)
     }
@@ -920,9 +914,8 @@ setMethod(
   signature(input = "SpatVector", input_id = "ANY",
             extent = "SpatExtent", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
     input <- input[extent, ]
@@ -943,9 +936,8 @@ setMethod(
   signature(input = "SpatVector", input_id = "ANY",
             extent = "ANY", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
     if (out_class == "sf") {
@@ -965,9 +957,8 @@ setMethod(
   signature(input = "SpatVector", input_id = "ANY",
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
     if (out_class == "sf") {
@@ -987,9 +978,7 @@ setMethod(
   signature(input = "SpatVector", input_id = "NULL",
             extent = "NULL", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
 
     if (out_class == "sf") {
       input <- dep_switch(input)
@@ -1008,17 +997,42 @@ setMethod(
   signature(input = "SpatVector", input_id = "ANY",
             extent = "SpatVector", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
-    if (!out_class %in% c("sf", "terra")) {
-      cli::cli_abort(c("out_class should be one of sf or terra."))
-    }
+    .check_pkgname(out = out_class)
+
     input <- .check_id(input, input_id)
 
-    if (!is.null(extent)) {
-      if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
-        extent <- reproject_std(extent, terra::crs(input))
-      }
-      input <- input[extent, ]
+    if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+      extent <- reproject_std(extent, terra::crs(input))
     }
+    input <- input[extent, ]
+
+    if (out_class == "sf") {
+      input <- dep_switch(input)
+    }
+    return(input)
+  }
+)
+
+
+#' @keywords internal
+#' @name .check_vector
+#' @rdname .check_vector
+#' @noRd
+setMethod(
+  ".check_vector",
+  signature(input = "SpatVector", input_id = "ANY",
+            extent = "sf", out_class = "character"),
+  function(input, input_id, extent, out_class, ...) {
+    .check_pkgname(out = out_class)
+
+    input <- .check_id(input, input_id)
+
+    if (!terra::same.crs(terra::crs(input), terra::crs(extent))) {
+      extent <- reproject_std(extent, terra::crs(input))
+    }
+    extent <- terra::vect(extent)
+    input <- input[extent, ]
+
     if (out_class == "sf") {
       input <- dep_switch(input)
     }
@@ -1141,7 +1155,7 @@ setMethod(
                 where = getNamespace(x)
               )[[1]]
             ),
-            error = function(e){
+            error = function(e) {
               "error"
             }
           )

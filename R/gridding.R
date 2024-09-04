@@ -183,14 +183,15 @@ par_pad_grid <-
 
 
 #' Extension of par_make_balanced for padded grids
-#' @description This function is an extension of `par_make_balanced`
-#'   to be compatible with `par_make_grid`, for which a set of padded grids
-#'   of the extent of input point subsets
+#' @description This function utilizes [anticlust::balanced_clustering()]
+#'   to split the input into equal size subgroups then transform the data
+#'   to be compatible with the output of [`par_pad_grid`], for which
+#'   a set of padded grids of the extent of input point subsets
 #'   (as recorded in the field named `"CGRIDID"`)
-#'   is generated out of input points along with the output of
-#'   `par_make_balanced`.
+#'   is generated out of input points.
 #' @family Parallelization
 #' @param points_in `sf` or `SpatVector` object. Point geometries.
+#'   Default is NULL.
 #' @param ngroups integer(1). The number of groups.
 #' @param padding numeric(1). A extrusion factor to make buffer to
 #'  clip actual datasets. Depending on the length unit of the CRS of input.

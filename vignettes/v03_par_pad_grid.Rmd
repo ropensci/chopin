@@ -207,7 +207,8 @@ n_points <-
   terra::zonal(
     ncpoints_tr,
     grid_advanced1$original,
-    fun = "sum")[["n"]]
+    fun = "sum"
+  )[["n"]]
 
 grid_advanced1g <- grid_advanced1$original
 grid_advanced1g$n_points <- n_points
@@ -268,7 +269,7 @@ terra::plot(ncpoints_tr, add = TRUE, col = "red", cex = 0.4)
 - `par_make_balanced()` uses `anticlust` package to split the point set into the balanced clusters.
     - In the background, `par_pad_balanced()` is run first to generate the equally sized clusters from the input. Then, padding is applied to the extent of each cluster to be compatible with `par_grid()`, where both the original and the padded grids are used.
     - Please note that `ngroups` argument value must be the **exact** divisor of the number of points. For example, in the example below, when one changes `ngroups` to `10L`, it will fail as the number of points is not divisible by 10.
-    - Consult the `anticlust` package for more details on the algorithm.
+    - Consult the [`anticlust`](https://cran.r-project.org/web/packages/anticlust/index.html) package for more details on the algorithm.
 - `par_pad_balanced()` makes a compatible object to the output of `par_pad_grid()` directly from the input points.
 - As illustrated in the figure below, the points will be split into `ngroups` clusters with the same number of points then processed in parallel by using the output object with `par_grid()`.
 

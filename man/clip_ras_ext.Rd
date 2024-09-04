@@ -14,9 +14,10 @@ clip_ras_ext(x = NULL, y = NULL, radius = NULL, nqsegs = 180L, extrusion = 1.1)
 \item{radius}{numeric(1). buffer radius.
 This value will be automatically multiplied by \code{extrusion}}
 
-\item{nqsegs}{integer(1). the number of points per a quarter circle}
+\item{nqsegs}{integer(1). the number of points per a quarter circle.
+Default is 180L.}
 
-\item{extrusion}{numeric(1). Extrusion factor for the extent. Default is 1.1}
+\item{extrusion}{numeric(1). Extrusion factor for the extent. Default is 1.1.}
 }
 \value{
 A clipped \code{SpatRaster} object.

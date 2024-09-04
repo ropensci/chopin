@@ -6,6 +6,8 @@
 #' @param pnts One of sf or SpatVector object. Target points of computation.
 #' @param radius numeric(1). Buffer radius. It is assumed to be in meters
 #' @param extrusion numeric(1). The extent extrusion factor.
+#'   Default is 1.1, meaning that the actual padding is 10 percent
+#'   wider than `radius`.
 #' @returns A `terra::ext` or sfc_POLYGON object of the computation extent.
 #' @examples
 #' \dontrun{
@@ -123,8 +125,9 @@ clip_vec_ext <- function(
 #' @param y `sf` or `SpatVector` object
 #' @param radius numeric(1). buffer radius.
 #' This value will be automatically multiplied by `extrusion`
-#' @param nqsegs integer(1). the number of points per a quarter circle
-#' @param extrusion numeric(1). Extrusion factor for the extent. Default is 1.1
+#' @param nqsegs integer(1). the number of points per a quarter circle.
+#'   Default is 180L.
+#' @param extrusion numeric(1). Extrusion factor for the extent. Default is 1.1.
 #' @returns A clipped `SpatRaster` object.
 #' @author Insang Song
 #' @importFrom terra vect crop

@@ -13,22 +13,20 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 ## Assumptions
-- Users can access multi-threaded central processing units and sufficient memory (i.e., at least 4GB/thread)
-- Single-node calculation: as of version 0.3.0, `chopin` only supports single-node 
+Users can access multi-threaded central processing units and sufficient memory (i.e., at least 4GB/thread)
 
 ## Basic workflow
 
 ### Minimize errors
-- Consider using `try()` or `tryCatch()` to let an error will not halt all the work without results, especially when using higher-level functions
+Consider using `try()` or `tryCatch()` to let an error will not halt all the work without results, especially when using higher-level functions.
 
 ### Raster-Vector overlay
-- Use `chopin::par_pad_grid` to make exhaustive and padded grid objects in `SpatVector` class
-- `chopin::par_grid` filters features that **intersect** with each grid. Post-processing is necessary as polygons may be taken more than twice in parallelized calculation. If users have a field containing divisible and hierarchical information, dataset can be processed with `chopin::par_hierarchy`. 
+Use `chopin::par_pad_grid()` to make exhaustive and padded grid objects in `SpatVector` class. `chopin::par_grid()` filters features that **intersect** with each grid. Post-processing is necessary as polygons may be taken more than twice in parallelized calculation. If users have a field containing divisible and hierarchical information, dataset can be processed with `chopin::par_hierarchy()`. 
 
 ### Customization
-- `chopin` way to parallelize is to iterate calculation over a list then to use `future.apply` function
-- If one wants to customize parallelization workflow like `chopin`, consider:
-    - Make list objects with: 
+`chopin` way to parallelize is to iterate calculation over a list then to use [`future.apply`](https://cran.r-project.org/web/packages/future.apply/index.html) function. If one wants to customize parallelization workflow like `chopin`, consider:
+
+    - Make list objects with:
         - An extent vector in each element
         - Preprocessed vector objects with respect to each extent vector in the first list
         - Preferably all lists are named 
@@ -36,8 +34,6 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
         - Use file or database table paths instead of `SpatRaster` objects in `future` parallel processing workflow
 
 ### Save computing costs
-- Most of HPC systems have CPU-memory usage quota for users
-- Always run a small amount of data to estimate the total computational demand.
-    - `profvis::profvis()` helps to summarize runtime per function call and memory usage 
-- For testing, use `future::plan(future::sequential)` to see single-thread. Keep `chopin::par_pad_grid` arguments the same then only take one or two grids using `lapply`. Preferably the hardest case will be tested to estimate the maximum peak memory usage per thread.
-- Submit a job with a proper amount of computational assets: each HPC management system offers tools to see statistics and task summaries. Use these records to plan asset allocation for the next time. 
+Most HPC systems have CPU-memory usage quota per user. Thus, it is always recommended to test your computation workflow with subsets in manageable sizes.
+It can give you an estimate for the total computational demand. `profvis::profvis()` helps to summarize runtime per function call and memory usage. For testing, use `future::plan(future::sequential)` to see single-thread. Keep `chopin::par_pad_grid()` arguments the same then only take one or two grids using `lapply`. Preferably the hardest case will be tested to estimate the maximum peak memory usage per thread.
+After prototyping, take the numbers as reference numbers to submit a job to HPC with a proper amount of computational assets: each HPC management system offers tools to see statistics and task summaries. Users are advised to use these records to plan asset allocation for the next time.
