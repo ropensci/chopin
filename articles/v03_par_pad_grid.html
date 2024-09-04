@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240817</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -432,7 +432,8 @@ arguments <code>grid_min_features</code> and
 <span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/zonal.html" class="external-link">zonal</a></span><span class="op">(</span></span>
 <span>    <span class="va">ncpoints_tr</span>,</span>
 <span>    <span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span>,</span>
-<span>    fun <span class="op">=</span> <span class="st">"sum"</span><span class="op">)</span><span class="op">[[</span><span class="st">"n"</span><span class="op">]</span><span class="op">]</span></span>
+<span>    fun <span class="op">=</span> <span class="st">"sum"</span></span>
+<span>  <span class="op">)</span><span class="op">[[</span><span class="st">"n"</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">grid_advanced1g</span> <span class="op">&lt;-</span> <span class="va">grid_advanced1</span><span class="op">$</span><span class="va">original</span></span>
 <span><span class="va">grid_advanced1g</span><span class="op">$</span><span class="va">n_points</span> <span class="op">&lt;-</span> <span class="va">n_points</span></span>
@@ -521,8 +522,8 @@ are used.</li>
 the example below, when one changes <code>ngroups</code> to
 <code>10L</code>, it will fail as the number of points is not divisible
 by 10.</li>
-<li>Consult the <code>anticlust</code> package for more details on the
-algorithm.</li>
+<li>Consult the <a href="https://cran.r-project.org/web/packages/anticlust/index.html" class="external-link"><code>anticlust</code></a>
+package for more details on the algorithm.</li>
 </ul>
 </li>
 <li>

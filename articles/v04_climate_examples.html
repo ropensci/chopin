@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240817</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -139,7 +139,8 @@ the <code>terra</code> package to read the data.</p>
 </h3>
 <p>We will consider the populated places centroids in the mainland
 United States (i.e., excluding Alaska, Hawaii, and the territories). We
-will use the <code>tigris</code> package to download the data.</p>
+will use the <a href="https://cran.r-project.org/web/packages/tigris/index.html" class="external-link"><code>tigris</code></a>
+package to download the data.</p>
 <table class="table">
 <colgroup>
 <col width="29%">
@@ -234,9 +235,9 @@ process.</p>
 <h2 id="terraclimate">TerraClimate<a class="anchor" aria-label="anchor" href="#terraclimate"></a>
 </h2>
 <p>TerraClimate data are provided in yearly NetCDF files, each of which
-contains monthly layers. We will read the data with the
-<code>terra</code> package and preprocess the data to extract the annual
-mean and sum of the bands by types of columns.</p>
+contains monthly layers. We will read the data with the <a href="https://cran.r-project.org/web/packages/terra/index.html" class="external-link"><code>terra</code></a>
+package and preprocess the data to extract the annual mean and sum of
+the bands by types of columns.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># wbd</span></span>
 <span><span class="va">ext_mainland</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="op">-</span><span class="fl">126</span>, xmax <span class="op">=</span> <span class="op">-</span><span class="fl">64</span>, ymin <span class="op">=</span> <span class="fl">22</span>, ymax <span class="op">=</span> <span class="fl">51</span><span class="op">)</span></span>

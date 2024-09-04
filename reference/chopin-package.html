@@ -9,7 +9,7 @@ geospatial data."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240817</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -146,6 +146,46 @@ geospatial data.</p>
 <span>    func <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>    .debug <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span></code></pre><p></p></div>
+    </div>
+    <div class="section level2">
+    <h2 id="function-selection-guide-for-par-">Function selection guide for <code>par_*()</code><a class="anchor" aria-label="anchor" href="#function-selection-guide-for-par-"></a></h2>
+
+
+<p>We provide two flowcharts to help users choose the right function for
+parallel processing. The raster-oriented flowchart is for users who
+want to start with raster data, and the vector-oriented flowchart
+is for users with large vector data.</p>
+<p>In <strong>raster-oriented selection</strong>, we suggest four factors to consider:</p><ul><li><p>Number of raster files: for multiple files, <code>par_multirasters</code> is recommended. When there are multiple rasters that share the same extent and resolution, consider stacking the rasters into multilayer SpatRaster object by calling <code>terra::rast(filenames)</code>.</p></li>
+<li><p>Raster resolution: We suggest 100 meters as a threshold. Rasters with resolution coarser than 100 meters and a few layers would be better for the direct call of <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract()</a></code>.</p></li>
+<li><p>Raster extent: Using <code>SpatRaster</code> in <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract()</a></code> is often minimally affected by the raster extent.</p></li>
+<li><p>Memory size: <code>max_cells_in_memory</code> argument value of <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract()</a></code>, raster resolution, and the number of layers in <code>SpatRaster</code> are multiplicatively related to the memory usage.</p></li>
+</ul><p>For <strong>vector-oriented selection</strong>, we suggest three factors to consider:</p><ul><li><p>Number of features: When the number of features is over 100,000, consider using <code>par_grid</code> or <code>par_hierarchy</code> to split the data into smaller chunks.</p></li>
+<li><p>Hierarchical structure: If the data has a hierarchical structure, consider using <code>par_hierarchy</code> to parallelize the operation.</p></li>
+<li><p>Data grouping: If the data needs to be grouped in similar sizes, consider using <code>par_pad_balanced</code> or <code>par_pad_grid</code> with <code>mode = "grid_quantile"</code>.</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a></h2>
+
+
+<p><strong>Why parallelization is slower than the ordinary function run?</strong>
+Parallelization may underperform when the datasets are too small
+to take advantage of divide-and-compute approach, where
+parallelization overhead is involved. Overhead here refers to
+the required amount of computational resources for transferring
+objects to multiple processes. Since the demonstrations above
+use quite small datasets, the advantage of parallelization was not
+as noticeable as it was expected. Should a large amount of
+data (spatial/temporal resolution or number of files,
+for example) be processed, users could find the efficiency of this
+package. A vignette in this package demonstrates use cases
+extracting various climate/weather datasets.</p>
+<p><strong>Notes on data restrictions</strong></p>
+<p><code>chopin</code> works best with <strong>two-dimensional</strong> (<strong>planar</strong>) geometries.
+Users should disable <code>s2</code> spherical geometry mode in <code>sf</code> by setting.
+Running any <code>chopin</code> functions at spherical or three-dimensional
+(e.g., including M/Z dimensions) geometries
+may produce incorrect or unexpected results.</p>
+<p></p><div class="sourceCode r"><pre><code><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre><p></p></div>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

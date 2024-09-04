@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8.20240817</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -295,25 +295,28 @@ using multiple rasters.</li>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pm</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          mean               base_raster</span></span>
-<span><span class="co">## 1   12.443567 /tmp/RtmpUmoTIK/test1.tif</span></span>
-<span><span class="co">## 2   74.934341 /tmp/RtmpUmoTIK/test1.tif</span></span>
-<span><span class="co">## 3  179.088806 /tmp/RtmpUmoTIK/test1.tif</span></span>
-<span><span class="co">## 4    8.542515 /tmp/RtmpUmoTIK/test1.tif</span></span>
-<span><span class="co">## 5 1087.089722 /tmp/RtmpUmoTIK/test1.tif</span></span>
-<span><span class="co">## 6  110.032043 /tmp/RtmpUmoTIK/test1.tif</span></span></code></pre>
+<span><span class="co">## 1   12.443567 /tmp/Rtmpan2K1z/test1.tif</span></span>
+<span><span class="co">## 2   74.934341 /tmp/Rtmpan2K1z/test1.tif</span></span>
+<span><span class="co">## 3  179.088806 /tmp/Rtmpan2K1z/test1.tif</span></span>
+<span><span class="co">## 4    8.542515 /tmp/Rtmpan2K1z/test1.tif</span></span>
+<span><span class="co">## 5 1087.089722 /tmp/Rtmpan2K1z/test1.tif</span></span>
+<span><span class="co">## 6  110.032043 /tmp/Rtmpan2K1z/test1.tif</span></span></code></pre>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">pm</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##            mean               base_raster</span></span>
-<span><span class="co">## 2495 101.370438 /tmp/RtmpUmoTIK/test5.tif</span></span>
-<span><span class="co">## 2496  -2.881788 /tmp/RtmpUmoTIK/test5.tif</span></span>
-<span><span class="co">## 2497   7.347102 /tmp/RtmpUmoTIK/test5.tif</span></span>
-<span><span class="co">## 2498   8.790645 /tmp/RtmpUmoTIK/test5.tif</span></span>
-<span><span class="co">## 2499  21.443277 /tmp/RtmpUmoTIK/test5.tif</span></span>
-<span><span class="co">## 2500  56.097313 /tmp/RtmpUmoTIK/test5.tif</span></span></code></pre>
+<span><span class="co">## 2495 101.370438 /tmp/Rtmpan2K1z/test5.tif</span></span>
+<span><span class="co">## 2496  -2.881788 /tmp/Rtmpan2K1z/test5.tif</span></span>
+<span><span class="co">## 2497   7.347102 /tmp/Rtmpan2K1z/test5.tif</span></span>
+<span><span class="co">## 2498   8.790645 /tmp/Rtmpan2K1z/test5.tif</span></span>
+<span><span class="co">## 2499  21.443277 /tmp/Rtmpan2K1z/test5.tif</span></span>
+<span><span class="co">## 2500  56.097313 /tmp/Rtmpan2K1z/test5.tif</span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="why-parallelization-is-slower-than-the-ordinary-function-run">Why parallelization is slower than the ordinary function run?<a class="anchor" aria-label="anchor" href="#why-parallelization-is-slower-than-the-ordinary-function-run"></a>
+<h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a>
 </h2>
+<div class="section level3">
+<h3 id="why-parallelization-is-slower-than-the-ordinary-function-run">Why parallelization is slower than the ordinary function run?<a class="anchor" aria-label="anchor" href="#why-parallelization-is-slower-than-the-ordinary-function-run"></a>
+</h3>
 <ul>
 <li>Parallelization may underperform when the datasets are too small to
 take advantage of divide-and-compute approach, where parallelization
@@ -327,7 +330,20 @@ files, for example) be processed, users could find the efficiency of
 this package. A vignette in this package demonstrates use cases
 extracting various climate/weather datasets.</li>
 </ul>
+</div>
+<div class="section level3">
+<h3 id="notes-on-data-restrictions">Notes on data restrictions<a class="anchor" aria-label="anchor" href="#notes-on-data-restrictions"></a>
+</h3>
+<p><code>chopin</code> works best with <strong>two-dimensional</strong>
+(<strong>planar</strong>) geometries. Users should disable
+<code>s2</code> spherical geometry mode in <code>sf</code> by setting.
+Running any <code>chopin</code> functions at spherical or
+three-dimensional (e.g., including M/Z dimensions) geometries may
+produce incorrect or unexpected results.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/s2.html" class="external-link">sf_use_s2</a></span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <!-- --- end of file --- -->
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
