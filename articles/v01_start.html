@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/v01_start.html">Getting started with chopin</a></li>
-    <li><a class="dropdown-item" href="../articles/v02_good_practice.html">Good practice of using `chopin` in HPC</a></li>
+    <li><a class="dropdown-item" href="../articles/v02_good_practice.html">Good practice of using `chopin`</a></li>
     <li><a class="dropdown-item" href="../articles/v03_par_pad_grid.html">Generate computational grids</a></li>
     <li><a class="dropdown-item" href="../articles/v04_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a></li>
     <li><a class="dropdown-item" href="../articles/v05_targets.html">targets and grid objects</a></li>
@@ -58,8 +58,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Getting started with chopin</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Getting started with chopin</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/NIEHS/chopin/blob/main/vignettes/v01_start.Rmd" class="external-link"><code>vignettes/v01_start.Rmd</code></a></small>
@@ -295,21 +294,21 @@ using multiple rasters.</li>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pm</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          mean               base_raster</span></span>
-<span><span class="co">## 1   12.443567 /tmp/Rtmpan2K1z/test1.tif</span></span>
-<span><span class="co">## 2   74.934341 /tmp/Rtmpan2K1z/test1.tif</span></span>
-<span><span class="co">## 3  179.088806 /tmp/Rtmpan2K1z/test1.tif</span></span>
-<span><span class="co">## 4    8.542515 /tmp/Rtmpan2K1z/test1.tif</span></span>
-<span><span class="co">## 5 1087.089722 /tmp/Rtmpan2K1z/test1.tif</span></span>
-<span><span class="co">## 6  110.032043 /tmp/Rtmpan2K1z/test1.tif</span></span></code></pre>
+<span><span class="co">## 1   12.443567 /tmp/RtmpPCNl6g/test1.tif</span></span>
+<span><span class="co">## 2   74.934341 /tmp/RtmpPCNl6g/test1.tif</span></span>
+<span><span class="co">## 3  179.088806 /tmp/RtmpPCNl6g/test1.tif</span></span>
+<span><span class="co">## 4    8.542515 /tmp/RtmpPCNl6g/test1.tif</span></span>
+<span><span class="co">## 5 1087.089722 /tmp/RtmpPCNl6g/test1.tif</span></span>
+<span><span class="co">## 6  110.032043 /tmp/RtmpPCNl6g/test1.tif</span></span></code></pre>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">pm</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##            mean               base_raster</span></span>
-<span><span class="co">## 2495 101.370438 /tmp/Rtmpan2K1z/test5.tif</span></span>
-<span><span class="co">## 2496  -2.881788 /tmp/Rtmpan2K1z/test5.tif</span></span>
-<span><span class="co">## 2497   7.347102 /tmp/Rtmpan2K1z/test5.tif</span></span>
-<span><span class="co">## 2498   8.790645 /tmp/Rtmpan2K1z/test5.tif</span></span>
-<span><span class="co">## 2499  21.443277 /tmp/Rtmpan2K1z/test5.tif</span></span>
-<span><span class="co">## 2500  56.097313 /tmp/Rtmpan2K1z/test5.tif</span></span></code></pre>
+<span><span class="co">## 2495 101.370438 /tmp/RtmpPCNl6g/test5.tif</span></span>
+<span><span class="co">## 2496  -2.881788 /tmp/RtmpPCNl6g/test5.tif</span></span>
+<span><span class="co">## 2497   7.347102 /tmp/RtmpPCNl6g/test5.tif</span></span>
+<span><span class="co">## 2498   8.790645 /tmp/RtmpPCNl6g/test5.tif</span></span>
+<span><span class="co">## 2499  21.443277 /tmp/RtmpPCNl6g/test5.tif</span></span>
+<span><span class="co">## 2500  56.097313 /tmp/RtmpPCNl6g/test5.tif</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a>

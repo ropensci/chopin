@@ -33,7 +33,7 @@ small and confined spatial extent for computation to avoid
 out-of-memory error. y argument in fun_dist will be used as-is.
 That means no preprocessing or subsetting will be
 applied. Please be aware of the spatial extent and size of the
-inputs."></head><body>
+inputs."><meta property="og:image" content="https://NIEHS.github.io/chopin/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -41,7 +41,7 @@ inputs."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,7 +53,7 @@ inputs."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/v01_start.html">Getting started with chopin</a></li>
-    <li><a class="dropdown-item" href="../articles/v02_good_practice.html">Good practice of using `chopin` in HPC</a></li>
+    <li><a class="dropdown-item" href="../articles/v02_good_practice.html">Good practice of using `chopin`</a></li>
     <li><a class="dropdown-item" href="../articles/v03_par_pad_grid.html">Generate computational grids</a></li>
     <li><a class="dropdown-item" href="../articles/v04_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a></li>
     <li><a class="dropdown-item" href="../articles/v05_targets.html">targets and grid objects</a></li>
@@ -68,8 +68,7 @@ inputs."></head><body>
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Parallelize spatial computation over multiple raster files</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Parallelize spatial computation over multiple raster files</h1>
       <small class="dont-index">Source: <a href="https://github.com/NIEHS/chopin/blob/main/R/scale_process.R" class="external-link"><code>R/scale_process.R</code></a></small>
       <div class="d-none name"><code>par_multirasters.Rd</code></div>
     </div>
@@ -188,9 +187,9 @@ consult the function used in <code>fun_dist</code> argument.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Input is not a character.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Input is a character. Attempt to read it with terra::rast...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ℹ Your input function at /tmp/Rtmp6fRKVP/test1.tif is dispatched.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ℹ Your input function at /tmp/RtmpTy7bje/test1.tif is dispatched.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Input is a character. Attempt to read it with terra::rast...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ℹ Your input function at /tmp/Rtmp6fRKVP/test2.tif is dispatched.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ℹ Your input function at /tmp/RtmpTy7bje/test2.tif is dispatched.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Good practice of using `chopin` in HPC • chopin</title>
+<title>Good practice of using `chopin` • chopin</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Good practice of using `chopin` in HPC">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Good practice of using `chopin`">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/v01_start.html">Getting started with chopin</a></li>
-    <li><a class="dropdown-item" href="../articles/v02_good_practice.html">Good practice of using `chopin` in HPC</a></li>
+    <li><a class="dropdown-item" href="../articles/v02_good_practice.html">Good practice of using `chopin`</a></li>
     <li><a class="dropdown-item" href="../articles/v03_par_pad_grid.html">Generate computational grids</a></li>
     <li><a class="dropdown-item" href="../articles/v04_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a></li>
     <li><a class="dropdown-item" href="../articles/v05_targets.html">targets and grid objects</a></li>
@@ -58,8 +58,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Good practice of using `chopin` in HPC</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Good practice of using `chopin`</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/NIEHS/chopin/blob/main/vignettes/v02_good_practice.Rmd" class="external-link"><code>vignettes/v02_good_practice.Rmd</code></a></small>
@@ -85,15 +84,52 @@ an error will not halt all the work without results, especially when
 using higher-level functions.</p>
 </div>
 <div class="section level3">
+<h3 id="raster-workflow-stacked-vs-file-based-parallelization">Raster workflow: stacked vs file-based parallelization<a class="anchor" aria-label="anchor" href="#raster-workflow-stacked-vs-file-based-parallelization"></a>
+</h3>
+<blockquote>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>!</mi><mi>N</mi><mi>O</mi><mi>T</mi><mi>E</mi></mrow><annotation encoding="application/x-tex">!NOTE</annotation></semantics></math><strong>It’s up to the users’ system specification and the size of the
+data.</strong></p>
+</blockquote>
+<p>For faster computation, there are two strategies. One is
+parallelization which is implemented in <code>chopin</code> for example.
+The other strategy is to stack rasters and extract values at once.
+Adjustment of arguments in <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract</a></code>
+will benefit many people who are dealing with sizable data that are able
+to be stacked. We compare the two strategies in terms of computation
+time.</p>
+<p>Before proceeding, users need to consider the hardware specification.
+For example, memory and storage to leverage the maximal performance of
+<code>exact_extract</code>. Specifically speaking, memory capacity is
+crucial to store the stacked rasters in memory rather than to read the
+proxy of rasters from the disk as implemented in <code>terra</code>.
+<code>max_cells_in_memory</code> is a key argument to control the memory
+usage. The maximum possible value for this argument is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>31</mn></msup><mo>−</mo><mn>1</mn><mo>=</mo><mn>2</mn><mo>,</mo><mn>147</mn><mo>,</mo><mn>483</mn><mo>,</mo><mn>647</mn></mrow><annotation encoding="application/x-tex">2^{31} - 1 = 2,147,483,647</annotation></semantics></math>,
+roughly <code>2.147e9</code>, as applied in the example above. As memory
+bandwidth is much faster than disk input/output specification, the
+stacked rasters with high <code>max_cells_in_memory</code> applied will
+run faster than file-based parallelization or the extraction with lower
+value of <code>max_cells_in_memory</code>. The performance does not come
+without a cost. The memory-intensive setting is not suitable for the
+system with limited memory, for example, in consumer laptops with around
+16 GB of RAM.</p>
+<blockquote>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>!</mi><mi>N</mi><mi>O</mi><mi>T</mi><mi>E</mi></mrow><annotation encoding="application/x-tex">!NOTE</annotation></semantics></math>
+Stacking rasters usually takes the large amount of memory. Users need to
+consider the memory capacity of the system before stacking rasters.</p>
+</blockquote>
+</div>
+<div class="section level3">
 <h3 id="raster-vector-overlay">Raster-Vector overlay<a class="anchor" aria-label="anchor" href="#raster-vector-overlay"></a>
 </h3>
-<p>Use <code><a href="../reference/par_pad_grid.html">chopin::par_pad_grid()</a></code> to make exhaustive and padded
-grid objects in <code>SpatVector</code> class.
-<code><a href="../reference/par_grid.html">chopin::par_grid()</a></code> filters features that
-<strong>intersect</strong> with each grid. Post-processing is necessary
-as polygons may be taken more than twice in parallelized calculation. If
-users have a field containing divisible and hierarchical information,
-dataset can be processed with <code><a href="../reference/par_hierarchy.html">chopin::par_hierarchy()</a></code>.</p>
+<p>Use <code><a href="../reference/par_pad_grid.html">chopin::par_pad_grid()</a></code> to make exhaustive (fully
+filling the entire extent without any gaps) and padded grid objects in
+<code>SpatVector</code> class. <code><a href="../reference/par_grid.html">chopin::par_grid()</a></code> filters
+features that <strong>intersect</strong> with each grid. Post-processing
+is necessary as polygons may be taken more than twice in parallelized
+calculation. If users have a field containing divisible and hierarchical
+information, dataset can be processed with
+<code><a href="../reference/par_hierarchy.html">chopin::par_hierarchy()</a></code>.</p>
 </div>
 <div class="section level3">
 <h3 id="customization">Customization<a class="anchor" aria-label="anchor" href="#customization"></a>
@@ -101,22 +137,40 @@ dataset can be processed with <code><a href="../reference/par_hierarchy.html">ch
 <p><code>chopin</code> way to parallelize is to iterate calculation over
 a list then to use <a href="https://cran.r-project.org/web/packages/future.apply/index.html" class="external-link"><code>future.apply</code></a>
 function. If one wants to customize parallelization workflow like
-<code>chopin</code>, consider:</p>
-<pre><code>- Make list objects with:
-    - An extent vector in each element
-    - Preprocessed vector objects with respect to each extent vector in the first list
-    - Preferably all lists are named 
-- `terra`'s `SpatRaster` objects made from external files are Rcpp pointers, which cannot be exported to processes in parallelization. Thus, users should
-    - Use file or database table paths instead of `SpatRaster` objects in `future` parallel processing workflow</code></pre>
+<code>chopin</code>, consider making list objects in two steps. First,
+assign extent vectors to each element. In this case, users should be
+aware of the coordinate system of both the input data and the
+coordinates of the extent vectors. Second, use preprocessed vector
+objects with respect to each extent vector in the first list. We
+recommend to name each list element to debug easily. For
+<code><a href="../reference/par_multirasters.html">par_multirasters()</a></code> workflow, using file or database table
+paths is recommended instead of <code>SpatRaster</code> objects in
+<code>future</code> parallel processing workflow. This is because
+<code>SpatRaster</code> objects made from external files are Rcpp
+pointers, which cannot be exported to processes in parallelization.</p>
+</div>
+<div class="section level3">
+<h3 id="more-tips-to-save-time-and-memory">More tips to save time and memory<a class="anchor" aria-label="anchor" href="#more-tips-to-save-time-and-memory"></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>Read vector data with <code>sf</code> package at first. It is a bit
+faster than <code>terra</code> and will save time for processing as
+<code>exactextractr</code> is designed to work with <code>sf</code>
+objects for vector inputs.</li>
+<li>If your analysis does not require the high precision of vector data,
+simplification of geometries (e.g., using <a href="https://github.com/ateucher/rmapshaper" class="external-link"><code>rmapshaper</code></a>,
+i.e., <code>ms_simplify</code>) will result in considerable time
+savings.</li>
+</ol>
 </div>
 <div class="section level3">
 <h3 id="save-computing-costs">Save computing costs<a class="anchor" aria-label="anchor" href="#save-computing-costs"></a>
 </h3>
-<p>Most HPC systems have CPU-memory usage quota per user. Thus, it is
-always recommended to test your computation workflow with subsets in
-manageable sizes. It can give you an estimate for the total
-computational demand. <code><a href="https://rdrr.io/pkg/profvis/man/profvis.html" class="external-link">profvis::profvis()</a></code> helps to summarize
-runtime per function call and memory usage. For testing, use
+<p>If HPC systems are used, you will have CPU-memory usage quota per
+user. Thus, it is always recommended to test your computation workflow
+with subsets in manageable sizes. It can give you an estimate for the
+total computational demand. <code><a href="https://rdrr.io/pkg/profvis/man/profvis.html" class="external-link">profvis::profvis()</a></code> helps to
+summarize runtime per function call and memory usage. For testing, use
 <code>future::plan(future::sequential)</code> to see single-thread. Keep
 <code><a href="../reference/par_pad_grid.html">chopin::par_pad_grid()</a></code> arguments the same then only take
 one or two grids using <code>lapply</code>. Preferably the hardest case

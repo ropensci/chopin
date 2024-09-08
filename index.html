@@ -13,6 +13,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing">
 <meta name="description" content="Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.">
 <meta property="og:description" content="Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.">
+<meta property="og:image" content="https://NIEHS.github.io/chopin/logo.svg">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.20240903</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +37,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/v01_start.html">Getting started with chopin</a></li>
-    <li><a class="dropdown-item" href="articles/v02_good_practice.html">Good practice of using `chopin` in HPC</a></li>
+    <li><a class="dropdown-item" href="articles/v02_good_practice.html">Good practice of using `chopin`</a></li>
     <li><a class="dropdown-item" href="articles/v03_par_pad_grid.html">Generate computational grids</a></li>
     <li><a class="dropdown-item" href="articles/v04_climate_examples.html">Extracting Weather/Climate Geospatial Data with `chopin`</a></li>
     <li><a class="dropdown-item" href="articles/v05_targets.html">targets and grid objects</a></li>
@@ -56,8 +57,10 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="computation-of-spatial-data-by-hierarchical-and-objective-partitioning-of-inputs-for-parallel-processing-">Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="reference/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal"><a class="anchor" aria-label="anchor" href="#computation-of-spatial-data-by-hierarchical-and-objective-partitioning-of-inputs-for-parallel-processing-"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.svg" class="logo" alt=""><h1 id="computation-of-spatial-data-by-hierarchical-and-objective-partitioning-of-inputs-for-parallel-processing-">Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <a class="anchor" aria-label="anchor" href="#computation-of-spatial-data-by-hierarchical-and-objective-partitioning-of-inputs-for-parallel-processing-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <!-- badges: end -->
@@ -95,14 +98,14 @@
 <li>Raster extent: Using <code>SpatRaster</code> in <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract()</a></code> is often minimally affected by the raster extent.</li>
 <li>Memory size: <code>max_cells_in_memory</code> argument value of <code><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exactextractr::exact_extract()</a></code>, raster resolution, and the number of layers in <code>SpatRaster</code> are multiplicatively related to the memory usage.</li>
 </ul>
-<div id="htmlwidget-c0ef3a1969e830038723" class="DiagrammeR html-widget" style="width:1200px;height:400px;">
-
-</div>
-<script type="application/json" data-for="htmlwidget-c0ef3a1969e830038723">{"x":{"diagram":"\ngraph LR\n\tn6695079[\"Is the spatial resolution finer than 100 meters?\"]\n\tn11509997[\"Are there multiple rasters?\"]\n\tn72001430[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn27284812[\"Do they have the same extent and resolution?\"]\n\tn83137384[\"Is a single raster larger than your free memory space?\"]\n\tn83318893[\"Do you have memory larger than the total raster file size?\"]\n\tn14786842[\"exact_extract with low max_cells_in_memory\"]\n\tn17102479[\"exact_extract with high max_cells_in_memory argument value\"]\n\tn7037868[\"Stack rasters then process in the single thread\"]\n\tn58642837[\"par_multirasters\"]\n\tn6695079 -->|Yes| n11509997\n\tn6695079 -->|No| n72001430\n\tn11509997 -->|Yes| n27284812\n\tn11509997 -->|No| n83137384\n\tn27284812 -->|Yes| n83318893\n\tn27284812 -->|No| n58642837\n\tn83137384 -->|No| n14786842\n\tn83137384 -->|Yes| n17102479\n\tn83318893 -->|Yes| n7037868\n\tn83318893 -->|No| n58642837\n"},"evals":[],"jsHooks":[]}</script><p>For <strong>vector-oriented selection</strong>, we suggest three factors to consider: - Number of features: When the number of features is over 100,000, consider using <code>par_grid</code> or <code>par_hierarchy</code> to split the data into smaller chunks. - Hierarchical structure: If the data has a hierarchical structure, consider using <code>par_hierarchy</code> to parallelize the operation. - Data grouping: If the data needs to be grouped in similar sizes, consider using <code>par_pad_balanced</code> or <code>par_pad_grid</code> with <code>mode = "grid_quantile"</code>.</p>
-<div id="htmlwidget-574df895b680d8a32bc5" class="DiagrammeR html-widget" style="width:1200px;height:400px;">
-
-</div>
-<script type="application/json" data-for="htmlwidget-574df895b680d8a32bc5">{"x":{"diagram":"\ngraph LR\n\tn21640044[\"Are there 100K+ features in the input vectors?\"]\n\tn84295645[\"Are they hierarchical?\"]\n\tn82902796[\"single thread processing\"]\n\tn34878990[\"Are the data grouped in similar sizes?\"]\n\tn27787116[\"Are they spatially clustered?\"]\n\tn89847105[\"par_hierarchy\"]\n  n90014927[\"par_pad_balanced\"]\n\tn94475834[\"par_pad_grid(..., mode = 'grid_quantile') or par_make_gridset_mode = 'grid_advanced')\"]\n\tn77415399[\"par_pad_grid(..., mode = 'grid'\"]\n\tn64849552[\"par_grid\"]\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn34878990 -->|Yes| n89847105\n  n34878990 -->|No| n90014927\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n  n90014927 --> n64849552\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
+<p><img src="reference/figures/README-flowchart-raster.png"></p>
+<p>For <strong>vector-oriented selection</strong>, we suggest three factors to consider:</p>
+<ul>
+<li>Number of features: When the number of features is over 100,000, consider using <code>par_grid</code> or <code>par_hierarchy</code> to split the data into smaller chunks.</li>
+<li>Hierarchical structure: If the data has a hierarchical structure, consider using <code>par_hierarchy</code> to parallelize the operation.</li>
+<li>Data grouping: If the data needs to be grouped in similar sizes, consider using <code>par_pad_balanced</code> or <code>par_pad_grid</code> with <code>mode =     "grid_quantile"</code>.</li>
+</ul>
+<p><img src="reference/figures/README-flowchart-vector.png"></p>
 </div>
 </div>
 <div class="section level2">
@@ -208,7 +211,7 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   5.523   0.113   5.636</span></span></code></pre></div>
+<span><span class="co">#&gt;   5.008   0.038   5.097</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="generate-regular-grid-computational-regions">Generate regular grid computational regions<a class="anchor" aria-label="anchor" href="#generate-regular-grid-computational-regions"></a>
@@ -274,7 +277,7 @@
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt; ℹ Task at CGRIDID: 4 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.414   0.021   7.816</span></span>
+<span><span class="co">#&gt;   0.330   0.003   7.401</span></span>
 <span></span>
 <span><span class="va">ncpoints_srtm</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="reference/extract_at.html">extract_at</a></span><span class="op">(</span></span>
@@ -318,7 +321,7 @@
 <span><span class="va">nc_data</span> <span class="op">&lt;-</span> <span class="va">path_nchrchy</span></span>
 <span><span class="va">nc_county</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"county"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `county' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp95hGmV/temp_libpathd03e810c7b7fe/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpzRLuhC/temp_libpath433aa6a79610a/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 100 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
@@ -327,7 +330,7 @@
 <span><span class="co">#&gt; Projected CRS: NAD83 / Conus Albers</span></span>
 <span><span class="va">nc_tracts</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">nc_data</span>, layer <span class="op">=</span> <span class="st">"tracts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `tracts' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp95hGmV/temp_libpathd03e810c7b7fe/chopin/extdata/nc_hierarchy.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpzRLuhC/temp_libpath433aa6a79610a/chopin/extdata/nc_hierarchy.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 2672 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
@@ -355,7 +358,7 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.530   0.000   0.529</span></span>
+<span><span class="co">#&gt;   0.521   0.010   0.531</span></span>
 <span></span>
 <span><span class="co"># hierarchical parallelization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -473,7 +476,7 @@
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.247   0.052   2.096</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.234   0.022   1.957</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -497,9 +500,9 @@
 <span><span class="co"># check if the raster files were exported as expected</span></span>
 <span><span class="va">testfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">tdir</span>, pattern <span class="op">=</span> <span class="st">"*.tif$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">testfiles</span></span>
-<span><span class="co">#&gt; [1] "/tmp/Rtmp2Uiy2w/test1.tif" "/tmp/Rtmp2Uiy2w/test2.tif"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/Rtmp2Uiy2w/test3.tif" "/tmp/Rtmp2Uiy2w/test4.tif"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/Rtmp2Uiy2w/test5.tif"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/tmp/RtmpgrTtLh/test1.tif" "/tmp/RtmpgrTtLh/test2.tif"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/RtmpgrTtLh/test3.tif" "/tmp/RtmpgrTtLh/test4.tif"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/RtmpgrTtLh/test5.tif"</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span></span>
@@ -514,21 +517,21 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; ℹ Input is not a character.</span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp2Uiy2w/test1.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpgrTtLh/test1.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp2Uiy2w/test2.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpgrTtLh/test2.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp2Uiy2w/test3.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpgrTtLh/test3.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp2Uiy2w/test4.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpgrTtLh/test4.tif is dispatched.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Input is a character. Attempt to read it with terra::rast...</span></span>
-<span><span class="co">#&gt; ℹ Your input function at /tmp/Rtmp2Uiy2w/test5.tif is dispatched.</span></span>
+<span><span class="co">#&gt; ℹ Your input function at /tmp/RtmpgrTtLh/test5.tif is dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.354   0.149   2.602</span></span>
+<span><span class="co">#&gt;   1.136   0.151   2.335</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -538,27 +541,27 @@
 <tbody>
 <tr class="odd">
 <td align="right">136.80203</td>
-<td align="left">/tmp/Rtmp2Uiy2w/test1.tif</td>
+<td align="left">/tmp/RtmpgrTtLh/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">189.76170</td>
-<td align="left">/tmp/Rtmp2Uiy2w/test1.tif</td>
+<td align="left">/tmp/RtmpgrTtLh/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="right">231.16968</td>
-<td align="left">/tmp/Rtmp2Uiy2w/test1.tif</td>
+<td align="left">/tmp/RtmpgrTtLh/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">98.03845</td>
-<td align="left">/tmp/Rtmp2Uiy2w/test1.tif</td>
+<td align="left">/tmp/RtmpgrTtLh/test1.tif</td>
 </tr>
 <tr class="odd">
 <td align="right">41.23463</td>
-<td align="left">/tmp/Rtmp2Uiy2w/test1.tif</td>
+<td align="left">/tmp/RtmpgrTtLh/test1.tif</td>
 </tr>
 <tr class="even">
 <td align="right">270.96933</td>
-<td align="left">/tmp/Rtmp2Uiy2w/test1.tif</td>
+<td align="left">/tmp/RtmpgrTtLh/test1.tif</td>
 </tr>
 </tbody>
 </table>
@@ -592,7 +595,7 @@
 <span><span class="va">pnts</span><span class="op">$</span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"RPID-%04d"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5000</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">rd1</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">path_ncrd1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Reading layer `ncroads_first' from data source </span></span>
-<span><span class="co">#&gt;   `/tmp/Rtmp95hGmV/temp_libpathd03e810c7b7fe/chopin/extdata/ncroads_first.gpkg' </span></span>
+<span><span class="co">#&gt;   `/tmp/RtmpzRLuhC/temp_libpath433aa6a79610a/chopin/extdata/ncroads_first.gpkg' </span></span>
 <span><span class="co">#&gt;   using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Simple feature collection with 620 features and 4 fields</span></span>
 <span><span class="co">#&gt; Geometry type: MULTILINESTRING</span></span>
@@ -635,11 +638,11 @@
 <span>  <span class="va">restr</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/nearby.html" class="external-link">nearest</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">pntst</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">rd1t</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.396   0.000   0.396</span></span>
+<span><span class="co">#&gt;   0.377   0.000   0.378</span></span>
 <span></span>
 <span><span class="va">pnt_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">tdir</span>, <span class="st">"pntst.gpkg"</span><span class="op">)</span></span>
 <span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_write.html" class="external-link">st_write</a></span><span class="op">(</span><span class="va">pntst</span>, <span class="va">pnt_path</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/Rtmp2Uiy2w/pntst.gpkg' using driver `GPKG'</span></span>
+<span><span class="co">#&gt; Writing layer `pntst' to data source `/tmp/RtmpgrTtLh/pntst.gpkg' using driver `GPKG'</span></span>
 <span><span class="co">#&gt; Writing 5000 features with 1 fields and geometry type Point.</span></span>
 <span></span>
 <span><span class="co"># we use four threads that were configured above</span></span>
@@ -685,7 +688,7 @@
 <span><span class="co">#&gt; ℹ Input is a character. Trying to read with terra .</span></span>
 <span><span class="co">#&gt; ℹ Task at CGRIDID: 8 is successfully dispatched.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.110   0.000   0.574</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.065   0.000   0.510</span></span></code></pre></div>
 <ul>
 <li>We will compare the results from the single-thread and multi-thread calculation.</li>
 </ul>
