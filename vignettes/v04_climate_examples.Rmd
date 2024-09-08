@@ -777,24 +777,6 @@ system.time(
 #>  6.632   1.821 347.638
 ```
 
-# Discussion: which strategy is better? stacked vs file-based parallelization
-
-> \[!NOTE\] __It's up to the users' system specification and the size of the data.__
-
-For faster computation, there are two strategies. One is parallelization which is implemented in `chopin` for example. The other strategy is to stack rasters and extract values at once. Adjustment of arguments in `exactextractr::exact_extract` will benefit many people who are dealing with sizable data that are able to be stacked. We compare the two strategies in terms of computation time.
-
-Before proceeding, users need to consider the hardware specification. For example, memory and storage to leverage the maximal performance of `exact_extract`. Specifically speaking, memory capacity is crucial to store the stacked rasters in memory rather than to read the proxy of rasters from the disk as implemented in `terra`. `max_cells_in_memory` is a key argument to control the memory usage. The maximum possible value for this argument is $2^{31} - 1 = 2,147,483,647$, roughly `2.147e9`, as applied in the example above. As memory bandwidth is much faster than disk input/output specification, the stacked rasters with high `max_cells_in_memory` applied will run faster than file-based parallelization or the extraction with lower value of `max_cells_in_memory`. The performance does not come without a cost. The memory-intensive setting is not suitable for the system with limited memory, for example, in consumer laptops with around 16 GB of RAM.
-
-## More tips to save time and memory
-
-1. Always consider stacking rasters when you have a large number of separate raster files with the same resolution and extent if your machine's memory capacity allows. Reading multiple raster files with `terra::rast` will automatically stack them into a single `SpatRaster` object.
-
-> \[!NOTE\] Stacking rasters usually takes the large amount of memory. Users need to consider the memory capacity of the system before stacking rasters.
-
-2. Read vector data with `sf` package at first. It is a bit faster than `terra` and will save time for processing as `exactextractr` is designed to work with `sf` objects for vector inputs.
-3. If users want to use `exactextractr` for the raster-vector overlay, pre-cropping the raster data may not help saving time for processing. This is because `exactextractr` will read the raster data with the extent of the vector data *ad hoc*.
-4. If your analysis does not require the high precision of vector data, simplification of geometries (e.g., using [`rmapshaper`](https://github.com/ateucher/rmapshaper), i.e., `ms_simplify`) will result in considerable time savings.
-
 
 ## See also
 

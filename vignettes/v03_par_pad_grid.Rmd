@@ -26,6 +26,8 @@ library(sf)
 library(terra)
 library(anticlust)
 library(igraph)
+library(future)
+library(future.mirai)
 options(sf_use_s2 = FALSE)
 ```
 
@@ -227,7 +229,7 @@ grid_advanced2 <-
     nx = 15L,
     ny = 8L,
     padding = 1e4L,
-    grid_min_features = 15L,
+    grid_min_features = 30L,
     merge_max = 4L
   )
 
