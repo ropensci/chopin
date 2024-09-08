@@ -1,0 +1,98 @@
+---
+output:
+  github_document:
+    html_preview: false
+always_allow_html: true
+---
+
+```{r}
+library(DiagrammeR)
+library(DiagrammeRsvg)
+library(magrittr)
+
+```
+
+```{r flowchart-mermaid-raster, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
+mermaid_chart_raster <-
+'
+graph LR
+	n6695079["Is the spatial resolution finer than 100 meters?"]
+	n11509997["Are there multiple rasters?"]
+	n72001430["exact_extract with suitable max_cells_in_memory value"]
+	n27284812["Do they have the same extent and resolution?"]
+	n83137384["Is a single raster larger than your free memory space?"]
+	n83318893["Do you have memory larger than the total raster file size?"]
+	n14786842["exact_extract with low max_cells_in_memory"]
+	n17102479["exact_extract with high max_cells_in_memory argument value"]
+	n7037868["Stack rasters then process in the single thread"]
+	n58642837["par_multirasters"]
+	n6695079 -->|Yes| n11509997
+	n6695079 -->|No| n72001430
+	n11509997 -->|Yes| n27284812
+	n11509997 -->|No| n83137384
+	n27284812 -->|Yes| n83318893
+	n27284812 -->|No| n58642837
+	n83137384 -->|No| n14786842
+	n83137384 -->|Yes| n17102479
+	n83318893 -->|Yes| n7037868
+	n83318893 -->|No| n58642837
+'
+
+chart_raster <- DiagrammeR::mermaid(mermaid_chart_raster)
+```
+
+```{r flowchart-mermaid-vector, echo = FALSE, eval = (Sys.getenv("IN_GALLEY") == "")}
+mermaid_chart_vector <-
+'
+graph LR
+	n21640044["Are there 100K+ features in the input vectors?"]
+	n84295645["Are they hierarchical?"]
+	n82902796["single thread processing"]
+	n34878990["Are the data grouped in similar sizes?"]
+	n27787116["Are they spatially clustered?"]
+	n89847105["par_hierarchy"]
+  n90014927["par_pad_balanced"]
+	n94475834["par_pad_grid(..., mode = \'grid_quantile\') or par_pad_grid(..., mode = \'grid_advanced\')"]
+	n77415399["par_pad_grid(..., mode = \'grid\'"]
+	n64849552["par_grid"]
+	n21640044 -->|Yes| n84295645
+	n21640044 -->|No| n82902796
+	n84295645 -->|Yes| n34878990
+	n84295645 -->|No| n27787116
+	n34878990 -->|Yes| n89847105
+  n34878990 -->|No| n90014927
+	n34878990 -->|No| n94475834
+	n27787116 -->|Yes| n94475834
+	n27787116 -->|No| n77415399
+  n90014927 --> n64849552
+	n94475834 --> n64849552
+	n77415399 --> n64849552
+'
+
+chart_vector <- DiagrammeR::mermaid(mermaid_chart_vector, width = 880, height = 400)
+```
+
+```{r}
+install.packages("webshot")
+webshot::install_phantomjs()
+
+
+chart_raster %>%
+  htmltools::html_print() %>%
+  webshot::webshot(file = "man/figures/README-flowchart-raster.png")
+
+chart_vector %>%
+  htmltools::html_print() %>%
+  webshot::webshot(file = "man/figures/README-flowchart-vector.png")
+```
+
+
+```{r}
+# Export the graph as an SVG file
+svg_code_raster <- export_svg(chart_raster)
+
+# Convert the SVG to a PNG file
+rsvg_png(charToRaw(svg_code), file = "flowchart.png")
+
+
+```

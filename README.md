@@ -1,5 +1,5 @@
 
-# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="man/figures/chopin-logo.png" align="right" height="144" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
+# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="man/figures/logo.png" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
 
@@ -98,20 +98,20 @@ In **raster-oriented selection**, we suggest four factors to consider:
     of layers in `SpatRaster` are multiplicatively related to the memory
     usage.
 
-<div id="htmlwidget-c0ef3a1969e830038723" style="width:1200px;height:400px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-c0ef3a1969e830038723">{"x":{"diagram":"\ngraph LR\n\tn6695079[\"Is the spatial resolution finer than 100 meters?\"]\n\tn11509997[\"Are there multiple rasters?\"]\n\tn72001430[\"exact_extract with suitable max_cells_in_memory value\"]\n\tn27284812[\"Do they have the same extent and resolution?\"]\n\tn83137384[\"Is a single raster larger than your free memory space?\"]\n\tn83318893[\"Do you have memory larger than the total raster file size?\"]\n\tn14786842[\"exact_extract with low max_cells_in_memory\"]\n\tn17102479[\"exact_extract with high max_cells_in_memory argument value\"]\n\tn7037868[\"Stack rasters then process in the single thread\"]\n\tn58642837[\"par_multirasters\"]\n\tn6695079 -->|Yes| n11509997\n\tn6695079 -->|No| n72001430\n\tn11509997 -->|Yes| n27284812\n\tn11509997 -->|No| n83137384\n\tn27284812 -->|Yes| n83318893\n\tn27284812 -->|No| n58642837\n\tn83137384 -->|No| n14786842\n\tn83137384 -->|Yes| n17102479\n\tn83318893 -->|Yes| n7037868\n\tn83318893 -->|No| n58642837\n"},"evals":[],"jsHooks":[]}</script>
+![](man/figures/README-flowchart-raster.png)
 
 For **vector-oriented selection**, we suggest three factors to consider:
-- Number of features: When the number of features is over 100,000,
-consider using `par_grid` or `par_hierarchy` to split the data into
-smaller chunks. - Hierarchical structure: If the data has a hierarchical
-structure, consider using `par_hierarchy` to parallelize the operation.
-- Data grouping: If the data needs to be grouped in similar sizes,
-consider using `par_pad_balanced` or `par_pad_grid` with `mode =
-"grid_quantile"`.
 
-<div id="htmlwidget-574df895b680d8a32bc5" style="width:1200px;height:400px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-574df895b680d8a32bc5">{"x":{"diagram":"\ngraph LR\n\tn21640044[\"Are there 100K+ features in the input vectors?\"]\n\tn84295645[\"Are they hierarchical?\"]\n\tn82902796[\"single thread processing\"]\n\tn34878990[\"Are the data grouped in similar sizes?\"]\n\tn27787116[\"Are they spatially clustered?\"]\n\tn89847105[\"par_hierarchy\"]\n  n90014927[\"par_pad_balanced\"]\n\tn94475834[\"par_pad_grid(..., mode = 'grid_quantile') or par_make_gridset_mode = 'grid_advanced')\"]\n\tn77415399[\"par_pad_grid(..., mode = 'grid'\"]\n\tn64849552[\"par_grid\"]\n\tn21640044 -->|Yes| n84295645\n\tn21640044 -->|No| n82902796\n\tn84295645 -->|Yes| n34878990\n\tn84295645 -->|No| n27787116\n\tn34878990 -->|Yes| n89847105\n  n34878990 -->|No| n90014927\n\tn34878990 -->|No| n94475834\n\tn27787116 -->|Yes| n94475834\n\tn27787116 -->|No| n77415399\n  n90014927 --> n64849552\n\tn94475834 --> n64849552\n\tn77415399 --> n64849552\n"},"evals":[],"jsHooks":[]}</script>
+  - Number of features: When the number of features is over 100,000,
+    consider using `par_grid` or `par_hierarchy` to split the data into
+    smaller chunks.
+  - Hierarchical structure: If the data has a hierarchical structure,
+    consider using `par_hierarchy` to parallelize the operation.
+  - Data grouping: If the data needs to be grouped in similar sizes,
+    consider using `par_pad_balanced` or `par_pad_grid` with `mode =
+    "grid_quantile"`.
+
+![](man/figures/README-flowchart-vector.png)
 
 ## Installation
 
@@ -233,7 +233,7 @@ system.time(
 )
 #> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   5.523   0.113   5.636
+#>   5.008   0.038   5.097
 ```
 
 #### Generate regular grid computational regions
@@ -320,7 +320,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.414   0.021   7.816
+#>   0.330   0.003   7.401
 
 ncpoints_srtm <-
   extract_at(
@@ -379,7 +379,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/Rtmp95hGmV/temp_libpathd03e810c7b7fe/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpzRLuhC/temp_libpath433aa6a79610a/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -388,7 +388,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/Rtmp95hGmV/temp_libpathd03e810c7b7fe/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpzRLuhC/temp_libpath433aa6a79610a/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -416,7 +416,7 @@ system.time(
 )
 #> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   0.530   0.000   0.529
+#>   0.521   0.010   0.531
 
 # hierarchical parallelization
 system.time(
@@ -534,7 +534,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.
 #> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   0.247   0.052   2.096
+#>   0.234   0.022   1.957
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -561,9 +561,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmp2Uiy2w/test1.tif" "/tmp/Rtmp2Uiy2w/test2.tif"
-#> [3] "/tmp/Rtmp2Uiy2w/test3.tif" "/tmp/Rtmp2Uiy2w/test4.tif"
-#> [5] "/tmp/Rtmp2Uiy2w/test5.tif"
+#> [1] "/tmp/RtmpgrTtLh/test1.tif" "/tmp/RtmpgrTtLh/test2.tif"
+#> [3] "/tmp/RtmpgrTtLh/test3.tif" "/tmp/RtmpgrTtLh/test4.tif"
+#> [5] "/tmp/RtmpgrTtLh/test5.tif"
 ```
 
 ``` r
@@ -580,32 +580,32 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmp2Uiy2w/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpgrTtLh/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmp2Uiy2w/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpgrTtLh/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmp2Uiy2w/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpgrTtLh/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmp2Uiy2w/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpgrTtLh/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmp2Uiy2w/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpgrTtLh/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.354   0.149   2.602
+#>   1.136   0.151   2.335
 knitr::kable(head(res))
 ```
 
 |      mean | base\_raster              |
 | --------: | :------------------------ |
-| 136.80203 | /tmp/Rtmp2Uiy2w/test1.tif |
-| 189.76170 | /tmp/Rtmp2Uiy2w/test1.tif |
-| 231.16968 | /tmp/Rtmp2Uiy2w/test1.tif |
-|  98.03845 | /tmp/Rtmp2Uiy2w/test1.tif |
-|  41.23463 | /tmp/Rtmp2Uiy2w/test1.tif |
-| 270.96933 | /tmp/Rtmp2Uiy2w/test1.tif |
+| 136.80203 | /tmp/RtmpgrTtLh/test1.tif |
+| 189.76170 | /tmp/RtmpgrTtLh/test1.tif |
+| 231.16968 | /tmp/RtmpgrTtLh/test1.tif |
+|  98.03845 | /tmp/RtmpgrTtLh/test1.tif |
+|  41.23463 | /tmp/RtmpgrTtLh/test1.tif |
+| 270.96933 | /tmp/RtmpgrTtLh/test1.tif |
 
 ``` r
 
@@ -641,7 +641,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(path_ncrd1)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/Rtmp95hGmV/temp_libpathd03e810c7b7fe/chopin/extdata/ncroads_first.gpkg' 
+#>   `/tmp/RtmpzRLuhC/temp_libpath433aa6a79610a/chopin/extdata/ncroads_first.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
@@ -694,11 +694,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.396   0.000   0.396
+#>   0.377   0.000   0.378
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/Rtmp2Uiy2w/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/RtmpgrTtLh/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -744,7 +744,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.110   0.000   0.574
+#>   0.065   0.000   0.510
 ```
 
   - We will compare the results from the single-thread and multi-thread
