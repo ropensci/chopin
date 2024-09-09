@@ -1,6 +1,5 @@
-testthat::test_that("Format is well converted",
+testthat::test_that("dep_switch converts sf to terra or terra to sf",
   {
-    # testthat::skip_on_ci()
     withr::local_package("stars")
     withr::local_package("terra")
     withr::local_options(list(sf_use_s2 = FALSE))
@@ -24,13 +23,15 @@ testthat::test_that("Format is well converted",
     testthat::expect_equal(chopin:::dep_check(sf_nc_trb), "sf")
 
     testthat::expect_error(chopin:::dep_check(list(1, 2)))
-    testthat::expect_error(chopin:::dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE)))
+    testthat::expect_error(
+      chopin:::dep_check(matrix(c(1, 2), nrow = 2, byrow = TRUE))
+    )
   }
 )
 
 
 testthat::test_that("Clip extent is set properly", {
-  # testthat::skip_on_ci()
+
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_options(list(sf_use_s2 = FALSE))
@@ -60,98 +61,4 @@ testthat::test_that("Clip extent is set properly", {
   testthat::expect_equal(nc_ext_sf_1, proper_xmin)
   testthat::expect_equal(nc_ext_terra_1, proper_xmin)
 
-})
-
-
-testthat::test_that("Vector inputs are clipped by clip_vec_ext", {
-  # testthat::skip_on_ci()
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-  nccnty <- terra::vect(
-    ncpath, layer = "county",
-    query = "SELECT * FROM county WHERE GEOID IN (37063, 37183)"
-  )
-  nctrct <- terra::vect(ncpath, layer = "tracts")
-
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
-  ncpt <- terra::vect(ncp)
-
-  ncpt <- ncpt[nccnty, ]
-
-  # terra-terra
-  testthat::expect_no_error(
-    suppressWarnings(
-      cl_terra <-
-        chopin:::clip_vec_ext(
-          x = ncpt,
-          radius = 3e4L,
-          y = nctrct
-        )
-    )
-  )
-  testthat::expect_s4_class(cl_terra, "SpatVector")
-
-  # sf-sf
-  ncp <- sf::st_as_sf(ncpt)
-  nccntysf <- sf::st_as_sf(nccnty)
-  nctrct <- sf::st_as_sf(nctrct)
-  testthat::expect_no_error(
-    suppressWarnings(
-      cl_sf <-
-        chopin:::clip_vec_ext(
-          x = ncp,
-          radius = 3e4L,
-          y = nctrct
-        )
-    )
-  )
-  testthat::expect_s3_class(cl_sf, "sf")
-
-  # sf-terra
-  testthat::expect_no_error(
-    suppressWarnings(
-      chopin:::clip_vec_ext(
-        x = ncpt,
-        radius = 3e4L,
-        y = sf::st_as_sf(nctrct)
-      )
-    )
-  )
-
-  testthat::expect_error(
-    chopin:::clip_vec_ext(
-      x = NULL, radius = 3e4L, y = nctrct
-    )
-  )
-
-})
-
-
-testthat::test_that("Clip by extent works without errors", {
-  # testthat::skip_on_ci()
-  withr::local_package("sf")
-  withr::local_package("stars")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  # starts from sf/stars
-  ncelev <-
-    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-  ncelev <- terra::rast(ncelev)
-  terra::crs(ncelev) <- "EPSG:5070"
-  nc <- system.file(package = "sf", "shape/nc.shp")
-  nc <- sf::read_sf(nc)
-  ncp <-
-    readRDS(
-      system.file("extdata/nc_random_point.rds", package = "chopin")
-    )
-  ncp_terra <- terra::vect(ncp)
-
-  testthat::expect_no_error(chopin:::clip_ras_ext(ncelev, ncp, 30000L))
-  testthat::expect_no_error(chopin:::clip_ras_ext(ncelev, ncp_terra, 30000L))
-  testthat::expect_error(chopin:::clip_ras_ext(ncelev, ncp_terra, NULL))
 })

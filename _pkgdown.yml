@@ -29,10 +29,10 @@ reference:
   contents:
   - starts_with("extract_at")
   - starts_with("summarize_")
-- title: "Helper functions"
-  desc: "Miscellaneous helper functions for subsetting datasets and quick comparison between extents"
+- title: "Helper function"
+  desc: "Parallelization helper function"
   contents:
-  - par_map_args
+  - par_convert_f
 
 - title: "Dataset"
   desc: "Bundled data in chopin package"

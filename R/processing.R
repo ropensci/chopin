@@ -707,7 +707,7 @@ summarize_sedc <-
 #' It only works with `x` of character(1) file path.
 #' See [`terra::ext`] for more details. Coordinate systems should match.
 #' @param out_class character(1). "sf" or "terra". Output class.
-#' @param ... Placeholder.
+#' @param ... Additional arguments depending on class of `x` and `y`.
 #' @returns A data.frame with all numeric fields of area-weighted means.
 #' @description When `x` and `y` are different classes,
 #'  `poly_weight` will be converted to the class of `x`.

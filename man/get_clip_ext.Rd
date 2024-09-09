@@ -16,7 +16,7 @@ Default is 1.1, meaning that the actual padding is 10 percent
 wider than \code{radius}.}
 }
 \value{
-A \code{terra::ext} or sfc_POLYGON object of the computation extent.
+A \code{\link[terra:ext]{terra::ext}} or sfc_POLYGON object of the computation extent.
 }
 \description{
 Return clipping extent with buffer radius.
@@ -38,16 +38,12 @@ get_clip_ext(nc_vect, 2.5e4)
 }
 \seealso{
 Other Helper functions: 
-\code{\link{clip_ras_ext}()},
-\code{\link{clip_vec_ext}()},
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
 \code{\link{par_def_q}()},
-\code{\link{par_map_args}()},
 \code{\link{reproject_std}()},
-\code{\link{reproject_to_raster}()},
-\code{\link{vect_validate}()}
+\code{\link{reproject_to_raster}()}
 }
 \author{
 Insang Song

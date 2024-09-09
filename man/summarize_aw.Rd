@@ -47,7 +47,7 @@ with GDAL driver at weighted means will be calculated.}
 \item{y}{A sf/SpatVector object or file path of polygons from
 which weighted means will be calculated.}
 
-\item{...}{Placeholder.}
+\item{...}{Additional arguments depending on class of \code{x} and \code{y}.}
 
 \item{target_fields}{character. Field names to calculate area-weighted.}
 

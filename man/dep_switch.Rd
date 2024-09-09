@@ -40,16 +40,12 @@ sf_rand
 }
 \seealso{
 Other Helper functions: 
-\code{\link{clip_ras_ext}()},
-\code{\link{clip_vec_ext}()},
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{get_clip_ext}()},
 \code{\link{par_def_q}()},
-\code{\link{par_map_args}()},
 \code{\link{reproject_std}()},
-\code{\link{reproject_to_raster}()},
-\code{\link{vect_validate}()}
+\code{\link{reproject_to_raster}()}
 }
 \author{
 Insang Song
