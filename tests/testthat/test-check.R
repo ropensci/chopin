@@ -659,33 +659,6 @@ testthat::test_that(".check_vector with file path-SpatVector", {
 })
 
 
-
-# vect_validate ####
-testthat::test_that("vect_validate repairs input vector data", {
-  withr::local_package("sf")
-  withr::local_package("terra")
-  withr::local_options(list(sf_use_s2 = FALSE))
-
-  input_sf <-
-    sf::st_as_sf(
-      data.frame(
-        wkt = sf::st_as_text(sf::st_polygon(
-          list(rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1), c(0, 0)))
-        ))
-      ),
-      wkt = "wkt"
-    )
-  testthat::expect_true(
-    sf::st_is_valid(chopin:::vect_validate(input_sf))
-  )
-
-  input_terra <- terra::vect(input_sf)
-  testthat::expect_true(
-    terra::is.valid(chopin:::vect_validate(input_terra))
-  )
-})
-
-
 # .intersect tests ####
 testthat::test_that(
   ".intersect unifies different package objects and intersects", {

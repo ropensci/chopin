@@ -813,13 +813,25 @@ par_multirasters <-
 #' f2(x = 1, y = 2, z = -1, w = 10)
 #' @export
 par_convert_f <- function(fun, arg_map) {
+
   # Create a new function with the mapped arguments
   new_fun <- function(...) {
     # Capture the arguments passed to the new function
-    args <- list(...)
+    args_in <- list(...)
 
-    # Map the arguments to the original function's arguments
-    mapped_args <- setNames(args, arg_map[names(args)])
+    # Initialize an empty list for mapped arguments
+    mapped_args <- list()
+
+    # Loop through each argument in args_in
+    for (arg_name in names(args_in)) {
+      if (arg_name %in% names(arg_map)) {
+        # If the argument name is in arg_map, map it
+        mapped_args[[arg_map[[arg_name]]]] <- args_in[[arg_name]]
+      } else {
+        # Otherwise, keep the original argument name
+        mapped_args[[arg_name]] <- args_in[[arg_name]]
+      }
+    }
 
     # Call the original function with the mapped arguments
     do.call(fun, mapped_args)

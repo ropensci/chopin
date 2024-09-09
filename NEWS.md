@@ -1,7 +1,7 @@
 # 0.8
 - Bumped version from 0.7.8 to 0.8.0: improving package coverage
 - README.md: two mermaid plots are pre-generated as png files
-- Internal `clip_*()` functions are removed
+- Internal `clip_*()` functions and `vect_validate()` are removed
 - `par_map_args()` is renamed to `par_convert_f()`
 
 
