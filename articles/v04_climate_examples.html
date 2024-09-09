@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">chopin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -175,10 +175,17 @@ package to download the data.</p>
 </tbody>
 </table>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pkgs</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chopin"</span>, <span class="st">"terra"</span>, <span class="st">"stars"</span>, <span class="st">"sf"</span>,</span>
-<span>    <span class="st">"future"</span>, <span class="st">"doFuture"</span>, <span class="st">"dplyr"</span>, <span class="st">"parallelly"</span>, <span class="st">"tigris"</span>, <span class="st">"tictoc"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">pkgs</span>, <span class="va">library</span>, character.only <span class="op">=</span> <span class="cn">TRUE</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NIEHS/chopin" class="external-link">chopin</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/stars/" class="external-link">stars</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.futureverse.org" class="external-link">future</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.mirai.futureverse.org" class="external-link">future.mirai</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://parallelly.futureverse.org" class="external-link">parallelly</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/walkerke/tigris" class="external-link">tigris</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jabiru/tictoc" class="external-link">tictoc</a></span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>tigris_use_cache <span class="op">=</span> <span class="cn">TRUE</span>, sf_use_s2 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -433,7 +440,7 @@ the number of physical cores in the machine for optimal performance. The
 example below uses <code><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">future::multicore</a></code> which shares the
 memory across the workers.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tic</span><span class="op">(</span><span class="st">"multi threads (grid)"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"multi threads (grid)"</span><span class="op">)</span></span>
 <span><span class="fu">doFuture</span><span class="fu">::</span><span class="fu">registerDoFuture</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future</span><span class="fu">::</span><span class="va"><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">multicore</a></span>, workers <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="va">grid_init</span> <span class="op">&lt;-</span></span>
@@ -454,7 +461,7 @@ memory across the workers.</p>
 <span>    func <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>    radius <span class="op">=</span> <span class="fl">1e4</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="fu">toc</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; multi threads (grid): 16.668 sec elapsed</span></span></code></pre>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -481,7 +488,7 @@ memory across the workers.</p>
 <span></span>
 <span></span>
 <span><span class="co"># single thread</span></span>
-<span><span class="fu">tic</span><span class="op">(</span><span class="st">"single thread"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="st">"single thread"</span><span class="op">)</span></span>
 <span><span class="va">single</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu">exactextractr</span><span class="fu">::</span><span class="fu"><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exact_extract</a></span><span class="op">(</span></span>
 <span>    <span class="va">netcdf_read_sum</span>,</span>
@@ -492,7 +499,7 @@ memory across the workers.</p>
 <span>    append_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GEOID"</span><span class="op">)</span>,</span>
 <span>    progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="fu">toc</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; single thread: 21.161 sec elapsed</span></span></code></pre>
 <blockquote>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>!</mi><mi>C</mi><mi>A</mi><mi>U</mi><mi>T</mi><mi>I</mi><mi>O</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">!CAUTION</annotation></semantics></math>
@@ -575,7 +582,7 @@ grid strategy.</p>
 <span>    ny <span class="op">=</span> <span class="fl">2L</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="fu">doFuture</span><span class="fu">::</span><span class="fu">registerDoFuture</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future</span><span class="fu">::</span><span class="va"><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">multicore</a></span>, workers <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -661,7 +668,6 @@ the parallelized and single-threaded extraction process.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="fu">doFuture</span><span class="fu">::</span><span class="fu">registerDoFuture</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future</span><span class="fu">::</span><span class="va"><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">multicore</a></span>, workers <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -716,7 +722,7 @@ United States to summarize seven layers of TerraClimate.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stt_gb</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_buffer</a></span><span class="op">(</span><span class="va">stt_g</span>, <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://r-quantities.github.io/units/reference/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"km"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">tic</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">single_2m</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu">exactextractr</span><span class="fu">::</span><span class="fu"><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exact_extract</a></span><span class="op">(</span></span>
 <span>    <span class="va">netcdf_read_sum</span>,</span>
@@ -727,7 +733,7 @@ United States to summarize seven layers of TerraClimate.</p>
 <span>    max_cells_in_memory <span class="op">=</span> <span class="fl">2.14e9</span>,</span>
 <span>    progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="fu">toc</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; 855.908 sec elapsed</span></span></code></pre>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stt_gbg</span> <span class="op">&lt;-</span></span>
@@ -740,7 +746,6 @@ United States to summarize seven layers of TerraClimate.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="fu">doFuture</span><span class="fu">::</span><span class="fu">registerDoFuture</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">future</span><span class="fu">::</span><span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="fu">future</span><span class="fu">::</span><span class="va"><a href="https://future.futureverse.org/reference/multicore.html" class="external-link">multicore</a></span>, workers <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">stt5k</span> <span class="op">&lt;-</span></span>
@@ -865,11 +870,7 @@ argument of <code>par_pad_grid</code> is polygons, a few polygons will
 have duplicate rows in the output data.frame since block groups
 overlapping each grid will be selected.</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pkgs</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chopin"</span>, <span class="st">"terra"</span>, <span class="st">"stars"</span>, <span class="st">"sf"</span>, <span class="st">"future"</span>, <span class="st">"doFuture"</span>, <span class="st">"dplyr"</span>, <span class="st">"parallelly"</span>, <span class="st">"tigris"</span>, <span class="st">"tictoc"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">pkgs</span>, <span class="va">library</span>, character.only <span class="op">=</span> <span class="cn">TRUE</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>tigris_use_cache <span class="op">=</span> <span class="cn">TRUE</span>, sf_use_s2 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">cdl</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="st">"input/2022_cdls/2022_30m_cdls.tif"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">cdl</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="st">"input/2022_cdls/2022_30m_cdls.tif"</span><span class="op">)</span></span>
 <span><span class="va">bgsf</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="st">"input/Blockgroups_2020.gpkg"</span><span class="op">)</span></span>
 <span><span class="va">bgsf_main</span> <span class="op">&lt;-</span> <span class="va">bgsf</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">STATEFP</span> <span class="op"><a href="https://rspatial.github.io/terra/reference/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"02"</span>, <span class="st">"15"</span>, <span class="st">"72"</span>, <span class="st">"66"</span>, <span class="st">"78"</span>, <span class="st">"60"</span>, <span class="st">"69"</span><span class="op">)</span><span class="op">)</span></span>

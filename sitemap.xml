@@ -14,8 +14,6 @@
 <url><loc>https://NIEHS.github.io/chopin/index.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/news/index.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/chopin-package.html</loc></url>
-<url><loc>https://NIEHS.github.io/chopin/reference/clip_ras_ext.html</loc></url>
-<url><loc>https://NIEHS.github.io/chopin/reference/clip_vec_ext.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/datamod.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/dep_check.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/dep_switch.html</loc></url>
@@ -30,13 +28,13 @@
 <url><loc>https://NIEHS.github.io/chopin/reference/indexing.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/kernelfunction.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/ncpoints.html</loc></url>
+<url><loc>https://NIEHS.github.io/chopin/reference/par_convert_f.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_cut_coords.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_def_q.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_grid.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_hierarchy.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_make_balanced.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_make_grid.html</loc></url>
-<url><loc>https://NIEHS.github.io/chopin/reference/par_map_args.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_merge_grid.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_multirasters.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/par_pad_balanced.html</loc></url>
@@ -47,6 +45,5 @@
 <url><loc>https://NIEHS.github.io/chopin/reference/reproject_to_raster.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/summarize_aw.html</loc></url>
 <url><loc>https://NIEHS.github.io/chopin/reference/summarize_sedc.html</loc></url>
-<url><loc>https://NIEHS.github.io/chopin/reference/vect_validate.html</loc></url>
 </urlset>
 
