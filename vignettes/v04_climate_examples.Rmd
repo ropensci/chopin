@@ -57,10 +57,17 @@ We will consider the populated places centroids in the mainland United States (i
 
 
 ```r
-pkgs <-
-  c("chopin", "terra", "stars", "sf",
-    "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
-invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
+library(chopin)
+library(terra)
+library(sf)
+library(stars)
+library(future)
+library(future.mirai)
+library(parallelly)
+library(dplyr)
+library(tigris)
+library(tictoc)
+
 options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
 ```
 
@@ -384,7 +391,7 @@ exgrid <-
     ny = 2L
   )
 
-doFuture::registerDoFuture()
+
 future::plan(future::multicore, workers = 8L)
 
 system.time(
@@ -485,7 +492,6 @@ exgrid5k <-
   )
 
 
-doFuture::registerDoFuture()
 future::plan(future::multicore, workers = 8L)
 
 system.time(
@@ -576,7 +582,6 @@ stt_gbg <-
   )
 
 
-doFuture::registerDoFuture()
 future::plan(future::multicore, workers = 8L)
 system.time(
   stt5k <-
@@ -721,10 +726,6 @@ For balancing computation time, we will split the block groups into nine subsets
 
 
 ```r
-pkgs <-
-  c("chopin", "terra", "stars", "sf", "future", "doFuture", "dplyr", "parallelly", "tigris", "tictoc")
-invisible(sapply(pkgs, library, character.only = TRUE, quietly = TRUE))
-options(tigris_use_cache = TRUE, sf_use_s2 = FALSE)
 cdl <- terra::rast("input/2022_cdls/2022_30m_cdls.tif")
 bgsf <- sf::st_read("input/Blockgroups_2020.gpkg")
 bgsf_main <- bgsf %>%

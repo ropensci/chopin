@@ -221,7 +221,7 @@ reproject_std <-
 
 #' @title Align vector CRS to raster's
 #' @family Helper functions
-#' @keywords internal soft-deprecated
+#' @keywords internal
 #' @param vector `sf`/`stars`/`SpatVector`/`SpatRaster` object
 #' @param raster `SpatRaster` object
 #' @returns Reprojected object in the same class as \code{vector}
@@ -253,43 +253,6 @@ reproject_to_raster <-
   }
 
 
-
-#' Validate and repair input vector data
-#' @family Helper functions
-#' @keywords internal soft-deprecated
-#' @description It tries repairing input vector data.
-#' Vector validity violation usually appears in polygon data with
-#' self-crossing or
-#' hole orders. This function will pass the input_vector object to
-#' [`sf::st_make_valid`] (if input_vector is sf) or
-#' [`terra::makeValid`] (if input_vector is SpatVector).
-#' May take some time depending on the geometry complexity.
-#' @author Insang Song
-#' @param input_vector One of sf or vect class. Target points of computation.
-#' @returns A repaired `sf` or `SpatVector` object depending on
-#' the class of input_vector.
-#' @note This function works with GEOS (>=3.8).
-#' @examples
-#' \dontrun{
-#' library(terra)
-#' library(sf)
-#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc <- terra::vect(ncpath)
-#'
-#' nc_valid <- vect_validate(nc)
-#' }
-#' @importFrom terra makeValid
-#' @importFrom sf st_make_valid
-vect_validate <- function(input_vector) {
-  detected <- dep_check(input_vector)
-
-  validated <- switch(detected,
-    terra = terra::makeValid(input_vector),
-    sf = sf::st_make_valid(input_vector)
-  )
-
-  return(validated)
-}
 
 
 # ## .intersect_extent ####

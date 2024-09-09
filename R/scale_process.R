@@ -75,7 +75,7 @@
 #'   )
 #' @seealso
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
-#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
+#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
@@ -296,7 +296,7 @@ par_grid <-
 #'  \code{fun_dist} argument.
 #' @seealso
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
-#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
+#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' library(terra)
@@ -598,7 +598,7 @@ par_hierarchy <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @seealso
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
-#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_map_args`]
+#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #'
 #' @examples
 #' library(terra)
@@ -783,7 +783,6 @@ par_multirasters <-
 
 
 #' Map arguments to the desired names
-#' @family Helper functions
 #' @description This function maps the arguments of a target function
 #' to the desired names. Users will use a named list `name_match` to
 #' standardize the argument names, at least x and y, to the target function.
@@ -791,34 +790,39 @@ par_multirasters <-
 #' data outside `sf` and `terra` packages that do not have arguments
 #' named x and/or y. `par_*` functions could detect such functions by
 #' wrapping nonstandardized functions to parallelize the computation.
-#' @param fun The target function to be called.
-#' @param name_match A named list of arguments to be mapped.
-#' @param ... Arguments to be passed to the target function.
-#' @returns The result of the target function.
+#' @param fun A function to map arguments.
+#' @param arg_map named character vector.
+#'   `c(x = "a", y = "i")` will map `a` and `i` in `fun` to
+#'   `x` and `y`, respectively.
+#' @note `arg_map` should be defined carefully according to the characteristics
+#'   of `fun`. After mapping `x` and `y`, the resultant function will fail
+#'   if there remain arguments without default. It is recommended to map all
+#'   the arguments in `fun` to avoid any side effects.
+#' @returns Function with arguments mapped.
 #' @examples
-#' # Example target function
-#' example_fun <- function(x, y, z = 1) {
-#'   return(c(x = x, y = y, z = z))
+#' cov_map <- arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
+#' # Example original function
+#' f1 <- function(a, b, c, d) {
+#'   return(a + b + c + d)
 #' }
+#' # Mapping of new argument names to original argument names
+#' arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
+#' f2 <- par_convert_f(f1, arg_mapping)
 #'
-#' # Example usage of map_args_xy
-#' result <- par_map_args(fun = example_fun,
-#'                        name_match = list(a = "x", b = "y"),
-#'                        a = 10, b = 20, z = 5)
-#' print(result)
+#' # demonstrate f2 with the mapped arguments
+#' f2(x = 1, y = 2, z = -1, w = 10)
 #' @export
-par_map_args <- function(fun, name_match = list(), ...) {
-  # Capture the calling arguments, excluding 'fun' and 'name_match'
-  args <- as.list(match.call(expand.dots = TRUE))[-c(1, 2, 3)]
+par_convert_f <- function(fun, arg_map) {
+  # Create a new function with the mapped arguments
+  new_fun <- function(...) {
+    # Capture the arguments passed to the new function
+    args <- list(...)
 
-  # Modify argument names based on 'name_match'
-  names(args) <-
-    ifelse(
-      names(args) %in% names(name_match),
-      name_match[names(args)],
-      names(args)
-    )
+    # Map the arguments to the original function's arguments
+    mapped_args <- setNames(args, arg_map[names(args)])
 
-  # Call the target function 'fun' with modified arguments
-  do.call(fun, args)
+    # Call the original function with the mapped arguments
+    do.call(fun, mapped_args)
+  }
+  return(new_fun)
 }

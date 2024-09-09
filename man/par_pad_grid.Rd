@@ -100,8 +100,6 @@ nc_comp_region_wkt$original
 nc_comp_region_wkt$padded
 }
 \seealso{
-\code{\link{par_merge_grid}}
-
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
 \code{\link{par_grid}()},

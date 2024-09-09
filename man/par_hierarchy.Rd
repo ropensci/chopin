@@ -140,7 +140,7 @@ res <-
 }
 \seealso{
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_map_args}}
+\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_convert_f}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

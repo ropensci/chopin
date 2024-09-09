@@ -32,20 +32,15 @@ reproject_to_raster(nc, elev)
 }
 \seealso{
 Other Helper functions: 
-\code{\link{clip_ras_ext}()},
-\code{\link{clip_vec_ext}()},
 \code{\link{datamod}()},
 \code{\link{dep_check}()},
 \code{\link{dep_switch}()},
 \code{\link{get_clip_ext}()},
 \code{\link{par_def_q}()},
-\code{\link{par_map_args}()},
-\code{\link{reproject_std}()},
-\code{\link{vect_validate}()}
+\code{\link{reproject_std}()}
 }
 \author{
 Insang Song
 }
 \concept{Helper functions}
 \keyword{internal}
-\keyword{soft-deprecated}

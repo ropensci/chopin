@@ -8,7 +8,7 @@
 #' @param extrusion numeric(1). The extent extrusion factor.
 #'   Default is 1.1, meaning that the actual padding is 10 percent
 #'   wider than `radius`.
-#' @returns A `terra::ext` or sfc_POLYGON object of the computation extent.
+#' @returns A [`terra::ext`] or sfc_POLYGON object of the computation extent.
 #' @examples
 #' \dontrun{
 #' library(sf)
@@ -46,111 +46,4 @@ get_clip_ext <- function(
     ext_input <- sf::st_as_sfc(ext_input)
   }
   return(ext_input)
-}
-
-
-#' Clip to the buffered extent of input vector
-#' @family Helper functions
-#' @description Clip input vector by
-#'  the expected maximum extent of computation.
-#' @keywords internal
-#' @author Insang Song
-#' @param x `sf` or `SpatVector` object to be clipped
-#' @param y `sf` or `SpatVector` object
-#' @param radius `numeric(1)`. Circular buffer radius.
-#'  this value will be automatically multiplied by 1.1
-#' @returns A clipped `sf` or `SpatVector` object.
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(stars)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' bcsd_path <- system.file(package = "stars", "nc/bcsd_obs_1999.nc")
-#' bcsd <- stars::read_stars(bcsd_path)
-#' bcsd <- sf::st_as_sf(bcsd)
-#' bcsd_rpnt <- sf::st_as_sf(sf::st_sample(bcsd, 4L))
-#' bcsd_rpntm <- sf::st_as_sf(sf::st_sample(bcsd, 1000L))
-#' clip_vec_ext(bcsd_rpntm, 1000, bcsd_rpnt)
-#' }
-#' @importFrom sf st_intersection
-#' @importFrom terra intersect
-clip_vec_ext <- function(
-  x,
-  y,
-  radius
-) {
-  if (any(
-    vapply(
-      list(x, y, radius),
-      FUN = is.null,
-      FUN.VALUE = logical(1)
-    )
-  )) {
-    cli::cli_abort(
-      c("x" = "One or more required arguments are NULL. Please check.\n")
-    )
-  }
-  detected_pnts <- dep_check(y)
-  detected_target <- dep_check(x)
-
-  if (detected_pnts != detected_target) {
-    cli::cli_warn(c("Inputs are not the same class.\n"))
-    x <- dep_switch(x)
-  }
-
-  ext_input <- get_clip_ext(y, radius)
-
-  cli::cli_inform(
-    c("i" = "Clip target features with the input feature extent...\n")
-  )
-  if (detected_pnts == "sf") {
-    cae <-
-      sf::st_intersection(x = x, y = ext_input)
-  }
-  if (detected_pnts == "terra") {
-    cae <- terra::intersect(x, ext_input)
-  }
-
-  return(cae)
-}
-
-#' Clip input raster with a buffered vector extent.
-#' @family Helper functions
-#' @keywords internal soft-deprecated
-#' @description Clip input raster by the expected maximum extent of
-#' computation.
-#' @param x `SpatRaster` object to be clipped
-#' @param y `sf` or `SpatVector` object
-#' @param radius numeric(1). buffer radius.
-#' This value will be automatically multiplied by `extrusion`
-#' @param nqsegs integer(1). the number of points per a quarter circle.
-#'   Default is 180L.
-#' @param extrusion numeric(1). Extrusion factor for the extent. Default is 1.1.
-#' @returns A clipped `SpatRaster` object.
-#' @author Insang Song
-#' @importFrom terra vect crop
-clip_ras_ext <- function(
-  x = NULL,
-  y = NULL,
-  radius = NULL,
-  nqsegs = 180L,
-  extrusion = 1.1
-) {
-  if (any(
-    vapply(list(y, radius, x),
-           FUN = is.null,
-           FUN.VALUE = logical(1))
-  )) {
-    cli::cli_abort(
-      c("x" = "Any of required arguments are NULL. Please check.\n")
-    )
-  }
-  radius <- extrusion * radius
-  ext_input <- get_clip_ext(y, radius)
-  ext_input <- terra::vect(ext_input)
-
-  cae <- terra::crop(x, ext_input, snap = "out")
-  return(cae)
 }

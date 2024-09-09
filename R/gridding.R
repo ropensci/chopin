@@ -34,7 +34,6 @@
 #' @description Using input points, the bounding box is split to
 #'  the predefined numbers of columns and rows.
 #'  Each grid will be buffered by the radius.
-#' @seealso [`par_merge_grid`]
 #' @author Insang Song
 #' @examples
 #' # data
