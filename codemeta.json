@@ -7,7 +7,7 @@
   "codeRepository": "https://github.com/NIEHS/chopin",
   "issueTracker": "https://github.com/NIEHS/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -366,9 +366,9 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=lifecycle"
     },
-    "SystemRequirements": "NetCDF4"
+    "SystemRequirements": "netcdf"
   },
-  "fileSize": "27896.87KB",
+  "fileSize": "27888.915KB",
   "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],

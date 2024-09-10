@@ -99,8 +99,14 @@ statemain <-
   state[!state$STUSPS %in% c("AK", "HI", "PR", "VI", "GU", "MP", "AS"), ]
 target_states <- statemain$GEOID
 
-# prepared populated places
-popplace <- readRDS("./input/populated_place_2022.rds")
+# download populated places
+options(tigris_use_cache = TRUE)
+popplace <-
+  lapply(target_states, function(x) {
+    tigris::places(year = 2022, state = x)
+  })
+popplace <- do.call(rbind, popplace)
+
 
 # generate circular buffers with 10 km radius
 popplacep <- sf::st_centroid(popplace, of_largest_polygon = TRUE) %>%
@@ -114,6 +120,27 @@ popplaceb <- sf::st_buffer(popplacep, dist = units::set_units(10, "km"))
 # TerraClimate
 
 TerraClimate data are provided in yearly NetCDF files, each of which contains monthly layers. We will read the data with the [`terra`](https://cran.r-project.org/web/packages/terra/index.html) package and preprocess the data to extract the annual mean and sum of the bands by types of columns. 
+
+For reproducibility, run the code below with our companion package `amadeus` to download terraClimate data. Please note that it will take a while depending on the internet speed.
+
+```r
+rlang::check_installed("amadeus")
+
+tcli_variables <- c(
+  "aet", "def", "pet", "ppt", "q", "soil", "swe",
+  "PDSI", "srad", "tmax", "tmin", "vap", "vpd", "ws"
+)
+
+amadeus::download_terraclimate(
+  variables = tcli_variables,
+  year = c(2000, 2022),
+  directory_to_save = "./input/terraClimate",
+  acknowledgement = TRUE,
+  download = TRUE,
+  remove_command = TRUE
+)
+
+```
 
 
 ```r
@@ -248,7 +275,6 @@ We have 14 data elements for 23 years with 12 months each. Below demonstrates th
 
 ```r
 tic("multi threads (grid)")
-doFuture::registerDoFuture()
 future::plan(future::multicore, workers = 8L)
 grid_init <-
   chopin::par_pad_grid(
@@ -783,5 +809,3 @@ system.time(
 
 -   [Garnett, R. (2023). Geospatial distributed processing with furrr](https://posit.co/blog/geospatial-distributed-processing-with-furrr/)
 -   [Dyba, K. (n.d.). Parallel raster processing in *stars*](https://kadyb.github.io/stars-parallel/Tutorial.html)
-
-
