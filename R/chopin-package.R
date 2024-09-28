@@ -185,14 +185,12 @@
 #' **Notes on data restrictions**
 #'
 #' `chopin` works best with **two-dimensional** (**planar**) geometries.
-#' Users should disable `s2` spherical geometry mode in `sf` by setting.
+#' Users should disable `s2` spherical geometry mode in `sf` by setting
+#' `sf::sf_use_s2(FALSE)`.
 #' Running any `chopin` functions at spherical or three-dimensional
 #' (e.g., including M/Z dimensions) geometries
 #' may produce incorrect or unexpected results.
 #'
-#' ```r
-#' sf::sf_use_s2(FALSE)
-#' ```
 ## usethis namespace: end
 "_PACKAGE"
 #nolint end

@@ -4,10 +4,10 @@
   "identifier": "chopin",
   "description": "Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.",
   "name": "chopin: Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing",
-  "codeRepository": "https://github.com/NIEHS/chopin",
-  "issueTracker": "https://github.com/NIEHS/chopin/issues",
+  "codeRepository": "https://github.com/ropensci/chopin",
+  "issueTracker": "https://github.com/ropensci/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -368,9 +368,8 @@
     },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "27888.915KB",
-  "releaseNotes": "https://github.com/NIEHS/chopin/blob/master/NEWS.md",
-  "readme": "https://github.com/NIEHS/chopin/blob/main/README.md",
+  "fileSize": "27889.55KB",
+  "releaseNotes": "https://github.com/ropensci/chopin/blob/master/NEWS.md",
   "contIntegration": ["https://github.com/NIEHS/chopin/actions", "https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml"],
   "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#experimental",
   "review": {
