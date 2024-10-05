@@ -3,8 +3,8 @@
 
 <!-- badges: start -->
 
-[![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/NIEHS/chopin/actions)
-[![R-CMD-check](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/NIEHS/chopin/actions/workflows/check-standard.yaml)
+[![cov](https://NIEHS.github.io/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions)
+[![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer
 Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![Lifecycle:
@@ -52,14 +52,14 @@ multiple raster file paths into `par_multirasters()`. **Finally,** users
 run `par_*()` function with the configurations set above to compute
 spatial variables from input data in parallel:
 
-- `par_grid`: parallelize over artificial grid polygons that are
-  generated from the maximum extent of inputs. `par_pad_grid` is used to
-  generate the grid polygons before running this function.
+  - `par_grid`: parallelize over artificial grid polygons that are
+    generated from the maximum extent of inputs. `par_pad_grid` is used
+    to generate the grid polygons before running this function.
 
-- `par_hierarchy`: parallelize over hierarchy coded in identifier fields
-  (for example, census blocks in each county in the US)
+  - `par_hierarchy`: parallelize over hierarchy coded in identifier
+    fields (for example, census blocks in each county in the US)
 
-- `par_multirasters`: parallelize over multiple raster files
+  - `par_multirasters`: parallelize over multiple raster files
 
 For grid partitioning, the entire study area will be divided into partly
 overlapped grids. We suggest two flowcharts to help which function to
@@ -75,14 +75,14 @@ classes for spatial data. Raster-vector overlay is done with
 `exactextractr`. Three helper functions encapsulate multiple geospatial
 data calculation steps over multiple CPU threads.
 
-- `extract_at`: extract raster values with point buffers or polygons
-  with or without kernel weights
+  - `extract_at`: extract raster values with point buffers or polygons
+    with or without kernel weights
 
-- `summarize_sedc`: calculate sums of [exponentially decaying
-  contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
+  - `summarize_sedc`: calculate sums of [exponentially decaying
+    contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 
-- `summarize_aw`: area-weighted covariates based on target and reference
-  polygons
+  - `summarize_aw`: area-weighted covariates based on target and
+    reference polygons
 
 ### Function selection guide
 
@@ -93,32 +93,33 @@ users with large vector data.
 
 In **raster-oriented selection**, we suggest four factors to consider:
 
-- Number of raster files: for multiple files, `par_multirasters` is
-  recommended. When there are multiple rasters that share the same
-  extent and resolution, consider stacking the rasters into multilayer
-  SpatRaster object by calling `terra::rast(filenames)`.
-- Raster resolution: We suggest 100 meters as a threshold. Rasters with
-  resolution coarser than 100 meters and a few layers would be better
-  for the direct call of `exactextractr::exact_extract()`.
-- Raster extent: Using `SpatRaster` in `exactextractr::exact_extract()`
-  is often minimally affected by the raster extent.
-- Memory size: `max_cells_in_memory` argument value of
-  `exactextractr::exact_extract()`, raster resolution, and the number of
-  layers in `SpatRaster` are multiplicatively related to the memory
-  usage.
+  - Number of raster files: for multiple files, `par_multirasters` is
+    recommended. When there are multiple rasters that share the same
+    extent and resolution, consider stacking the rasters into multilayer
+    SpatRaster object by calling `terra::rast(filenames)`.
+  - Raster resolution: We suggest 100 meters as a threshold. Rasters
+    with resolution coarser than 100 meters and a few layers would be
+    better for the direct call of `exactextractr::exact_extract()`.
+  - Raster extent: Using `SpatRaster` in
+    `exactextractr::exact_extract()` is often minimally affected by the
+    raster extent.
+  - Memory size: `max_cells_in_memory` argument value of
+    `exactextractr::exact_extract()`, raster resolution, and the number
+    of layers in `SpatRaster` are multiplicatively related to the memory
+    usage.
 
 ![](man/figures/README-flowchart-raster.png)
 
 For **vector-oriented selection**, we suggest three factors to consider:
 
-- Number of features: When the number of features is over 100,000,
-  consider using `par_grid` or `par_hierarchy` to split the data into
-  smaller chunks.
-- Hierarchical structure: If the data has a hierarchical structure,
-  consider using `par_hierarchy` to parallelize the operation.
-- Data grouping: If the data needs to be grouped in similar sizes,
-  consider using `par_pad_balanced` or `par_pad_grid` with
-  `mode = "grid_quantile"`.
+  - Number of features: When the number of features is over 100,000,
+    consider using `par_grid` or `par_hierarchy` to split the data into
+    smaller chunks.
+  - Hierarchical structure: If the data has a hierarchical structure,
+    consider using `par_hierarchy` to parallelize the operation.
+  - Data grouping: If the data needs to be grouped in similar sizes,
+    consider using `par_pad_balanced` or `par_pad_grid` with `mode =
+    "grid_quantile"`.
 
 ![](man/figures/README-flowchart-vector.png)
 
@@ -162,7 +163,7 @@ library(dplyr)
 #> 
 #>     intersect, setdiff, setequal, union
 library(sf)
-#> Linking to GEOS 3.12.2, GDAL 3.9.2, PROJ 9.4.1; sf_use_s2() is TRUE
+#> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.3.1; sf_use_s2() is TRUE
 library(terra)
 #> terra 1.7.78
 library(future)
@@ -249,7 +250,7 @@ system.time(
 )
 #> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   5.543   0.170   5.610
+#>   6.538   0.073   6.761
 ```
 
 #### Generate regular grid computational regions
@@ -336,7 +337,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.293   0.038   7.228
+#>   0.514   0.042  10.335
 
 ncpoints_srtm <-
   extract_at(
@@ -395,7 +396,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpojIQ92/temp_libpath7a5b3e1edd2b/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpJx4vmS/temp_libpathf4b95cd4b909/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -404,7 +405,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpojIQ92/temp_libpath7a5b3e1edd2b/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpJx4vmS/temp_libpathf4b95cd4b909/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -432,7 +433,7 @@ system.time(
 )
 #> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   0.772   0.000   0.753
+#>   0.700   0.010   0.712
 
 # hierarchical parallelization
 system.time(
@@ -550,7 +551,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.
 #> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   0.272   0.105   1.885
+#>   0.325   0.070   2.542
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -577,9 +578,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpFqVU5V/test1.tif" "/tmp/RtmpFqVU5V/test2.tif"
-#> [3] "/tmp/RtmpFqVU5V/test3.tif" "/tmp/RtmpFqVU5V/test4.tif"
-#> [5] "/tmp/RtmpFqVU5V/test5.tif"
+#> [1] "/tmp/Rtmp1FBdq8/test1.tif" "/tmp/Rtmp1FBdq8/test2.tif"
+#> [3] "/tmp/Rtmp1FBdq8/test3.tif" "/tmp/Rtmp1FBdq8/test4.tif"
+#> [5] "/tmp/Rtmp1FBdq8/test5.tif"
 ```
 
 ``` r
@@ -596,32 +597,32 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpFqVU5V/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmp1FBdq8/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpFqVU5V/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmp1FBdq8/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpFqVU5V/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmp1FBdq8/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpFqVU5V/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmp1FBdq8/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpFqVU5V/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmp1FBdq8/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.488   1.452   3.569
+#>   1.656   0.092   2.985
 knitr::kable(head(res))
 ```
 
-|      mean | base_raster               |
-|----------:|:--------------------------|
-| 136.80203 | /tmp/RtmpFqVU5V/test1.tif |
-| 189.76170 | /tmp/RtmpFqVU5V/test1.tif |
-| 231.16968 | /tmp/RtmpFqVU5V/test1.tif |
-|  98.03845 | /tmp/RtmpFqVU5V/test1.tif |
-|  41.23463 | /tmp/RtmpFqVU5V/test1.tif |
-| 270.96933 | /tmp/RtmpFqVU5V/test1.tif |
+|      mean | base\_raster              |
+| --------: | :------------------------ |
+| 136.80203 | /tmp/Rtmp1FBdq8/test1.tif |
+| 189.76170 | /tmp/Rtmp1FBdq8/test1.tif |
+| 231.16968 | /tmp/Rtmp1FBdq8/test1.tif |
+|  98.03845 | /tmp/Rtmp1FBdq8/test1.tif |
+|  41.23463 | /tmp/Rtmp1FBdq8/test1.tif |
+| 270.96933 | /tmp/Rtmp1FBdq8/test1.tif |
 
 ``` r
 
@@ -657,7 +658,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(path_ncrd1)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/RtmpojIQ92/temp_libpath7a5b3e1edd2b/chopin/extdata/ncroads_first.gpkg' 
+#>   `/tmp/RtmpJx4vmS/temp_libpathf4b95cd4b909/chopin/extdata/ncroads_first.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
@@ -710,11 +711,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.432   0.000   0.430
+#>   0.519   0.000   0.507
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/RtmpFqVU5V/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/Rtmp1FBdq8/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -760,11 +761,13 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.065   0.008   0.554
+#>   0.099   0.000   0.659
 ```
 
-- We will compare the results from the single-thread and multi-thread
-  calculation.
+  - We will compare the results from the single-thread and multi-thread
+    calculation.
+
+<!-- end list -->
 
 ``` r
 resj <- merge(restr, resd, by = c("from_x", "from_y"))

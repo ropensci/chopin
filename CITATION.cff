@@ -15,7 +15,7 @@ authors:
     email: kyle.messier@nih.gov
     affiliation: NIEHS
     orcid: 'https://orcid.org/0000-0001-9508-9623'
-repository-code: 'https://github.com/NIEHS/chopin'
+repository-code: 'https://github.com/ropensci/chopin'
 keywords:
   - spatial data
   - parallel processing
