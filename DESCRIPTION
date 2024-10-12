@@ -1,11 +1,15 @@
 Package: chopin
 Title: Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing
-Version: 0.8.2
+Version: 0.8.3
 Authors@R: c(
     person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
     person("Kyle", "Messier", role = c("aut", "ctb"),
-           comment = c(ORCID = "0000-0001-9508-9623"))
+           comment = c(ORCID = "0000-0001-9508-9623")),
+    person("Alec L.", "Robitaille", role = c("rev"),
+           comment = "Alec reviewed the package version 0.6.3 for rOpenSci, see <https://github.com/ropensci/software-review/issues/638>"),
+    person("Eric R.", "Scott", role = c("rev"),
+           comment = "Eric reviewed the package version 0.6.3 for rOpenSci, see <https://github.com/ropensci/software-review/issues/638>")
   )
 Description: Geospatial data computation is parallelized by grid, hierarchy,
     or raster files. Based on future and mirai parallel backends, terra and sf
@@ -21,8 +25,8 @@ Description: Geospatial data computation is parallelized by grid, hierarchy,
     simple areal interpolation (`summarize_aw`) and summation of
     exponentially decaying weights (`summarize_sedc`) are also provided.
 License: MIT + file LICENSE
-URL: https://github.com/NIEHS/chopin
-BugReports: https://github.com/NIEHS/chopin/issues
+URL: https://docs.ropensci.org/chopin, https://github.com/ropensci/chopin
+BugReports: https://github.com/ropensci/chopin/issues
 Depends: 
     R (>= 4.1)
 SystemRequirements: netcdf

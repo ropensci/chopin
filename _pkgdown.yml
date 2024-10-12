@@ -1,7 +1,7 @@
-url: https://NIEHS.github.io/chopin
+url: https://docs.ropensci.org/chopin
 template:
-  bootstrap: 5
-  bootswatch: minty
+  params:
+    mathjax: true
 
 navbar:
   structure:

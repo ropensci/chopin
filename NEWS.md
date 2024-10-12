@@ -3,7 +3,7 @@
 - README.md: two mermaid plots are pre-generated as png files
 - Internal `clip_*()` functions and `vect_validate()` are removed
 - `par_map_args()` is renamed to `par_convert_f()`
-
+- init.R: one-line initialization for `bbox` class detection (cf. https://github.com/r-spatial/sf/issues/2448)
 
 # 0.7
 - `.check_package` refactoring: no `library()` call is required

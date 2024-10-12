@@ -210,8 +210,8 @@ may produce incorrect or unexpected results.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/NIEHS/chopin}
-  \item Report bugs at \url{https://github.com/NIEHS/chopin/issues}
+  \item \url{https://github.com/ropensci/chopin}
+  \item Report bugs at \url{https://github.com/ropensci/chopin/issues}
 }
 
 }
