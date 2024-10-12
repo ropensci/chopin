@@ -25,7 +25,7 @@ Description: Geospatial data computation is parallelized by grid, hierarchy,
     simple areal interpolation (`summarize_aw`) and summation of
     exponentially decaying weights (`summarize_sedc`) are also provided.
 License: MIT + file LICENSE
-URL: https://github.com/ropensci/chopin
+URL: https://docs.ropensci.org/chopin, https://github.com/ropensci/chopin
 BugReports: https://github.com/ropensci/chopin/issues
 Depends: 
     R (>= 4.1)
