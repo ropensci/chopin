@@ -40,10 +40,13 @@ par_split_list(nc_comp_region)
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
 \code{\link{par_grid}()},
+\code{\link{par_grid_mirai}()},
 \code{\link{par_hierarchy}()},
+\code{\link{par_hierarchy_mirai}()},
 \code{\link{par_make_grid}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()},
+\code{\link{par_multirasters_mirai}()},
 \code{\link{par_pad_balanced}()},
 \code{\link{par_pad_grid}()}
 }

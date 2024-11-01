@@ -52,10 +52,13 @@ sum(table(qcv$CGRIDID)) # should be 1000
 \seealso{
 Other Parallelization: 
 \code{\link{par_grid}()},
+\code{\link{par_grid_mirai}()},
 \code{\link{par_hierarchy}()},
+\code{\link{par_hierarchy_mirai}()},
 \code{\link{par_make_grid}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()},
+\code{\link{par_multirasters_mirai}()},
 \code{\link{par_pad_balanced}()},
 \code{\link{par_pad_grid}()},
 \code{\link{par_split_list}()}
