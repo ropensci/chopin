@@ -62,7 +62,7 @@
 #'     padding = 5e3L
 #'   )
 #' res <-
-#'   par_grid(
+#'   par_grid_mirai(
 #'     grids = nccompreg,
 #'     fun_dist = extract_at,
 #'     x = ncelev,
@@ -162,14 +162,16 @@ par_grid_mirai <-
         # terra functions directly to make objects from scratch in
         # parallel workers.
         library(chopin)
-        box::use(fun_dist)
+        library(sf)
+        library(terra)
         options(sf_use_s2 = FALSE)
         tryCatch({
           grid_in <- grids_target_list[[i]]
-
-          grid_in <- reproject_std(grid_in, crs_x)
           gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid_in$CGRIDID, ]
 
+          grid_in <- reproject_std(grid_in, crs_x)
+          gpad_in <- reproject_std(gpad_in, crs_x)
+          
           args_input$x <-
             .par_screen(
               type = peek_x,
@@ -226,10 +228,14 @@ par_grid_mirai <-
         )
       )
 
+    .progress <- NULL
+    results[.progress]
+
     # remove NULL
+    results <- results[]
     results <-
       results[!vapply(results, is.null, logical(1))]
-
+    return(results)
     # Bind rows
     results <- collapse::rowbind(results, fill = TRUE)
 

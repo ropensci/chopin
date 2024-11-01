@@ -77,7 +77,7 @@ nccompreg <-
     padding = 5e3L
   )
 res <-
-  par_grid(
+  par_grid_mirai(
     grids = nccompreg,
     fun_dist = extract_at,
     x = ncelev,
