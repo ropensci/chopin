@@ -58,13 +58,13 @@ For entries of the results, consult the function used in
 \description{
 "Hierarchy" refers to a system,
 which divides the entire study region into multiple subregions.
-It is oftentimes reflected in an area code system
+It is usually reflected in an area code system
 (e.g., FIPS for US Census geographies and
 Nomenclature of Territorial Units for Statistics (NUTS), etc.).
-\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}} in \code{\link[future:plan]{future::plan}}
-will parallelize the work by splitting lower level features into
-several higher level feature group.
+\link[mirai:daemons]{mirai::daemons} will set the parallel backend then \link[mirai:mirai_map]{mirai::mirai_map}
+will the work by splitting lower level features into
+several higher level feature group. For details of the terminology
+in \code{mirai} package, refer to \code{\link[mirai:mirai]{mirai::mirai}}.
 For details of the terminology in \code{future} package,
 please refer to \code{\link[future:plan]{future::plan}} documentation.
 Each thread will process the number of lower level features
@@ -81,7 +81,7 @@ object. It is expected that \code{regions} represents the higher level
 boundaries and \code{x} or \code{y} in \code{fun_dist} is the lower level boundaries.
 However, if that is not the case, with \code{trim} argument, the function
 will generate the higher level codes from \code{regions_id} by extracting
-left-t
+the code from the left end (controlled by \code{length_left}).
 Whether \code{x} or \code{y} is searched is determined by \code{pad_y} value.
 \code{pad_y = TRUE} will make the function attempt to find \code{regions_id}
 in \code{x}, whereas \code{pad_y = FALSE} will look for \code{regions_id} at
@@ -107,10 +107,9 @@ are spatially sparsely distributed.
 \examples{
 library(terra)
 library(sf)
-library(future)
-library(future.mirai)
+library(mirai)
 options(sf_use_s2 = FALSE)
-future::plan(future.mirai::mirai_multisession, workers = 2)
+mirai::daemons(4, dispatcher = "process")
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 nccnty <- sf::st_read(ncpath, layer = "county")
@@ -128,19 +127,19 @@ ncsamp <- sf::st_as_sf(ncsamp)
 # assign ID
 ncsamp$kid <- sprintf("K-\%05d", seq_len(nrow(ncsamp)))
 res <-
-  par_hierarchy(
+  par_hierarchy_mirai(
     regions = nccnty,
     regions_id = "GEOID",
     fun_dist = extract_at,
     y = nctrct,
     x = ncelev,
     id = "GEOID",
-    func = "mean"
+    func = "mean",
+    .debug = TRUE
   )
 }
 \seealso{
-\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_convert_f}}
+\code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link[mirai:daemons]{mirai::daemons}}, \code{\link{par_convert_f}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

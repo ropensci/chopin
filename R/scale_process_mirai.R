@@ -248,13 +248,13 @@ par_grid_mirai <-
 #' @family Parallelization
 #' @description "Hierarchy" refers to a system,
 #'  which divides the entire study region into multiple subregions.
-#'  It is oftentimes reflected in an area code system
+#'  It is usually reflected in an area code system
 #'  (e.g., FIPS for US Census geographies and
 #'  Nomenclature of Territorial Units for Statistics (NUTS), etc.).
-#'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
-#'  [`future.mirai::mirai_multisession`] in [`future::plan`]
-#'  will parallelize the work by splitting lower level features into
-#'  several higher level feature group.
+#'  [mirai::daemons] will set the parallel backend then [mirai::mirai_map]
+#'  will the work by splitting lower level features into
+#'  several higher level feature group. For details of the terminology
+#'  in `mirai` package, refer to [`mirai::mirai`].
 #'  For details of the terminology in `future` package,
 #'  please refer to [`future::plan`] documentation.
 #'  Each thread will process the number of lower level features
@@ -270,7 +270,7 @@ par_grid_mirai <-
 #'   boundaries and `x` or `y` in `fun_dist` is the lower level boundaries.
 #'   However, if that is not the case, with `trim` argument, the function
 #'   will generate the higher level codes from `regions_id` by extracting
-#'   left-t
+#'   the code from the left end (controlled by `length_left`).
 #'   Whether `x` or `y` is searched is determined by `pad_y` value.
 #'   `pad_y = TRUE` will make the function attempt to find `regions_id`
 #'   in `x`, whereas `pad_y = FALSE` will look for `regions_id` at
@@ -322,16 +322,14 @@ par_grid_mirai <-
 #'  For entries of the results, consult the function used in
 #'  \code{fun_dist} argument.
 #' @seealso
-#'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
-#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
+#'  [`mirai::mirai_map`], [`mirai::daemons`], [`par_convert_f`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' library(terra)
 #' library(sf)
-#' library(future)
-#' library(future.mirai)
+#' library(mirai)
 #' options(sf_use_s2 = FALSE)
-#' future::plan(future.mirai::mirai_multisession, workers = 2)
+#' mirai::daemons(4, dispatcher = "process")
 #'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 #' nccnty <- sf::st_read(ncpath, layer = "county")
@@ -349,17 +347,18 @@ par_grid_mirai <-
 #' # assign ID
 #' ncsamp$kid <- sprintf("K-%05d", seq_len(nrow(ncsamp)))
 #' res <-
-#'   par_hierarchy(
+#'   par_hierarchy_mirai(
 #'     regions = nccnty,
 #'     regions_id = "GEOID",
 #'     fun_dist = extract_at,
 #'     y = nctrct,
 #'     x = ncelev,
 #'     id = "GEOID",
-#'     func = "mean"
+#'     func = "mean",
+#'     .debug = TRUE
 #'   )
-#' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
+#' @importFrom mirai mirai_map
 #' @importFrom collapse rowbind
 #' @importFrom sf sf_use_s2
 #' @importFrom cli cli_abort cli_alert_info
@@ -455,13 +454,29 @@ par_hierarchy_mirai <-
     }
     regions_list <- as.list(regions_idn)
 
-    ## Main parallelization
+    # Main parallelization
     results <-
-      future.apply::future_lapply(
-        seq_along(regions_list),
-        function(i) {
-          options(sf_use_s2 = FALSE)
-
+      mirai::mirai_map(
+        .x = seq_along(regions_list),
+        .f =
+          function(
+            i,
+            fun_dist, args_input,
+            regions_list,
+            pad, pad_y,
+            peek_x, peek_y,
+            class_vec,
+            crs_x,
+            .debug
+          ) {
+        # inside each parallel job, feel free to use terra functions
+        # technically we do not export terra objects, rather calling
+        # terra functions directly to make objects from scratch in
+        # parallel workers.
+        library(chopin)
+        library(sf)
+        library(terra)
+        options(sf_use_s2 = FALSE)
           result <-
             tryCatch(
               {
@@ -563,23 +578,39 @@ par_hierarchy_mirai <-
                 )
 
                 return(res)
-              },
-              error =
-              function(e) {
-                if (.debug) {
-                  data.frame(
-                    regions_id = regions_list[[i]],
-                    error_message = paste(unlist(e), collapse = " ")
-                  )
-                } else {
-                  return(NULL)
-                }
-              }
-            )
-          return(result)
         },
-        future.seed = TRUE
+        error = function(e) {
+          if (.debug) {
+            grid_in <- grids_target_list[[i]]
+            data.frame(
+              CGRIDID = grid_in[["CGRIDID"]],
+              error_message = paste(unlist(e), collapse = " ")
+            )
+          } else {
+            return(NULL)
+          }
+        })
+      },
+      .args =
+        list(
+          fun_dist = fun_dist,
+          args_input = args_input,
+          regions_list = regions_list,
+          peek_x = peek_x,
+          peek_y = peek_y,
+          crs_x = crs_x,
+          pad = pad,
+          pad_y = pad_y,
+          class_vec = class_vec,
+          .debug = .debug
+        )
       )
+
+    .progress <- NULL
+    results[.progress]
+
+    # remove NULL
+    results <- results[]
 
     results <-
       results[!vapply(results, is.null, logical(1))]
