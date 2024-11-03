@@ -247,25 +247,26 @@ testthat::test_that("extract_at -- character-SpatVector inputs, terra mode", {
 
   testthat::expect_warning(
     testthat::expect_warning(
-      testthat::expect_message(
+      testthat::expect_warning(
         testthat::expect_message(
-          ext_re <-
-          chopin::extract_at(
-            ncelev,
-            nccnty,
-            "FIPS",
-            radius = 100,
-            terra = TRUE,
-            weights = FALSE,
-            kernel = "epanechnikov",
-            func = stats::weighted.mean,
-            bandwidth = 1.25e4L
+          testthat::expect_message(
+            ext_re <-
+            chopin::extract_at(
+              ncelev,
+              nccnty,
+              "FIPS",
+              radius = 100,
+              terra = TRUE,
+              weights = FALSE,
+              kernel = "epanechnikov",
+              func = stats::weighted.mean,
+              bandwidth = 1.25e4L
+            )
           )
         )
       )
     )
   )
-
 })
 
 
@@ -296,26 +297,27 @@ testthat::test_that("extract_at -- character-sf inputs, terra mode", {
 
   testthat::expect_warning(
     testthat::expect_warning(
-      testthat::expect_message(
+      testthat::expect_warning(
         testthat::expect_message(
-          extt <-
-          chopin::extract_at(
-            ncelev,
-            nccnty,
-            "FIPS",
-            terra = TRUE,
-            exact = TRUE,
-            touches = FALSE,
-            radius = 100,
-            kernel = "epanechnikov",
-            func = stats::weighted.mean,
-            bandwidth = 1.25e4L
+          testthat::expect_message(
+            extt <-
+            chopin::extract_at(
+              ncelev,
+              nccnty,
+              "FIPS",
+              terra = TRUE,
+              exact = TRUE,
+              touches = FALSE,
+              radius = 100,
+              kernel = "epanechnikov",
+              func = stats::weighted.mean,
+              bandwidth = 1.25e4L
+            )
           )
         )
       )
     )
   )
-
 })
 
 
@@ -448,18 +450,19 @@ testthat::test_that(".extract_at + character inputs with kernel weighting", {
   )
 
   # point input + radius + kernel + bandwidth: message
-  testthat::expect_message(
-    chopin:::.extract_at(
-      ncelev,
-      cntycent,
-      radius = 1000,
-      id = "FIPS",
-      kernel = "epanechnikov",
-      bandwidth = 3000,
-      max_cells = 3e7
+  testthat::expect_warning(
+    testthat::expect_message(
+      chopin:::.extract_at(
+        ncelev,
+        cntycent,
+        radius = 1000,
+        id = "FIPS",
+        kernel = "epanechnikov",
+        bandwidth = 3000,
+        max_cells = 3e7
+      )
     )
   )
-
 })
 
 ## .kernel_weighting tests ####

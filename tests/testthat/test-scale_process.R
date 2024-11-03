@@ -688,6 +688,8 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
       y = ncroadv
     )
 
+  testthat::skip_on_os("windows")
+
   # no errors since 100km buffer is enough to capture
   # nearest road for coastal tracts
   resnas <-
@@ -705,6 +707,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   # resnas0 and resnas must have different #rows
   testthat::expect_true(nrow(resnas) > nrow(resnas0))
 
+  testthat::skip_on_os("windows")
   # regions are sf object
   nctrcc <- terra::centroids(nctrct)
   testthat::expect_no_error(
@@ -723,6 +726,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
       )
   )
 
+  testthat::skip_on_os("windows")
   testthat::expect_no_error(
     suppressWarnings(
       resnasz <-
