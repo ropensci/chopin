@@ -222,7 +222,7 @@ testthat::test_that("extract_at -- character-SpatVector inputs", {
 
 })
 
-testthat::test_that("extract_at -- character-SpatVector inputs", {
+testthat::test_that("extract_at -- character-SpatVector inputs, terra mode", {
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_package("dplyr")
@@ -243,12 +243,13 @@ testthat::test_that("extract_at -- character-SpatVector inputs", {
       terra = TRUE,
       extent = NULL
     )
-  testthat::expect_s3_class(ncexpoly, "data.frame")
+  testthat::expect_s4_class(ncexpoly, "SpatVector")
 
   testthat::expect_warning(
     testthat::expect_warning(
       testthat::expect_message(
         testthat::expect_message(
+          ext_re <-
           chopin::extract_at(
             ncelev,
             nccnty,
@@ -268,7 +269,7 @@ testthat::test_that("extract_at -- character-SpatVector inputs", {
 })
 
 
-testthat::test_that("extract_at -- character-sf inputs", {
+testthat::test_that("extract_at -- character-sf inputs, terra mode", {
   withr::local_package("sf")
   withr::local_package("terra")
   withr::local_package("dplyr")
@@ -288,9 +289,10 @@ testthat::test_that("extract_at -- character-sf inputs", {
     chopin::extract_at(
       ncelev,
       nccnty,
-      "FIPS"
+      "FIPS",
+      terra = TRUE
     )
-  testthat::expect_s3_class(ncexpoly, "data.frame")
+  testthat::expect_s4_class(ncexpoly, "SpatVector")
 
   testthat::expect_warning(
     testthat::expect_warning(

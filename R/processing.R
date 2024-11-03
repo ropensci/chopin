@@ -235,9 +235,12 @@ kernelfunction <-
         bind = TRUE,
         ID = TRUE
       )
-    extracted$id_chopin <- y[[id]][extracted$ID]
+
+    extracted[[id]] <- y[[id]][extracted$ID]
+    extracted$ID <- NULL
     names(extracted)[names(extracted) == "id_chopin"] <- id
-    names(extracted)[names(extracted) == "weight"] <- "coverage_fraction"
+    names(extracted)[names(extracted) %in% c("weight", "fraction")] <-
+      "coverage_fraction"
   }
 
   if (iskernel) {
@@ -437,6 +440,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
