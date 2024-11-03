@@ -1,3 +1,6 @@
+# 0.9
+- `mirai` based `par_*` functions for parallelization
+
 # 0.8
 - Bumped version from 0.7.8 to 0.8.0: improving package coverage
 - README.md: two mermaid plots are pre-generated as png files
