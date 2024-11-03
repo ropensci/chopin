@@ -52,6 +52,7 @@ kernelfunction <-
   y_vec,
   id,
   extracted,
+  terra = FALSE,
   kernel_func = stats::weighted.mean,
   kernel = NULL,
   bandwidth = NULL,
@@ -70,9 +71,17 @@ kernelfunction <-
     )
     y_vec <- terra::centroids(y_vec, inside = TRUE)
   }
-  name_surf_val <-
-    ifelse(terra::nlyr(x_ras) == 1,
-           "value", names(x_ras))
+  if (!terra) {
+    name_surf_val <-
+      ifelse(terra::nlyr(x_ras) == 1,
+             "value", names(x_ras))
+  } else {
+    # TODO: "ID", "x", "y" are too generic to exclude;
+    #  need to find a generalized way of excluding names
+    exclude_vec <- c("id_chopin", "coverage_fraction", "ID", "x", "y")
+    exclude_vec <- append(exclude_vec, names(y_vec))
+    name_surf_val <- setdiff(names(extracted), exclude_vec)
+  }
   # convert to data.frame
   coords_df <- as.data.frame(y_vec, geom = "XY")
   # apply strict order
@@ -90,7 +99,9 @@ kernelfunction <-
   coverage_fraction <- NULL
 
   # post-processing
-  extracted <- do.call(rbind, extracted)
+  if (!is.data.frame(extracted)) {
+    extracted <- do.call(rbind, extracted)
+  }
   names(extracted)[grep("(x|y)", names(extracted))] <- c("xdest", "ydest")
   extracted_summary <-
     extracted |>
@@ -127,8 +138,10 @@ kernelfunction <-
 #' @param id character(1). Name of unique identifier field.
 #' @param func character(1)/function. supported function names or functions
 #'   taking `x` and `w` in `exactextractr::exact_extract`
+#' @param terra logical(1). If `TRUE`, use `terra::extract` instead of
+#'   `exactextractr::exact_extract`.
 #' @param extent numeric. Passed to .check_vector
-#' @param radius numeric(1).
+#' @param radius numeric(1). Buffer radius.
 #' @param out_class character(1). "sf" or "terra"
 #' @param kernel character(1). Name of kernel functions [kernelfunction]
 #' @param kernel_func function. Kernel weight summary function.
@@ -139,6 +152,9 @@ kernelfunction <-
 #' @param .standalone logical(1). Whether or not running standalone mode.
 #'   `TRUE` will apply internal input check functions, whereas
 #'   `FALSE` will let `par_*` functions will check inputs.
+#' @param weights passed to `terra::extract()` Default is TRUE.
+#' @param exact passed to `terra::extract()` Default is TRUE.
+#' @param touches passed to `terra::extract()` Default is FALSE.
 #' @keywords internal
 #' @noRd
 .extract_at <- function(
@@ -146,6 +162,7 @@ kernelfunction <-
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -153,6 +170,9 @@ kernelfunction <-
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = NULL,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   .standalone = TRUE,
   ...
 ) {
@@ -172,7 +192,7 @@ kernelfunction <-
       )
     # reproject polygons to raster's crs
     y <- reproject_to_raster(vector = y, raster = x)
-    if (dep_check(y) == "terra") {
+    if (dep_check(y) == "terra" && !terra) {
       y <- dep_switch(y)
     }
   }
@@ -188,20 +208,40 @@ kernelfunction <-
   }
   iskernel <- !is.null(kernel)
 
-  extracted <-
-    exactextractr::exact_extract(
-      x = x,
-      y = y,
-      fun = if (iskernel) NULL else func,
-      force_df = TRUE,
-      stack_apply = !iskernel,
-      append_cols = if (iskernel) NULL else id,
-      include_cols = if (iskernel) id else NULL,
-      progress = FALSE,
-      include_area = iskernel,
-      include_xy = iskernel,
-      max_cells_in_memory = max_cells
-    )
+  if (!terra) {
+    extracted <-
+      exactextractr::exact_extract(
+        x = x,
+        y = y,
+        fun = if (iskernel) NULL else func,
+        force_df = TRUE,
+        stack_apply = !iskernel,
+        append_cols = if (iskernel) NULL else id,
+        include_cols = if (iskernel) id else NULL,
+        progress = FALSE,
+        include_area = iskernel,
+        include_xy = iskernel,
+        max_cells_in_memory = max_cells
+      )
+  } else {
+    extracted <-
+      terra::extract(
+        x = x, y = y,
+        fun = if (iskernel) NULL else func,
+        xy = TRUE,
+        weights = weights,
+        exact = exact,
+        touches = touches,
+        bind = TRUE,
+        ID = TRUE
+      )
+
+    extracted[[id]] <- y[[id]][extracted$ID]
+    extracted$ID <- NULL
+    names(extracted)[names(extracted) == "id_chopin"] <- id
+    names(extracted)[names(extracted) %in% c("weight", "fraction")] <-
+      "coverage_fraction"
+  }
 
   if (iskernel) {
     stopifnot(!is.null(bandwidth))
@@ -215,6 +255,7 @@ kernelfunction <-
         y_vec = y,
         id = id,
         extracted = extracted,
+        terra = terra,
         kernel = kernel,
         kernel_func = kernel_func,
         bandwidth = bandwidth
@@ -243,6 +284,8 @@ kernelfunction <-
 #' @param func function taking one numeric vector argument.
 #'   Default is `"mean"` for all supported signatures in arguments
 #'  `x` and `y`.
+#' @param terra logical(1). If `TRUE`, use `terra::extract` instead of
+#'   `exactextractr::exact_extract`.
 #' @param extent numeric(4) or SpatExtent. Extent of clipping vector.
 #'  It only works with `points` of character(1) file path.
 #' @param radius numeric(1). Buffer radius.
@@ -254,6 +297,9 @@ kernelfunction <-
 #'   Default is [`stats::weighted.mean()`]
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @param max_cells integer(1). Maximum number of cells in memory.
+#' @param weights passed to `terra::extract()` Default is TRUE.
+#' @param exact passed to `terra::extract()` Default is TRUE.
+#' @param touches passed to `terra::extract()` Default is FALSE.
 #' @param .standalone logical(1). Default is `TRUE`, which means that
 #'   the function will be executed in a standalone mode.
 #'   When using this function in `par_*` functions,
@@ -305,6 +351,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
@@ -312,11 +359,15 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    exact = TRUE,
+    weights = TRUE,
+    touches = FALSE,
     .standalone = TRUE,
     ...
   ) {
     .extract_at(
       x = x, y = y, id = id, func = func,
+      terra = terra,
       extent = extent,
       radius = radius,
       out_class = out_class,
@@ -324,6 +375,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }
@@ -343,6 +397,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
@@ -350,11 +405,15 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    exact = TRUE,
+    weights = TRUE,
+    touches = FALSE,
     .standalone = TRUE,
     ...
   ) {
     .extract_at(
       x = x, y = y, id = id, func = func,
+      terra = terra,
       extent = extent,
       radius = radius,
       out_class = out_class,
@@ -362,6 +421,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }
@@ -381,6 +443,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
@@ -388,11 +451,15 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    exact = TRUE,
+    weights = TRUE,
+    touches = FALSE,
     .standalone = TRUE,
     ...
   ) {
     .extract_at(
       x = x, y = y, id = id, func = func,
+      terra = terra,
       extent = extent,
       radius = radius,
       out_class = out_class,
@@ -400,6 +467,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }
@@ -418,6 +488,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
@@ -425,11 +496,15 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    exact = TRUE,
+    weights = TRUE,
+    touches = FALSE,
     .standalone = TRUE,
     ...
   ) {
     .extract_at(
       x = x, y = y, id = id, func = func,
+      terra = terra,
       extent = extent,
       radius = radius,
       out_class = out_class,
@@ -437,6 +512,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }
@@ -456,6 +534,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
@@ -463,11 +542,15 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    exact = TRUE,
+    weights = TRUE,
+    touches = FALSE,
     .standalone = TRUE,
     ...
   ) {
     .extract_at(
       x = x, y = y, id = id, func = func,
+      terra = terra,
       extent = extent,
       radius = radius,
       out_class = out_class,
@@ -475,6 +558,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }
@@ -495,6 +581,7 @@ setMethod(
     y = NULL,
     id = NULL,
     func = "mean",
+    terra = FALSE,
     extent = NULL,
     radius = NULL,
     out_class = "sf",
@@ -502,11 +589,15 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
+    exact = TRUE,
+    weights = TRUE,
+    touches = FALSE,
     .standalone = TRUE,
     ...
   ) {
     .extract_at(
       x = x, y = y, id = id, func = func,
+      terra = terra,
       extent = extent,
       radius = radius,
       out_class = out_class,
@@ -514,6 +605,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }

@@ -8,13 +8,13 @@
   "codeRepository": "https://github.com/ropensci/chopin",
   "issueTracker": "https://github.com/ropensci/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.8.3",
+  "version": "0.9.0",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.4.1 (2024-06-14)",
+  "runtimePlatform": "R version 4.4.2 (2024-10-31)",
   "author": [
     {
       "@type": "Person",
@@ -107,18 +107,6 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=future.mirai"
-    },
-    {
-      "@type": "SoftwareApplication",
-      "identifier": "mirai",
-      "name": "mirai",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=mirai"
     },
     {
       "@type": "SoftwareApplication",
@@ -345,6 +333,19 @@
     },
     "14": {
       "@type": "SoftwareApplication",
+      "identifier": "mirai",
+      "name": "mirai",
+      "version": ">= 1.3.0",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=mirai"
+    },
+    "15": {
+      "@type": "SoftwareApplication",
       "identifier": "collapse",
       "name": "collapse",
       "provider": {
@@ -355,7 +356,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=collapse"
     },
-    "15": {
+    "16": {
       "@type": "SoftwareApplication",
       "identifier": "lifecycle",
       "name": "lifecycle",
@@ -369,7 +370,7 @@
     },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "27889.584KB",
+  "fileSize": "27935.52KB",
   "releaseNotes": "https://github.com/ropensci/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/ropensci/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/ropensci/chopin/actions", "https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml"],

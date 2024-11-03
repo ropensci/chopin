@@ -198,18 +198,17 @@ extracting various climate/weather datasets.
 \strong{Notes on data restrictions}
 
 \code{chopin} works best with \strong{two-dimensional} (\strong{planar}) geometries.
-Users should disable \code{s2} spherical geometry mode in \code{sf} by setting.
+Users should disable \code{s2} spherical geometry mode in \code{sf} by setting
+\code{sf::sf_use_s2(FALSE)}.
 Running any \code{chopin} functions at spherical or three-dimensional
 (e.g., including M/Z dimensions) geometries
 may produce incorrect or unexpected results.
-
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{sf::sf_use_s2(FALSE)
-}\if{html}{\out{</div>}}
 }
 
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://docs.ropensci.org/chopin}
   \item \url{https://github.com/ropensci/chopin}
   \item Report bugs at \url{https://github.com/ropensci/chopin/issues}
 }
@@ -221,6 +220,12 @@ Useful links:
 Authors:
 \itemize{
   \item Kyle Messier (\href{https://orcid.org/0000-0001-9508-9623}{ORCID}) [contributor]
+}
+
+Other contributors:
+\itemize{
+  \item Alec L. Robitaille (Alec reviewed the package version 0.6.3 for rOpenSci, see <https://github.com/ropensci/software-review/issues/638>) [reviewer]
+  \item Eric R. Scott (Eric reviewed the package version 0.6.3 for rOpenSci, see <https://github.com/ropensci/software-review/issues/638>) [reviewer]
 }
 
 }

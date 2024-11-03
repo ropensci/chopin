@@ -16,6 +16,9 @@ reference:
   - par_grid
   - par_hierarchy
   - par_multirasters
+  - par_grid_mirai
+  - par_hierarchy_mirai
+  - par_multirasters_mirai
 - title: "`par_grid` preparation functions"
   desc: >
     Regular grid or equal number partitioning to run `par_grid`
