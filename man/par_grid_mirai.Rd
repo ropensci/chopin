@@ -4,7 +4,7 @@
 \alias{par_grid_mirai}
 \title{Parallelize spatial computation over the computational grids}
 \usage{
-par_grid_mirai(grids, fun_dist, ..., pad_y = FALSE, .debug = FALSE)
+par_grid_mirai(grids, fun_dist, ..., pad_y = FALSE, .debug = TRUE)
 }
 \arguments{
 \item{grids}{List of two sf/SpatVector objects. Computational grids.

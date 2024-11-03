@@ -12,7 +12,7 @@ par_hierarchy_mirai(
   pad_y = FALSE,
   fun_dist,
   ...,
-  .debug = FALSE
+  .debug = TRUE
 )
 }
 \arguments{
@@ -65,8 +65,6 @@ Nomenclature of Territorial Units for Statistics (NUTS), etc.).
 will the work by splitting lower level features into
 several higher level feature group. For details of the terminology
 in \code{mirai} package, refer to \code{\link[mirai:mirai]{mirai::mirai}}.
-For details of the terminology in \code{future} package,
-please refer to \code{\link[future:plan]{future::plan}} documentation.
 Each thread will process the number of lower level features
 in each higher level feature. Please be advised that
 accessing the same file simultaneously with

@@ -86,7 +86,7 @@ par_grid_mirai <-
     fun_dist,
     ...,
     pad_y = FALSE,
-    .debug = FALSE
+    .debug = TRUE
   ) {
     sf::sf_use_s2(FALSE)
 
@@ -149,71 +149,71 @@ par_grid_mirai <-
       mirai::mirai_map(
         .x = results,
         .f =
-          function(
-            i,
-            grids, grids_target_list,
-            fun_dist, args_input,
-            peek_x, peek_y,
-            crs_x,
-            pad_y, class_vec, .debug
-          ) {
-        # inside each parallel job, feel free to use terra functions
-        # technically we do not export terra objects, rather calling
-        # terra functions directly to make objects from scratch in
-        # parallel workers.
-        library(chopin)
-        library(sf)
-        library(terra)
-        options(sf_use_s2 = FALSE)
-        tryCatch({
-          grid_in <- grids_target_list[[i]]
-          gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid_in$CGRIDID, ]
-
-          grid_in <- reproject_std(grid_in, crs_x)
-          gpad_in <- reproject_std(gpad_in, crs_x)
-          
-          args_input$x <-
-            .par_screen(
-              type = peek_x,
-              input = args_input$x,
-              input_id = NULL,
-              out_class = class_vec,
-              .window = if (pad_y) grid_in else gpad_in
-            )
-
-          args_input$y <-
-            .par_screen(
-              type = peek_y,
-              input = args_input$y,
-              input_id = NULL,
-              out_class = class_vec,
-              .window = if (pad_y) gpad_in else grid_in
-            )
-
-          res <- rlang::inject(fun_dist(!!!args_input))
-          cli::cli_alert_info(
-            sprintf(
-              "Task at CGRIDID: %s is successfully dispatched.\n",
-              as.character(unlist(grid_in[["CGRIDID"]]))
-            )
-          )
-
-          res <- try(as.data.frame(res), silent = TRUE)
-          return(res)
-        },
-        error = function(e) {
-          if (.debug) {
+        function(
+          i,
+          grids, grids_target_list,
+          fun_dist, args_input,
+          peek_x, peek_y,
+          crs_x,
+          pad_y, class_vec, .debug
+        ) {
+          # inside each parallel job, feel free to use terra functions
+          # technically we do not export terra objects, rather calling
+          # terra functions directly to make objects from scratch in
+          # parallel workers.
+          library(chopin)
+          library(sf)
+          library(terra)
+          options(sf_use_s2 = FALSE)
+          tryCatch({
             grid_in <- grids_target_list[[i]]
-            data.frame(
-              CGRIDID = grid_in[["CGRIDID"]],
-              error_message = paste(unlist(e), collapse = " ")
+            gpad_in <- grids$padded[grids$padded$CGRIDID %in% grid_in$CGRIDID, ]
+
+            grid_in <- reproject_std(grid_in, crs_x)
+            gpad_in <- reproject_std(gpad_in, crs_x)
+
+            args_input$x <-
+              .par_screen(
+                type = peek_x,
+                input = args_input$x,
+                input_id = NULL,
+                out_class = class_vec,
+                .window = if (pad_y) grid_in else gpad_in
+              )
+
+            args_input$y <-
+              .par_screen(
+                type = peek_y,
+                input = args_input$y,
+                input_id = NULL,
+                out_class = class_vec,
+                .window = if (pad_y) gpad_in else grid_in
+              )
+
+            res <- rlang::inject(fun_dist(!!!args_input))
+            cli::cli_alert_info(
+              sprintf(
+                "Task at CGRIDID: %s is successfully dispatched.\n",
+                as.character(unlist(grid_in[["CGRIDID"]]))
+              )
             )
-          } else {
-            return(NULL)
-          }
-        })
-      },
-      .args =
+
+            res <- try(as.data.frame(res), silent = TRUE)
+            return(res)
+          },
+          error = function(e) {
+            if (.debug) {
+              grid_in <- grids_target_list[[i]]
+              data.frame(
+                CGRIDID = grid_in[["CGRIDID"]],
+                error_message = paste(unlist(e), collapse = " ")
+              )
+            } else {
+              return(NULL)
+            }
+          })
+        },
+        .args =
         list(
           grids = grids,
           grids_target_list = grids_target_list,
@@ -233,9 +233,8 @@ par_grid_mirai <-
 
     # remove NULL
     results <- results[]
-    results <-
-      results[!vapply(results, is.null, logical(1))]
-    return(results)
+    results <- results[!vapply(results, is.null, logical(1))]
+
     # Bind rows
     results <- collapse::rowbind(results, fill = TRUE)
 
@@ -255,8 +254,6 @@ par_grid_mirai <-
 #'  will the work by splitting lower level features into
 #'  several higher level feature group. For details of the terminology
 #'  in `mirai` package, refer to [`mirai::mirai`].
-#'  For details of the terminology in `future` package,
-#'  please refer to [`future::plan`] documentation.
 #'  Each thread will process the number of lower level features
 #'  in each higher level feature. Please be advised that
 #'  accessing the same file simultaneously with
@@ -373,7 +370,7 @@ par_hierarchy_mirai <-
     pad_y = FALSE,
     fun_dist,
     ...,
-    .debug = FALSE
+    .debug = TRUE
   ) {
     args_input <- list(...)
 
@@ -611,9 +608,9 @@ par_hierarchy_mirai <-
 
     # remove NULL
     results <- results[]
+    results <- results[!vapply(results, is.null, logical(1))]
 
-    results <-
-      results[!vapply(results, is.null, logical(1))]
+    # combine results
     results <- collapse::rowbind(results, fill = TRUE)
 
     return(results)
@@ -655,16 +652,15 @@ par_hierarchy_mirai <-
 #'  consult the function used in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @seealso
-#'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
-#'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
+#'  [`mirai::mirai`], [`mirai::mirai_map`], [`mirai::daemons`],
+#'  [`par_convert_f`]
 #'
 #' @examples
 #' library(terra)
 #' library(sf)
-#' library(future)
-#' library(future.mirai)
+#' library(mirai)
 #' sf::sf_use_s2(FALSE)
-#' future::plan(future.mirai::mirai_multisession, workers = 2)
+#' mirai::daemons(4, dispatcher = "process")
 #'
 #' ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 #' nccnty <- sf::st_read(ncpath, layer = "county")
@@ -677,7 +673,7 @@ par_hierarchy_mirai <-
 #' terra::writeRaster(ncelevras, file.path(tdir, "test2.tif"), overwrite = TRUE)
 #' testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 #'
-#' res <- par_multirasters(
+#' res <- par_multirasters_mirai(
 #'   filenames = testfiles,
 #'   fun_dist = extract_at,
 #'   x = ncelev,
@@ -685,7 +681,7 @@ par_hierarchy_mirai <-
 #'   id = "GEOID",
 #'   func = "mean"
 #' )
-#' @importFrom future.apply future_lapply
+#' @importFrom mirai mirai_map
 #' @importFrom terra rast
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
@@ -696,9 +692,8 @@ par_multirasters_mirai <-
     filenames,
     fun_dist,
     ...,
-    .debug = FALSE
+    .debug = TRUE
   ) {
-
     file_list <- filenames
     file_iter <- as.list(seq_along(file_list))
     args_input <- list(...)
@@ -732,11 +727,29 @@ par_multirasters_mirai <-
     # get hints from the inputs
     crs_x <- .check_character(filenames[1])
 
+    # Main parallelization
     results <-
-      future.apply::future_lapply(
-        file_iter,
-        function(i) {
-          options(sf_use_s2 = FALSE)
+      mirai::mirai_map(
+        .x = file_iter,
+        .f =
+        function(
+          i,
+          fun_dist,
+          args_input,
+          filenames,
+          peek_y,
+          class_vec,
+          crs_x,
+          .debug
+        ) {
+        # inside each parallel job, feel free to use terra functions
+        # technically we do not export terra objects, rather calling
+        # terra functions directly to make objects from scratch in
+        # parallel workers.
+        library(chopin)
+        library(sf)
+        library(terra)
+        options(sf_use_s2 = FALSE)
           result <-
             tryCatch({
               if (!"id" %in% names(formals(fun_dist))) {
@@ -784,115 +797,27 @@ par_multirasters_mirai <-
             )
           return(result)
         },
-        future.seed = TRUE
+       .args =
+          list(
+            filenames = filenames,
+            fun_dist = fun_dist,
+            args_input = args_input,
+            peek_y = peek_y,
+            crs_x = crs_x,
+            class_vec = class_vec,
+            .debug = .debug
+          )
       )
-    args_input <- NULL
 
+    .progress <- NULL
+    results[.progress]
+
+    # remove NULL
+    results <- results[]
     results <- results[!vapply(results, is.null, logical(1))]
+
+    # combine results
     results <- collapse::rowbind(results, fill = TRUE)
+
     return(results)
-
   }
-
-
-#' Prescreen input data for parallelization
-#'
-#' This function takes input object and type character to ingest
-#' the input object to return the object in the desired class.
-#' @param type character(1). "raster" or "vector".
-#' @param input object. Input object.
-#' @param input_id character(1). Default is NULL. If NULL, the function
-#'  will not check the object with an ID column.
-#' @param out_class character(1). Default is NULL, but should be one of
-#'   `c("sf", "terra")`. Default is "terra".
-#' @param .window numeric(4)/SpatExtent/st_bbox object. Loading window.
-#' @keywords internal
-.par_screen <- function(
-  type,
-  input,
-  input_id = NULL,
-  out_class = "terra",
-  .window = NULL
-) {
-  # type check
-  # if (inherits(type, "try-error")) {
-  #   type <- datamod(input)
-  # }
-  match.arg(type, c("vector", "raster"))
-
-  if (type == "raster") {
-    scr <-
-      .check_raster(
-        input = input,
-        extent = .window
-      )
-  } else {
-    scr <-
-      .check_vector(
-        input = input,
-        input_id = input_id,
-        extent = .window,
-        out_class = out_class
-      )
-  }
-  return(scr)
-
-}
-
-
-#' Map arguments to the desired names
-#' @description This function maps the arguments of a target function
-#' to the desired names. Users will use a named list `name_match` to
-#' standardize the argument names, at least x and y, to the target function.
-#' This function is particularly useful to parallelize functions for spatial
-#' data outside `sf` and `terra` packages that do not have arguments
-#' named x and/or y. `par_*` functions could detect such functions by
-#' wrapping nonstandardized functions to parallelize the computation.
-#' @param fun A function to map arguments.
-#' @param arg_map named character vector.
-#'   `c(x = "a", y = "i")` will map `a` and `i` in `fun` to
-#'   `x` and `y`, respectively.
-#' @note `arg_map` should be defined carefully according to the characteristics
-#'   of `fun`. After mapping `x` and `y`, the resultant function will fail
-#'   if there remain arguments without default. It is recommended to map all
-#'   the arguments in `fun` to avoid any side effects.
-#' @returns Function with arguments mapped.
-#' @examples
-#' cov_map <- arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
-#' # Example original function
-#' f1 <- function(a, b, c, d) {
-#'   return(a + b + c + d)
-#' }
-#' # Mapping of new argument names to original argument names
-#' arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
-#' f2 <- par_convert_f(f1, arg_mapping)
-#'
-#' # demonstrate f2 with the mapped arguments
-#' f2(x = 1, y = 2, z = -1, w = 10)
-#' @export
-par_convert_f <- function(fun, arg_map) {
-
-  # Create a new function with the mapped arguments
-  new_fun <- function(...) {
-    # Capture the arguments passed to the new function
-    args_in <- list(...)
-
-    # Initialize an empty list for mapped arguments
-    mapped_args <- list()
-
-    # Loop through each argument in args_in
-    for (arg_name in names(args_in)) {
-      if (arg_name %in% names(arg_map)) {
-        # If the argument name is in arg_map, map it
-        mapped_args[[arg_map[[arg_name]]]] <- args_in[[arg_name]]
-      } else {
-        # Otherwise, keep the original argument name
-        mapped_args[[arg_name]] <- args_in[[arg_name]]
-      }
-    }
-
-    # Call the original function with the mapped arguments
-    do.call(fun, mapped_args)
-  }
-  return(new_fun)
-}

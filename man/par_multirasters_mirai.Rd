@@ -4,7 +4,7 @@
 \alias{par_multirasters_mirai}
 \title{Parallelize spatial computation over multiple raster files}
 \usage{
-par_multirasters_mirai(filenames, fun_dist, ..., .debug = FALSE)
+par_multirasters_mirai(filenames, fun_dist, ..., .debug = TRUE)
 }
 \arguments{
 \item{filenames}{character. A vector or list of
@@ -48,10 +48,9 @@ inputs.
 \examples{
 library(terra)
 library(sf)
-library(future)
-library(future.mirai)
+library(mirai)
 sf::sf_use_s2(FALSE)
-future::plan(future.mirai::mirai_multisession, workers = 2)
+mirai::daemons(4, dispatcher = "process")
 
 ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
 nccnty <- sf::st_read(ncpath, layer = "county")
@@ -64,7 +63,7 @@ terra::writeRaster(ncelevras, file.path(tdir, "test1.tif"), overwrite = TRUE)
 terra::writeRaster(ncelevras, file.path(tdir, "test2.tif"), overwrite = TRUE)
 testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
-res <- par_multirasters(
+res <- par_multirasters_mirai(
   filenames = testfiles,
   fun_dist = extract_at,
   x = ncelev,
@@ -74,8 +73,8 @@ res <- par_multirasters(
 )
 }
 \seealso{
-\code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
-\code{\link[future.mirai:mirai_multisession]{future.mirai::mirai_multisession}}, \code{\link[future:plan]{future::plan}}, \code{\link{par_convert_f}}
+\code{\link[mirai:mirai]{mirai::mirai}}, \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link[mirai:daemons]{mirai::daemons}},
+\code{\link{par_convert_f}}
 
 Other Parallelization: 
 \code{\link{par_cut_coords}()},
