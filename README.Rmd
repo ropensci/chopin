@@ -17,7 +17,9 @@ knitr::opts_chunk$set(
 # Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="man/figures/logo.svg" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
-[![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions)
+[![Codecov test
+coverage](https://codecov.io/gh/ropensci/chopin/graph/badge.svg)](https://app.codecov.io/gh/chopin/osmapiR)
+<!--[![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions)-->
 [![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![Lifecycle:
@@ -48,6 +50,11 @@ __Second,__ users choose the proper data parallelization configuration by creati
 
 - `par_multirasters`: parallelize over multiple raster files
 
+- Each of the `par_*` functions introduced above has `mirai` version with a suffix `_mirai` after the function names: `par_grid_mirai`, `par_hierarchy_mirai`, and `par_multirasters`. These functions will work properly after creating daemons with `mirai::daemons`.
+
+```r
+mirai::daemons(4L, dispatcher = "process")
+```
 
 For grid partitioning, the entire study area will be divided into partly overlapped grids. We suggest two flowcharts to help which function to use for parallel processing below. The upper flowchart is raster-oriented and the lower is vector-oriented. They are supplementary to each other. When a user follows the raster-oriented one, they might visit the vector-oriented flowchart at each end of the raster-oriented flowchart.
 
@@ -239,6 +246,7 @@ ncpoints_srtm <-
 
 ```
 
+
 ```{r compare-single-multi}
 colnames(ncpoints_srtm_mthr)[2] <- "mean_par"
 ncpoints_compar <- merge(ncpoints_srtm, ncpoints_srtm_mthr)
@@ -255,6 +263,31 @@ ncpoints_m <-
 plot(ncpoints_s[, "mean"], main = "Single-thread", pch = 19, cex = 0.33)
 plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 ```
+
+The same workflow operates on `mirai` dispatchers.
+
+```{r demo-par-grid-mirai}
+future::plan(future::sequential)
+mirai::daemons(n = 4L, dispatcher = "process")
+
+system.time(
+  ncpoints_srtm_mthr <-
+    par_grid_mirai(
+      grids = compregions,
+      fun_dist = extract_at,
+      x = srtm,
+      y = ncpoints,
+      id = "pid",
+      radius = 1e4L,
+      .standalone = FALSE
+    )
+)
+
+# remove mirai::daemons
+mirai::daemons(0L)
+
+```
+
 
 ### `chopin::par_hierarchy()`: parallelize geospatial computations using intrinsic data hierarchy
 
@@ -279,6 +312,8 @@ nc_tracts$COUNTY <- substr(nc_tracts$GEOID, 1, 5)
 
 #### Extract average SRTM elevations by single and multiple threads
 ```{r compare-runtime-hierarchy}
+future::plan(future.mirai::mirai_multisession, workers = 4L)
+
 # single-thread
 system.time(
   nc_elev_tr_single <-

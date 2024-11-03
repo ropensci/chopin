@@ -57,6 +57,7 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -64,10 +65,10 @@ extract_at(x, y, ...)
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
-  .standalone = TRUE,
   exact = TRUE,
   weights = TRUE,
   touches = FALSE,
+  .standalone = TRUE,
   ...
 )
 

@@ -297,13 +297,13 @@ kernelfunction <-
 #'   Default is [`stats::weighted.mean()`]
 #' @param bandwidth numeric(1). Kernel bandwidth.
 #' @param max_cells integer(1). Maximum number of cells in memory.
+#' @param weights passed to `terra::extract()` Default is TRUE.
+#' @param exact passed to `terra::extract()` Default is TRUE.
+#' @param touches passed to `terra::extract()` Default is FALSE.
 #' @param .standalone logical(1). Default is `TRUE`, which means that
 #'   the function will be executed in a standalone mode.
 #'   When using this function in `par_*` functions,
 #'   set this to `FALSE`.
-#' @param weights passed to `terra::extract()` Default is TRUE.
-#' @param exact passed to `terra::extract()` Default is TRUE.
-#' @param touches passed to `terra::extract()` Default is FALSE.
 #' @param ... Placeholder.
 #' @returns A data.frame object with summarized raster values with
 #'  respect to the mode (polygon or buffer) and the function.
@@ -375,6 +375,9 @@ setMethod(
       kernel_func = kernel_func,
       bandwidth = bandwidth,
       max_cells = max_cells,
+      exact = exact,
+      weights = weights,
+      touches = touches,
       .standalone = .standalone
     )
   }
@@ -448,10 +451,10 @@ setMethod(
     kernel_func = stats::weighted.mean,
     bandwidth = NULL,
     max_cells = 3e+07,
-    .standalone = TRUE,
     exact = TRUE,
     weights = TRUE,
     touches = FALSE,
+    .standalone = TRUE,
     ...
   ) {
     .extract_at(
