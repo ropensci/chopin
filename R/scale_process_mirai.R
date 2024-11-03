@@ -161,9 +161,9 @@ par_grid_mirai <-
           # technically we do not export terra objects, rather calling
           # terra functions directly to make objects from scratch in
           # parallel workers.
-          library(chopin)
-          library(sf)
-          library(terra)
+          requireNamespace("chopin")
+          requireNamespace("sf")
+          requireNamespace("terra")
           options(sf_use_s2 = FALSE)
           tryCatch({
             grid_in <- grids_target_list[[i]]
@@ -470,10 +470,10 @@ par_hierarchy_mirai <-
         # technically we do not export terra objects, rather calling
         # terra functions directly to make objects from scratch in
         # parallel workers.
-        library(chopin)
-        library(sf)
-        library(terra)
-        options(sf_use_s2 = FALSE)
+          requireNamespace("chopin")
+          requireNamespace("sf")
+          requireNamespace("terra")
+          options(sf_use_s2 = FALSE)
           result <-
             tryCatch(
               {
@@ -578,9 +578,8 @@ par_hierarchy_mirai <-
         },
         error = function(e) {
           if (.debug) {
-            grid_in <- grids_target_list[[i]]
             data.frame(
-              CGRIDID = grid_in[["CGRIDID"]],
+              regions_id = regions_list[[i]],
               error_message = paste(unlist(e), collapse = " ")
             )
           } else {
@@ -742,14 +741,14 @@ par_multirasters_mirai <-
           crs_x,
           .debug
         ) {
-        # inside each parallel job, feel free to use terra functions
-        # technically we do not export terra objects, rather calling
-        # terra functions directly to make objects from scratch in
-        # parallel workers.
-        library(chopin)
-        library(sf)
-        library(terra)
-        options(sf_use_s2 = FALSE)
+          # inside each parallel job, feel free to use terra functions
+          # technically we do not export terra objects, rather calling
+          # terra functions directly to make objects from scratch in
+          # parallel workers.
+          requireNamespace("chopin")
+          requireNamespace("sf")
+          requireNamespace("terra")
+          options(sf_use_s2 = FALSE)
           result <-
             tryCatch({
               if (!"id" %in% names(formals(fun_dist))) {
@@ -797,16 +796,16 @@ par_multirasters_mirai <-
             )
           return(result)
         },
-       .args =
-          list(
-            filenames = filenames,
-            fun_dist = fun_dist,
-            args_input = args_input,
-            peek_y = peek_y,
-            crs_x = crs_x,
-            class_vec = class_vec,
-            .debug = .debug
-          )
+        .args =
+        list(
+          filenames = filenames,
+          fun_dist = fun_dist,
+          args_input = args_input,
+          peek_y = peek_y,
+          crs_x = crs_x,
+          class_vec = class_vec,
+          .debug = .debug
+        )
       )
 
     .progress <- NULL

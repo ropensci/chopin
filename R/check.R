@@ -1184,15 +1184,3 @@ setMethod(
     }
     return(invisible(TRUE))
   }
-
-#' Usher data ingestion
-#'
-#' The input will be inspected to determine the workflow of the data
-#' ingestion.
-#' @param x character, data.frame, any object.
-usher <- function(x) {
-  # if db connection is detected, read it as sf object
-  # if character is detected and it is known to be a file path, read it as terra object
-  # if neither, halt with messages
-}
-
