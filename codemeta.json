@@ -14,7 +14,7 @@
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.4.1 (2024-06-14)",
+  "runtimePlatform": "R version 4.4.2 (2024-10-31)",
   "author": [
     {
       "@type": "Person",
@@ -370,7 +370,7 @@
     },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "27933.471KB",
+  "fileSize": "27935.52KB",
   "releaseNotes": "https://github.com/ropensci/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/ropensci/chopin/blob/main/README.md",
   "contIntegration": ["https://github.com/ropensci/chopin/actions", "https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml"],

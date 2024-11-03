@@ -17,6 +17,7 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -24,6 +25,9 @@ extract_at(x, y, ...)
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   .standalone = TRUE,
   ...
 )
@@ -33,6 +37,7 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -40,6 +45,9 @@ extract_at(x, y, ...)
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   .standalone = TRUE,
   ...
 )
@@ -57,6 +65,9 @@ extract_at(x, y, ...)
   bandwidth = NULL,
   max_cells = 3e+07,
   .standalone = TRUE,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   ...
 )
 
@@ -65,6 +76,7 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -72,6 +84,9 @@ extract_at(x, y, ...)
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   .standalone = TRUE,
   ...
 )
@@ -81,6 +96,7 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -88,6 +104,9 @@ extract_at(x, y, ...)
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   .standalone = TRUE,
   ...
 )
@@ -97,6 +116,7 @@ extract_at(x, y, ...)
   y = NULL,
   id = NULL,
   func = "mean",
+  terra = FALSE,
   extent = NULL,
   radius = NULL,
   out_class = "sf",
@@ -104,6 +124,9 @@ extract_at(x, y, ...)
   kernel_func = stats::weighted.mean,
   bandwidth = NULL,
   max_cells = 3e+07,
+  exact = TRUE,
+  weights = TRUE,
+  touches = FALSE,
   .standalone = TRUE,
   ...
 )
@@ -123,6 +146,9 @@ must have the same extent and resolution.}
 Default is \code{"mean"} for all supported signatures in arguments
 \code{x} and \code{y}.}
 
+\item{terra}{logical(1). If \code{TRUE}, use \code{terra::extract} instead of
+\code{exactextractr::exact_extract}.}
+
 \item{extent}{numeric(4) or SpatExtent. Extent of clipping vector.
 It only works with \code{points} of character(1) file path.}
 
@@ -140,6 +166,12 @@ Default is \code{\link[stats:weighted.mean]{stats::weighted.mean()}}}
 \item{bandwidth}{numeric(1). Kernel bandwidth.}
 
 \item{max_cells}{integer(1). Maximum number of cells in memory.}
+
+\item{exact}{passed to \code{terra::extract()} Default is TRUE.}
+
+\item{weights}{passed to \code{terra::extract()} Default is TRUE.}
+
+\item{touches}{passed to \code{terra::extract()} Default is FALSE.}
 
 \item{.standalone}{logical(1). Default is \code{TRUE}, which means that
 the function will be executed in a standalone mode.
