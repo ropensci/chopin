@@ -370,10 +370,10 @@
     },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "27935.52KB",
+  "fileSize": "27937.729KB",
   "releaseNotes": "https://github.com/ropensci/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/ropensci/chopin/blob/main/README.md",
-  "contIntegration": ["https://github.com/ropensci/chopin/actions", "https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml"],
+  "contIntegration": "https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml",
   "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html#stable",
   "review": {
     "@type": "Review",
