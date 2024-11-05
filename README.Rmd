@@ -14,16 +14,17 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="man/figures/logo.svg" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
+# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <a href="https://docs.ropensci.org/chopin/"><img src="man/figures/logo.svg" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
-[![Codecov test
-coverage](https://codecov.io/gh/ropensci/chopin/graph/badge.svg)](https://app.codecov.io/gh/chopin/osmapiR)
-<!--[![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions)-->
+<!-- [![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions) -->
+![Coverage](https://github.com/ropensci/chopin/actions/workflows/test-coverage-local.yaml/coverage.svg)
 [![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
+[![runiverse-package](https://ropensci.r-universe.dev/badges/chopin?scale=1&color=pink&style=round)](https://ropensci.r-universe.dev/chopin)
+[![Docs](https://img.shields.io/badge/docs-release-blue.svg)](https://docs.ropensci.org/chopin/)
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 
 <!-- badges: end -->
 
