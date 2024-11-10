@@ -65,11 +65,6 @@ jobs:
           COV=$(cat ${{ github.workspace }}/local_cov.Rout)
           echo "coverage=$COV" >> $GITHUB_OUTPUT
 
-      - name: Checkout gh-pages
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-  
       - name: Create Badges
         shell: bash
         run: |
