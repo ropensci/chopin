@@ -12,7 +12,7 @@ geospatial data.
 \section{Basic functionalities}{
 
 \itemize{
-\item Distribute \code{terra}, \code{sf}, and \code{chopin} functions to parallel workers set by \code{future}
+\item Distribute \code{terra}, \code{sf}, and \code{chopin} functions to parallel workers set by \code{future} or \code{mirai}
 \item Set parallelization strategies based on artificial grids, equal-size clusters, hierarchy, and multiple raster files
 \item Convenience functions for raster-vector overlay and weighted summary from vector dataset
 }

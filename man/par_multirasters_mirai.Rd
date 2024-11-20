@@ -71,6 +71,7 @@ res <- par_multirasters_mirai(
   id = "GEOID",
   func = "mean"
 )
+mirai::daemons(0L)
 }
 \seealso{
 \code{\link[mirai:mirai]{mirai::mirai}}, \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link[mirai:daemons]{mirai::daemons}},

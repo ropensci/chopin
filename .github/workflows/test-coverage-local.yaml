@@ -1,13 +1,10 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# also derived from https://github.com/we-cli/coverage-badge-action
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+name: test-coverage-local
+
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-
-name: test-coverage-local
 
 jobs:
   test-coverage:
@@ -43,7 +40,6 @@ jobs:
           covr::report(covpack, file = file.path('${{ github.workspace }}', 'chopin-coverage-report.html')); \
           covd<-covr::coverage_to_list(covpack)$totalcoverage; \
           write.table(covd[length(covd)], file = '${{ github.workspace }}/local_cov.Rout', row.names = F, col.names = F)"
-        shell: bash
 
       - name: Upload covr report as artifact
         uses: actions/upload-artifact@v4
@@ -70,23 +66,24 @@ jobs:
         run: |
           npm i -g badgen-cli
           export COV=${{ steps.get-values.outputs.coverage }}
-          COLOR=$(node -p '+process.env.COV >= 95 ? `green` : `orange`')
+          COLOR=$(node -p '+process.env.COV >= 95 ? "green" : "orange"')
           mkdir -p badges
-          badgen -j coverage -s $COV% -c $COLOR > ${{ github.workspace }}/badges/coverage.svg
-  
+          badgen -j coverage -s $COV% -c $COLOR > badges/coverage.svg
+
       - name: Checkout artifacts branch
         uses: actions/checkout@v4
         with:
           ref: artifacts
-          persist-credentials: false
+          path: artifact-branch  # Add a path to avoid conflicts with main checkout
 
       - name: Commit and Push Badge to Artifacts Branch
         run: |
+          cd artifact-branch
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           mkdir -p actions/workflows/test-coverage-local.yaml
-          mv badges/coverage.svg actions/workflows/test-coverage-local.yaml/coverage.svg
+          cp ../badges/coverage.svg actions/workflows/test-coverage-local.yaml/
           git add actions/workflows/test-coverage-local.yaml/coverage.svg
-          git commit -m "Update coverage badge [skip ci]"
+          git commit -m "Update coverage badge [skip ci]" || echo "No changes to commit"
           git push origin artifacts
         if: success()
