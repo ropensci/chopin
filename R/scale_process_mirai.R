@@ -71,6 +71,7 @@
 #'     radius = 5e3L,
 #'     id = "pid"
 #'   )
+#' mirai::daemons(0L)
 #' @seealso
 #'  [`mirai::daemons`], [`mirai::mirai_map`], [`par_convert_f`]
 #' @importFrom mirai mirai_map
@@ -354,6 +355,7 @@ par_grid_mirai <-
 #'     func = "mean",
 #'     .debug = TRUE
 #'   )
+#' mirai::daemons(0L)
 #' @importFrom rlang inject !!!
 #' @importFrom mirai mirai_map
 #' @importFrom collapse rowbind
@@ -680,6 +682,7 @@ par_hierarchy_mirai <-
 #'   id = "GEOID",
 #'   func = "mean"
 #' )
+#' mirai::daemons(0L)
 #' @importFrom mirai mirai_map
 #' @importFrom terra rast
 #' @importFrom rlang inject !!!

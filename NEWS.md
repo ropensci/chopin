@@ -1,6 +1,5 @@
 # 0.9
 - `mirai` based `par_*` functions for parallelization
-- terra::extract mode in `extract_at()` with `terra` argument and auxiliary arguments including exact, weights, touches
 
 # 0.8
 - Bumped version from 0.7.8 to 0.8.0: improving package coverage

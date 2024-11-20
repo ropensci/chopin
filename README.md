@@ -1,16 +1,18 @@
 
-# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <img src="man/figures/logo.svg" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
+# Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <a href="https://docs.ropensci.org/chopin/"><img src="man/figures/logo.svg" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
 
-[![Codecov test
-coverage](https://codecov.io/gh/ropensci/chopin/graph/badge.svg)](https://app.codecov.io/gh/chopin/osmapiR)
-<!--[![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions)-->
+<!-- [![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions) -->
+
+![Coverage](https://github.com/ropensci/chopin/actions/workflows/test-coverage-local.yaml/coverage.svg)
 [![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer
 Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
+[![runiverse-package](https://ropensci.r-universe.dev/badges/chopin?scale=1&color=pink&style=round)](https://ropensci.r-universe.dev/chopin)
+[![Docs](https://img.shields.io/badge/docs-release-blue.svg)](https://docs.ropensci.org/chopin/)
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 
 <!-- badges: end -->
 
@@ -263,7 +265,7 @@ system.time(
 )
 #> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   5.009   0.067   4.719
+#>   5.458   0.088   5.580
 ```
 
 #### Generate regular grid computational regions
@@ -350,7 +352,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.325   0.023   7.433
+#>   0.336   0.045   7.788
 
 ncpoints_srtm <-
   extract_at(
@@ -408,7 +410,7 @@ system.time(
 )
 #> ℹ Input is not a character.
 #>    user  system elapsed 
-#>   0.074   0.000   9.284
+#>   0.083   0.000   8.004
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -437,7 +439,7 @@ path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
 nc_data <- path_nchrchy
 nc_county <- sf::st_read(nc_data, layer = "county")
 #> Reading layer `county' from data source 
-#>   `/tmp/RtmpXuCaOL/temp_libpath358e3adc6f09/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpmJUPd2/temp_libpath3b3aa268543/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
@@ -446,7 +448,7 @@ nc_county <- sf::st_read(nc_data, layer = "county")
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 #> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpXuCaOL/temp_libpath358e3adc6f09/chopin/extdata/nc_hierarchy.gpkg' 
+#>   `/tmp/RtmpmJUPd2/temp_libpath3b3aa268543/chopin/extdata/nc_hierarchy.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
@@ -476,7 +478,7 @@ system.time(
 )
 #> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   0.527   0.000   0.491
+#>   0.621   0.010   0.613
 
 # hierarchical parallelization
 system.time(
@@ -594,7 +596,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.
 #> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   0.396   0.041   7.102
+#>   0.419   0.033   7.799
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -621,9 +623,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmpe3n6BN/test1.tif" "/tmp/Rtmpe3n6BN/test2.tif"
-#> [3] "/tmp/Rtmpe3n6BN/test3.tif" "/tmp/Rtmpe3n6BN/test4.tif"
-#> [5] "/tmp/Rtmpe3n6BN/test5.tif"
+#> [1] "/tmp/RtmpiW9fAm/test1.tif" "/tmp/RtmpiW9fAm/test2.tif"
+#> [3] "/tmp/RtmpiW9fAm/test3.tif" "/tmp/RtmpiW9fAm/test4.tif"
+#> [5] "/tmp/RtmpiW9fAm/test5.tif"
 ```
 
 ``` r
@@ -640,32 +642,32 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpe3n6BN/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpiW9fAm/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpe3n6BN/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpiW9fAm/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpe3n6BN/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpiW9fAm/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpe3n6BN/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpiW9fAm/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpe3n6BN/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpiW9fAm/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.329   0.087   2.830
+#>   1.288   0.090   2.901
 knitr::kable(head(res))
 ```
 
 |      mean | base\_raster              |
 | --------: | :------------------------ |
-| 136.80203 | /tmp/Rtmpe3n6BN/test1.tif |
-| 189.76170 | /tmp/Rtmpe3n6BN/test1.tif |
-| 231.16968 | /tmp/Rtmpe3n6BN/test1.tif |
-|  98.03845 | /tmp/Rtmpe3n6BN/test1.tif |
-|  41.23463 | /tmp/Rtmpe3n6BN/test1.tif |
-| 270.96933 | /tmp/Rtmpe3n6BN/test1.tif |
+| 136.80203 | /tmp/RtmpiW9fAm/test1.tif |
+| 189.76170 | /tmp/RtmpiW9fAm/test1.tif |
+| 231.16968 | /tmp/RtmpiW9fAm/test1.tif |
+|  98.03845 | /tmp/RtmpiW9fAm/test1.tif |
+|  41.23463 | /tmp/RtmpiW9fAm/test1.tif |
+| 270.96933 | /tmp/RtmpiW9fAm/test1.tif |
 
 ``` r
 
@@ -701,7 +703,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(path_ncrd1)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/RtmpXuCaOL/temp_libpath358e3adc6f09/chopin/extdata/ncroads_first.gpkg' 
+#>   `/tmp/RtmpmJUPd2/temp_libpath3b3aa268543/chopin/extdata/ncroads_first.gpkg' 
 #>   using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
@@ -754,11 +756,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>    0.38    0.00    0.36
+#>   0.396   0.000   0.397
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/Rtmpe3n6BN/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/RtmpiW9fAm/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -804,7 +806,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.066   0.000   0.374
+#>   0.058   0.010   0.401
 ```
 
   - We will compare the results from the single-thread and multi-thread

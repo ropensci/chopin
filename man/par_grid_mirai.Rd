@@ -86,6 +86,7 @@ res <-
     radius = 5e3L,
     id = "pid"
   )
+mirai::daemons(0L)
 }
 \seealso{
 \code{\link[mirai:daemons]{mirai::daemons}}, \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link{par_convert_f}}

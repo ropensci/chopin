@@ -135,6 +135,7 @@ res <-
     func = "mean",
     .debug = TRUE
   )
+mirai::daemons(0L)
 }
 \seealso{
 \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link[mirai:daemons]{mirai::daemons}}, \code{\link{par_convert_f}}

@@ -230,7 +230,6 @@ testthat::test_that("par_hierarchy_mirai: define level by substring", {
 })
 
 
-
 testthat::test_that("generic function should be parallelized properly", {
   withr::local_package("terra")
   withr::local_package("sf")
@@ -243,6 +242,8 @@ testthat::test_that("generic function should be parallelized properly", {
       sf_use_s2 = FALSE
     )
   )
+
+  mirai::daemons(4L, dispatcher = "process")
 
   # main test
   pnts <- readRDS(
@@ -277,7 +278,7 @@ testthat::test_that("generic function should be parallelized properly", {
       ),
     "terra inputs detected in both x and y. Please replace x and y to file paths to proceed."
   )
-
+  mirai::daemons(0L)
 })
 
 

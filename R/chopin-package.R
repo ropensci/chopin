@@ -9,7 +9,7 @@
 ## usethis namespace: start
 #' @importFrom lifecycle deprecated
 #' @section Basic functionalities:
-#' * Distribute `terra`, `sf`, and `chopin` functions to parallel workers set by `future`
+#' * Distribute `terra`, `sf`, and `chopin` functions to parallel workers set by `future` or `mirai`
 #' * Set parallelization strategies based on artificial grids, equal-size clusters, hierarchy, and multiple raster files
 #' * Convenience functions for raster-vector overlay and weighted summary from vector dataset
 #'
