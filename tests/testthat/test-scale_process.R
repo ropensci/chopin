@@ -144,12 +144,18 @@ testthat::test_that("par_grid -- plain mode with raster path", {
 
   ## Bundled random points in NC
   ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+    readRDS(rppath)
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
 
   ## Resampled SRTM data in NC
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
 
   ## Random points in NC
@@ -227,19 +233,31 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   )
   withr::local_seed(202407)
   # Reading data
-  ## NC counties polygon
-  ncpath <- system.file("shape/nc.shp", package = "sf")
-  ncpoly <- terra::vect(ncpath) %>%
-    terra::project("EPSG:5070")
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
 
-  ## Bundled random points in NC
-  ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncpnts <- terra::vect(ncpnts)
-  ncpnts <- terra::project(ncpnts, "EPSG:5070")
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
 
   ## Random points in NC
@@ -298,7 +316,9 @@ testthat::test_that("par_grid -- grid_advanced mode", {
         merge_max = 5L
       ),
     paste0(
-      "No grid to merge."
+      "Threshold is too low. Return the original grid.\n",
+      "Please try higher threshold. your threshold: 50\n",
+      "Top-10 non-zero number of points in grids: 46, 52, 53, 53, 53, 54, 55, 55, 56, 56"
     )
   )
 
@@ -320,6 +340,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
       )
   })
 
+  future::plan(future::sequential)
 })
 
 
@@ -344,14 +365,31 @@ testthat::test_that("par_grid -- grid_quantile mode", {
   ncpoly <- terra::vect(ncpath) %>%
     terra::project("EPSG:5070")
 
-  ## Bundled random points in NC
-  ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncpntssf <- sf::st_transform(ncpnts, "EPSG:5070")
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
 
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
 
   ## Random points in NC
@@ -387,7 +425,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
       par_grid(
         grids = ppg,
         fun_dist = extract_at,
-        y = ncpntssf,
+        y = ncp,
         x = ncelev,
         qsegs = 90L,
         radius = 5e3L,
@@ -396,6 +434,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
     )
 
   testthat::expect_s3_class(resq, "data.frame")
+  future::plan(future::sequential)
 })
 
 
@@ -420,26 +459,34 @@ testthat::test_that("par_grid -- par_pad_balanced", {
   ncpoly <- terra::vect(ncpath) %>%
     terra::project("EPSG:5070")
 
-  ## Bundled random points in NC
-  ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncpntssf <- sf::st_transform(ncpnts, "EPSG:5070")
-  ncpntst <- terra::vect(ncpntssf)
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
+
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-  ncelev <- terra::rast(ncelevpath)
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
-  ## Random points in NC
-  ncsamp <-
-    terra::spatSample(
-      terra::ext(ncelev),
-      1e4L,
-      lonlat = FALSE,
-      as.points = TRUE
-    )
-  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
-  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
+  ncpntst <- ncpnts
+
 
   tdir <- tempdir()
   target_file <- "ncrandpnts.gpkg"
@@ -512,12 +559,32 @@ testthat::test_that(
     future::plan(future.mirai::mirai_multisession, workers = 2L)
     withr::local_seed(202407)
 
-    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- sf::st_read(ncpath, layer = "county")
-    nctrct <- sf::st_read(ncpath, layer = "tracts")
-    ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    ncelev <- terra::rast(ncelevpath)
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
 
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
     ncsamp <-
       terra::spatSample(
         terra::ext(ncelev),
@@ -532,10 +599,10 @@ testthat::test_that(
       residb <-
         par_hierarchy(
           regions = nccnty,
-          regions_id = "GEOID",
+          regions_id = "FIPS",
           .debug = TRUE,
           fun_dist = extract_at,
-          y = nctrct,
+          y = nccntygrid,
           x = ncelevpath,
           id = "GEOID",
           func = "mean",
@@ -551,10 +618,10 @@ testthat::test_that(
         residb2 <-
           par_hierarchy(
             regions = nccnty,
-            regions_id = "GEOID",
+            regions_id = "FIPS",
             .debug = TRUE,
             fun_dist = extract_at,
-            y = nctrct,
+            y = nccntygrid,
             x = ncelev,
             id = "GEOID",
             func = "mean"
@@ -588,10 +655,31 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
   )
   withr::local_seed(202407)
 
-  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-  nccnty <- sf::st_read(ncpath, layer = "county")
-  nctrct <- sf::st_read(ncpath, layer = "tracts")
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
+
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
 
   ncsamp <-
@@ -611,7 +699,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
         regions_id = unlist(nccnty[["GEOID"]]),
         .debug = TRUE,
         fun_dist = extract_at,
-        y = nctrct,
+        y = nccntygrid,
         x = ncelev,
         id = "GEOID",
         func = "mean"
@@ -626,7 +714,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
         regions = nccnty,
         regions_id = c(1, 2, 3),
         fun_dist = extract_at,
-        y = nctrct,
+        y = nccntygrid,
         x = ncelev,
         id = "GEOID",
         func = "mean"
@@ -653,13 +741,33 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
     )
   )
 
-  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-  nccnty <- terra::vect(ncpath, layer = "county")
-  nctrct <- sf::st_read(ncpath, layer = "tracts")
-  nctrct <- terra::vect(nctrct)
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
+
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
-  ncroad <- system.file("extdata/ncroads_first.gpkg", package = "chopin")
+  ncroad <- terra::vect(roadpath)
   ncsamp <-
     terra::spatSample(
       terra::ext(ncelev),
@@ -670,8 +778,8 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
   ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
-  nctrctc <- terra::centroids(nctrct)
-  ncroadv <- terra::vect(ncroad)
+  nctrctc <- terra::centroids(terra::vect(nccntygrid))
+  ncroadv <- ncroad
 
   future::plan(future::multicore(workers = 2L))
   # no errors since 100km buffer is enough to capture
@@ -679,7 +787,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   resnas0 <-
     par_hierarchy(
       regions = nccnty,
-      regions_id = "GEOID",
+      regions_id = "FIPS",
       pad_y = TRUE,
       pad = 50000,
       .debug = TRUE,
@@ -695,7 +803,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   resnas <-
     par_hierarchy(
       regions = nccnty,
-      regions_id = "GEOID",
+      regions_id = "FIPS",
       pad_y = TRUE,
       pad = 100000,
       .debug = TRUE,
@@ -709,12 +817,12 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
 
   testthat::skip_on_os("windows")
   # regions are sf object
-  nctrcc <- terra::centroids(nctrct)
+  nctrcc <- terra::centroids(terra::vect(nccntygrid))
   testthat::expect_no_error(
     resnasx <-
       par_hierarchy(
         regions = sf::st_as_sf(nccnty),
-        regions_id = "GEOID",
+        regions_id = "FIPS",
         pad_y = FALSE,
         fun_dist = extract_at,
         x = ncelev,
@@ -734,10 +842,10 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
           regions = nccnty,
           .debug = TRUE,
           pad_y = TRUE,
-          regions_id = "GEOID",
+          regions_id = "FIPS",
           fun_dist = nearest,
           x = ncsamp,
-          y = nctrct
+          y = terra::vect(nccntygrid)
         )
     )
   )
@@ -749,6 +857,7 @@ testthat::test_that("par_hierarchy: define level by substring", {
   withr::local_package("terra")
   withr::local_package("sf")
   withr::local_package("future")
+  withr::local_package("mirai")
   withr::local_package("future.apply")
   withr::local_package("future.mirai")
   withr::local_package("dplyr")
@@ -763,10 +872,31 @@ testthat::test_that("par_hierarchy: define level by substring", {
   )
   withr::local_seed(202407)
 
-  ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-  nccnty <- sf::st_read(ncpath, layer = "county")
-  nctrct <- sf::st_read(ncpath, layer = "tracts")
-  ncelevpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  nccnty <- sf::st_read(
+    system.file("shape/nc.shp", package = "sf")
+  )
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+  nccntygrid <- sf::st_as_sf(nccntygrid)
+  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+  suppressWarnings(
+    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+  )
+
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  ncr <- terra::rasterize(ncpoly, ras)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
 
   ncsamp <-
@@ -783,12 +913,12 @@ testthat::test_that("par_hierarchy: define level by substring", {
   testthat::expect_no_error(
     residc <-
       par_hierarchy(
-        regions = nctrct,
-        regions_id = "GEOID",
+        regions = nccntygrid,
+        regions_id = "FIPS",
         length_left = 5L,
         .debug = TRUE,
         fun_dist = extract_at,
-        y = nctrct,
+        y = nccntygrid,
         x = ncelev,
         id = "GEOID",
         func = "mean"
@@ -797,22 +927,22 @@ testthat::test_that("par_hierarchy: define level by substring", {
   testthat::expect_true(is.data.frame(residc))
 
   # bare integers with different lengths: warning message
-  nctrct$qid <- seq_len(nrow(nctrct))
+  nccntygrid$qid <- seq_len(nrow(nccntygrid))
   testthat::expect_message(
     residc <-
       par_hierarchy(
-        regions = nctrct,
+        regions = nccntygrid,
         regions_id = "qid",
         length_left = 2L,
         .debug = TRUE,
         fun_dist = extract_at,
-        y = nctrct,
+        y = nccntygrid,
         x = ncelev,
         id = "GEOID",
         func = "mean"
       )
   )
-
+  mirai::daemons(0)
 })
 
 
@@ -833,12 +963,13 @@ testthat::test_that("generic function should be parallelized properly", {
   )
 
   # main test
-  pnts <- readRDS(
-    system.file("extdata/nc_random_point.rds", package = "chopin")
-  )
-  pnts <- terra::vect(pnts)
-  rd1 <-
-    terra::vect(system.file("extdata/ncroads_first.gpkg", package = "chopin"))
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  pnts <- terra::vect(ncp)
+
+  rd1 <- terra::vect(roadpath)
 
   pnts <- terra::project(pnts, "EPSG:5070")
   rd1 <- terra::project(rd1, "EPSG:5070")
@@ -887,12 +1018,31 @@ testthat::test_that(
       )
     )
     future::plan(future.mirai::mirai_multisession, workers = 2L)
-    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- sf::st_read(ncpath, layer = "county")
-    nccnty <- terra::vect(nccnty)
-    ncelev <-
-      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    ncelev <- terra::rast(ncelev)
+
+
+    nccnty <- sf::st_read(
+      system.file("shape/nc.shp", package = "sf")
+    )
+    nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+    ncpath <- file.path(tempdir(check = TRUE), "nccnty.gpkg")
+    sf::st_write(nccnty, ncpath, "nccnty", delete_dsn = TRUE)
+
+    ## Generated random points in NC
+    data("ncpoints", package = "chopin")
+    ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+    ncp$pid <- seq_len(nrow(ncp))
+    ncpnts <- terra::vect(ncp)
+
+    ## Resampled SRTM data in NC
+    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+    ncr <- terra::rasterize(ncpoly, ras)
+    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+    # Using raster path
+    ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+    terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+    ncelev <- terra::rast(ncelevpath)
+
     tdir <- tempdir(check = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
@@ -942,11 +1092,31 @@ testthat::test_that(
       )
     )
     future::plan(future::multicore, workers = 2L)
-    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- terra::vect(ncpath, layer = "county")
-    ncelev <-
-      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    ncelev <- terra::rast(ncelev)
+
+
+    nccnty <- sf::st_read(
+      system.file("shape/nc.shp", package = "sf")
+    )
+    nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+    ncpath <- file.path(tempdir(check = TRUE), "nccnty.gpkg")
+    sf::st_write(nccnty, ncpath, "nccnty", delete_dsn = TRUE)
+
+    ## Generated random points in NC
+    data("ncpoints", package = "chopin")
+    ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+    ncp$pid <- seq_len(nrow(ncp))
+    ncpnts <- terra::vect(ncp)
+
+    ## Resampled SRTM data in NC
+    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+    ncr <- terra::rasterize(ncpoly, ras)
+    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+    # Using raster path
+    ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+    terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+    ncelev <- terra::rast(ncelevpath)
+
     tdir <- tempdir(check = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
@@ -973,7 +1143,6 @@ testthat::test_that(
 )
 
 
-
 testthat::test_that(
   "Processes are properly spawned and compute over multirasters",
   {
@@ -993,11 +1162,31 @@ testthat::test_that(
       )
     )
     future::plan(future.mirai::mirai_multisession, workers = 2L)
-    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- sprintf("GPKG:%s:%s", ncpath, "county")
-    ncelev <-
-      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    ncelev <- terra::rast(ncelev)
+
+
+    nccnty <- sf::st_read(
+      system.file("shape/nc.shp", package = "sf")
+    )
+    nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+    ncpath <- file.path(tempdir(check = TRUE), "nccnty.gpkg")
+    sf::st_write(nccnty, ncpath, "nccnty", delete_dsn = TRUE)
+
+    ## Generated random points in NC
+    data("ncpoints", package = "chopin")
+    ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+    ncp$pid <- seq_len(nrow(ncp))
+    ncpnts <- terra::vect(ncp)
+
+    ## Resampled SRTM data in NC
+    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+    ncr <- terra::rasterize(ncpoly, ras)
+    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+    # Using raster path
+    ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+    terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+    ncelev <- terra::rast(ncelevpath)
+
     tdir <- tempdir(check = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
@@ -1070,12 +1259,31 @@ testthat::test_that(
       )
     )
     future::plan(future.mirai::mirai_multisession, workers = 2L)
-    ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-    nccnty <- sprintf("GPKG:%s:%s", ncpath, "county")
-    suppressWarnings(nccnty <- sf::st_read(nccnty))
-    ncelev <-
-      system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-    ncelev <- terra::rast(ncelev)
+
+
+    nccnty <- sf::st_read(
+      system.file("shape/nc.shp", package = "sf")
+    )
+    nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+    ncpath <- file.path(tempdir(check = TRUE), "nccnty.gpkg")
+    sf::st_write(nccnty, ncpath, "nccnty", delete_dsn = TRUE)
+
+    ## Generated random points in NC
+    data("ncpoints", package = "chopin")
+    ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+    ncp$pid <- seq_len(nrow(ncp))
+    ncpnts <- terra::vect(ncp)
+
+    ## Resampled SRTM data in NC
+    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+    ncr <- terra::rasterize(ncpoly, ras)
+    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+    # Using raster path
+    ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+    terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+    ncelev <- terra::rast(ncelevpath)
+
     tdir <- tempdir(check = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
     terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)

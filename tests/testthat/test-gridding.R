@@ -53,8 +53,9 @@ testthat::test_that("par_pad_grid with other modes", {
   nc <- sf::read_sf(nc)
   nc <- sf::st_transform(nc, "EPSG:5070")
 
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1000L))
 
   # Points
@@ -121,8 +122,8 @@ testthat::test_that("Grid merging internal function too low threshold-- ", {
   nc <- sf::st_transform(nc, "EPSG:5070")
   nctr <- terra::vect(nc)
 
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
   ncrp <- sf::st_as_sf(sf::st_sample(nc, 1600L))
 
   gridded <-

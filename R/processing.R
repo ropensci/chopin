@@ -268,24 +268,27 @@ kernelfunction <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+#' rastpath <- file.path(tempdir(), "test.tif")
 #'
 #' nc <- terra::vect(ncpath)
 #' nc <- terra::project(nc, "EPSG:5070")
-#' rrast <- terra::rast(nc, nrow = 100, ncol = 220)
+#' rrast <- terra::rast(nc, nrow = 1000, ncol = 2200)
 #' ncr <- terra::rasterize(nc, rrast)
-#' terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+#' terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 #' rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
 #' rpnt$pid <- sprintf("ID-%02d", seq(1, 16))
 #'
 #' extract_at(rrast, rpnt, "pid", "mean", radius = 1000)
 #' extract_at(rrast, nc, "NAME", "mean")
 #' extract_at(rrast, ncpath, "NAME", "mean")
+#' # Using SpatRaster object
 #' extract_at(
 #'   rrast, ncpath, "NAME", "mean",
 #'   kernel = "epanechnikov",
 #'   bandwidth = 1e5
 #' )
+#' # Using raster path
+#' terra::writeRaster(rrast, rastpath, overwrite = TRUE)
 #' extract_at(
 #'   rastpath, ncpath, "NAME", "mean",
 #'   kernel = "epanechnikov",

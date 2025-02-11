@@ -666,12 +666,18 @@ testthat::test_that(
     withr::local_package("terra")
     withr::local_options(list(sf_use_s2 = FALSE))
 
-    path_ras <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
     path_vec <- system.file("gpkg/nc.gpkg", package = "sf")
-
-    ras <- terra::rast(path_ras)
     vec <- sf::st_read(path_vec)
-    vec <- sf::st_transform(vec, terra::crs(ras))
+    vec <- sf::st_transform(vec, "EPSG:5070")
+
+    ras <- terra::rast(vec, nrow = 1000, ncol = 2200)
+    ncr <- terra::rasterize(vec, ras)
+    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+    # Using raster path
+    path_ras <- file.path(tempdir(check = TRUE), "ncelev.tif")
+    terra::writeRaster(ras, path_ras, overwrite = TRUE)
+
 
     name_filter <- c("Orange", "Durham", "Wake")
     input_vect <- terra::vect(path_vec)

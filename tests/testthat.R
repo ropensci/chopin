@@ -12,4 +12,13 @@ options(useFancyQuotes = FALSE)
 library(testthat)
 library(chopin)
 
+# prepare test data
+roadpath <- file.path(tempdir(check = TRUE), "ncroads_first.gpkg")
+roadurl <- "https://raw.githubusercontent.com/ropensci/chopin/refs/heads/0.9.0-cran/tests/testdata/ncroads_first.gpkg"
+download.file(roadurl, roadpath, mode = "wb", method = "wget")
+
+rppath <- file.path(tempdir(check = TRUE), "nc_random_point.rds")
+rpurl <- "https://raw.githubusercontent.com/ropensci/chopin/refs/heads/0.9.0-cran/tests/testdata/nc_random_point.rds"
+download.file(rpurl, rppath, mode = "wb", method = "wget")
+
 test_check("chopin")
