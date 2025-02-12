@@ -180,17 +180,21 @@ extract_at(rrast, rpnt, "pid", "mean", radius = 1000)
 extract_at(rrast, nc, "NAME", "mean")
 extract_at(rrast, ncpath, "NAME", "mean")
 # Using SpatRaster object
-extract_at(
-  rrast, ncpath, "NAME", "mean",
-  kernel = "epanechnikov",
-  bandwidth = 1e5
+suppressWarnings(
+  extract_at(
+    rrast, ncpath, "NAME", "mean",
+    kernel = "epanechnikov",
+    bandwidth = 1e5
+  )
 )
 # Using raster path
 terra::writeRaster(rrast, rastpath, overwrite = TRUE)
-extract_at(
-  rastpath, ncpath, "NAME", "mean",
-  kernel = "epanechnikov",
-  bandwidth = 1e5
+suppressWarnings(
+  extract_at(
+    rastpath, ncpath, "NAME", "mean",
+    kernel = "epanechnikov",
+    bandwidth = 1e5
+  )
 )
 }
 \seealso{

@@ -70,7 +70,6 @@ ncpnts$pid <- seq_len(nrow(ncpnts))
 
 # file path
 rrast <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-ncr <- terra::rasterize(ncpoly, rrast)
 terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 
 # Using raster path
@@ -96,6 +95,7 @@ res <-
     id = "pid"
   )
 future::plan(future::sequential)
+mirai::daemons(0)
 }
 \seealso{
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},

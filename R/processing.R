@@ -282,17 +282,21 @@ kernelfunction <-
 #' extract_at(rrast, nc, "NAME", "mean")
 #' extract_at(rrast, ncpath, "NAME", "mean")
 #' # Using SpatRaster object
-#' extract_at(
-#'   rrast, ncpath, "NAME", "mean",
-#'   kernel = "epanechnikov",
-#'   bandwidth = 1e5
+#' suppressWarnings(
+#'   extract_at(
+#'     rrast, ncpath, "NAME", "mean",
+#'     kernel = "epanechnikov",
+#'     bandwidth = 1e5
+#'   )
 #' )
 #' # Using raster path
 #' terra::writeRaster(rrast, rastpath, overwrite = TRUE)
-#' extract_at(
-#'   rastpath, ncpath, "NAME", "mean",
-#'   kernel = "epanechnikov",
-#'   bandwidth = 1e5
+#' suppressWarnings(
+#'   extract_at(
+#'     rastpath, ncpath, "NAME", "mean",
+#'     kernel = "epanechnikov",
+#'     bandwidth = 1e5
+#'   )
 #' )
 #' @export
 setGeneric("extract_at", function(x, y, ...) standardGeneric("extract_at"))
@@ -589,7 +593,9 @@ setMethod(
 #' pnt_to$val2 <- rgamma(100L, 2, 1)
 #'
 #' vals <- c("val1", "val2")
-#' summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+#' suppressWarnings(
+#'   summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+#' )
 #' @importFrom dplyr as_tibble left_join summarize mutate group_by all_of
 #' @importFrom dplyr across ungroup
 #' @importFrom terra nearby distance buffer
@@ -727,14 +733,14 @@ summarize_sedc <-
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
-#' nc <- sf::st_transform(nc, 5070)
+#' nc <- sf::st_transform(nc, "EPSG:5070")
 #' pp <- sf::st_sample(nc, size = 300)
 #' pp <- sf::st_as_sf(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' sf::st_crs(pp) <- "EPSG:5070"
 #' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 #'
-#' system.time(
+#' suppressWarnings(
 #'   ppb_nc_aw <-
 #'     summarize_aw(
 #'       ppb, nc, c("BIR74", "BIR79"),
@@ -746,16 +752,12 @@ summarize_sedc <-
 #' # terra examples
 #' library(terra)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
-#' elev <- terra::rast(elev)
 #' pp <- terra::spatSample(nc, size = 300)
-#' pp <- terra::project(pp, crs(elev))
-#' pp <- terra::as.points(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' ppb <- terra::buffer(pp, 20000)
 #'
-#' system.time(
+#' suppressWarnings(
 #'   ppb_nc_aw <-
 #'     summarize_aw(
 #'       ppb, nc, c("BIR74", "BIR79"), "id",

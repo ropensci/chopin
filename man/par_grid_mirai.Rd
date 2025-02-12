@@ -59,12 +59,16 @@ library(mirai)
 daemons(4, dispatcher = "process")
 ncpath <- system.file("shape/nc.shp", package = "sf")
 ncpoly <- sf::st_read(ncpath)
+ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
 # sf object
 ncpnts <-
   sf::st_sample(ncpoly, 2000)
+ncpnts <- sf::st_as_sf(ncpnts)
+ncpnts$pid <- seq_len(nrow(ncpnts))
+
 # file path
-rrast <- terra::rast(nc, nrow = 1000, ncol = 2200)
-ncr <- terra::rasterize(nc, rrast)
+rrast <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
 terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 # Using raster path
 rastpath <- file.path(tempdir(), "ncelev.tif")

@@ -85,14 +85,14 @@ read as \code{sf} objects.
 library(sf)
 options(sf_use_s2 = FALSE)
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
-nc <- sf::st_transform(nc, 5070)
+nc <- sf::st_transform(nc, "EPSG:5070")
 pp <- sf::st_sample(nc, size = 300)
 pp <- sf::st_as_sf(pp)
 pp[["id"]] <- seq(1, nrow(pp))
 sf::st_crs(pp) <- "EPSG:5070"
 ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 
-system.time(
+suppressWarnings(
   ppb_nc_aw <-
     summarize_aw(
       ppb, nc, c("BIR74", "BIR79"),
@@ -104,16 +104,12 @@ summary(ppb_nc_aw)
 # terra examples
 library(terra)
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-elev <- system.file("ex/elev.tif", package = "terra")
 nc <- terra::vect(ncpath)
-elev <- terra::rast(elev)
 pp <- terra::spatSample(nc, size = 300)
-pp <- terra::project(pp, crs(elev))
-pp <- terra::as.points(pp)
 pp[["id"]] <- seq(1, nrow(pp))
 ppb <- terra::buffer(pp, 20000)
 
-system.time(
+suppressWarnings(
   ppb_nc_aw <-
     summarize_aw(
       ppb, nc, c("BIR74", "BIR79"), "id",

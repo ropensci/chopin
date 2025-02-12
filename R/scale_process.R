@@ -54,7 +54,6 @@
 #'
 #' # file path
 #' rrast <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-#' ncr <- terra::rasterize(ncpoly, rrast)
 #' terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 #'
 #' # Using raster path
@@ -81,6 +80,7 @@
 #'     id = "pid"
 #'   )
 #' future::plan(future::sequential)
+#' mirai::daemons(0)
 #' @seealso
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
@@ -317,7 +317,7 @@ par_grid <-
 #' nccnty <- sf::st_read(
 #'   system.file("shape/nc.shp", package = "sf")
 #' )
-#' nccnty <- sf::st_transform(nccnty, "EPSG:9311")
+#' nccnty <- sf::st_transform(nccnty, "EPSG:5070")
 #'
 #' nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
 #' nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -325,7 +325,6 @@ par_grid <-
 #' nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
 #'
 #' rrast <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-#' ncr <- terra::rasterize(nc, rrast)
 #' terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 #'
 #' # Using raster path
@@ -344,7 +343,7 @@ par_grid <-
 #' res <-
 #'   par_hierarchy(
 #'     regions = nccnty,
-#'     regions_id = "GEOID",
+#'     regions_id = "FIPS",
 #'     fun_dist = extract_at,
 #'     y = nccntygrid,
 #'     x = rastpath,
@@ -352,6 +351,7 @@ par_grid <-
 #'     func = "mean"
 #'   )
 #' future::plan(future::sequential)
+#' mirai::daemons(0)
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
@@ -632,15 +632,14 @@ par_hierarchy <-
 #' nccnty <- sf::st_read(
 #'   system.file("shape/nc.shp", package = "sf")
 #' )
-#' nccnty <- sf::st_transform(nccnty, "EPSG:9311")
+#' nccnty <- sf::st_transform(nccnty, "EPSG:5070")
 #'
 #' nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
 #' nccntygrid <- sf::st_as_sf(nccntygrid)
 #' nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
 #' nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
 #'
-#' rrast <- terra::rast(nc, nrow = 1000, ncol = 2200)
-#' ncr <- terra::rasterize(nc, rrast)
+#' rrast <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
 #' terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 #'
 #' tdir <- tempdir(check = TRUE)
@@ -658,7 +657,9 @@ par_hierarchy <-
 #'   id = "GEOID",
 #'   func = "mean"
 #' )
+#'
 #' future::plan(future::sequential)
+#' mirai::daemons(0)
 #' @importFrom future.apply future_lapply
 #' @importFrom terra rast
 #' @importFrom rlang inject !!!

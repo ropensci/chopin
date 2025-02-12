@@ -56,15 +56,14 @@ future::plan(future.mirai::mirai_multisession, workers = 2)
 nccnty <- sf::st_read(
   system.file("shape/nc.shp", package = "sf")
 )
-nccnty <- sf::st_transform(nccnty, "EPSG:9311")
+nccnty <- sf::st_transform(nccnty, "EPSG:5070")
 
 nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
 nccntygrid <- sf::st_as_sf(nccntygrid)
 nccntygrid$GEOID <- sprintf("\%05d", seq_len(nrow(nccntygrid)))
 nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
 
-rrast <- terra::rast(nc, nrow = 1000, ncol = 2200)
-ncr <- terra::rasterize(nc, rrast)
+rrast <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
 terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 
 tdir <- tempdir(check = TRUE)
@@ -82,7 +81,9 @@ res <- par_multirasters(
   id = "GEOID",
   func = "mean"
 )
+
 future::plan(future::sequential)
+mirai::daemons(0)
 }
 \seealso{
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
