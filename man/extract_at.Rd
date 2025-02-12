@@ -170,9 +170,8 @@ rastpath <- file.path(tempdir(), "test.tif")
 
 nc <- terra::vect(ncpath)
 nc <- terra::project(nc, "EPSG:5070")
-rrast <- terra::rast(nc, nrow = 1000, ncol = 2200)
-ncr <- terra::rasterize(nc, rrast)
-terra::values(rrast) <- rgamma(2.2e6, 4, 2)
+rrast <- terra::rast(nc, nrow = 300, ncol = 660)
+terra::values(rrast) <- rgamma(1.98e5, 4, 2)
 rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
 rpnt$pid <- sprintf("ID-\%02d", seq(1, 16))
 

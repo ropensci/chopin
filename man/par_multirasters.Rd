@@ -63,8 +63,8 @@ nccntygrid <- sf::st_as_sf(nccntygrid)
 nccntygrid$GEOID <- sprintf("\%05d", seq_len(nrow(nccntygrid)))
 nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
 
-rrast <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-terra::values(rrast) <- rgamma(2.2e6, 4, 2)
+rrast <- terra::rast(nccnty, nrow = 600, ncol = 1320)
+terra::values(rrast) <- rgamma(7.92e5, 4, 2)
 
 tdir <- tempdir(check = TRUE)
 testpath1 <- file.path(tdir, "test1.tif")

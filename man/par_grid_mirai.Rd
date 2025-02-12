@@ -68,8 +68,8 @@ ncpnts <- sf::st_as_sf(ncpnts)
 ncpnts$pid <- seq_len(nrow(ncpnts))
 
 # file path
-rrast <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-terra::values(rrast) <- rgamma(2.2e6, 4, 2)
+rrast <- terra::rast(ncpoly, nrow = 600, ncol = 1320)
+terra::values(rrast) <- rgamma(7.92e5, 4, 2)
 # Using raster path
 rastpath <- file.path(tempdir(), "ncelev.tif")
 terra::writeRaster(rrast, rastpath, overwrite = TRUE)
