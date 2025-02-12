@@ -112,11 +112,23 @@ library(future.mirai)
 options(sf_use_s2 = FALSE)
 future::plan(future.mirai::mirai_multisession, workers = 2)
 
-ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-nccnty <- sf::st_read(ncpath, layer = "county")
-nctrct <- sf::st_read(ncpath, layer = "tracts")
-ncelev <-
-  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+nccnty <- sf::st_read(
+  system.file("shape/nc.shp", package = "sf")
+)
+nccnty <- sf::st_transform(nccnty, "EPSG:9311")
+
+nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+nccntygrid <- sf::st_as_sf(nccntygrid)
+nccntygrid$GEOID <- sprintf("\%05d", seq_len(nrow(nccntygrid)))
+nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+
+rrast <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+ncr <- terra::rasterize(nc, rrast)
+terra::values(rrast) <- rgamma(2.2e6, 4, 2)
+
+# Using raster path
+rastpath <- file.path(tempdir(), "ncelev.tif")
+terra::writeRaster(rrast, rastpath, overwrite = TRUE)
 
 ncsamp <-
   sf::st_sample(
@@ -132,8 +144,8 @@ res <-
     regions = nccnty,
     regions_id = "GEOID",
     fun_dist = extract_at,
-    y = nctrct,
-    x = ncelev,
+    y = nccntygrid,
+    x = rastpath,
     id = "GEOID",
     func = "mean"
   )

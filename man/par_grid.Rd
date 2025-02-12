@@ -61,14 +61,18 @@ library(future.mirai)
 plan(mirai_multisession, workers = 2)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 ncpoly <- sf::st_read(ncpath)
+
 # sf object
 ncpnts <-
-  readRDS(
-    system.file("extdata/nc_random_point.rds", package = "chopin")
-  )
+  sf::st_sample(ncpoly, 2000)
 # file path
-ncelev <-
-    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+rrast <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+ncr <- terra::rasterize(ncpoly, rrast)
+terra::values(rrast) <- rgamma(2.2e6, 4, 2)
+
+# Using raster path
+rastpath <- file.path(tempdir(), "ncelev.tif")
+terra::writeRaster(rrast, rastpath, overwrite = TRUE)
 
 nccompreg <-
   chopin::par_pad_grid(
@@ -82,7 +86,7 @@ res <-
   par_grid(
     grids = nccompreg,
     fun_dist = extract_at,
-    x = ncelev,
+    x = rastpath,
     y = ncpnts,
     qsegs = 90L,
     radius = 5e3L,

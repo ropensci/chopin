@@ -38,8 +38,19 @@ library(future.apply)
 ```{r}
 temp_dir <- tempdir(check = TRUE)
 
-url_nccnty <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_hierarchy.gpkg"
-url_ncelev <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_srtm15_otm.tif"
+url_nccnty <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/nc_hierarchy.gpkg"
+  )
+url_ncelev <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/nc_srtm15_otm.tif"
+  )
+
 nccnty_path <- file.path(temp_dir, "nc_hierarchy.gpkg")
 ncelev_path <- file.path(temp_dir, "nc_srtm15_otm.tif")
 
@@ -61,7 +72,7 @@ ncsamp <-
     nccnty,
     1e4L
   )
-ncsamp$pid <- 1:nrow(ncsamp)
+ncsamp$pid <- seq_len(nrow(ncsamp))
 ```
 
 ## Creating grids

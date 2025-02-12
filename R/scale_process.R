@@ -45,13 +45,16 @@
 #' plan(mirai_multisession, workers = 2)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' ncpoly <- sf::st_read(ncpath)
+#' ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+#'
 #' # sf object
-#' # sf object
-#' ncpnts <-
-#'   sf::st_sample(ncpoly, 2000)
+#' ncpnts <- sf::st_sample(ncpoly, 2000)
+#' ncpnts <- sf::st_as_sf(ncpnts)
+#' ncpnts$pid <- seq_len(nrow(ncpnts))
+#'
 #' # file path
-#' rrast <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-#' ncr <- terra::rasterize(nc, rrast)
+#' rrast <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+#' ncr <- terra::rasterize(ncpoly, rrast)
 #' terra::values(rrast) <- rgamma(2.2e6, 4, 2)
 #'
 #' # Using raster path
@@ -77,6 +80,7 @@
 #'     radius = 5e3L,
 #'     id = "pid"
 #'   )
+#' future::plan(future::sequential)
 #' @seealso
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
@@ -347,6 +351,7 @@ par_grid <-
 #'     id = "GEOID",
 #'     func = "mean"
 #'   )
+#' future::plan(future::sequential)
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
@@ -653,6 +658,7 @@ par_hierarchy <-
 #'   id = "GEOID",
 #'   func = "mean"
 #' )
+#' future::plan(future::sequential)
 #' @importFrom future.apply future_lapply
 #' @importFrom terra rast
 #' @importFrom rlang inject !!!
