@@ -52,21 +52,28 @@ library(mirai)
 sf::sf_use_s2(FALSE)
 mirai::daemons(4, dispatcher = "process")
 
-ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-nccnty <- sf::st_read(ncpath, layer = "county")
-ncelev <-
-  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-ncelevras <- terra::rast(ncelev)
+nccnty <- sf::st_read(
+  system.file("shape/nc.shp", package = "sf")
+)
+nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+
+nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+nccntygrid <- sf::st_as_sf(nccntygrid)
+nccntygrid$GEOID <- sprintf("\%05d", seq_len(nrow(nccntygrid)))
+nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+
+rrast <- terra::rast(nccnty, nrow = 600, ncol = 1320)
+terra::values(rrast) <- rgamma(7.92e5, 4, 2)
 
 tdir <- tempdir(check = TRUE)
-terra::writeRaster(ncelevras, file.path(tdir, "test1.tif"), overwrite = TRUE)
-terra::writeRaster(ncelevras, file.path(tdir, "test2.tif"), overwrite = TRUE)
+terra::writeRaster(rrast, file.path(tdir, "test1.tif"), overwrite = TRUE)
+terra::writeRaster(rrast, file.path(tdir, "test2.tif"), overwrite = TRUE)
 testfiles <- list.files(tdir, pattern = "tif$", full.names = TRUE)
 
 res <- par_multirasters_mirai(
   filenames = testfiles,
   fun_dist = extract_at,
-  x = ncelev,
+  x = rrast,
   y = nccnty,
   id = "GEOID",
   func = "mean"

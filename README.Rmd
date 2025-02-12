@@ -159,11 +159,17 @@ We use an elevation dataset with and a moderate spatial resolution (approximatel
 
 ```{r load-srtm}
 # data preparation
-wdir <- system.file("extdata", package = "chopin")
-srtm <- file.path(wdir, "nc_srtm15_otm.tif")
+srtm_path <- file.path(tempdir(check = TRUE), "nc_srtm15_otm.tif")
+srtm_url <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/nc_srtm15_otm.tif"
+  )
+download.file(srtm_url, srtm_path, mode = "wb")
 
 # terra SpatRaster objects are wrapped when exported to rds file
-srtm_ras <- terra::rast(srtm)
+srtm_ras <- terra::rast(srtm_path)
 terra::crs(srtm_ras) <- "EPSG:5070"
 srtm_ras
 terra::plot(srtm_ras)
@@ -175,7 +181,7 @@ terra::plot(srtm_ras)
 system.time(
   ncpoints_srtm <-
     chopin::extract_at(
-      x = srtm,
+      x = srtm_ras,
       y = ncpoints,
       id = "pid",
       mode = "buffer",
@@ -229,7 +235,7 @@ system.time(
     par_grid(
       grids = compregions,
       fun_dist = extract_at,
-      x = srtm,
+      x = srtm_ras,
       y = ncpoints,
       id = "pid",
       radius = 1e4L,
@@ -239,7 +245,7 @@ system.time(
 
 ncpoints_srtm <-
   extract_at(
-    x = srtm,
+    x = srtm_ras,
     y = ncpoints,
     id = "pid",
     radius = 1e4L
@@ -276,7 +282,7 @@ system.time(
     par_grid_mirai(
       grids = compregions,
       fun_dist = extract_at,
-      x = srtm,
+      x = srtm_ras,
       y = ncpoints,
       id = "pid",
       radius = 1e4L,
@@ -298,9 +304,16 @@ We usually have nested/exhaustive hierarchies in real-world datasets. For exampl
 #### Read data
 ```{r}
 # nc_hierarchy.gpkg includes two layers: county and tracts
-path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
+hierarchy_path <- file.path(tempdir(check = TRUE), "nc_hierarchy.gpkg")
+hierarchy_url <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/nc_hierarchy.gpkg"
+  )
+download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
-nc_data <- path_nchrchy
+nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
 
@@ -319,7 +332,7 @@ future::plan(future.mirai::mirai_multisession, workers = 4L)
 system.time(
   nc_elev_tr_single <-
     chopin::extract_at(
-      x = srtm,
+      x = srtm_ras,
       y = nc_tracts,
       id = "GEOID"
     )
@@ -332,7 +345,7 @@ system.time(
       regions = nc_county, # higher level geometry
       regions_id = "GEOID", # higher level unique id
       fun_dist = extract_at,
-      x = srtm,
+      x = srtm_ras,
       y = nc_tracts, # lower level geometry
       id = "GEOID", # lower level unique id
       func = "mean"
@@ -348,10 +361,10 @@ There is a common case of having a large group of raster files at which the same
 
 ```{r prep-multiraster}
 # nccnty <- sf::st_read(nc_data, layer = "county")
-ncelev <- terra::rast(srtm)
+ncelev <- terra::rast(srtm_path)
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")
-tdir <- tempdir()
+tdir <- tempdir(check = TRUE)
 
 terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
 terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
@@ -397,14 +410,21 @@ file.remove(testfiles)
 Other than `chopin` processing functions, `chopin::par_*()` functions support generic geospatial operations. An example below uses `terra::nearest()`, which gets the nearest feature's attributes, inside `chopin::par_grid()`.
 
 ```{r prep-par-generic}
-path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
+ncrd1_path <- file.path(tempdir(check = TRUE), "ncroads_first.gpkg")
+ncrd1_url <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/ncroads_first.gpkg"
+  )
+download.file(ncrd1_url, ncrd1_path, mode = "wb")
 
 # Generate 5000 random points
 pnts <- sf::st_sample(nc_county, 5000)
 pnts <- sf::st_as_sf(pnts)
 # assign identifiers
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
-rd1 <- sf::st_read(path_ncrd1)
+rd1 <- sf::st_read(ncrd1_path)
 
 # reproject
 pntst <- sf::st_transform(pnts, "EPSG:5070")
@@ -455,7 +475,7 @@ system.time(
       grids = nccompreg,
       fun_dist = nearest,
       x = pnt_path,
-      y = path_ncrd1,
+      y = ncrd1_path,
       pad_y = TRUE
     )
 )

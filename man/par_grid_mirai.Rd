@@ -59,14 +59,20 @@ library(mirai)
 daemons(4, dispatcher = "process")
 ncpath <- system.file("shape/nc.shp", package = "sf")
 ncpoly <- sf::st_read(ncpath)
+ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
 # sf object
 ncpnts <-
-  readRDS(
-    system.file("extdata/nc_random_point.rds", package = "chopin")
-  )
+  sf::st_sample(ncpoly, 2000)
+ncpnts <- sf::st_as_sf(ncpnts)
+ncpnts$pid <- seq_len(nrow(ncpnts))
+
 # file path
-ncelev <-
-    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+rrast <- terra::rast(ncpoly, nrow = 600, ncol = 1320)
+terra::values(rrast) <- rgamma(7.92e5, 4, 2)
+# Using raster path
+rastpath <- file.path(tempdir(), "ncelev.tif")
+terra::writeRaster(rrast, rastpath, overwrite = TRUE)
 
 nccompreg <-
   chopin::par_pad_grid(
@@ -80,7 +86,7 @@ res <-
   par_grid_mirai(
     grids = nccompreg,
     fun_dist = extract_at,
-    x = ncelev,
+    x = rastpath,
     y = ncpnts,
     qsegs = 90L,
     radius = 5e3L,

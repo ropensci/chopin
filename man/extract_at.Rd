@@ -166,28 +166,34 @@ raster-vector overlay is done with \code{exactextractr::exact_extract}.
 }
 \examples{
 ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+rastpath <- file.path(tempdir(), "test.tif")
 
 nc <- terra::vect(ncpath)
 nc <- terra::project(nc, "EPSG:5070")
-rrast <- terra::rast(nc, nrow = 100, ncol = 220)
-ncr <- terra::rasterize(nc, rrast)
-terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+rrast <- terra::rast(nc, nrow = 300, ncol = 660)
+terra::values(rrast) <- rgamma(1.98e5, 4, 2)
 rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
 rpnt$pid <- sprintf("ID-\%02d", seq(1, 16))
 
 extract_at(rrast, rpnt, "pid", "mean", radius = 1000)
 extract_at(rrast, nc, "NAME", "mean")
 extract_at(rrast, ncpath, "NAME", "mean")
-extract_at(
-  rrast, ncpath, "NAME", "mean",
-  kernel = "epanechnikov",
-  bandwidth = 1e5
+# Using SpatRaster object
+suppressWarnings(
+  extract_at(
+    rrast, ncpath, "NAME", "mean",
+    kernel = "epanechnikov",
+    bandwidth = 1e5
+  )
 )
-extract_at(
-  rastpath, ncpath, "NAME", "mean",
-  kernel = "epanechnikov",
-  bandwidth = 1e5
+# Using raster path
+terra::writeRaster(rrast, rastpath, overwrite = TRUE)
+suppressWarnings(
+  extract_at(
+    rastpath, ncpath, "NAME", "mean",
+    kernel = "epanechnikov",
+    bandwidth = 1e5
+  )
 )
 }
 \seealso{

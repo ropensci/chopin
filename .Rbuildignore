@@ -1,6 +1,7 @@
 tests
 tools
 figure
+data_demo/
 containers/
 input
 .github

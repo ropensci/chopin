@@ -93,7 +93,9 @@ pnt_to$val1 <- rgamma(100L, 1, 0.05)
 pnt_to$val2 <- rgamma(100L, 2, 1)
 
 vals <- c("val1", "val2")
-summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+suppressWarnings(
+  summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+)
 }
 \references{
 \itemize{

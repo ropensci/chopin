@@ -8,15 +8,24 @@ testthat::test_that("extract_at -- character-character inputs", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
   ncp <- terra::vect(ncp)
+
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- sf::st_read(nccnty)
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntytr <- terra::vect(nccnty)
-  ncelev <-
-    terra::rast(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   nccnty4326 <- sf::st_transform(nccnty, "EPSG:4326")
   testthat::expect_no_error(chopin:::reproject_to_raster(nccnty4326, ncelev))
@@ -98,16 +107,30 @@ testthat::test_that("extract_at -- SpatRaster-character inputs", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
-  ncp <- sf::st_transform(ncp, "EPSG:5070")
-  ncp <- terra::vect(ncp)
+
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <-
-    terra::rast(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
+  nccnty <- sf::st_read(nccnty)
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntyp <- suppressWarnings(
+    sf::st_centroid(nccnty, of_largest_polygon = TRUE)
+  )
+  nccntypath <- file.path(tempdir(check = TRUE), "nc5070.gpkg")
+  suppressWarnings(
+    sf::st_write(nccntyp, nccntypath, delete_dsn = TRUE)
+  )
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   # test two modes
   ncexpoly <-
-    chopin::extract_at(
+    extract_at(
       ncelev,
       nccnty,
       "FIPS"
@@ -115,18 +138,16 @@ testthat::test_that("extract_at -- SpatRaster-character inputs", {
   testthat::expect_s3_class(ncexpoly, "data.frame")
 
   testthat::expect_warning(
-    testthat::expect_warning(
+    testthat::expect_message(
       testthat::expect_message(
-        testthat::expect_message(
-          chopin::extract_at(
-            ncelev,
-            nccnty,
-            "FIPS",
-            radius = 100,
-            kernel = "epanechnikov",
-            func = stats::weighted.mean,
-            bandwidth = 1.25e4L
-          )
+        extract_at(
+          x = ncelev,
+          y = nccntypath,
+          id = "FIPS",
+          radius = 100L,
+          kernel = "epanechnikov",
+          func = stats::weighted.mean,
+          bandwidth = 1.25e4L
         )
       )
     )
@@ -143,12 +164,20 @@ testthat::test_that("extract_at -- character-sf inputs", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncp <- readRDS(rppath)
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- sf::st_read(nccnty)
-  ncelev <-
-    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   # test two modes
   ncexpoly <-
@@ -189,8 +218,16 @@ testthat::test_that("extract_at -- character-SpatVector inputs", {
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- terra::vect(nccnty)
-  ncelev <-
-    system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  nccnty <- terra::project(nccnty, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   # test two modes
   ncexpoly <-
@@ -232,7 +269,17 @@ testthat::test_that(".extract_at + character inputs without kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   testthat::expect_no_error(
     chopin:::.extract_at(ncelev, nccnty, "FIPS", max_cells = 3e7)
@@ -250,16 +297,26 @@ testthat::test_that(".extract_at + terra inputs without kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   cnty <- terra::vect(nccnty)
   elev <- terra::rast(ncelev)
   testthat::expect_no_error(
-    chopin:::.extract_at(elev, cnty, "FIPS", max_cells = 3e7)
+    chopin:::.extract_at(ncelev, cnty, "FIPS", max_cells = 3e7)
   )
 
   testthat::expect_warning(
-    chopin:::.extract_at(elev, cnty, "FIPS", radius = 1e3, max_cells = 3e7),
+    chopin:::.extract_at(ncelev, cnty, "FIPS", radius = 1e3, max_cells = 3e7),
     "Buffer is set with non-point geometries."
   )
 
@@ -275,13 +332,22 @@ testthat::test_that(".extract_at + terra/sf inputs without kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   cnty <- sf::st_read(nccnty)
-  elev <- terra::rast(ncelev)
+  # elev <- terra::rast(ncelev)
 
   testthat::expect_warning(
-    chopin:::.extract_at(elev, cnty, "FIPS", radius = 1e3, max_cells = 3e7),
+    chopin:::.extract_at(ncelev, cnty, "FIPS", radius = 1e3, max_cells = 3e7),
     "Buffer is set with non-point geometries."
   )
 
@@ -296,7 +362,17 @@ testthat::test_that(".extract_at + character inputs with kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   cnty <- terra::vect(nccnty)
   cntycent <- terra::centroids(cnty)
@@ -377,14 +453,23 @@ testthat::test_that(".kernel_weighting works", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
 
-  elev <- terra::rast(ncelev)
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
+
   cnty <- sf::st_read(nccnty)
-  cnty <- sf::st_transform(cnty, terra::crs(elev))
+  cnty <- sf::st_transform(cnty, terra::crs(ncelev))
 
   extr <- exactextractr::exact_extract(
-    elev,
+    ncelev,
     cnty,
     force_df = TRUE,
     include_cols = "FIPS",
@@ -396,7 +481,7 @@ testthat::test_that(".kernel_weighting works", {
   # polygon input + kernel: error
   testthat::expect_warning(
     chopin:::.kernel_weighting(
-      x_ras = elev,
+      x_ras = ncelev,
       y_vec = cnty,
       id = "FIPS",
       extracted = extr,
@@ -419,13 +504,22 @@ testthat::test_that("Character input works", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- system.file("extdata/nc_random_point.rds", package = "chopin") |>
-    readRDS()
+  ncp <- readRDS(rppath)
   ncpfile <- file.path(tempdir(), "ncp.shp")
   sf::st_write(ncp, ncpfile, append = FALSE)
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
-  ncelev <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
 
   testthat::expect_no_error(
     extract_at(ncelev, ncpfile, "pid", radius = 1e4L)
@@ -572,8 +666,7 @@ testthat::test_that("SEDC are well calculated.", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
-  ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncpnts <- readRDS(rppath)
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncrand <- terra::spatSample(ncpoly, 250L)
@@ -598,8 +691,7 @@ testthat::test_that("SEDC are well calculated.", {
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_bandwidth")))
   testthat::expect_true(!is.null(attr(sedc_calc, "sedc_threshold")))
 
-  ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+  ncpnts <- readRDS(rppath)
   ncpnts <- sf::st_transform(ncpnts, "EPSG:5070")
   ncrandsf <- sf::st_as_sf(ncrand)
 
@@ -628,7 +720,7 @@ testthat::test_that("SEDC warning message with multiple fields overlapped", {
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
   ncpnts <-
-    readRDS(system.file("extdata/nc_random_point.rds", package = "chopin"))
+    readRDS(rppath)
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
   ncrand <- terra::spatSample(ncpoly, 250L)
@@ -668,5 +760,3 @@ testthat::test_that("Kernel functions work", {
   testthat::expect_no_error(chopin:::kernelfunction(10, 100, "triweight"))
   testthat::expect_no_error(chopin:::kernelfunction(10, 100, "epanechnikov"))
 })
-
-

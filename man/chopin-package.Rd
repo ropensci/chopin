@@ -39,9 +39,16 @@ library(future.apply)
 \item North Carolinian counties and a raster of elevation data are used as example data.
 }
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{nccnty_path <- system.file("extdata", "nc_hierarchy.gpkg", package = "chopin")
-ncelev_path <-
-  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{temp_dir <- tempdir(check = TRUE)
+
+url_nccnty <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_hierarchy.gpkg"
+url_ncelev <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_srtm15_otm.tif"
+nccnty_path <- file.path(temp_dir, "nc_hierarchy.gpkg")
+ncelev_path <- file.path(temp_dir, "nc_srtm15_otm.tif")
+
+# download data
+download.file(url_nccnty, nccnty_path, quiet = TRUE)
+download.file(url_ncelev, ncelev_path, quiet = TRUE)
 nccnty <- terra::vect(nccnty_path)
 ncelev <- terra::rast(ncelev_path)
 }\if{html}{\out{</div>}}
@@ -132,9 +139,7 @@ nctrct <- sf::st_read(nccnty_path, layer = "tracts")
 \item Here we demonstrate multiraster processing of the random points using multiple rasters.
 }
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{ncelev <-
-  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-ncelev <- terra::rast(ncelev)
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{ncelev <- terra::rast(ncelev_path)
 tdir <- tempdir(check = TRUE)
 terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
 terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)

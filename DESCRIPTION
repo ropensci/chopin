@@ -1,8 +1,8 @@
 Package: chopin
 Title: Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing
-Version: 0.9.0
+Version: 0.9.1
 Authors@R: c(
-    person("Insang", "Song", , "geoissong@gmail.com", role = c("aut", "cre"),
+    person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
     person("Kyle", "Messier", role = c("aut", "ctb"),
            comment = c(ORCID = "0000-0001-9508-9623")),

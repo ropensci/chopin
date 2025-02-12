@@ -2,7 +2,6 @@
 # Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing <a href="https://docs.ropensci.org/chopin/"><img src="man/figures/logo.svg" align="right" height="210" alt="overlapping irregular grid polygons filled with orange, green, and teal" /></a>
 
 <!-- badges: start -->
-
 <!-- [![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions) -->
 
 ![Coverage](https://github.com/ropensci/chopin/actions/workflows/test-coverage-local.yaml/coverage.svg)
@@ -56,21 +55,19 @@ multiple raster file paths into `par_multirasters()`. **Finally,** users
 run `par_*()` function with the configurations set above to compute
 spatial variables from input data in parallel:
 
-  - `par_grid`: parallelize over artificial grid polygons that are
-    generated from the maximum extent of inputs. `par_pad_grid` is used
-    to generate the grid polygons before running this function.
+- `par_grid`: parallelize over artificial grid polygons that are
+  generated from the maximum extent of inputs. `par_pad_grid` is used to
+  generate the grid polygons before running this function.
 
-  - `par_hierarchy`: parallelize over hierarchy coded in identifier
-    fields (for example, census blocks in each county in the US)
+- `par_hierarchy`: parallelize over hierarchy coded in identifier fields
+  (for example, census blocks in each county in the US)
 
-  - `par_multirasters`: parallelize over multiple raster files
+- `par_multirasters`: parallelize over multiple raster files
 
-  - Each of the `par_*` functions introduced above has `mirai` version
-    with a suffix `_mirai` after the function names: `par_grid_mirai`,
-    `par_hierarchy_mirai`, and `par_multirasters`. These functions will
-    work properly after creating daemons with `mirai::daemons`.
-
-<!-- end list -->
+- Each of the `par_*` functions introduced above has `mirai` version
+  with a suffix `_mirai` after the function names: `par_grid_mirai`,
+  `par_hierarchy_mirai`, and `par_multirasters`. These functions will
+  work properly after creating daemons with `mirai::daemons`.
 
 ``` r
 mirai::daemons(4L, dispatcher = "process")
@@ -90,14 +87,14 @@ classes for spatial data. Raster-vector overlay is done with
 `exactextractr`. Three helper functions encapsulate multiple geospatial
 data calculation steps over multiple CPU threads.
 
-  - `extract_at`: extract raster values with point buffers or polygons
-    with or without kernel weights
+- `extract_at`: extract raster values with point buffers or polygons
+  with or without kernel weights
 
-  - `summarize_sedc`: calculate sums of [exponentially decaying
-    contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
+- `summarize_sedc`: calculate sums of [exponentially decaying
+  contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
 
-  - `summarize_aw`: area-weighted covariates based on target and
-    reference polygons
+- `summarize_aw`: area-weighted covariates based on target and reference
+  polygons
 
 ### Function selection guide
 
@@ -108,33 +105,32 @@ users with large vector data.
 
 In **raster-oriented selection**, we suggest four factors to consider:
 
-  - Number of raster files: for multiple files, `par_multirasters` is
-    recommended. When there are multiple rasters that share the same
-    extent and resolution, consider stacking the rasters into multilayer
-    SpatRaster object by calling `terra::rast(filenames)`.
-  - Raster resolution: We suggest 100 meters as a threshold. Rasters
-    with resolution coarser than 100 meters and a few layers would be
-    better for the direct call of `exactextractr::exact_extract()`.
-  - Raster extent: Using `SpatRaster` in
-    `exactextractr::exact_extract()` is often minimally affected by the
-    raster extent.
-  - Memory size: `max_cells_in_memory` argument value of
-    `exactextractr::exact_extract()`, raster resolution, and the number
-    of layers in `SpatRaster` are multiplicatively related to the memory
-    usage.
+- Number of raster files: for multiple files, `par_multirasters` is
+  recommended. When there are multiple rasters that share the same
+  extent and resolution, consider stacking the rasters into multilayer
+  SpatRaster object by calling `terra::rast(filenames)`.
+- Raster resolution: We suggest 100 meters as a threshold. Rasters with
+  resolution coarser than 100 meters and a few layers would be better
+  for the direct call of `exactextractr::exact_extract()`.
+- Raster extent: Using `SpatRaster` in `exactextractr::exact_extract()`
+  is often minimally affected by the raster extent.
+- Memory size: `max_cells_in_memory` argument value of
+  `exactextractr::exact_extract()`, raster resolution, and the number of
+  layers in `SpatRaster` are multiplicatively related to the memory
+  usage.
 
 ![](man/figures/README-flowchart-raster.png)
 
 For **vector-oriented selection**, we suggest three factors to consider:
 
-  - Number of features: When the number of features is over 100,000,
-    consider using `par_grid` or `par_hierarchy` to split the data into
-    smaller chunks.
-  - Hierarchical structure: If the data has a hierarchical structure,
-    consider using `par_hierarchy` to parallelize the operation.
-  - Data grouping: If the data needs to be grouped in similar sizes,
-    consider using `par_pad_balanced` or `par_pad_grid` with `mode =
-    "grid_quantile"`.
+- Number of features: When the number of features is over 100,000,
+  consider using `par_grid` or `par_hierarchy` to split the data into
+  smaller chunks.
+- Hierarchical structure: If the data has a hierarchical structure,
+  consider using `par_hierarchy` to parallelize the operation.
+- Data grouping: If the data needs to be grouped in similar sizes,
+  consider using `par_pad_balanced` or `par_pad_grid` with
+  `mode = "grid_quantile"`.
 
 ![](man/figures/README-flowchart-vector.png)
 
@@ -178,7 +174,7 @@ library(dplyr)
 #> 
 #>     intersect, setdiff, setequal, union
 library(sf)
-#> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.3.1; sf_use_s2() is TRUE
+#> Linking to GEOS 3.12.2, GDAL 3.9.3, PROJ 9.4.1; sf_use_s2() is TRUE
 library(terra)
 #> terra 1.7.83
 library(future)
@@ -230,11 +226,17 @@ We use an elevation dataset with and a moderate spatial resolution
 
 ``` r
 # data preparation
-wdir <- system.file("extdata", package = "chopin")
-srtm <- file.path(wdir, "nc_srtm15_otm.tif")
+srtm_path <- file.path(tempdir(check = TRUE), "nc_srtm15_otm.tif")
+srtm_url <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/nc_srtm15_otm.tif"
+  )
+download.file(srtm_url, srtm_path, mode = "wb")
 
 # terra SpatRaster objects are wrapped when exported to rds file
-srtm_ras <- terra::rast(srtm)
+srtm_ras <- terra::rast(srtm_path)
 terra::crs(srtm_ras) <- "EPSG:5070"
 srtm_ras
 #> class       : SpatRaster 
@@ -256,16 +258,15 @@ terra::plot(srtm_ras)
 system.time(
   ncpoints_srtm <-
     chopin::extract_at(
-      x = srtm,
+      x = srtm_ras,
       y = ncpoints,
       id = "pid",
       mode = "buffer",
       radius = 1e4L  # 10,000 meters (10 km)
     )
 )
-#> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   5.458   0.088   5.580
+#>   6.021   0.109   5.733
 ```
 
 #### Generate regular grid computational regions
@@ -332,13 +333,15 @@ system.time(
     par_grid(
       grids = compregions,
       fun_dist = extract_at,
-      x = srtm,
+      x = srtm_ras,
       y = ncpoints,
       id = "pid",
       radius = 1e4L,
       .standalone = FALSE
     )
 )
+#> ℹ SpatRaster class input is detected.
+#> Attempt to track the data source file path...
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 1 is successfully dispatched.
@@ -352,16 +355,15 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.336   0.045   7.788
+#>   1.508   0.148   8.290
 
 ncpoints_srtm <-
   extract_at(
-    x = srtm,
+    x = srtm_ras,
     y = ncpoints,
     id = "pid",
     radius = 1e4L
   )
-#> Input is a character. Attempt to read it with terra::rast...
 ```
 
 ``` r
@@ -401,16 +403,18 @@ system.time(
     par_grid_mirai(
       grids = compregions,
       fun_dist = extract_at,
-      x = srtm,
+      x = srtm_ras,
       y = ncpoints,
       id = "pid",
       radius = 1e4L,
       .standalone = FALSE
     )
 )
+#> ℹ SpatRaster class input is detected.
+#> Attempt to track the data source file path...
 #> ℹ Input is not a character.
 #>    user  system elapsed 
-#>   0.083   0.000   8.004
+#>   0.964   0.119   7.923
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -434,22 +438,25 @@ CPU thread.
 
 ``` r
 # nc_hierarchy.gpkg includes two layers: county and tracts
-path_nchrchy <- file.path(wdir, "nc_hierarchy.gpkg")
+hierarchy_path <- file.path(tempdir(check = TRUE), "nc_hierarchy.gpkg")
+hierarchy_url <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/nc_hierarchy.gpkg"
+  )
+download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
-nc_data <- path_nchrchy
+nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source 
-#>   `/tmp/RtmpmJUPd2/temp_libpath3b3aa268543/chopin/extdata/nc_hierarchy.gpkg' 
-#>   using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/RtmpqcjL3G/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source 
-#>   `/tmp/RtmpmJUPd2/temp_libpath3b3aa268543/chopin/extdata/nc_hierarchy.gpkg' 
-#>   using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/RtmpqcjL3G/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -471,14 +478,13 @@ future::plan(future.mirai::mirai_multisession, workers = 4L)
 system.time(
   nc_elev_tr_single <-
     chopin::extract_at(
-      x = srtm,
+      x = srtm_ras,
       y = nc_tracts,
       id = "GEOID"
     )
 )
-#> Input is a character. Attempt to read it with terra::rast...
 #>    user  system elapsed 
-#>   0.621   0.010   0.613
+#>   0.756   0.000   0.725
 
 # hierarchical parallelization
 system.time(
@@ -487,116 +493,317 @@ system.time(
       regions = nc_county, # higher level geometry
       regions_id = "GEOID", # higher level unique id
       fun_dist = extract_at,
-      x = srtm,
+      x = srtm_ras,
       y = nc_tracts, # lower level geometry
       id = "GEOID", # lower level unique id
       func = "mean"
     )
 )
+#> ℹ SpatRaster class input is detected.
+#> Attempt to track the data source file path...
 #> ℹ Input is not a character.
 #> ℹ GEOID is used to stratify the process.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37037 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37001 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37057 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37069 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37155 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37109 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37027 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37063 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37145 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37115 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37151 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37131 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37013 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37159 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37051 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37153 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37093 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37025 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37029 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37169 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37031 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37005 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37139 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37193 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37003 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37083 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37163 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37189 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37173 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37011 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37045 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37125 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37067 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37077 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37185 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37137 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37033 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37107 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37075 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37073 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37161 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37187 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37007 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37135 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37049 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37195 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37061 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37087 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37081 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37099 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37097 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37091 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37149 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37165 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37085 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37105 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37017 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37039 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37035 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37177 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37113 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37143 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37095 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37071 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37101 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37015 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37167 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37079 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37129 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37147 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37141 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37179 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37121 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37133 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37065 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37119 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37199 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37197 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37023 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37191 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37059 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37111 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37183 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37053 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37103 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37041 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37021 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37157 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37117 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37089 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37127 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37009 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37019 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37123 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37181 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37175 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37171 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37043 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37055 is dispatched.
-#> Input is a character. Attempt to read it with terra::rast...ℹ Your input function at 37047 is dispatched.
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37037 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37001 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37057 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37069 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37155 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37109 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37027 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37063 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37145 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37115 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37151 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37131 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37013 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37159 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37051 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37153 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37093 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37025 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37029 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37169 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37031 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37005 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37139 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37193 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37003 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37083 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37163 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37189 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37173 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37011 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37045 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37125 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37067 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37077 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37185 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37137 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37033 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37107 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37075 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37073 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37161 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37187 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37007 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37135 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37049 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37195 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37061 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37087 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37081 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37099 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37097 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37091 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37149 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37165 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37085 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37105 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37017 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37039 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37035 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37177 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37113 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37143 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37095 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37071 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37101 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37015 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37167 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37079 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37129 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37147 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37141 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37179 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37121 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37133 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37065 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37119 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37199 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37197 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37023 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37191 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37059 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37111 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37183 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37053 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37103 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37041 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37021 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37157 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37117 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37089 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37127 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37009 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37019 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37123 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37181 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37175 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37171 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37043 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37055 is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   0.419   0.033   7.799
+#>   1.600   0.166   7.868
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -609,10 +816,10 @@ North Carolina.
 
 ``` r
 # nccnty <- sf::st_read(nc_data, layer = "county")
-ncelev <- terra::rast(srtm)
+ncelev <- terra::rast(srtm_path)
 terra::crs(ncelev) <- "EPSG:5070"
 names(ncelev) <- c("srtm15")
-tdir <- tempdir()
+tdir <- tempdir(check = TRUE)
 
 terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
 terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)
@@ -623,9 +830,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpiW9fAm/test1.tif" "/tmp/RtmpiW9fAm/test2.tif"
-#> [3] "/tmp/RtmpiW9fAm/test3.tif" "/tmp/RtmpiW9fAm/test4.tif"
-#> [5] "/tmp/RtmpiW9fAm/test5.tif"
+#> [1] "/tmp/RtmpqcjL3G/nc_srtm15_otm.tif" "/tmp/RtmpqcjL3G/test1.tif"        
+#> [3] "/tmp/RtmpqcjL3G/test2.tif"         "/tmp/RtmpqcjL3G/test3.tif"        
+#> [5] "/tmp/RtmpqcjL3G/test4.tif"         "/tmp/RtmpqcjL3G/test5.tif"
 ```
 
 ``` r
@@ -642,38 +849,41 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpiW9fAm/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpqcjL3G/nc_srtm15_otm.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpiW9fAm/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpqcjL3G/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpiW9fAm/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpqcjL3G/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpiW9fAm/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpqcjL3G/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpiW9fAm/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpqcjL3G/test4.tif is dispatched.
+#> 
+#> Input is a character. Attempt to read it with terra::rast...
+#> ℹ Your input function at /tmp/RtmpqcjL3G/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.288   0.090   2.901
+#>   1.471   0.206   2.572
 knitr::kable(head(res))
 ```
 
-|      mean | base\_raster              |
-| --------: | :------------------------ |
-| 136.80203 | /tmp/RtmpiW9fAm/test1.tif |
-| 189.76170 | /tmp/RtmpiW9fAm/test1.tif |
-| 231.16968 | /tmp/RtmpiW9fAm/test1.tif |
-|  98.03845 | /tmp/RtmpiW9fAm/test1.tif |
-|  41.23463 | /tmp/RtmpiW9fAm/test1.tif |
-| 270.96933 | /tmp/RtmpiW9fAm/test1.tif |
+|      mean | base_raster                       |
+|----------:|:----------------------------------|
+| 136.80203 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
+| 189.76170 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
+| 231.16968 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
+|  98.03845 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
+|  41.23463 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
+| 270.96933 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
 
 ``` r
 
 # remove temporary raster files
 file.remove(testfiles)
-#> [1] TRUE TRUE TRUE TRUE TRUE
+#> [1] TRUE TRUE TRUE TRUE TRUE TRUE
 ```
 
 <!--| GEOID |      mean |
@@ -694,17 +904,23 @@ support generic geospatial operations. An example below uses
 `chopin::par_grid()`.
 
 ``` r
-path_ncrd1 <- file.path(wdir, "ncroads_first.gpkg")
+ncrd1_path <- file.path(tempdir(check = TRUE), "ncroads_first.gpkg")
+ncrd1_url <-
+  paste0(
+    "https://raw.githubusercontent.com/",
+    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "tests/testdata/ncroads_first.gpkg"
+  )
+download.file(ncrd1_url, ncrd1_path, mode = "wb")
 
 # Generate 5000 random points
 pnts <- sf::st_sample(nc_county, 5000)
 pnts <- sf::st_as_sf(pnts)
 # assign identifiers
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
-rd1 <- sf::st_read(path_ncrd1)
+rd1 <- sf::st_read(ncrd1_path)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/RtmpmJUPd2/temp_libpath3b3aa268543/chopin/extdata/ncroads_first.gpkg' 
-#>   using driver `GPKG'
+#>   `/tmp/RtmpqcjL3G/ncroads_first.gpkg' using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
 #> Dimension:     XY
@@ -756,11 +972,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.396   0.000   0.397
+#>   0.459   0.003   0.415
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/RtmpiW9fAm/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/RtmpqcjL3G/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -770,7 +986,7 @@ system.time(
       grids = nccompreg,
       fun_dist = nearest,
       x = pnt_path,
-      y = path_ncrd1,
+      y = ncrd1_path,
       pad_y = TRUE
     )
 )
@@ -806,13 +1022,11 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.058   0.010   0.401
+#>   0.076   0.000   0.359
 ```
 
-  - We will compare the results from the single-thread and multi-thread
-    calculation.
-
-<!-- end list -->
+- We will compare the results from the single-thread and multi-thread
+  calculation.
 
 ``` r
 resj <- merge(restr, resd, by = c("from_x", "from_y"))

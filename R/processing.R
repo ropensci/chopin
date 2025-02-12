@@ -73,7 +73,7 @@ kernelfunction <-
 
   name_surf_val <-
     ifelse(terra::nlyr(x_ras) == 1,
-            "value", names(x_ras))
+           "value", names(x_ras))
 
   # convert to data.frame
   coords_df <- as.data.frame(y_vec, geom = "XY")
@@ -268,28 +268,34 @@ kernelfunction <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' rastpath <- system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+#' rastpath <- file.path(tempdir(), "test.tif")
 #'
 #' nc <- terra::vect(ncpath)
 #' nc <- terra::project(nc, "EPSG:5070")
-#' rrast <- terra::rast(nc, nrow = 100, ncol = 220)
-#' ncr <- terra::rasterize(nc, rrast)
-#' terra::values(rrast) <- rgamma(2.2e4, 4, 2)
+#' rrast <- terra::rast(nc, nrow = 300, ncol = 660)
+#' terra::values(rrast) <- rgamma(1.98e5, 4, 2)
 #' rpnt <- terra::spatSample(rrast, 16L, as.points = TRUE)
 #' rpnt$pid <- sprintf("ID-%02d", seq(1, 16))
 #'
 #' extract_at(rrast, rpnt, "pid", "mean", radius = 1000)
 #' extract_at(rrast, nc, "NAME", "mean")
 #' extract_at(rrast, ncpath, "NAME", "mean")
-#' extract_at(
-#'   rrast, ncpath, "NAME", "mean",
-#'   kernel = "epanechnikov",
-#'   bandwidth = 1e5
+#' # Using SpatRaster object
+#' suppressWarnings(
+#'   extract_at(
+#'     rrast, ncpath, "NAME", "mean",
+#'     kernel = "epanechnikov",
+#'     bandwidth = 1e5
+#'   )
 #' )
-#' extract_at(
-#'   rastpath, ncpath, "NAME", "mean",
-#'   kernel = "epanechnikov",
-#'   bandwidth = 1e5
+#' # Using raster path
+#' terra::writeRaster(rrast, rastpath, overwrite = TRUE)
+#' suppressWarnings(
+#'   extract_at(
+#'     rastpath, ncpath, "NAME", "mean",
+#'     kernel = "epanechnikov",
+#'     bandwidth = 1e5
+#'   )
 #' )
 #' @export
 setGeneric("extract_at", function(x, y, ...) standardGeneric("extract_at"))
@@ -586,7 +592,9 @@ setMethod(
 #' pnt_to$val2 <- rgamma(100L, 2, 1)
 #'
 #' vals <- c("val1", "val2")
-#' summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+#' suppressWarnings(
+#'   summarize_sedc(pnt_from, pnt_to, "NAME", 1e5, 2e5, vals)
+#' )
 #' @importFrom dplyr as_tibble left_join summarize mutate group_by all_of
 #' @importFrom dplyr across ungroup
 #' @importFrom terra nearby distance buffer
@@ -724,14 +732,14 @@ summarize_sedc <-
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
 #' nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
-#' nc <- sf::st_transform(nc, 5070)
+#' nc <- sf::st_transform(nc, "EPSG:5070")
 #' pp <- sf::st_sample(nc, size = 300)
 #' pp <- sf::st_as_sf(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' sf::st_crs(pp) <- "EPSG:5070"
 #' ppb <- sf::st_buffer(pp, nQuadSegs=180, dist = units::set_units(20, "km"))
 #'
-#' system.time(
+#' suppressWarnings(
 #'   ppb_nc_aw <-
 #'     summarize_aw(
 #'       ppb, nc, c("BIR74", "BIR79"),
@@ -743,16 +751,12 @@ summarize_sedc <-
 #' # terra examples
 #' library(terra)
 #' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' elev <- system.file("ex/elev.tif", package = "terra")
 #' nc <- terra::vect(ncpath)
-#' elev <- terra::rast(elev)
 #' pp <- terra::spatSample(nc, size = 300)
-#' pp <- terra::project(pp, crs(elev))
-#' pp <- terra::as.points(pp)
 #' pp[["id"]] <- seq(1, nrow(pp))
 #' ppb <- terra::buffer(pp, 20000)
 #'
-#' system.time(
+#' suppressWarnings(
 #'   ppb_nc_aw <-
 #'     summarize_aw(
 #'       ppb, nc, c("BIR74", "BIR79"), "id",

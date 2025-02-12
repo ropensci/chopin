@@ -33,9 +33,16 @@
 #' * North Carolinian counties and a raster of elevation data are used as example data.
 #'
 #' ```r
-#' nccnty_path <- system.file("extdata", "nc_hierarchy.gpkg", package = "chopin")
-#' ncelev_path <-
-#'   system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+#' temp_dir <- tempdir(check = TRUE)
+#'
+#' url_nccnty <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_hierarchy.gpkg"
+#' url_ncelev <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_srtm15_otm.tif"
+#' nccnty_path <- file.path(temp_dir, "nc_hierarchy.gpkg")
+#' ncelev_path <- file.path(temp_dir, "nc_srtm15_otm.tif")
+#'
+#' # download data
+#' download.file(url_nccnty, nccnty_path, quiet = TRUE)
+#' download.file(url_ncelev, ncelev_path, quiet = TRUE)
 #' nccnty <- terra::vect(nccnty_path)
 #' ncelev <- terra::rast(ncelev_path)
 #' ```
@@ -125,9 +132,7 @@
 #' * Here we demonstrate multiraster processing of the random points using multiple rasters.
 #'
 #' ```r
-#' ncelev <-
-#'   system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
-#' ncelev <- terra::rast(ncelev)
+#' ncelev <- terra::rast(ncelev_path)
 #' tdir <- tempdir(check = TRUE)
 #' terra::writeRaster(ncelev, file.path(tdir, "test1.tif"), overwrite = TRUE)
 #' terra::writeRaster(ncelev, file.path(tdir, "test2.tif"), overwrite = TRUE)

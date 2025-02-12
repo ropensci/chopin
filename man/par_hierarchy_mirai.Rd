@@ -109,11 +109,22 @@ library(mirai)
 options(sf_use_s2 = FALSE)
 mirai::daemons(4, dispatcher = "process")
 
-ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
-nccnty <- sf::st_read(ncpath, layer = "county")
-nctrct <- sf::st_read(ncpath, layer = "tracts")
-ncelev <-
-  system.file("extdata/nc_srtm15_otm.tif", package = "chopin")
+nccnty <- sf::st_read(
+  system.file("shape/nc.shp", package = "sf")
+)
+nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+
+nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+nccntygrid <- sf::st_as_sf(nccntygrid)
+nccntygrid$GEOID <- sprintf("\%05d", seq_len(nrow(nccntygrid)))
+nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+
+rrast <- terra::rast(nccnty, nrow = 600, ncol = 1320)
+terra::values(rrast) <- rgamma(7.92e5, 4, 2)
+
+# Using raster path
+rastpath <- file.path(tempdir(), "ncelev.tif")
+terra::writeRaster(rrast, rastpath, overwrite = TRUE)
 
 ncsamp <-
   sf::st_sample(
@@ -127,10 +138,10 @@ ncsamp$kid <- sprintf("K-\%05d", seq_len(nrow(ncsamp)))
 res <-
   par_hierarchy_mirai(
     regions = nccnty,
-    regions_id = "GEOID",
+    regions_id = "FIPS",
     fun_dist = extract_at,
-    y = nctrct,
-    x = ncelev,
+    y = nccntygrid,
+    x = rastpath,
     id = "GEOID",
     func = "mean",
     .debug = TRUE

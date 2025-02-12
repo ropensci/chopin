@@ -1,5 +1,6 @@
 # 0.9
 - `mirai` based `par_*` functions for parallelization
+- `inst/extdata` contents were moved to `tests/testdata` in 0.9.1
 
 # 0.8
 - Bumped version from 0.7.8 to 0.8.0: improving package coverage
