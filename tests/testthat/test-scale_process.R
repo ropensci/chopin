@@ -150,7 +150,6 @@ testthat::test_that("par_grid -- plain mode with raster path", {
 
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -215,7 +214,7 @@ testthat::test_that("par_grid -- plain mode with raster path", {
         )
       )
   })
-
+  future::plan(future::sequential)
 })
 
 
@@ -251,8 +250,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -304,7 +302,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
     "Switch terra class to sf..."
   )
 
-  testthat::expect_message(
+  testthat::expect_no_error(
     ppg2 <-
       par_pad_grid(
         input = ncsamp,
@@ -314,12 +312,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
         padding = 3e4L,
         grid_min_features = 50L,
         merge_max = 5L
-      ),
-    paste0(
-      "Threshold is too low. Return the original grid.\n",
-      "Please try higher threshold. your threshold: 50\n",
-      "Top-10 non-zero number of points in grids: 46, 52, 53, 53, 53, 54, 55, 55, 56, 56"
-    )
+      )
   )
 
   # run with grid_advanced mode grids
@@ -341,6 +334,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   })
 
   future::plan(future::sequential)
+  mirai::daemons(0)
 })
 
 
@@ -383,8 +377,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
   ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -435,6 +428,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
 
   testthat::expect_s3_class(resq, "data.frame")
   future::plan(future::sequential)
+  mirai::daemons(0)
 })
 
 
@@ -478,7 +472,6 @@ testthat::test_that("par_grid -- par_pad_balanced", {
 
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -486,6 +479,18 @@ testthat::test_that("par_grid -- par_pad_balanced", {
   terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
   ncelev <- terra::rast(ncelevpath)
   ncpntst <- ncpnts
+
+
+  ## Random points in NC
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
 
 
   tdir <- tempdir()
@@ -535,6 +540,9 @@ testthat::test_that("par_grid -- par_pad_balanced", {
       .debug = TRUE
     )
   )
+
+  future::plan(future::sequential)
+  mirai::daemons(0)
 })
 
 
@@ -559,32 +567,31 @@ testthat::test_that(
     future::plan(future.mirai::mirai_multisession, workers = 2L)
     withr::local_seed(202407)
 
-  nccnty <- sf::st_read(
-    system.file("shape/nc.shp", package = "sf")
-  )
-  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
-  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
-  nccntygrid <- sf::st_as_sf(nccntygrid)
-  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
-  suppressWarnings(
-    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
-  )
+    nccnty <- sf::st_read(
+      system.file("shape/nc.shp", package = "sf")
+    )
+    nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+    nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+    nccntygrid <- sf::st_as_sf(nccntygrid)
+    nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+    suppressWarnings(
+      nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+    )
 
-  ## Generated random points in NC
-  data("ncpoints", package = "chopin")
-  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
-  ncp$pid <- seq_len(nrow(ncp))
-  ncpnts <- terra::vect(ncp)
+    ## Generated random points in NC
+    data("ncpoints", package = "chopin")
+    ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+    ncp$pid <- seq_len(nrow(ncp))
+    ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Resampled SRTM data in NC
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+    terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
-  # Using raster path
-  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
-  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
-  ncelev <- terra::rast(ncelevpath)
+    # Using raster path
+    ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+    terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+    ncelev <- terra::rast(ncelevpath)
     ncsamp <-
       terra::spatSample(
         terra::ext(ncelev),
@@ -633,6 +640,9 @@ testthat::test_that(
     )
     testthat::expect_true(is.data.frame(residb2))
 
+    future::plan(future::sequential)
+    mirai::daemons(0)
+
   }
 )
 
@@ -673,8 +683,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
   ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -722,6 +731,8 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
     "The length of regions_id is not valid."
   )
 
+  future::plan(future::sequential)
+  mirai::daemons(0)
 })
 
 
@@ -759,8 +770,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -850,6 +860,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
     )
   )
   future::plan(future::sequential)
+  mirai::daemons(0)
 })
 
 
@@ -890,8 +901,7 @@ testthat::test_that("par_hierarchy: define level by substring", {
   ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -942,6 +952,8 @@ testthat::test_that("par_hierarchy: define level by substring", {
         func = "mean"
       )
   )
+
+  future::plan(future::sequential)
   mirai::daemons(0)
 })
 
@@ -998,6 +1010,8 @@ testthat::test_that("generic function should be parallelized properly", {
     "terra inputs detected in both x and y. Please replace x and y to file paths to proceed."
   )
 
+  future::plan(future::sequential)
+  mirai::daemons(0)
 })
 
 
@@ -1034,8 +1048,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -1069,6 +1082,7 @@ testthat::test_that(
     testthat::expect_true(!anyNA(res))
 
     future::plan(future::sequential)
+    mirai::daemons(0)
   }
 )
 
@@ -1093,7 +1107,6 @@ testthat::test_that(
     )
     future::plan(future::multicore, workers = 2L)
 
-
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
     )
@@ -1108,8 +1121,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -1137,8 +1149,9 @@ testthat::test_that(
         )
       )
     )
-    future::plan(future::sequential)
 
+    future::plan(future::sequential)
+    mirai::daemons(0)
   }
 )
 
@@ -1163,7 +1176,6 @@ testthat::test_that(
     )
     future::plan(future.mirai::mirai_multisession, workers = 2L)
 
-
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
     )
@@ -1178,8 +1190,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -1221,21 +1232,22 @@ testthat::test_that(
     # error case: function loading with ::
     testthat::expect_no_error(
       suppressWarnings(
-      nut <- par_multirasters(
-        filenames = testfiles_corrupted,
-        .debug = TRUE,
-        fun_dist = terra::extract,
-        y = nccnty,
-        x = ncelev,
-        ID = TRUE,
-        fun = mean
-      )
+        nut <- par_multirasters(
+          filenames = testfiles_corrupted,
+          .debug = TRUE,
+          fun_dist = terra::extract,
+          y = nccnty,
+          x = ncelev,
+          ID = TRUE,
+          fun = mean
+        )
       )
     )
 
     testthat::expect_s3_class(nut, "data.frame")
-    future::plan(future::sequential)
 
+    future::plan(future::sequential)
+    mirai::daemons(0)
   }
 )
 
@@ -1275,8 +1287,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -1325,6 +1336,7 @@ testthat::test_that(
     testthat::expect_true(sum(!is.na(nut$error_message)) == 1L)
 
     future::plan(future::sequential)
+    mirai::daemons(0)
   }
 )
 

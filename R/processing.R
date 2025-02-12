@@ -73,7 +73,7 @@ kernelfunction <-
 
   name_surf_val <-
     ifelse(terra::nlyr(x_ras) == 1,
-            "value", names(x_ras))
+           "value", names(x_ras))
 
   # convert to data.frame
   coords_df <- as.data.frame(y_vec, geom = "XY")

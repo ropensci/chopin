@@ -127,8 +127,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -223,8 +222,7 @@ testthat::test_that("par_hierarchy_mirai: define level by substring", {
   ncpnts <- terra::vect(ncp)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -275,7 +273,7 @@ testthat::test_that("par_hierarchy_mirai: define level by substring", {
         func = "mean"
       )
   )
-
+  mirai::daemons(0)
 })
 
 
@@ -347,7 +345,6 @@ testthat::test_that(
     )
     mirai::daemons(4, dispatcher = "process")
 
-
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
     )
@@ -362,8 +359,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -418,7 +414,6 @@ testthat::test_that(
     )
     mirai::daemons(4, dispatcher = "process")
 
-
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
     )
@@ -433,8 +428,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -466,7 +460,6 @@ testthat::test_that(
 
   }
 )
-
 
 
 testthat::test_that(
@@ -502,8 +495,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path
@@ -594,8 +586,7 @@ testthat::test_that(
     ncpnts <- terra::vect(ncp)
 
     ## Resampled SRTM data in NC
-    ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-    ncr <- terra::rasterize(ncpoly, ras)
+    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
     terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
     # Using raster path

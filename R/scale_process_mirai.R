@@ -43,9 +43,14 @@
 #' daemons(4, dispatcher = "process")
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' ncpoly <- sf::st_read(ncpath)
+#' ncpoly <- sf::st_transform("EPSG:5070")
+#'
 #' # sf object
 #' ncpnts <-
 #'   sf::st_sample(ncpoly, 2000)
+#' ncpnts <- sf::st_as_sf(ncpnts)
+#' ncpnts$pid <- seq_len(nrow(ncpnts))
+#'
 #' # file path
 #' rrast <- terra::rast(nc, nrow = 1000, ncol = 2200)
 #' ncr <- terra::rasterize(nc, rrast)

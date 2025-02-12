@@ -19,8 +19,7 @@ testthat::test_that("extract_at -- character-character inputs", {
   nccntytr <- terra::vect(nccnty)
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -108,12 +107,20 @@ testthat::test_that("extract_at -- SpatRaster-character inputs", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # starts from sf/stars
-  ncp <- readRDS(rppath)
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  nccnty <- sf::st_read(nccnty)
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+  nccntyp <- suppressWarnings(
+    sf::st_centroid(nccnty, of_largest_polygon = TRUE)
+  )
+  nccntypath <- file.path(tempdir(check = TRUE), "nc5070.gpkg")
+  suppressWarnings(
+    sf::st_write(nccntyp, nccntypath, delete_dsn = TRUE)
+  )
+
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -123,7 +130,7 @@ testthat::test_that("extract_at -- SpatRaster-character inputs", {
 
   # test two modes
   ncexpoly <-
-    chopin::extract_at(
+    extract_at(
       ncelev,
       nccnty,
       "FIPS"
@@ -131,18 +138,16 @@ testthat::test_that("extract_at -- SpatRaster-character inputs", {
   testthat::expect_s3_class(ncexpoly, "data.frame")
 
   testthat::expect_warning(
-    testthat::expect_warning(
+    testthat::expect_message(
       testthat::expect_message(
-        testthat::expect_message(
-          chopin::extract_at(
-            ncelev,
-            nccnty,
-            "FIPS",
-            radius = 100,
-            kernel = "epanechnikov",
-            func = stats::weighted.mean,
-            bandwidth = 1.25e4L
-          )
+        extract_at(
+          x = ncelev,
+          y = nccntypath,
+          id = "FIPS",
+          radius = 100L,
+          kernel = "epanechnikov",
+          func = stats::weighted.mean,
+          bandwidth = 1.25e4L
         )
       )
     )
@@ -163,10 +168,10 @@ testthat::test_that("extract_at -- character-sf inputs", {
   ncp <- sf::st_transform(ncp, "EPSG:5070")
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- sf::st_read(nccnty)
+  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -213,10 +218,10 @@ testthat::test_that("extract_at -- character-SpatVector inputs", {
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
   nccnty <- terra::vect(nccnty)
+  nccnty <- terra::project(nccnty, "EPSG:5070")
 
   ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -264,9 +269,11 @@ testthat::test_that(".extract_at + character inputs without kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -290,9 +297,11 @@ testthat::test_that(".extract_at + terra inputs without kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
+
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -323,9 +332,10 @@ testthat::test_that(".extract_at + terra/sf inputs without kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -352,10 +362,11 @@ testthat::test_that(".extract_at + character inputs with kernel weighting", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
 
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -442,10 +453,11 @@ testthat::test_that(".kernel_weighting works", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
 
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -497,10 +509,11 @@ testthat::test_that("Character input works", {
   sf::st_write(ncp, ncpfile, append = FALSE)
 
   nccnty <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- sf::st_read(nccnty)
+  ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
 
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
