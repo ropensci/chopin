@@ -149,6 +149,7 @@ res <-
     id = "GEOID",
     func = "mean"
   )
+future::plan(future::sequential)
 }
 \seealso{
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},
