@@ -148,9 +148,9 @@ testthat::test_that("par_grid -- plain mode with raster path", {
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(ncpoly, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -234,7 +234,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   # Reading data
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
-  )
+  )[seq_len(30L), ]
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
   nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -249,9 +249,9 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   ncp$pid <- seq_len(nrow(ncp))
   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -361,7 +361,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
 
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
-  )
+  )[seq_len(30L), ]
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
   nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -376,9 +376,9 @@ testthat::test_that("par_grid -- grid_quantile mode", {
   ncp$pid <- seq_len(nrow(ncp))
   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -455,7 +455,7 @@ testthat::test_that("par_grid -- par_pad_balanced", {
 
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
-  )
+  )[seq_len(30L), ]
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
   nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -470,9 +470,9 @@ testthat::test_that("par_grid -- par_pad_balanced", {
   ncp$pid <- seq_len(nrow(ncp))
   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -569,7 +569,7 @@ testthat::test_that(
 
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
-    )
+    )[seq_len(30L), ]
     nccnty <- sf::st_transform(nccnty, "EPSG:5070")
     nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
     nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -584,9 +584,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -1047,9 +1047,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -1120,9 +1120,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -1286,9 +1286,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")

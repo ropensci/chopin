@@ -55,8 +55,8 @@ nccnty_path <- file.path(temp_dir, "nc_hierarchy.gpkg")
 ncelev_path <- file.path(temp_dir, "nc_srtm15_otm.tif")
 
 # download data
-download.file(url_nccnty, nccnty_path, quiet = TRUE)
-download.file(url_ncelev, ncelev_path, quiet = TRUE)
+download.file(url_nccnty, nccnty_path, mode = "wb", quiet = TRUE)
+download.file(url_ncelev, ncelev_path, mode = "wb", quiet = TRUE)
 
 nccnty <- terra::vect(nccnty_path)
 ncelev <- terra::rast(ncelev_path)
