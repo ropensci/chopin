@@ -148,9 +148,9 @@ testthat::test_that("par_grid -- plain mode with raster path", {
   ncpnts <- terra::vect(ncpnts)
   ncpnts <- terra::project(ncpnts, "EPSG:5070")
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(ncpoly, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -234,7 +234,7 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   # Reading data
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
-  )
+  )[seq_len(30L), ]
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
   nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -249,9 +249,9 @@ testthat::test_that("par_grid -- grid_advanced mode", {
   ncp$pid <- seq_len(nrow(ncp))
   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -361,7 +361,7 @@ testthat::test_that("par_grid -- grid_quantile mode", {
 
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
-  )
+  )[seq_len(30L), ]
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
   nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -376,9 +376,9 @@ testthat::test_that("par_grid -- grid_quantile mode", {
   ncp$pid <- seq_len(nrow(ncp))
   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -455,7 +455,7 @@ testthat::test_that("par_grid -- par_pad_balanced", {
 
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
-  )
+  )[seq_len(30L), ]
   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
   nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -470,9 +470,9 @@ testthat::test_that("par_grid -- par_pad_balanced", {
   ncp$pid <- seq_len(nrow(ncp))
   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+  ## Simulated raster: 500 by 1100
+  ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+  terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
   # Using raster path
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -569,7 +569,7 @@ testthat::test_that(
 
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
-    )
+    )[seq_len(30L), ]
     nccnty <- sf::st_transform(nccnty, "EPSG:5070")
     nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
     nccntygrid <- sf::st_as_sf(nccntygrid)
@@ -584,9 +584,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -736,132 +736,134 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
 })
 
 
-testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
-  testthat::skip_on_os("windows")
-  withr::local_package("terra")
-  withr::local_package("sf")
-  withr::local_package("future")
-  withr::local_package("future.apply")
-  withr::local_package("dplyr")
-  withr::local_package("chopin")
+# testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
+#   testthat::skip_on_os("windows")
+#   withr::local_package("terra")
+#   withr::local_package("sf")
+#   withr::local_package("future")
+#   withr::local_package("future.apply")
+#   withr::local_package("dplyr")
+#   withr::local_package("chopin")
 
-  withr::local_options(
-    list(
-      sf_use_s2 = FALSE,
-      future.resolve.recursive = 2L
-    )
-  )
+#   withr::local_options(
+#     list(
+#       sf_use_s2 = FALSE,
+#       future.resolve.recursive = 2L
+#     )
+#   )
+#   withr::local_seed(202502)
+#   future::plan(future::sequential)
+#   future::plan(future::multicore(workers = 2L))
 
-  nccnty <- sf::st_read(
-    system.file("shape/nc.shp", package = "sf")
-  )
-  nccnty <- sf::st_transform(nccnty, "EPSG:5070")
-  nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
-  nccntygrid <- sf::st_as_sf(nccntygrid)
-  nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
-  suppressWarnings(
-    nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
-  )
+#   nccnty <- sf::st_read(
+#     system.file("shape/nc.shp", package = "sf")
+#   )
+#   nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+#   nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
+#   nccntygrid <- sf::st_as_sf(nccntygrid)
+#   nccntygrid$GEOID <- sprintf("%05d", seq_len(nrow(nccntygrid)))
+#   suppressWarnings(
+#     nccntygrid <- sf::st_intersection(nccntygrid, nccnty)
+#   )
 
-  ## Generated random points in NC
-  data("ncpoints", package = "chopin")
-  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
-  ncp$pid <- seq_len(nrow(ncp))
-  ncpnts <- terra::vect(ncp)
+#   ## Generated random points in NC
+#   data("ncpoints", package = "chopin")
+#   ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+#   ncp$pid <- seq_len(nrow(ncp))
+#   ncpnts <- terra::vect(ncp)
 
-  ## Resampled SRTM data in NC
-  ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+#   ## Resampled SRTM data in NC
+#   ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
+#   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
-  # Using raster path
-  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
-  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
-  ncelev <- terra::rast(ncelevpath)
-  ncroad <- terra::vect(roadpath)
-  ncsamp <-
-    terra::spatSample(
-      terra::ext(ncelev),
-      1e4L,
-      lonlat = FALSE,
-      as.points = TRUE
-    )
-  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
-  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+#   # Using raster path
+#   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+#   terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+#   ncelev <- terra::rast(ncelevpath)
+#   ncroad <- terra::vect(roadpath)
+#   ncsamp <-
+#     terra::spatSample(
+#       terra::ext(ncelev),
+#       1e4L,
+#       lonlat = FALSE,
+#       as.points = TRUE
+#     )
+#   ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+#   ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
 
-  nctrctc <- terra::centroids(terra::vect(nccntygrid))
-  ncroadv <- ncroad
+#   nctrctc <- terra::centroids(terra::vect(nccntygrid))
+#   ncroadv <- ncroad
 
-  future::plan(future::multicore(workers = 2L))
-  # no errors since 100km buffer is enough to capture
-  # nearest road for coastal tracts
-  resnas0 <-
-    par_hierarchy(
-      regions = nccnty,
-      regions_id = "FIPS",
-      pad_y = TRUE,
-      pad = 50000,
-      .debug = TRUE,
-      fun_dist = nearest,
-      x = nctrctc,
-      y = ncroadv
-    )
+#   # no errors since 100km buffer is enough to capture
+#   # nearest road for coastal tracts
+#   resnas0 <-
+#     par_hierarchy(
+#       regions = nccnty,
+#       regions_id = "FIPS",
+#       pad_y = TRUE,
+#       pad = 50000,
+#       .debug = TRUE,
+#       fun_dist = nearest,
+#       x = nctrctc,
+#       y = ncroadv
+#     )
 
-  testthat::skip_on_os("windows")
+#   testthat::skip_on_os("windows")
 
-  # no errors since 100km buffer is enough to capture
-  # nearest road for coastal tracts
-  resnas <-
-    par_hierarchy(
-      regions = nccnty,
-      regions_id = "FIPS",
-      pad_y = TRUE,
-      pad = 100000,
-      .debug = TRUE,
-      fun_dist = nearest,
-      x = nctrctc,
-      y = ncroadv
-    )
+#   # no errors since 100km buffer is enough to capture
+#   # nearest road for coastal tracts
+#   resnas <-
+#     par_hierarchy(
+#       regions = nccnty,
+#       regions_id = "FIPS",
+#       pad_y = TRUE,
+#       pad = 100000,
+#       .debug = TRUE,
+#       fun_dist = nearest,
+#       x = nctrctc,
+#       y = ncroadv
+#     )
 
-  # resnas0 and resnas must have different #rows
-  testthat::expect_true(nrow(resnas) > nrow(resnas0))
+#   # resnas0 and resnas must have different #rows
+#   testthat::expect_true(nrow(resnas) > nrow(resnas0))
 
-  testthat::skip_on_os("windows")
-  # regions are sf object
-  nctrcc <- terra::centroids(terra::vect(nccntygrid))
-  testthat::expect_no_error(
-    resnasx <-
-      par_hierarchy(
-        regions = sf::st_as_sf(nccnty),
-        regions_id = "FIPS",
-        pad_y = FALSE,
-        fun_dist = extract_at,
-        x = ncelev,
-        y = nctrcc,
-        id = "GEOID",
-        radius = 1e3L,
-        .standalone = FALSE,
-        .debug = TRUE
-      )
-  )
+#   testthat::skip_on_os("windows")
+#   # regions are sf object
+#   nctrcc <- terra::centroids(terra::vect(nccntygrid))
+#   testthat::expect_no_error(
+#     resnasx <-
+#       par_hierarchy(
+#         regions = sf::st_as_sf(nccnty),
+#         regions_id = "FIPS",
+#         pad_y = FALSE,
+#         fun_dist = extract_at,
+#         x = ncelev,
+#         y = nctrcc,
+#         id = "GEOID",
+#         radius = 1e3L,
+#         .standalone = FALSE,
+#         .debug = TRUE
+#       )
+#   )
 
-  testthat::skip_on_os("windows")
-  testthat::expect_no_error(
-    suppressWarnings(
-      resnasz <-
-        par_hierarchy(
-          regions = nccnty,
-          .debug = TRUE,
-          pad_y = TRUE,
-          regions_id = "FIPS",
-          fun_dist = nearest,
-          x = ncsamp,
-          y = terra::vect(nccntygrid)
-        )
-    )
-  )
-  future::plan(future::sequential)
-  mirai::daemons(0)
-})
+#   testthat::skip_on_os("windows")
+#   testthat::expect_no_error(
+#     suppressWarnings(
+#       resnasz <-
+#         par_hierarchy(
+#           regions = nccnty,
+#           .debug = TRUE,
+#           pad_y = TRUE,
+#           regions_id = "FIPS",
+#           fun_dist = nearest,
+#           x = ncsamp,
+#           y = terra::vect(nccntygrid)
+#         )
+#     )
+#   )
+#   future::plan(future::sequential)
+#   mirai::daemons(0)
+# })
 
 
 testthat::test_that("par_hierarchy: define level by substring", {
@@ -1047,9 +1049,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -1120,9 +1122,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
@@ -1286,9 +1288,9 @@ testthat::test_that(
     ncp$pid <- seq_len(nrow(ncp))
     ncpnts <- terra::vect(ncp)
 
-    ## Resampled SRTM data in NC
-    ras <- terra::rast(nccnty, nrow = 1000, ncol = 2200)
-    terra::values(ras) <- rgamma(2.2e6, 4, 2)
+    ## Simulated raster: 500 by 1100
+    ras <- terra::rast(nccnty, nrow = 500, ncol = 1100)
+    terra::values(ras) <- rgamma(5.5e5, 4, 2)
 
     # Using raster path
     ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")

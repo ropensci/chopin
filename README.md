@@ -266,7 +266,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   6.021   0.109   5.733
+#>   5.979   0.058   5.786
 ```
 
 #### Generate regular grid computational regions
@@ -355,7 +355,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.508   0.148   8.290
+#>   1.447   0.154   9.714
 
 ncpoints_srtm <-
   extract_at(
@@ -414,7 +414,7 @@ system.time(
 #> Attempt to track the data source file path...
 #> ℹ Input is not a character.
 #>    user  system elapsed 
-#>   0.964   0.119   7.923
+#>   0.847   0.132   7.721
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -449,14 +449,14 @@ download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
 nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/RtmpqcjL3G/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/RtmpBBOR7A/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/RtmpqcjL3G/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/RtmpBBOR7A/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -484,7 +484,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.756   0.000   0.725
+#>   0.710   0.000   0.679
 
 # hierarchical parallelization
 system.time(
@@ -803,7 +803,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   1.600   0.166   7.868
+#>   1.449   0.178   7.734
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -830,9 +830,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpqcjL3G/nc_srtm15_otm.tif" "/tmp/RtmpqcjL3G/test1.tif"        
-#> [3] "/tmp/RtmpqcjL3G/test2.tif"         "/tmp/RtmpqcjL3G/test3.tif"        
-#> [5] "/tmp/RtmpqcjL3G/test4.tif"         "/tmp/RtmpqcjL3G/test5.tif"
+#> [1] "/tmp/RtmpBBOR7A/nc_srtm15_otm.tif" "/tmp/RtmpBBOR7A/test1.tif"        
+#> [3] "/tmp/RtmpBBOR7A/test2.tif"         "/tmp/RtmpBBOR7A/test3.tif"        
+#> [5] "/tmp/RtmpBBOR7A/test4.tif"         "/tmp/RtmpBBOR7A/test5.tif"
 ```
 
 ``` r
@@ -849,35 +849,35 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpqcjL3G/nc_srtm15_otm.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpBBOR7A/nc_srtm15_otm.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpqcjL3G/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpBBOR7A/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpqcjL3G/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpBBOR7A/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpqcjL3G/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpBBOR7A/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpqcjL3G/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpBBOR7A/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpqcjL3G/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpBBOR7A/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.471   0.206   2.572
+#>   1.418   0.107   3.952
 knitr::kable(head(res))
 ```
 
 |      mean | base_raster                       |
 |----------:|:----------------------------------|
-| 136.80203 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
-| 189.76170 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
-| 231.16968 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
-|  98.03845 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
-|  41.23463 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
-| 270.96933 | /tmp/RtmpqcjL3G/nc_srtm15_otm.tif |
+| 136.80203 | /tmp/RtmpBBOR7A/nc_srtm15_otm.tif |
+| 189.76170 | /tmp/RtmpBBOR7A/nc_srtm15_otm.tif |
+| 231.16968 | /tmp/RtmpBBOR7A/nc_srtm15_otm.tif |
+|  98.03845 | /tmp/RtmpBBOR7A/nc_srtm15_otm.tif |
+|  41.23463 | /tmp/RtmpBBOR7A/nc_srtm15_otm.tif |
+| 270.96933 | /tmp/RtmpBBOR7A/nc_srtm15_otm.tif |
 
 ``` r
 
@@ -920,7 +920,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(ncrd1_path)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/RtmpqcjL3G/ncroads_first.gpkg' using driver `GPKG'
+#>   `/tmp/RtmpBBOR7A/ncroads_first.gpkg' using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
 #> Dimension:     XY
@@ -972,11 +972,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.459   0.003   0.415
+#>   0.471   0.000   0.449
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/RtmpqcjL3G/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/RtmpBBOR7A/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -1022,7 +1022,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   0.076   0.000   0.359
+#>   0.077   0.001   0.384
 ```
 
 - We will compare the results from the single-thread and multi-thread

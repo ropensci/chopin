@@ -213,7 +213,7 @@ may produce incorrect or unexpected results.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://docs.ropensci.org/chopin}
+  \item \url{https://docs.ropensci.org/chopin/}
   \item \url{https://github.com/ropensci/chopin}
   \item Report bugs at \url{https://github.com/ropensci/chopin/issues}
 }

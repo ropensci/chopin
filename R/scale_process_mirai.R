@@ -684,6 +684,7 @@ par_hierarchy_mirai <-
 #'   system.file("shape/nc.shp", package = "sf")
 #' )
 #' nccnty <- sf::st_transform(nccnty, "EPSG:5070")
+#' nccnty <- nccnty[seq_len(30L), ]
 #'
 #' nccntygrid <- sf::st_make_grid(nccnty, n = c(200, 100))
 #' nccntygrid <- sf::st_as_sf(nccntygrid)
