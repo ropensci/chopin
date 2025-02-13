@@ -751,6 +751,7 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
       future.resolve.recursive = 2L
     )
   )
+  withr::local_seed(202502)
   future::plan(future::sequential)
   future::plan(future::multicore(workers = 2L))
 
