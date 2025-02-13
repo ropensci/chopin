@@ -751,6 +751,8 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
       future.resolve.recursive = 2L
     )
   )
+  future::plan(future::sequential)
+  future::plan(future::multicore(workers = 2L))
 
   nccnty <- sf::st_read(
     system.file("shape/nc.shp", package = "sf")
@@ -791,7 +793,6 @@ testthat::test_that("par_hierarchy: multicore-generic function dispatch", {
   nctrctc <- terra::centroids(terra::vect(nccntygrid))
   ncroadv <- ncroad
 
-  future::plan(future::multicore(workers = 2L))
   # no errors since 100km buffer is enough to capture
   # nearest road for coastal tracts
   resnas0 <-
