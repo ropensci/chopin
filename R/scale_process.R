@@ -872,3 +872,60 @@ par_convert_f <- function(fun, arg_map) {
   }
   return(new_fun)
 }
+
+
+#' Map specified arguments to others in literals
+#'
+#' This function creates a new function that wraps an existing function,
+#' remapping the argument names based on a user-specified literal mapping.
+#' Specifically, arguments passed to the new function with
+#' names on the left-hand side of the mapping are renamed to
+#' the corresponding right-hand side names before being passed to
+#' the original function.
+#'
+#' @param fun A function to be wrapped.
+#' @param ... A set of named arguments representing the mapping from
+#'   the new function's argument names (left-hand side) to the original
+#'   function's argument names (right-hand side).
+#'   For example, \code{x = group, y = score} maps argument
+#'   \code{x} to \code{group} and \code{y} to \code{score}.
+#'
+#' @return A new function that accepts the remapped arguments and
+#'   calls the original function.
+#'
+#' @examples
+#' # Define an original function that expects arguments 'group' and 'score'
+#' original_fun <- function(group, score) {
+#'   list(group = group, score = score)
+#' }
+#'
+#' # Create a new function that maps 'x' to 'group' and 'y' to 'score'
+#' new_fun <- par_convert_f(original_fun, x = group, y = score)
+#'
+#' # Call the new function using the new argument names
+#' result <- new_fun(x = 10, y = 20)
+#' print(result)
+#'
+#' @export
+par_map_args <- function(fun, ...) {
+  arg_map_expr <- as.list(match.call(expand.dots = FALSE)$...)
+  arg_map <- lapply(arg_map_expr, function(x) deparse(x))
+
+  # Create the new function that performs the remapping
+  new_fun <- function(...) {
+    args_in <- list(...)
+    mapped_args <- list()
+
+    for (arg_name in names(args_in)) {
+      if (arg_name %in% names(arg_map)) {
+        # Replace the argument name with the mapped name.
+        new_name <- arg_map[[arg_name]]
+        mapped_args[[new_name]] <- args_in[[arg_name]]
+      } else {
+        mapped_args[[arg_name]] <- args_in[[arg_name]]
+      }
+    }
+    do.call(fun, mapped_args)
+  }
+  return(new_fun)
+}
