@@ -1345,8 +1345,8 @@ testthat::test_that(
 
 # par_map_args tests ####
 testthat::test_that("par_convert_f works", {
-  example_fun <- function(x, y, z = 1) {
-    return(c(x = x, y = y, z = z))
+  example_fun <- function(a, b, z = 1) {
+    return(c(a = a, b = b, z = z))
   }
 
   # Example usage of map_args_xy
@@ -1354,11 +1354,12 @@ testthat::test_that("par_convert_f works", {
     resultfoo <-
       par_convert_f(
         fun = example_fun,
-        arg_map = c(a = "x", b = "y")
+        x = a, y = b
       )
   )
 
   testthat::expect_true(is.function(resultfoo))
-  result <- resultfoo(a = 10, b = 20, z = 5)
+  result <- resultfoo(x = 10, y = 20, z = 5)
   testthat::expect_true(is.vector(result))
+  testthat::expect_true(all(names(result) %in% c("a", "b", "z")))
 })

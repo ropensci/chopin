@@ -842,8 +842,8 @@ par_multirasters <-
 #'
 #' @examples
 #' # Define an original function that expects arguments 'group' and 'score'
-#' original_fun <- function(group, score) {
-#'   list(group = group, score = score)
+#' original_fun <- function(group, score, home = FALSE) {
+#'   list(group = group, score = score, home = home)
 #' }
 #'
 #' # Create a new function that maps 'x' to 'group' and 'y' to 'score'
