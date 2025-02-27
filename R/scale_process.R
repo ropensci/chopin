@@ -816,64 +816,6 @@ par_multirasters <-
 }
 
 
-#' Map arguments to the desired names
-#' @description This function maps the arguments of a target function
-#' to the desired names. Users will use a named list `name_match` to
-#' standardize the argument names, at least x and y, to the target function.
-#' This function is particularly useful to parallelize functions for spatial
-#' data outside `sf` and `terra` packages that do not have arguments
-#' named x and/or y. `par_*` functions could detect such functions by
-#' wrapping nonstandardized functions to parallelize the computation.
-#' @param fun A function to map arguments.
-#' @param arg_map named character vector.
-#'   `c(x = "a", y = "i")` will map `a` and `i` in `fun` to
-#'   `x` and `y`, respectively.
-#' @note `arg_map` should be defined carefully according to the characteristics
-#'   of `fun`. After mapping `x` and `y`, the resultant function will fail
-#'   if there remain arguments without default. It is recommended to map all
-#'   the arguments in `fun` to avoid any side effects.
-#' @returns Function with arguments mapped.
-#' @examples
-#' cov_map <- arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
-#' # Example original function
-#' f1 <- function(a, b, c, d) {
-#'   return(a + b + c + d)
-#' }
-#' # Mapping of new argument names to original argument names
-#' arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
-#' f2 <- par_convert_f(f1, arg_mapping)
-#'
-#' # demonstrate f2 with the mapped arguments
-#' f2(x = 1, y = 2, z = -1, w = 10)
-#' @export
-par_convert_f <- function(fun, arg_map) {
-
-  # Create a new function with the mapped arguments
-  new_fun <- function(...) {
-    # Capture the arguments passed to the new function
-    args_in <- list(...)
-
-    # Initialize an empty list for mapped arguments
-    mapped_args <- list()
-
-    # Loop through each argument in args_in
-    for (arg_name in names(args_in)) {
-      if (arg_name %in% names(arg_map)) {
-        # If the argument name is in arg_map, map it
-        mapped_args[[arg_map[[arg_name]]]] <- args_in[[arg_name]]
-      } else {
-        # Otherwise, keep the original argument name
-        mapped_args[[arg_name]] <- args_in[[arg_name]]
-      }
-    }
-
-    # Call the original function with the mapped arguments
-    do.call(fun, mapped_args)
-  }
-  return(new_fun)
-}
-
-
 #' Map specified arguments to others in literals
 #'
 #' This function creates a new function that wraps an existing function,
@@ -881,7 +823,12 @@ par_convert_f <- function(fun, arg_map) {
 #' Specifically, arguments passed to the new function with
 #' names on the left-hand side of the mapping are renamed to
 #' the corresponding right-hand side names before being passed to
-#' the original function.
+#' the original function. Users map two arguments without `x` and/or `y` to
+#' standardize the argument names, x and y, to the target function.
+#' This function is particularly useful to parallelize functions for spatial
+#' data outside `sf` and `terra` packages that do not have arguments
+#' named x and/or y. `par_*` functions could detect such functions by
+#' wrapping nonstandardized functions to parallelize the computation.
 #'
 #' @param fun A function to be wrapped.
 #' @param ... A set of named arguments representing the mapping from
@@ -907,7 +854,7 @@ par_convert_f <- function(fun, arg_map) {
 #' print(result)
 #'
 #' @export
-par_map_args <- function(fun, ...) {
+par_convert_f <- function(fun, ...) {
   arg_map_expr <- as.list(match.call(expand.dots = FALSE)$...)
   arg_map <- lapply(arg_map_expr, function(x) deparse(x))
 
