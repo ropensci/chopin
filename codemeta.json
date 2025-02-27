@@ -8,7 +8,7 @@
   "codeRepository": "https://github.com/ropensci/chopin",
   "issueTracker": "https://github.com/ropensci/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -370,7 +370,7 @@
     },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "2440.32KB",
+  "fileSize": "2440.709KB",
   "releaseNotes": "https://github.com/ropensci/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/ropensci/chopin/blob/main/README.md",
   "contIntegration": "https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml",
