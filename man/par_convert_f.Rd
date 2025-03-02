@@ -2,45 +2,47 @@
 % Please edit documentation in R/scale_process.R
 \name{par_convert_f}
 \alias{par_convert_f}
-\title{Map arguments to the desired names}
+\title{Map specified arguments to others in literals}
 \usage{
-par_convert_f(fun, arg_map)
+par_convert_f(fun, ...)
 }
 \arguments{
-\item{fun}{A function to map arguments.}
+\item{fun}{A function to be wrapped.}
 
-\item{arg_map}{named character vector.
-\code{c(x = "a", y = "i")} will map \code{a} and \code{i} in \code{fun} to
-\code{x} and \code{y}, respectively.}
+\item{...}{A set of named arguments representing the mapping from
+the new function's argument names (left-hand side) to the original
+function's argument names (right-hand side).
+For example, \code{x = group, y = score} maps argument
+\code{x} to \code{group} and \code{y} to \code{score}.}
 }
 \value{
-Function with arguments mapped.
+A new function that accepts the remapped arguments and
+calls the original function.
 }
 \description{
-This function maps the arguments of a target function
-to the desired names. Users will use a named list \code{name_match} to
-standardize the argument names, at least x and y, to the target function.
+This function creates a new function that wraps an existing function,
+remapping the argument names based on a user-specified literal mapping.
+Specifically, arguments passed to the new function with
+names on the left-hand side of the mapping are renamed to
+the corresponding right-hand side names before being passed to
+the original function. Users map two arguments without \code{x} and/or \code{y} to
+standardize the argument names, x and y, to the target function.
 This function is particularly useful to parallelize functions for spatial
 data outside \code{sf} and \code{terra} packages that do not have arguments
 named x and/or y. \verb{par_*} functions could detect such functions by
 wrapping nonstandardized functions to parallelize the computation.
 }
-\note{
-\code{arg_map} should be defined carefully according to the characteristics
-of \code{fun}. After mapping \code{x} and \code{y}, the resultant function will fail
-if there remain arguments without default. It is recommended to map all
-the arguments in \code{fun} to avoid any side effects.
-}
 \examples{
-cov_map <- arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
-# Example original function
-f1 <- function(a, b, c, d) {
-  return(a + b + c + d)
+# Define an original function that expects arguments 'group' and 'score'
+original_fun <- function(group, score, home = FALSE) {
+  list(group = group, score = score, home = home)
 }
-# Mapping of new argument names to original argument names
-arg_mapping <- c(x = "a", y = "b", z = "c", w = "d")
-f2 <- par_convert_f(f1, arg_mapping)
 
-# demonstrate f2 with the mapped arguments
-f2(x = 1, y = 2, z = -1, w = 10)
+# Create a new function that maps 'x' to 'group' and 'y' to 'score'
+new_fun <- par_convert_f(original_fun, x = group, y = score)
+
+# Call the new function using the new argument names
+result <- new_fun(x = 10, y = 20)
+print(result)
+
 }

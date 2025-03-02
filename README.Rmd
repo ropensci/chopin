@@ -251,6 +251,8 @@ ncpoints_srtm <-
     radius = 1e4L
   )
 
+future::plan(future::sequential)
+mirai::daemons(0L)
 ```
 
 
@@ -274,7 +276,6 @@ plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 The same workflow operates on `mirai` dispatchers.
 
 ```{r demo-par-grid-mirai}
-future::plan(future::sequential)
 mirai::daemons(n = 4L, dispatcher = "process")
 
 system.time(
@@ -490,6 +491,22 @@ all.equal(resj$distance.x, resj$distance.y)
 
 Users should be mindful of caveats in the parallelization of nearest feature search, which may result in no or excess distance depending on the distribution of the target dataset to which the nearest feature is searched. For example, when one wants to calculate the nearest interstate from rural homes with fine grids, some grids may have no interstates then homes in such grids will not get any distance to the nearest interstate. Such problems can be avoided by choosing `nx`, `ny`, and `padding` values in `par_pad_grid()` meticulously.
 
+
+## Map function arguments for `chopin` parallelization
+
+If users' custom function with two main raster/vector arguments whose names are not `x` or `y`, users can use `par_convert_f` to map two arguments to `x` and `y`.
+
+```r
+sf_intersection_buffer <- function(a, b, buffer_dist = 100) {
+  intersected <- st_intersection(a, b)
+  buffered <- st_buffer(intersected, dist = buffer_dist)
+  return(buffered)
+}
+
+# Convert the function to remap arguments dynamically
+custom_intersect_buffer <- par_convert_f(sf_intersection_buffer, x = "a", y = "b", dist = "buffer_dist")
+
+```
 
 ## Caveats
 
