@@ -64,7 +64,7 @@ Processing functions accept [terra](https://github.com/rspatial/terra)/[sf](http
 
 - `extract_at`: extract raster values with point buffers or polygons with or without kernel weights
 
-- `summarize_sedc`: calculate sums of [exponentially decaying contributions](https://mserre.sph.unc.edu/BMElab_web/SEDCtutorial/index.html)
+- `summarize_sedc`: calculate sums of exponentially decaying contributions
 
 - `summarize_aw`: area-weighted covariates based on target and reference polygons
 

@@ -46,6 +46,7 @@ applied. Please be aware of the spatial extent and size of the
 inputs.
 }
 \examples{
+\dontrun{
 library(terra)
 library(sf)
 library(mirai)
@@ -80,6 +81,7 @@ res <- par_multirasters_mirai(
   func = "mean"
 )
 mirai::daemons(0L)
+}
 }
 \seealso{
 \code{\link[mirai:mirai]{mirai::mirai}}, \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link[mirai:daemons]{mirai::daemons}},

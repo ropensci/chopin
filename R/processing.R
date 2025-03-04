@@ -574,7 +574,7 @@ setMethod(
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](\doi{10.1021/es203152a})
+#' * [Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](\doi{doi:10.1021/es203152a})
 #' * Wiesner C. (n.d.). Euclidean Sum of Exponentially Decaying Contributions Tutorial.
 #' @examples
 #' library(terra)

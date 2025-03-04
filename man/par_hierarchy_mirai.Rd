@@ -103,6 +103,7 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
+\dontrun{
 library(terra)
 library(sf)
 library(mirai)
@@ -147,6 +148,7 @@ res <-
     .debug = TRUE
   )
 mirai::daemons(0L)
+}
 }
 \seealso{
 \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link[mirai:daemons]{mirai::daemons}}, \code{\link{par_convert_f}}

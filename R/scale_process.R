@@ -39,6 +39,7 @@
 #'  in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' \dontrun{
 #' library(sf)
 #' library(future)
 #' library(future.mirai)
@@ -81,6 +82,7 @@
 #'   )
 #' future::plan(future::sequential)
 #' mirai::daemons(0)
+#' }
 #' @seealso
 #'  [`future::multisession`], [`future::multicore`], [`future::cluster`],
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
@@ -307,6 +309,7 @@ par_grid <-
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' \dontrun{
 #' library(terra)
 #' library(sf)
 #' library(future)
@@ -353,6 +356,7 @@ par_grid <-
 #'   )
 #' future::plan(future::sequential)
 #' mirai::daemons(0)
+#' }
 #' @importFrom future.apply future_lapply
 #' @importFrom rlang inject !!!
 #' @importFrom collapse rowbind
@@ -623,6 +627,7 @@ par_hierarchy <-
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #'
 #' @examples
+#' \dontrun{
 #' library(terra)
 #' library(sf)
 #' library(future)
@@ -661,6 +666,7 @@ par_hierarchy <-
 #'
 #' future::plan(future::sequential)
 #' mirai::daemons(0)
+#' }
 #' @importFrom future.apply future_lapply
 #' @importFrom terra rast
 #' @importFrom rlang inject !!!

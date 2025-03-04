@@ -99,7 +99,7 @@ suppressWarnings(
 }
 \references{
 \itemize{
-\item \href{\doi{10.1021/es203152a}}{Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780.}
+\item \href{\doi{doi:10.1021/es203152a}}{Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. \emph{Environmental Science & Technology} 46(5), 2772-2780.}
 \item Wiesner C. (n.d.). Euclidean Sum of Exponentially Decaying Contributions Tutorial.
 }
 }
