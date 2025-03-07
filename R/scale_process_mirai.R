@@ -38,7 +38,7 @@
 #'  in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(sf)
 #' library(mirai)
 #' daemons(4, dispatcher = "process")
@@ -331,7 +331,7 @@ par_grid_mirai <-
 #'  [`mirai::mirai_map`], [`mirai::daemons`], [`par_convert_f`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(terra)
 #' library(sf)
 #' library(mirai)
@@ -678,7 +678,7 @@ par_hierarchy_mirai <-
 #'  [`par_convert_f`]
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(terra)
 #' library(sf)
 #' library(mirai)

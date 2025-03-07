@@ -39,7 +39,7 @@
 #'  in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(sf)
 #' library(future)
 #' library(future.mirai)
@@ -309,7 +309,7 @@ par_grid <-
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(terra)
 #' library(sf)
 #' library(future)
@@ -627,7 +627,7 @@ par_hierarchy <-
 #'  [`future.mirai::mirai_multisession`], [`future::plan`], [`par_convert_f`]
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(terra)
 #' library(sf)
 #' library(future)
