@@ -41,13 +41,13 @@ temp_dir <- tempdir(check = TRUE)
 url_nccnty <-
   paste0(
     "https://raw.githubusercontent.com/",
-    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "ropensci/chopin/refs/heads/main/",
     "tests/testdata/nc_hierarchy.gpkg"
   )
 url_ncelev <-
   paste0(
     "https://raw.githubusercontent.com/",
-    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "ropensci/chopin/refs/heads/main/",
     "tests/testdata/nc_srtm15_otm.tif"
   )
 
