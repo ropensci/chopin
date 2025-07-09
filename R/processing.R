@@ -574,7 +574,7 @@ setMethod(
 #'  in the input will be ignored in SEDC calculation.
 #' @author Insang Song
 #' @references
-#' * [Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.](\doi{10.1021/es203152a})
+#' * Messier KP, Akita Y, Serre ML. (2012). Integrating Address Geocoding, Land Use Regression, and Spatiotemporal Geostatistical Estimation for Groundwater Tetrachloroethylene. _Environmental Science & Technology_ 46(5), 2772-2780.(\doi{10.1021/es203152a})
 #' * Wiesner C. (n.d.). Euclidean Sum of Exponentially Decaying Contributions Tutorial.
 #' @examples
 #' library(terra)
@@ -790,6 +790,11 @@ setMethod("summarize_aw", signature(x = "SpatVector", y = "SpatVector"),
     y <-
       .check_vector(y, extent = extent, input_id = NULL, out_class = "terra")
 
+    x <- x[, id_x]
+    if (!is.null(target_fields)) {
+      y <- y[, target_fields]
+    }
+
     poly_intersected <- terra::intersect(x, y)
     poly_intersected[["area_segment_"]] <-
       terra::expanse(poly_intersected)
@@ -831,6 +836,11 @@ setMethod("summarize_aw", signature(x = "character", y = "character"),
     y <-
       .check_vector(y, extent = extent, out_class = out_class)
 
+    x <- x[, id_x]
+    if (!is.null(target_fields)) {
+      y <- y[, target_fields]
+    }
+
     area_norm <- terra::expanse(y[1, ])
     poly_intersected <- terra::intersect(x, y)
     poly_intersected[["area_segment_"]] <-
@@ -867,6 +877,7 @@ setMethod("summarize_aw", signature(x = "sf", y = "sf"),
     x <- .check_vector(x, extent = extent, input_id = id_x, out_class = "sf")
     y <- .check_vector(y, extent = extent, input_id = NULL, out_class = "sf")
 
+    x <- x[, id_x]
     if (!is.null(target_fields)) {
       y <- y[, target_fields]
     }

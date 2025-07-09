@@ -59,7 +59,7 @@ plot(sf::st_geometry(dg_merged))
 }
 \references{
 \itemize{
-\item \href{https://hdl.handle.net/20.500.13051/17448}{Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. \emph{Yale Law & Policy Review}, 9(2), 301–353.}
+\item Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. \emph{Yale Law & Policy Review}, 9(2), 301–353.
 }
 }
 \seealso{

@@ -46,6 +46,7 @@ applied. Please be aware of the spatial extent and size of the
 inputs.
 }
 \examples{
+\donttest{
 library(terra)
 library(sf)
 library(future)
@@ -84,6 +85,7 @@ res <- par_multirasters(
 
 future::plan(future::sequential)
 mirai::daemons(0)
+}
 }
 \seealso{
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},

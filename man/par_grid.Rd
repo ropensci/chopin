@@ -55,6 +55,7 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
+\donttest{
 library(sf)
 library(future)
 library(future.mirai)
@@ -96,6 +97,7 @@ res <-
   )
 future::plan(future::sequential)
 mirai::daemons(0)
+}
 }
 \seealso{
 \code{\link[future:multisession]{future::multisession}}, \code{\link[future:multicore]{future::multicore}}, \code{\link[future:cluster]{future::cluster}},

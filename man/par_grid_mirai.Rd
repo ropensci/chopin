@@ -54,6 +54,7 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
+\donttest{
 library(sf)
 library(mirai)
 daemons(4, dispatcher = "process")
@@ -93,6 +94,7 @@ res <-
     id = "pid"
   )
 mirai::daemons(0L)
+}
 }
 \seealso{
 \code{\link[mirai:daemons]{mirai::daemons}}, \code{\link[mirai:mirai_map]{mirai::mirai_map}}, \code{\link{par_convert_f}}

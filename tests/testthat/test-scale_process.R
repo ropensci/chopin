@@ -660,7 +660,7 @@ testthat::test_that("par_hierarchy: multicore-SpatRaster input", {
     list(
       sf_use_s2 = FALSE,
       future.resolve.recursive = 2L,
-      future.plan = future::multicore(workers = 2L)
+      future.plan = future::plan(future::multicore(workers = 2L))
     )
   )
   withr::local_seed(202407)

@@ -38,6 +38,7 @@
 #'  in `fun_dist` argument.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' \donttest{
 #' library(sf)
 #' library(mirai)
 #' daemons(4, dispatcher = "process")
@@ -78,6 +79,7 @@
 #'     id = "pid"
 #'   )
 #' mirai::daemons(0L)
+#' }
 #' @seealso
 #'  [`mirai::daemons`], [`mirai::mirai_map`], [`par_convert_f`]
 #' @importFrom mirai mirai_map
@@ -329,6 +331,7 @@ par_grid_mirai <-
 #'  [`mirai::mirai_map`], [`mirai::daemons`], [`par_convert_f`]
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' \donttest{
 #' library(terra)
 #' library(sf)
 #' library(mirai)
@@ -373,6 +376,7 @@ par_grid_mirai <-
 #'     .debug = TRUE
 #'   )
 #' mirai::daemons(0L)
+#' }
 #' @importFrom rlang inject !!!
 #' @importFrom mirai mirai_map
 #' @importFrom collapse rowbind
@@ -674,6 +678,7 @@ par_hierarchy_mirai <-
 #'  [`par_convert_f`]
 #'
 #' @examples
+#' \donttest{
 #' library(terra)
 #' library(sf)
 #' library(mirai)
@@ -708,6 +713,7 @@ par_hierarchy_mirai <-
 #'   func = "mean"
 #' )
 #' mirai::daemons(0L)
+#' }
 #' @importFrom mirai mirai_map
 #' @importFrom terra rast
 #' @importFrom rlang inject !!!
