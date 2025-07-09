@@ -46,7 +46,7 @@ applied. Please be aware of the spatial extent and size of the
 inputs.
 }
 \examples{
-\dontrun{
+\donttest{
 library(terra)
 library(sf)
 library(mirai)

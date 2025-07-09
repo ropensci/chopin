@@ -103,7 +103,7 @@ This would be the case especially where the target features
 are spatially sparsely distributed.
 }
 \examples{
-\dontrun{
+\donttest{
 library(terra)
 library(sf)
 library(mirai)
