@@ -230,7 +230,7 @@ srtm_path <- file.path(tempdir(check = TRUE), "nc_srtm15_otm.tif")
 srtm_url <-
   paste0(
     "https://raw.githubusercontent.com/",
-    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "ropensci/chopin/refs/heads/main/",
     "tests/testdata/nc_srtm15_otm.tif"
   )
 download.file(srtm_url, srtm_path, mode = "wb")
@@ -447,7 +447,7 @@ hierarchy_path <- file.path(tempdir(check = TRUE), "nc_hierarchy.gpkg")
 hierarchy_url <-
   paste0(
     "https://raw.githubusercontent.com/",
-    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "ropensci/chopin/refs/heads/main/",
     "tests/testdata/nc_hierarchy.gpkg"
   )
 download.file(hierarchy_url, hierarchy_path, mode = "wb")
@@ -913,7 +913,7 @@ ncrd1_path <- file.path(tempdir(check = TRUE), "ncroads_first.gpkg")
 ncrd1_url <-
   paste0(
     "https://raw.githubusercontent.com/",
-    "ropensci/chopin/refs/heads/0.9.0-cran/",
+    "ropensci/chopin/refs/heads/main/",
     "tests/testdata/ncroads_first.gpkg"
   )
 download.file(ncrd1_url, ncrd1_path, mode = "wb")
