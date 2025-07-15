@@ -17,19 +17,6 @@ Reprojected object in the same class as \code{vector}
 \description{
 Align vector CRS to raster's
 }
-\examples{
-\dontrun{
-library(terra)
-library(sf)
-options(sf_use_s2 = FALSE)
-
-ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-elev <- system.file("ex/elev.tif", package = "terra")
-nc <- terra::vect(ncpath)
-elev <- terra::rast(elev)
-reproject_to_raster(nc, elev)
-}
-}
 \seealso{
 Other Helper functions: 
 \code{\link{datamod}()},

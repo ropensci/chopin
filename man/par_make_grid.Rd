@@ -29,21 +29,6 @@ then exhaustive grids will be filtered by the intersection between
 these and \code{points_in}. Thus, the number of generated grids may be
 smaller than \code{ncutsx * ncutsy}.
 }
-\examples{
-\dontrun{
-library(sf)
-library(terra)
-options(sf_use_s2 = FALSE)
-
-nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-nc <- terra::vect(nc_path)
-nc_rp <- terra::spatSample(nc, 1000)
-nc_gr <- par_make_grid(nc_rp, 10L, 6L)
-
-plot(nc_rp)
-plot(nc_gr, add = TRUE)
-}
-}
 \seealso{
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

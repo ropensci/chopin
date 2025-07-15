@@ -33,6 +33,7 @@ a set of padded grids of the extent of input point subsets
 is generated out of input points.
 }
 \examples{
+lastpar <- par(mfrow = c(1, 1))
 library(terra)
 library(sf)
 options(sf_use_s2 = FALSE)
@@ -43,6 +44,7 @@ nc_rp <- terra::spatSample(nc, 1000)
 
 nc_gr <- par_pad_balanced(nc_rp, 10L, 1000)
 nc_gr
+par(lastpar)
 }
 \seealso{
 Other Parallelization: 

@@ -12,16 +12,16 @@
 #' @note In dynamic dots (`...`), `fun_dist` arguments should include
 #' x and y where sf/terra class objects or file paths are accepted.
 #' Virtually any sf/terra functions that accept two arguments
-#' can be put in `fun_dist`, but please be advised that
+#' can be put in `fun_dist`; however be advised that
 #' some spatial operations do not necessarily give the
-#' exact result from what would have been done single-thread.
+#' exact result from what would have been done with one thread.
 #' For example, distance calculated through this function may return the
 #' lower value than actual because the computational region was reduced.
 #' This would be the case especially where the target features
 #' are spatially sparsely distributed.
 #' @param grids List of two sf/SpatVector objects. Computational grids.
 #'  It takes a strict assumption that the grid input is
-#'  an output of `par_pad_grid``.
+#'  an output of `par_pad_grid`.
 #' @param fun_dist `sf`, `terra` or `chopin` functions.
 #'   This function should have `x` and `y` arguments.
 #' @param ... Arguments passed to the argument `fun_dist`.
@@ -39,8 +39,10 @@
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' \donttest{
+#' lastpar <- par(mfrow = c(1, 1))
 #' library(sf)
 #' library(mirai)
+#' options(sf_use_s2 = FALSE)
 #' daemons(4, dispatcher = "process")
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' ncpoly <- sf::st_read(ncpath)
@@ -79,6 +81,7 @@
 #'     id = "pid"
 #'   )
 #' mirai::daemons(0L)
+#' par(lastpar)
 #' }
 #' @seealso
 #'  [`mirai::daemons`], [`mirai::mirai_map`], [`par_convert_f`]
@@ -264,7 +267,7 @@ par_grid_mirai <-
 #'  several higher level feature group. For details of the terminology
 #'  in `mirai` package, refer to [`mirai::mirai`].
 #'  Each thread will process the number of lower level features
-#'  in each higher level feature. Please be advised that
+#'  in each higher level feature. Be advised that
 #'  accessing the same file simultaneously with
 #'  multiple processes may result in errors.
 #' @details 
@@ -291,9 +294,9 @@ par_grid_mirai <-
 #'
 #' @note
 #' Virtually any sf/terra functions that accept two arguments
-#' can be put in `fun_dist`, but please be advised that
+#' can be put in `fun_dist`; however, be advised that
 #' some spatial operations do not necessarily give the
-#' exact result from what would have been done with single thread.
+#' exact result from what would have been done with one thread.
 #' For example, distance calculated through this function may return the
 #' lower value than actual because the computational region was reduced.
 #' This would be the case especially where the target features
@@ -332,6 +335,7 @@ par_grid_mirai <-
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
 #' \donttest{
+#' lastpar <- par(mfrow = c(1, 1))
 #' library(terra)
 #' library(sf)
 #' library(mirai)
@@ -376,6 +380,7 @@ par_grid_mirai <-
 #'     .debug = TRUE
 #'   )
 #' mirai::daemons(0L)
+#' par(lastpar)
 #' }
 #' @importFrom rlang inject !!!
 #' @importFrom mirai mirai_map
@@ -679,10 +684,11 @@ par_hierarchy_mirai <-
 #'
 #' @examples
 #' \donttest{
+#' lastpar <- par(mfrow = c(1, 1))
 #' library(terra)
 #' library(sf)
 #' library(mirai)
-#' sf::sf_use_s2(FALSE)
+#' options(sf_use_s2 = FALSE)
 #' mirai::daemons(4, dispatcher = "process")
 #'
 #' nccnty <- sf::st_read(
@@ -713,6 +719,7 @@ par_hierarchy_mirai <-
 #'   func = "mean"
 #' )
 #' mirai::daemons(0L)
+#' par(lastpar)
 #' }
 #' @importFrom mirai mirai_map
 #' @importFrom terra rast

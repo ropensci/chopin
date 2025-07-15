@@ -728,6 +728,7 @@ summarize_sedc <-
 #'   read as `sf` objects.
 #' @author Insang Song \email{geoissong@@gmail.com}
 #' @examples
+#' lastpar <- par(mfrow = c(1, 1))
 #' # package
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
@@ -764,7 +765,7 @@ summarize_sedc <-
 #'     )
 #' )
 #' summary(ppb_nc_aw)
-#'
+#' par(lastpar)
 #' @export
 setGeneric("summarize_aw", function(x, y, ...) standardGeneric("summarize_aw"))
 

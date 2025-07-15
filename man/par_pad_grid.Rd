@@ -71,6 +71,7 @@ the predefined numbers of columns and rows.
 Each grid will be buffered by the radius.
 }
 \examples{
+lastpar <- par(mfrow = c(1, 1))
 # data
 library(sf)
 options(sf_use_s2 = FALSE)
@@ -98,6 +99,8 @@ nc_comp_region_wkt <-
     return_wkt = TRUE)
 nc_comp_region_wkt$original
 nc_comp_region_wkt$padded
+
+par(lastpar)
 }
 \seealso{
 Other Parallelization: 

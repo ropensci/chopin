@@ -26,6 +26,8 @@
 #' library(future)
 #' library(future.mirai)
 #' library(future.apply)
+#' lastpar <- par(mfrow = c(1, 1))
+#' options(sf_use_s2 = FALSE)
 #' ```
 #'
 #' **Example data**
@@ -35,8 +37,20 @@
 #' ```r
 #' temp_dir <- tempdir(check = TRUE)
 #'
-#' url_nccnty <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_hierarchy.gpkg"
-#' url_ncelev <- "https://github.com/ropensci/chopin/blob/944bf647af6208182115b16df4dba098166593d0/tests/testdata/nc_srtm15_otm.tif"
+#' url_nccnty <-
+#'   paste0(
+#'    "https://raw.githubusercontent.com/",
+#'    "ropensci/chopin/refs/heads/main/",
+#'    "tests/testdata/nc_hierarchy.gpkg"
+#'  )  
+#'
+#' url_ncelev <-
+#'   paste0(
+#'    "https://raw.githubusercontent.com/",
+#'    "ropensci/chopin/refs/heads/main/",
+#'    "tests/testdata/nc_srtm15_otm.tif"
+#'  )
+#'
 #' nccnty_path <- file.path(temp_dir, "nc_hierarchy.gpkg")
 #' ncelev_path <- file.path(temp_dir, "nc_srtm15_otm.tif")
 #'
@@ -152,6 +166,7 @@
 #'     func = "mean",
 #'     .debug = TRUE
 #'   )
+#' par(lastpar)
 #' ```
 #'
 #' @section Function selection guide for `par_*()`:

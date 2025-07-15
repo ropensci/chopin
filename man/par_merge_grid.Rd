@@ -31,7 +31,7 @@ A \code{sf} or \code{SpatVector} object of computation grids.
 Merge boundary-sharing (in "Rook" contiguity) grids with
 fewer target features than the threshold.
 This function strongly assumes that the input
-is returned from the \code{\link{par_make_grid}},
+is returned from the internal function \code{par_make_grid},
 which has \code{"CGRIDID"} as the unique id field.
 }
 \note{
@@ -39,6 +39,7 @@ This function will not work properly if \code{grid_in} has
 more than one million grids.
 }
 \examples{
+lastpar <- par(mfrow = c(1, 1))
 library(sf)
 library(igraph)
 library(dplyr)
@@ -56,6 +57,7 @@ sf::st_crs(dg_sample) <- sf::st_crs(dg)
 dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 
 plot(sf::st_geometry(dg_merged))
+par(lastpar)
 }
 \references{
 \itemize{

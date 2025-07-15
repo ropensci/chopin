@@ -24,21 +24,6 @@ present. If not, it is reprojected to the CRS specified in
 \note{
 This function works well with EPSG codes.
 }
-\examples{
-\dontrun{
-library(sf)
-library(terra)
-options(sf_use_s2 = FALSE)
-
-base_crs <- "EPSG:5070"
-nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-nc_sf <- sf::st_read(nc_path)
-reproject_std(nc_sf, base_crs)
-
-nc_vect <- terra::vect(nc_sf)
-reproject_std(nc_vect, base_crs)
-}
-}
 \seealso{
 Other Helper functions: 
 \code{\link{datamod}()},

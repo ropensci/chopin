@@ -9,19 +9,6 @@
 #'   Default is 1.1, meaning that the actual padding is 10 percent
 #'   wider than `radius`.
 #' @returns A [`terra::ext`] or sfc_POLYGON object of the computation extent.
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc_sf <- sf::st_read(nc_path)
-#' nc_sf <- sf::st_transform(nc_sf, "EPSG:5070")
-#' get_clip_ext(nc_sf, 2.5e4)
-#' nc_vect <- terra::vect(nc_sf)
-#' get_clip_ext(nc_vect, 2.5e4)
-#' }
 #' @importFrom terra ext
 #' @importFrom sf st_bbox
 #' @importFrom sf st_as_sfc

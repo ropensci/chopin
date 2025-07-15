@@ -22,20 +22,6 @@ A \code{\link[terra:ext]{terra::ext}} or sfc_POLYGON object of the computation e
 Return clipping extent with buffer radius.
 It assumes the input CRS is projected and linear unit is meters.
 }
-\examples{
-\dontrun{
-library(sf)
-library(terra)
-options(sf_use_s2 = FALSE)
-
-nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-nc_sf <- sf::st_read(nc_path)
-nc_sf <- sf::st_transform(nc_sf, "EPSG:5070")
-get_clip_ext(nc_sf, 2.5e4)
-nc_vect <- terra::vect(nc_sf)
-get_clip_ext(nc_vect, 2.5e4)
-}
-}
 \seealso{
 Other Helper functions: 
 \code{\link{datamod}()},

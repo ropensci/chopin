@@ -33,25 +33,4 @@ The checked and converted subject object.
 This function checks the class of the input object and
 performs necessary conversions if needed.
 }
-\examples{
-\dontrun{
-# Check a SpatVector object
-ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-nc <- terra::vect(ncpath)
-extent <- c(-80, -77, 35, 36)
-.check_vector(input = nc, extent = extent, input_id = "FIPS")
-
-# Check a sf object
-ncsf <- sf::st_read(ncpath)
-.check_vector(input = ncsf, extent = extent, input_id = "FIPS")
-
-# Check a character object
-.check_vector(
-  input = ncpath,
-  extent = extent,
-  out_class = "terra",
-  input_id = "FIPS"
-)
-}
-}
 \keyword{internal}
