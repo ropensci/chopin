@@ -9,7 +9,7 @@ par_grid(grids, fun_dist, ..., pad_y = FALSE, .debug = FALSE)
 \arguments{
 \item{grids}{List of two sf/SpatVector objects. Computational grids.
 It takes a strict assumption that the grid input is
-an output of `par_pad_grid``.}
+an output of \code{par_pad_grid}.}
 
 \item{fun_dist}{\code{sf}, \code{terra} or \code{chopin} functions.
 This function should have \code{x} and \code{y} arguments.}
@@ -46,9 +46,9 @@ the number of threads.
 In dynamic dots (\code{...}), \code{fun_dist} arguments should include
 x and y where sf/terra class objects or file paths are accepted.
 Virtually any sf/terra functions that accept two arguments
-can be put in \code{fun_dist}, but please be advised that
+can be put in \code{fun_dist}; however, be advised that
 some spatial operations do not necessarily give the
-exact result from what would have been done single-thread.
+exact result from what would have been done with one thread.
 For example, distance calculated through this function may return the
 lower value than actual because the computational region was reduced.
 This would be the case especially where the target features
@@ -56,9 +56,11 @@ are spatially sparsely distributed.
 }
 \examples{
 \donttest{
+lastpar <- par(mfrow = c(1, 1))
 library(sf)
 library(future)
 library(future.mirai)
+options(sf_use_s2 = FALSE)
 plan(mirai_multisession, workers = 2)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 ncpoly <- sf::st_read(ncpath)
@@ -97,6 +99,7 @@ res <-
   )
 future::plan(future::sequential)
 mirai::daemons(0)
+par(lastpar)
 }
 }
 \seealso{

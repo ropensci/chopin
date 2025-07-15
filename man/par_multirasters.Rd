@@ -47,11 +47,12 @@ inputs.
 }
 \examples{
 \donttest{
+lastpar <- par(mfrow = c(1, 1))
 library(terra)
 library(sf)
 library(future)
 library(future.mirai)
-sf::sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
 future::plan(future.mirai::mirai_multisession, workers = 2)
 
 nccnty <- sf::st_read(
@@ -85,6 +86,7 @@ res <- par_multirasters(
 
 future::plan(future::sequential)
 mirai::daemons(0)
+par(lastpar)
 }
 }
 \seealso{

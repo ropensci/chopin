@@ -15,11 +15,6 @@ numeric vector of quantiles.
 \description{
 Quantile definition
 }
-\examples{
-\dontrun{
-par_def_q(5L)
-}
-}
 \seealso{
 Other Helper functions: 
 \code{\link{datamod}()},

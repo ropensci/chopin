@@ -47,10 +47,11 @@ inputs.
 }
 \examples{
 \donttest{
+lastpar <- par(mfrow = c(1, 1))
 library(terra)
 library(sf)
 library(mirai)
-sf::sf_use_s2(FALSE)
+options(sf_use_s2 = FALSE)
 mirai::daemons(4, dispatcher = "process")
 
 nccnty <- sf::st_read(
@@ -81,6 +82,7 @@ res <- par_multirasters_mirai(
   func = "mean"
 )
 mirai::daemons(0L)
+par(lastpar)
 }
 }
 \seealso{

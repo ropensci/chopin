@@ -21,21 +21,6 @@ Although \code{stars} object is a little ambiguous
 whether to classify vector or raster,
 it will be considered raster in this package.
 }
-\examples{
-\dontrun{
-library(sf)
-library(terra)
-options(sf_use_s2 = FALSE)
-
-nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-nc_sf <- sf::st_read(nc_path)
-datamod(nc_sf)
-
-ra_path <- system.file("ex/elev.tif", package = "terra")
-ra <- terra::rast(ra_path)
-datamod(ra)
-}
-}
 \seealso{
 Other Helper functions: 
 \code{\link{dep_check}()},

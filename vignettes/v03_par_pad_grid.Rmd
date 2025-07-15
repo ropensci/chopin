@@ -28,6 +28,9 @@ library(anticlust)
 library(igraph)
 library(future)
 library(future.mirai)
+
+# old par
+lastpar <- par(mfrow = c(1, 1))
 options(sf_use_s2 = FALSE)
 ```
 
@@ -291,4 +294,6 @@ terra::plot(group_bal_grid$original, "CGRIDID",
             main = "Assigned points (ngroups = 10)")
 terra::plot(group_bal_grid$padded, main = "Padded grids")
 
+# revert to the original par
+par(lastpar)
 ```

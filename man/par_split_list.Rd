@@ -21,6 +21,8 @@ two data frames: \code{original} and \code{padded}. If the input is a WKT vector
 the function will return a list of two WKT strings: \code{original} and \code{padded}.
 }
 \examples{
+lastpar <- par(mfrow = c(1, 1))
+
 library(sf)
 library(terra)
 options(sf_use_s2 = FALSE)
@@ -35,6 +37,8 @@ nc_comp_region <-
     nx = 4L, ny = 2L,
     padding = 10000)
 par_split_list(nc_comp_region)
+
+par(lastpar)
 }
 \seealso{
 Other Parallelization: 

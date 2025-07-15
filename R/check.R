@@ -5,18 +5,6 @@
 #' @author Insang Song
 #' @param input Spat* in terra or sf object.
 #' @returns A character object; one of `"character"`, `"terra"` and `"sf"`
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc_sf <- sf::st_read(nc_path)
-#' dep_check(nc_sf)
-#' nc_vect <- terra::vect(nc_sf)
-#' dep_check(nc_vect)
-#' }
 dep_check <- function(input) {
   if (
     !inherits(
@@ -46,27 +34,6 @@ dep_check <- function(input) {
 #' @param input Spat* in terra or sf object.
 #' @returns Data converted to the other package class
 #' (if sf, terra; if terra, sf)
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(stars)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' ## generate a random raster
-#' ras_rand <- terra::rast(nrow = 30, ncol = 30)
-#' terra::values(ras_rand) <- runif(900)
-#' stars_rand <- dep_switch(ras_rand)
-#' stars_rand
-#' inherits(sf_rand, "stars") # TRUE
-#' # should return stars object
-#'
-#' vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
-#' sf_rand <- dep_switch(vec_rand)
-#' inherits(sf_rand, "sf") # TRUE
-#' sf_rand
-#' # should return sf object
-#' }
 #' @importFrom terra vect rast
 #' @importFrom sf st_as_sf
 #' @importFrom stars st_as_stars
@@ -116,20 +83,6 @@ dep_switch <- function(input) {
 #' @author Insang Song
 #' @returns character(1). One of `"vector"` or `"raster"`.
 #' @importFrom cli cli_abort
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc_sf <- sf::st_read(nc_path)
-#' datamod(nc_sf)
-#'
-#' ra_path <- system.file("ex/elev.tif", package = "terra")
-#' ra <- terra::rast(ra_path)
-#' datamod(ra)
-#' }
 datamod <- function(input) {
   if (
     !inherits(
@@ -171,20 +124,6 @@ datamod <- function(input) {
 #' @note This function works well with EPSG codes.
 #' @returns A (reprojected) `sf` or `SpatVector` object.
 #' @author Insang Song
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' base_crs <- "EPSG:5070"
-#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc_sf <- sf::st_read(nc_path)
-#' reproject_std(nc_sf, base_crs)
-#'
-#' nc_vect <- terra::vect(nc_sf)
-#' reproject_std(nc_vect, base_crs)
-#' }
 #' @importFrom sf st_crs st_transform
 #' @importFrom terra crs project
 reproject_std <-
@@ -226,18 +165,6 @@ reproject_std <-
 #' @param raster `SpatRaster` object
 #' @returns Reprojected object in the same class as \code{vector}
 #' @author Insang Song
-#' @examples
-#' \dontrun{
-#' library(terra)
-#' library(sf)
-#' options(sf_use_s2 = FALSE)
-#'
-#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' elev <- system.file("ex/elev.tif", package = "terra")
-#' nc <- terra::vect(ncpath)
-#' elev <- terra::rast(elev)
-#' reproject_to_raster(nc, elev)
-#' }
 #' @importFrom sf st_transform
 #' @importFrom terra project
 #' @importFrom terra crs
@@ -518,26 +445,6 @@ setMethod(
 #' @importFrom sf st_read st_as_text st_as_sfc st_bbox
 #' @importFrom cli cli_abort cli_inform
 #' @importFrom stats setNames
-#' @examples
-#' \dontrun{
-#' # Check a SpatVector object
-#' ncpath <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc <- terra::vect(ncpath)
-#' extent <- c(-80, -77, 35, 36)
-#' .check_vector(input = nc, extent = extent, input_id = "FIPS")
-#'
-#' # Check a sf object
-#' ncsf <- sf::st_read(ncpath)
-#' .check_vector(input = ncsf, extent = extent, input_id = "FIPS")
-#'
-#' # Check a character object
-#' .check_vector(
-#'   input = ncpath,
-#'   extent = extent,
-#'   out_class = "terra",
-#'   input_id = "FIPS"
-#' )
-#' }
 #' @name .check_vector
 # nolint start
 setGeneric(
@@ -1019,10 +926,6 @@ setMethod(
 #'
 #' @returns The validated input object.
 #'
-#' @examples
-#' \dontrun{
-#' .check_raster(system.file("extdata/nc_srtm15_otm.tif", package = "chopin"))
-#' }
 #' @importFrom terra rast
 #' @importFrom cli cli_abort cli_inform cli_warn
 #' @keywords internal

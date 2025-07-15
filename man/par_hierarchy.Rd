@@ -68,7 +68,7 @@ several higher level feature group.
 For details of the terminology in \code{future} package,
 please refer to \code{\link[future:plan]{future::plan}} documentation.
 Each thread will process the number of lower level features
-in each higher level feature. Please be advised that
+in each higher level feature. Be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
 }
@@ -96,7 +96,7 @@ ship is used to filter the data.
 }
 \note{
 Virtually any sf/terra functions that accept two arguments
-can be put in \code{fun_dist}, but please be advised that
+can be put in \code{fun_dist}; however, be advised that
 some spatial operations do not necessarily give the
 exact result from what would have been done with single thread.
 For example, distance calculated through this function may return the
@@ -106,6 +106,7 @@ are spatially sparsely distributed.
 }
 \examples{
 \donttest{
+lastpar <- par(mfrow = c(1, 1))
 library(terra)
 library(sf)
 library(future)
@@ -152,6 +153,7 @@ res <-
   )
 future::plan(future::sequential)
 mirai::daemons(0)
+par(lastpar)
 }
 }
 \seealso{

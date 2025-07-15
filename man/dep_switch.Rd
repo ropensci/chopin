@@ -16,28 +16,6 @@ Data converted to the other package class
 \description{
 Convert class between \code{sf}/\code{stars}-\code{terra}
 }
-\examples{
-\dontrun{
-library(sf)
-library(stars)
-library(terra)
-options(sf_use_s2 = FALSE)
-
-## generate a random raster
-ras_rand <- terra::rast(nrow = 30, ncol = 30)
-terra::values(ras_rand) <- runif(900)
-stars_rand <- dep_switch(ras_rand)
-stars_rand
-inherits(sf_rand, "stars") # TRUE
-# should return stars object
-
-vec_rand <- terra::spatSample(ras_rand, size = 10L, as.points = TRUE)
-sf_rand <- dep_switch(vec_rand)
-inherits(sf_rand, "sf") # TRUE
-sf_rand
-# should return sf object
-}
-}
 \seealso{
 Other Helper functions: 
 \code{\link{datamod}()},

@@ -36,6 +36,7 @@
 #'  Each grid will be buffered by the radius.
 #' @author Insang Song
 #' @examples
+#' lastpar <- par(mfrow = c(1, 1))
 #' # data
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
@@ -63,6 +64,8 @@
 #'     return_wkt = TRUE)
 #' nc_comp_region_wkt$original
 #' nc_comp_region_wkt$padded
+#'
+#' par(lastpar)
 #' @importFrom sf st_crs st_set_crs st_as_text
 #' @importFrom terra crs set.crs buffer geom
 #' @importFrom cli cli_inform cli_abort
@@ -201,6 +204,7 @@ par_pad_grid <-
 #'  Used for computation.
 #' @author Insang Song
 #' @examples
+#' lastpar <- par(mfrow = c(1, 1))
 #' library(terra)
 #' library(sf)
 #' options(sf_use_s2 = FALSE)
@@ -211,6 +215,7 @@ par_pad_grid <-
 #'
 #' nc_gr <- par_pad_balanced(nc_rp, 10L, 1000)
 #' nc_gr
+#' par(lastpar)
 #' @importFrom terra as.polygons ext buffer
 #' @importFrom cli cli_inform cli_abort
 #' @export
@@ -287,21 +292,7 @@ par_pad_balanced <-
 #' these and `points_in`. Thus, the number of generated grids may be
 #' smaller than `ncutsx * ncutsy`.
 #' @author Insang Song
-#' @examples
-#' \dontrun{
-#' library(sf)
-#' library(terra)
-#' options(sf_use_s2 = FALSE)
-#'
-#' nc_path <- system.file("gpkg/nc.gpkg", package = "sf")
-#' nc <- terra::vect(nc_path)
-#' nc_rp <- terra::spatSample(nc, 1000)
-#' nc_gr <- par_make_grid(nc_rp, 10L, 6L)
-#'
-#' plot(nc_rp)
-#' plot(nc_gr, add = TRUE)
-#' }
-#' @importFrom terra rast as.polygons
+#' @importFrom terra rast as.polygons ext vect crs
 #' @importFrom sf st_as_sf st_make_grid
 par_make_grid <-
   function(
@@ -349,21 +340,6 @@ par_make_grid <-
 #' @param points_in `sf` or `SpatVector` object. Target points of computation.
 #' @param n_clusters integer(1). The number of clusters.
 #' @returns `SpatVector` object with a field `"CGRIDID"`.
-#' @examples
-#' \dontrun{
-#' library(terra)
-#' library(anticlust)
-#' data(ncpoints, package = "chopin")
-#'
-#' ncp <- terra::vect(
-#'   ncpoints, geom = c("X", "Y"),
-#'   keepgeom = FALSE, crs = "EPSG:5070"
-#' )
-#'
-#' # 2,304 points / 12 = 192 points per cluster
-#' ncpbal <- par_make_balanced(ncp, 12)
-#' ncpbal
-#' }
 #' @author Insang Song
 #' @importFrom anticlust balanced_clustering
 #' @importFrom terra vect distance
@@ -397,10 +373,6 @@ par_make_balanced <- function(
 #' @param steps integer(1). The number of quantiles.
 #' @importFrom cli cli_abort
 #' @returns numeric vector of quantiles.
-#' @examples
-#' \dontrun{
-#' par_def_q(5L)
-#' }
 par_def_q <- function(steps = 4L) {
   if (steps < 2L) {
     cli::cli_abort(c("x" = "steps should be greater than 1."))
@@ -418,32 +390,6 @@ par_def_q <- function(steps = 4L) {
 #' @param y numeric. y-coordinates.
 #' @param quantiles numeric vector. Quantiles.
 #' @returns A `SpatVector` object with field `CGRIDID`.
-#' @examples
-#' \dontrun{
-#' library(terra)
-#'
-#' random_points <-
-#'   data.frame(x = runif(1000, 0, 100), y = runif(1000, 0, 100))
-#' quantiles <- seq(0, 1, length.out = 5L)
-#' qpoly <- par_cut_coords(random_points$x, random_points$y, quantiles)
-#' clustered_points <-
-#'   data.frame(x = rgamma(1000, 1, 1), y = rgamma(1000, 4, 1))
-#'
-#' qpoly_c <- par_cut_coords(clustered_points$x, clustered_points$y, quantiles)
-#'
-#' par(mfcol = c(1, 2))
-#' plot(qpoly)
-#' plot(qpoly_c)
-#' par(mfcol = c(1, 1))
-#'
-#' cvect <- terra::vect(clustered_points, geom = c("x", "y"))
-#' plot(cvect)
-#' plot(qpoly_c, add = TRUE, col = "transparent", border = "red")
-#'
-#' qcv <- intersect(cvect, qpoly_c)
-#' table(qcv$CGRIDID)
-#' sum(table(qcv$CGRIDID)) # should be 1000
-#' }
 #' @importFrom sf st_coordinates st_zm st_geometry_type st_centroid
 #' @importFrom terra crds ext as.polygons geomtype
 #' @importFrom stats setNames quantile
@@ -523,7 +469,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' @description Merge boundary-sharing (in "Rook" contiguity) grids with
 #'  fewer target features than the threshold.
 #'  This function strongly assumes that the input
-#'  is returned from the [`par_make_grid`],
+#'  is returned from the internal function `par_make_grid`,
 #'  which has `"CGRIDID"` as the unique id field.
 #' @note This function will not work properly if `grid_in` has
 #'   more than one million grids.
@@ -538,6 +484,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #'   the function will split the 20 grids into two sets of 10 grids.
 #' @returns A `sf` or `SpatVector` object of computation grids.
 #' @examples
+#' lastpar <- par(mfrow = c(1, 1))
 #' library(sf)
 #' library(igraph)
 #' library(dplyr)
@@ -555,6 +502,7 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 #'
 #' plot(sf::st_geometry(dg_merged))
+#' par(lastpar)
 # nolint start
 #' @references
 #' * Polsby DD, Popper FJ. (1991). The Third Criterion: Compactness as a Procedural Safeguard Against Partisan Gerrymandering. _Yale Law & Policy Review_, 9(2), 301–353.
@@ -783,6 +731,8 @@ par_merge_grid <-
 #' the function will return a list of two WKT strings: `original` and `padded`.
 #' @returns A nested list of data frames or WKT strings.
 #' @examples
+#' lastpar <- par(mfrow = c(1, 1))
+#'
 #' library(sf)
 #' library(terra)
 #' options(sf_use_s2 = FALSE)
@@ -797,6 +747,8 @@ par_merge_grid <-
 #'     nx = 4L, ny = 2L,
 #'     padding = 10000)
 #' par_split_list(nc_comp_region)
+#'
+#' par(lastpar)
 #' @export
 par_split_list <-
   function(gridlist) {

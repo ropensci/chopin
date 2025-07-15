@@ -81,6 +81,7 @@ If \code{x} and \code{y} are characters, they will be
 read as \code{sf} objects.
 }
 \examples{
+lastpar <- par(mfrow = c(1, 1))
 # package
 library(sf)
 options(sf_use_s2 = FALSE)
@@ -117,7 +118,7 @@ suppressWarnings(
     )
 )
 summary(ppb_nc_aw)
-
+par(lastpar)
 }
 \seealso{
 Other Macros for calculation: 

@@ -66,7 +66,7 @@ will the work by splitting lower level features into
 several higher level feature group. For details of the terminology
 in \code{mirai} package, refer to \code{\link[mirai:mirai]{mirai::mirai}}.
 Each thread will process the number of lower level features
-in each higher level feature. Please be advised that
+in each higher level feature. Be advised that
 accessing the same file simultaneously with
 multiple processes may result in errors.
 }
@@ -94,9 +94,9 @@ ship is used to filter the data.
 }
 \note{
 Virtually any sf/terra functions that accept two arguments
-can be put in \code{fun_dist}, but please be advised that
+can be put in \code{fun_dist}; however, be advised that
 some spatial operations do not necessarily give the
-exact result from what would have been done with single thread.
+exact result from what would have been done with one thread.
 For example, distance calculated through this function may return the
 lower value than actual because the computational region was reduced.
 This would be the case especially where the target features
@@ -104,6 +104,7 @@ are spatially sparsely distributed.
 }
 \examples{
 \donttest{
+lastpar <- par(mfrow = c(1, 1))
 library(terra)
 library(sf)
 library(mirai)
@@ -148,6 +149,7 @@ res <-
     .debug = TRUE
   )
 mirai::daemons(0L)
+par(lastpar)
 }
 }
 \seealso{
