@@ -2,19 +2,19 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "identifier": "chopin",
-  "description": "Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on future and mirai parallel backends, terra and sf functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from `par_pad_*` functions to `par_grid`, `par_hierarchy`, or `par_multirasters` functions. Virtually any functions accepting classes in terra or sf packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function `extract_at`, which uses exactextractr, with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (`summarize_aw`) and summation of exponentially decaying weights (`summarize_sedc`) are also provided.",
-  "name": "chopin: Computation of Spatial Data by Hierarchical and Objective Partitioning of Inputs for Parallel Processing",
+  "description": "Geospatial data computation is parallelized by grid, hierarchy, or raster files. Based on 'future' (Bengtsson, 2024 <doi:10.32614/CRAN.package.future>) and 'mirai' (Gao et al., 2025 <doi:10.32614/CRAN.package.mirai>) parallel back-ends, 'terra' (Hijmans et al., 2025 <doi:10.32614/CRAN.package.terra>) and 'sf' (Pebesma et al., 2024 <doi:10.32614/CRAN.package.sf>) functions as well as convenience functions in the package can be distributed over multiple threads. The simplest way of parallelizing generic geospatial computation is to start from par_pad_*() functions to par_grid(), par_hierarchy(), or par_multirasters() functions. Virtually any functions accepting classes in 'terra' or 'sf' packages can be used in the three parallelization functions. A common raster-vector overlay operation is provided as a function extract_at(), which uses 'exactextractr' (Baston, 2023 <doi:10.32614/CRAN.package.exactextractr>), with options for kernel weights for summarizing raster values at vector geometries. Other convenience functions for vector-vector operations including simple areal interpolation (summarize_aw()) and summation of exponentially decaying weights (summarize_sedc()) are also provided.",
+  "name": "chopin: Spatial Parallel Computing by Hierarchical Data Partitioning",
   "relatedLink": "https://docs.ropensci.org/chopin/",
   "codeRepository": "https://github.com/ropensci/chopin",
   "issueTracker": "https://github.com/ropensci/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.9.2",
+  "version": "0.9.4",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.4.2 (2024-10-31)",
+  "runtimePlatform": "R version 4.5.1 (2025-06-13)",
   "author": [
     {
       "@type": "Person",
@@ -119,6 +119,18 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=knitr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "lifecycle",
+      "name": "lifecycle",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=lifecycle"
     },
     {
       "@type": "SoftwareApplication",
@@ -356,21 +368,42 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=collapse"
     },
-    "16": {
-      "@type": "SoftwareApplication",
-      "identifier": "lifecycle",
-      "name": "lifecycle",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=lifecycle"
-    },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "2440.709KB",
+  "fileSize": "2436.482KB",
+  "citation": [
+    {
+      "@type": "ScholarlyArticle",
+      "datePublished": "2025",
+      "author": [
+        {
+          "@type": "Person",
+          "givenName": "Insang",
+          "familyName": "Song"
+        },
+        {
+          "@type": "Person",
+          "givenName": ["Kyle", "P."],
+          "familyName": "Messier"
+        }
+      ],
+      "name": "chopin: An open source R-language tool to support spatial analysis on parallelizable infrastructure.",
+      "identifier": "10.1016/j.softx.2025.102167",
+      "pagination": "1--8",
+      "@id": "https://doi.org/10.1016/j.softx.2025.102167",
+      "sameAs": "https://doi.org/10.1016/j.softx.2025.102167",
+      "isPartOf": {
+        "@type": "PublicationIssue",
+        "issueNumber": "102167",
+        "datePublished": "2025",
+        "isPartOf": {
+          "@type": ["PublicationVolume", "Periodical"],
+          "volumeNumber": "30",
+          "name": "SoftwareX"
+        }
+      }
+    }
+  ],
   "releaseNotes": "https://github.com/ropensci/chopin/blob/master/NEWS.md",
   "readme": "https://github.com/ropensci/chopin/blob/main/README.md",
   "contIntegration": "https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml",

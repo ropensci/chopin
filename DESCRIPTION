@@ -50,6 +50,7 @@ Imports:
     methods,
     rlang,
     sf (>= 1.0-10),
+    stars (>= 0.6-0),
     terra (>= 1.7-18),
     mirai (>= 1.3.0),
     collapse
@@ -63,7 +64,6 @@ Suggests:
     lifecycle,
     rmarkdown,
     spatstat.random,
-    stars (>= 0.6-0),
     testthat (>= 3.0.0),
     units,
     withr
