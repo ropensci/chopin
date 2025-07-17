@@ -43,7 +43,7 @@
 #' library(sf)
 #' library(mirai)
 #' options(sf_use_s2 = FALSE)
-#' daemons(4, dispatcher = "process")
+#' daemons(4)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' ncpoly <- sf::st_read(ncpath)
 #' ncpoly <- sf::st_transform(ncpoly, "EPSG:5070")
@@ -270,7 +270,7 @@ par_grid_mirai <-
 #'  in each higher level feature. Be advised that
 #'  accessing the same file simultaneously with
 #'  multiple processes may result in errors.
-#' @details 
+#' @details
 #' In dynamic dots (`...`), `fun_dist` arguments should include
 #'   x and y where sf/terra class objects or file paths are accepted.
 #'   Hierarchy is interpreted by the `regions_id` argument first.
@@ -340,7 +340,7 @@ par_grid_mirai <-
 #' library(sf)
 #' library(mirai)
 #' options(sf_use_s2 = FALSE)
-#' mirai::daemons(4, dispatcher = "process")
+#' mirai::daemons(4)
 #'
 #' nccnty <- sf::st_read(
 #'   system.file("shape/nc.shp", package = "sf")
@@ -508,7 +508,7 @@ par_hierarchy_mirai <-
                 # subregion header string retrieval
                 region_i <- regions_list[[i]]
                 regions_ids <- vec_regions_id
-                
+
                 # subregion object
                 subregion_in <-
                   regions[startsWith(regions_ids, region_i), ]
@@ -689,7 +689,7 @@ par_hierarchy_mirai <-
 #' library(sf)
 #' library(mirai)
 #' options(sf_use_s2 = FALSE)
-#' mirai::daemons(4, dispatcher = "process")
+#' mirai::daemons(4)
 #'
 #' nccnty <- sf::st_read(
 #'   system.file("shape/nc.shp", package = "sf")

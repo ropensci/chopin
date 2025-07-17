@@ -70,7 +70,7 @@ spatial variables from input data in parallel:
   work properly after creating daemons with `mirai::daemons`.
 
 ``` r
-mirai::daemons(4L, dispatcher = "process")
+mirai::daemons(4L)
 ```
 
 For grid partitioning, the entire study area will be divided into partly
@@ -398,7 +398,7 @@ plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 The same workflow operates on `mirai` dispatchers.
 
 ``` r
-mirai::daemons(n = 4L, dispatcher = "process")
+mirai::daemons(4L)
 #> [1] 4
 
 system.time(
