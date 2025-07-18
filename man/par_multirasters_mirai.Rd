@@ -52,7 +52,7 @@ library(terra)
 library(sf)
 library(mirai)
 options(sf_use_s2 = FALSE)
-mirai::daemons(4, dispatcher = "process")
+mirai::daemons(4)
 
 nccnty <- sf::st_read(
   system.file("shape/nc.shp", package = "sf")

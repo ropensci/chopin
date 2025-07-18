@@ -54,7 +54,7 @@ __Second,__ users choose the proper data parallelization configuration by creati
 - Each of the `par_*` functions introduced above has `mirai` version with a suffix `_mirai` after the function names: `par_grid_mirai`, `par_hierarchy_mirai`, and `par_multirasters`. These functions will work properly after creating daemons with `mirai::daemons`.
 
 ```r
-mirai::daemons(4L, dispatcher = "process")
+mirai::daemons(4L)
 ```
 
 For grid partitioning, the entire study area will be divided into partly overlapped grids. We suggest two flowcharts to help which function to use for parallel processing below. The upper flowchart is raster-oriented and the lower is vector-oriented. They are supplementary to each other. When a user follows the raster-oriented one, they might visit the vector-oriented flowchart at each end of the raster-oriented flowchart.
@@ -276,7 +276,7 @@ plot(ncpoints_m[, "mean_par"], main = "Multi-thread", pch = 19, cex = 0.33)
 The same workflow operates on `mirai` dispatchers.
 
 ```{r demo-par-grid-mirai}
-mirai::daemons(n = 4L, dispatcher = "process")
+mirai::daemons(4L)
 
 system.time(
   ncpoints_srtm_mthr <-

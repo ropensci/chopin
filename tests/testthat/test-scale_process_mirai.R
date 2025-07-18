@@ -8,7 +8,7 @@ testthat::test_that("par_grid_mirai -- plain mode with raster path", {
   withr::local_options(
     list(sf_use_s2 = FALSE)
   )
-  mirai::daemons(4, dispatcher = "process")
+  mirai::daemons(4)
   # Reading data
   ## NC counties polygon
   ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -106,7 +106,7 @@ testthat::test_that(
         sf_use_s2 = FALSE
       )
     )
-    mirai::daemons(4, dispatcher = "process")
+    mirai::daemons(4)
     withr::local_seed(202407)
 
     nccnty <- sf::st_read(
@@ -201,7 +201,7 @@ testthat::test_that("par_hierarchy_mirai: define level by substring", {
       sf_use_s2 = FALSE
     )
   )
-  mirai::daemons(4, dispatcher = "process")
+  mirai::daemons(4)
   withr::local_seed(202407)
 
   nccnty <- sf::st_read(
@@ -290,7 +290,7 @@ testthat::test_that("generic function should be parallelized properly", {
     )
   )
 
-  mirai::daemons(4L, dispatcher = "process")
+  mirai::daemons(4L)
 
   # main test
   ## Generated random points in NC
@@ -343,7 +343,7 @@ testthat::test_that(
         sf_use_s2 = FALSE
       )
     )
-    mirai::daemons(4, dispatcher = "process")
+    mirai::daemons(4)
 
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
@@ -412,7 +412,7 @@ testthat::test_that(
         sf_use_s2 = FALSE
       )
     )
-    mirai::daemons(4, dispatcher = "process")
+    mirai::daemons(4)
 
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
@@ -476,7 +476,7 @@ testthat::test_that(
         sf_use_s2 = FALSE
       )
     )
-    mirai::daemons(4, dispatcher = "process")
+    mirai::daemons(4)
 
     # ncpath <- system.file("extdata/nc_hierarchy.gpkg", package = "chopin")
     # nccnty <- sprintf("GPKG:%s:%s", ncpath, "county")
@@ -570,7 +570,7 @@ testthat::test_that(
         sf_use_s2 = FALSE
       )
     )
-    mirai::daemons(4, dispatcher = "process")
+    mirai::daemons(4)
 
     nccnty <- sf::st_read(
       system.file("shape/nc.shp", package = "sf")
