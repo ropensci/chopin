@@ -9,10 +9,11 @@
 [![Status at rOpenSci Software Peer
 Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![runiverse-package](https://ropensci.r-universe.dev/badges/chopin?scale=1&color=pink&style=round)](https://ropensci.r-universe.dev/chopin)
+[![CRAN](https://www.r-pkg.org/badges/version/chopin?color=blue)](https://cran.r-project.org/package=chopin)
+[![downloads](https://cranlogs.r-pkg.org/badges/grand-total/chopin)](https://cran.r-project.org/package=chopin)
 [![Docs](https://img.shields.io/badge/docs-release-blue.svg)](https://docs.ropensci.org/chopin/)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-
 <!-- badges: end -->
 
 ## Objective
@@ -136,6 +137,12 @@ For **vector-oriented selection**, we suggest three factors to consider:
 
 ## Installation
 
+From version 0.9.4, `chopin` is available on CRAN.
+
+``` r
+install.packages("chopin")
+```
+
 `chopin` can be installed using `remotes::install_github` (also possible
 with `pak::pak` or `devtools::install_github`).
 
@@ -148,6 +155,7 @@ or you can also set `repos` in `install.packages()` as ROpenSci
 repository:
 
 ``` r
+# More recent version is available rOpenSci universe
 install.packages("chopin", repos = "https://ropensci.r-universe.dev")
 ```
 
@@ -266,7 +274,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   5.010   0.087   5.098
+#>   5.384   0.089   5.474
 ```
 
 #### Generate regular grid computational regions
@@ -355,7 +363,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.768   0.200  10.594
+#>   1.927   0.207  11.209
 
 ncpoints_srtm <-
   extract_at(
@@ -416,10 +424,10 @@ system.time(
 #> ℹ SpatRaster class input is detected.
 #> Attempt to track the data source file path...
 #> ℹ Input is not a character.
-#> ■■■■■■■■■                         25% | ETA: 24s
+#> ■■■■■■■■■                         25% | ETA: 25s
 #> ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #>    user  system elapsed 
-#>   0.830   0.171   9.507
+#>   0.955   0.192  10.081
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -454,14 +462,14 @@ download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
 nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/RtmpOD6Egx/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/Rtmph96u0D/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/RtmpOD6Egx/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/Rtmph96u0D/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -489,7 +497,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.512   0.001   0.513
+#>   0.537   0.002   0.539
 
 # hierarchical parallelization
 system.time(
@@ -808,7 +816,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   1.992   0.469  10.553
+#>   2.153   0.458  11.105
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -835,9 +843,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpOD6Egx/nc_srtm15_otm.tif" "/tmp/RtmpOD6Egx/test1.tif"        
-#> [3] "/tmp/RtmpOD6Egx/test2.tif"         "/tmp/RtmpOD6Egx/test3.tif"        
-#> [5] "/tmp/RtmpOD6Egx/test4.tif"         "/tmp/RtmpOD6Egx/test5.tif"
+#> [1] "/tmp/Rtmph96u0D/nc_srtm15_otm.tif" "/tmp/Rtmph96u0D/test1.tif"        
+#> [3] "/tmp/Rtmph96u0D/test2.tif"         "/tmp/Rtmph96u0D/test3.tif"        
+#> [5] "/tmp/Rtmph96u0D/test4.tif"         "/tmp/Rtmph96u0D/test5.tif"
 ```
 
 ``` r
@@ -854,35 +862,35 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpOD6Egx/nc_srtm15_otm.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmph96u0D/nc_srtm15_otm.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpOD6Egx/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmph96u0D/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpOD6Egx/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmph96u0D/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpOD6Egx/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmph96u0D/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpOD6Egx/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmph96u0D/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpOD6Egx/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmph96u0D/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.446   0.286   3.239
+#>   1.533   0.269   3.359
 knitr::kable(head(res))
 ```
 
 |      mean | base_raster                       |
 |----------:|:----------------------------------|
-| 136.80203 | /tmp/RtmpOD6Egx/nc_srtm15_otm.tif |
-| 189.76170 | /tmp/RtmpOD6Egx/nc_srtm15_otm.tif |
-| 231.16968 | /tmp/RtmpOD6Egx/nc_srtm15_otm.tif |
-|  98.03845 | /tmp/RtmpOD6Egx/nc_srtm15_otm.tif |
-|  41.23463 | /tmp/RtmpOD6Egx/nc_srtm15_otm.tif |
-| 270.96933 | /tmp/RtmpOD6Egx/nc_srtm15_otm.tif |
+| 136.80203 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
+| 189.76170 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
+| 231.16968 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
+|  98.03845 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
+|  41.23463 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
+| 270.96933 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
 
 ``` r
 
@@ -925,7 +933,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(ncrd1_path)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/RtmpOD6Egx/ncroads_first.gpkg' using driver `GPKG'
+#>   `/tmp/Rtmph96u0D/ncroads_first.gpkg' using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
 #> Dimension:     XY
@@ -977,11 +985,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.429   0.000   0.430
+#>   0.486   0.000   0.486
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/RtmpOD6Egx/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/Rtmph96u0D/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -1027,7 +1035,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.093   0.251   2.859
+#>   1.226   0.260   3.040
 ```
 
 - We will compare the results from the single-thread and multi-thread

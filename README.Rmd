@@ -22,10 +22,11 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![runiverse-package](https://ropensci.r-universe.dev/badges/chopin?scale=1&color=pink&style=round)](https://ropensci.r-universe.dev/chopin)
+[![CRAN](https://www.r-pkg.org/badges/version/chopin?color=blue)](https://cran.r-project.org/package=chopin)
+[![downloads](https://cranlogs.r-pkg.org/badges/grand-total/chopin)](https://cran.r-project.org/package=chopin)
 [![Docs](https://img.shields.io/badge/docs-release-blue.svg)](https://docs.ropensci.org/chopin/)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-
 <!-- badges: end -->
 
 ## Objective
@@ -95,6 +96,12 @@ For **vector-oriented selection**, we suggest three factors to consider:
 
 ## Installation
 
+From version 0.9.4, `chopin` is available on CRAN.
+
+```r
+install.packages("chopin")
+```
+
 `chopin` can be installed using `remotes::install_github` (also possible with `pak::pak` or `devtools::install_github`).
 
 ```r
@@ -105,6 +112,7 @@ remotes::install_github("ropensci/chopin")
 or you can also set `repos` in `install.packages()` as ROpenSci repository:
 
 ```r
+# More recent version is available rOpenSci universe
 install.packages("chopin", repos = "https://ropensci.r-universe.dev")
 ```
 
