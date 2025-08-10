@@ -35,7 +35,8 @@ nc_comp_region <-
     nc,
     mode = "grid",
     nx = 4L, ny = 2L,
-    padding = 10000)
+    padding = 10000
+  )
 par_split_list(nc_comp_region)
 
 par(lastpar)
@@ -47,7 +48,9 @@ Other Parallelization:
 \code{\link{par_grid_mirai}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_hierarchy_mirai}()},
+\code{\link{par_make_dggrid}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_h3}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()},
 \code{\link{par_multirasters_mirai}()},

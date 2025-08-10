@@ -1,6 +1,6 @@
 Package: chopin
 Title: Spatial Parallel Computing by Hierarchical Data Partitioning
-Version: 0.9.4
+Version: 0.9.5
 Authors@R: c(
     person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -66,6 +66,8 @@ Suggests:
     spatstat.random,
     testthat (>= 3.0.0),
     units,
-    withr
+    withr,
+    dggridR,
+    h3r
 VignetteBuilder: knitr
 Config/testthat/edition: 3

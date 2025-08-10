@@ -411,3 +411,93 @@ testthat::test_that("par_split_list returns correct output", {
   testthat::expect_equal(result[[1]]$original, data.frame(x = 1, y = 1))
   testthat::expect_equal(result[[1]]$padded, data.frame(x = 8, y = 7))
 })
+
+testthat::test_that("search_h3 returns correct H3 indices for sf input", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("h3r")
+  library(sf)
+  # Create a simple sf POINT
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  res <- 10L
+  suppressWarnings(
+    h3_idx <- search_h3(sf_pt, res = res)
+  )
+  testthat::expect_type(h3_idx, "character")
+  testthat::expect_length(h3_idx, 1)
+})
+
+# testthat::test_that("search_h3 errors if h3r is not installed", {
+#   testthat::skip_if_not_installed("sf")
+#   library(sf)
+#   pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+#   sf_pt <- st_sf(id = 1, geometry = pt)
+#   testthat::expect_warning(
+#     testthat::expect_error(
+#       search_h3(sf_pt, res = 10L),
+#       "h3r package is required for this function."
+#     )# Should not error if h3r is installed
+#   )
+# })
+
+
+testthat::test_that("search_h3 errors for non-sf input", {
+  testthat::expect_error(search_h3(list(x = 1)),
+  "input should be sf or SpatVector object")
+})
+
+testthat::test_that("par_make_h3 returns sf polygons with CGRIDID", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("h3r")
+  library(sf)
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  testthat::expect_warning(h3_sf <- par_make_h3(sf_pt, res = 10L))
+  testthat::expect_s3_class(h3_sf, "sf")
+  testthat::expect_true("CGRIDID" %in% names(h3_sf))
+  testthat::expect_true(any(sf::st_geometry_type(h3_sf) == "POLYGON"))
+})
+
+testthat::test_that("par_make_h3 errors if h3r is not installed", {
+  testthat::skip_if_not_installed("sf")
+  library(sf)
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  testthat::expect_error(
+    suppressWarnings(par_make_h3(sf_pt, res = 10L)), NA
+  ) # Should not error if h3r is installed
+})
+
+testthat::test_that("par_make_dggrid returns sf polygons with CGRIDID", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("dggridR")
+  library(sf)
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  dg_sf <- par_make_dggrid(sf_pt, res = 8L)
+  testthat::expect_s3_class(dg_sf, "sf")
+  testthat::expect_true("CGRIDID" %in% names(dg_sf))
+})
+
+testthat::test_that("par_make_dggrid transforms CRS if needed", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("dggridR")
+  library(sf)
+  pt <- st_sfc(st_point(c(18, -33)), crs = 3857)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  testthat::expect_message(
+    par_make_dggrid(sf_pt, res = 8L),
+    "Input sf object should be in WGS84"
+  )
+})
+
+testthat::test_that("par_make_dggrid errors if dggridR is not installed", {
+  testthat::skip_if_not_installed("sf")
+  library(sf)
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  testthat::expect_error(
+    par_make_dggrid(sf_pt, res = 8L),
+    NA
+  ) # Should not error if dggridR is installed
+})

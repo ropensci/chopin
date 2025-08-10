@@ -9,6 +9,8 @@
 #'  The argument `grid_min_features` should be specified.
 #' * `"grid_quantile"` (x and y quantiles): an argument `quantiles` should
 #' be specified.
+#' * `"h3"` (H3 hexagons): an argument `res` should be specified.
+#' * `"dggrid"` (DGG grids): an argument `res` should be specified.
 #' @param nx integer(1). The number of grids along x-axis.
 #' @param ny integer(1). The number of grids along y-axis.
 #' @param grid_min_features integer(1). A threshold to merging adjacent grids
@@ -24,6 +26,7 @@
 #'   per merged set.
 #' @param return_wkt logical(1). Return WKT format. When `TRUE`,
 #'   the return value will be a list of two WKT strings.
+#' @param res integer(1). Resolution for `h3` and `dggrid` modes.
 # nolint end
 #' @param ... arguments passed to the internal function
 #' @returns A list of two,
@@ -50,7 +53,8 @@
 #'     nc,
 #'     mode = "grid",
 #'     nx = 4L, ny = 2L,
-#'     padding = 10000)
+#'     padding = 10000
+#'   )
 #' par(mfcol = c(1, 2))
 #' plot(nc_comp_region$original$geometry)
 #' plot(nc_comp_region$padded$geometry)
@@ -61,28 +65,47 @@
 #'     mode = "grid",
 #'     nx = 4L, ny = 2L,
 #'     padding = 10000,
-#'     return_wkt = TRUE)
+#'     return_wkt = TRUE
+#'   )
 #' nc_comp_region_wkt$original
 #' nc_comp_region_wkt$padded
 #'
+#' if (rlang::check_installed("h3r")) {
+#'   nc_comp_region_h3 <-
+#'   par_pad_grid(
+#'     nc,
+#'     mode = "h3",
+#'     res = 10L,
+#'     padding = 10000
+#'   )
+#' }
+#' if (rlang::check_installed("dggridR")) {
+#'   nc_comp_region_dggrid <-
+#'   par_pad_grid(
+#'     nc,
+#'     mode = "dggrid",
+#'     res = 8L,
+#'     padding = 10000
+#'   )
+#' }
 #' par(lastpar)
 #' @importFrom sf st_crs st_set_crs st_as_text
 #' @importFrom terra crs set.crs buffer geom
 #' @importFrom cli cli_inform cli_abort
 #' @export
 par_pad_grid <-
-  function(
-      input,
-      mode = c("grid", "grid_advanced", "grid_quantile"),
-      nx = 10L,
-      ny = 10L,
-      grid_min_features = 30L,
-      padding = NULL,
-      unit = NULL,
-      quantiles = NULL,
-      merge_max = NULL,
-      return_wkt = FALSE,
-      ...) {
+  function(input,
+           mode = c("grid", "grid_advanced", "grid_quantile", "h3", "dggrid"),
+           nx = 10L,
+           ny = 10L,
+           grid_min_features = 30L,
+           padding = NULL,
+           unit = NULL,
+           quantiles = NULL,
+           merge_max = NULL,
+           return_wkt = FALSE,
+           res = 8L,
+           ...) {
     mode <- match.arg(mode)
 
     if (!all(
@@ -107,8 +130,7 @@ par_pad_grid <-
     grid_reg <-
       switch(mode,
         grid = par_make_grid(points_in = input, ncutsx = nx, ncutsy = ny),
-        grid_advanced =
-        par_merge_grid(
+        grid_advanced = par_merge_grid(
           points_in = input,
           par_make_grid(input, nx, ny),
           grid_min_features = grid_min_features,
@@ -118,6 +140,14 @@ par_pad_grid <-
           x = input,
           y = NULL,
           quantiles = quantiles
+        ),
+        h3 = par_make_h3(
+          x = input,
+          res = res
+        ),
+        dggrid = par_make_dggrid(
+          x = input,
+          res = res
         )
       )
 
@@ -162,8 +192,10 @@ par_pad_grid <-
       grid_reg_pad <- dep_switch(grid_reg_pad)
     }
     grid_results <-
-      list(original = grid_reg,
-           padded = grid_reg_pad)
+      list(
+        original = grid_reg,
+        padded = grid_reg_pad
+      )
 
     if (return_wkt) {
       grid_results <-
@@ -180,7 +212,6 @@ par_pad_grid <-
     }
 
     return(grid_results)
-
   }
 
 
@@ -221,10 +252,9 @@ par_pad_grid <-
 #' @export
 par_pad_balanced <-
   function(
-    points_in = NULL,
-    ngroups,
-    padding
-  ) {
+      points_in = NULL,
+      ngroups,
+      padding) {
     if (missing(ngroups)) {
       cli::cli_abort("ngroups should be specified.\n")
     }
@@ -268,8 +298,10 @@ par_pad_balanced <-
       grid_reg_pad <- dep_switch(grid_reg_pad)
     }
     grid_results <-
-      list(original = pgroups,
-           padded = grid_reg_pad)
+      list(
+        original = pgroups,
+        padded = grid_reg_pad
+      )
     return(grid_results)
   }
 
@@ -296,10 +328,9 @@ par_pad_balanced <-
 #' @importFrom sf st_as_sf st_make_grid
 par_make_grid <-
   function(
-    points_in = NULL,
-    ncutsx = NULL,
-    ncutsy = NULL
-  ) {
+      points_in = NULL,
+      ncutsx = NULL,
+      ncutsy = NULL) {
     if (is.character(points_in)) {
       points_in <- try(terra::vect(points_in, proxy = TRUE))
       points_in <- sf::st_bbox(terra::ext(points_in))
@@ -347,9 +378,8 @@ par_make_grid <-
 #' @importFrom cli cli_abort
 #' @keywords internal
 par_make_balanced <- function(
-  points_in = NULL,
-  n_clusters = NULL
-) {
+    points_in = NULL,
+    n_clusters = NULL) {
   if (!is.numeric(n_clusters)) {
     cli::cli_abort(c("x" = "n_clusters should be numeric."))
   }
@@ -496,8 +526,10 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
 #' dgs$CGRIDID <- seq(1, nrow(dgs))
 #'
-#' dg_sample <- sf::st_sample(dg, kappa = 5e-9, mu = 15,
-#' scale = 15000, type = "Thomas")
+#' dg_sample <- sf::st_sample(dg,
+#'   kappa = 5e-9, mu = 15,
+#'   scale = 15000, type = "Thomas"
+#' )
 #' sf::st_crs(dg_sample) <- sf::st_crs(dg)
 #' dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 #'
@@ -517,11 +549,10 @@ par_cut_coords <- function(x = NULL, y = NULL, quantiles) {
 #' @export
 par_merge_grid <-
   function(
-    points_in = NULL,
-    grid_in = NULL,
-    grid_min_features = NULL,
-    merge_max = 4L
-  ) {
+      points_in = NULL,
+      grid_in = NULL,
+      grid_min_features = NULL,
+      merge_max = 4L) {
     package_detected <- dep_check(points_in)
     if (package_detected == "terra") {
       points_pc <- dep_switch(points_in)
@@ -572,8 +603,10 @@ par_merge_grid <-
     grid_lt_threshold_idx <- seq(1, nrow(grid_pc))[grid_target]
 
     # 5. filter out the ones that are below the threshold
-    identified <- lapply(grid_selfrook,
-                         function(x) sort(x[x %in% grid_lt_threshold_idx]))
+    identified <- lapply(
+      grid_selfrook,
+      function(x) sort(x[x %in% grid_lt_threshold_idx])
+    )
     # filtering self with the lower number of intersecting points
     identified <- identified[grid_target]
     # 6. remove duplicate neighbor pairs
@@ -626,7 +659,7 @@ par_merge_grid <-
       graph_member_excess_idx <-
         which(
           identified_graph_member %in%
-          names(tab_graph_member[tab_graph_member > merge_max])
+            names(tab_graph_member[tab_graph_member > merge_max])
         )
       # extract the excess groups
       graph_member_excess <- identified_graph_member[graph_member_excess_idx]
@@ -650,15 +683,17 @@ par_merge_grid <-
           )
 
         graph_member_excess_split <-
-          mapply(function(x, y) {
+          mapply(
+            function(x, y) {
               rep(vapply(y, FUN = as.numeric, FUN.VALUE = numeric(1)), length(x))
             }, graph_member_excess_split, names(graph_member_excess_split),
             SIMPLIFY = TRUE
           )
         graph_member_excess_split <- unname(unlist(graph_member_excess_split))
         identified_graph_member2[
-          which(identified_graph_member2 == unique(graph_member_excess)[i])] <-
-            graph_member_excess_split
+          which(identified_graph_member2 == unique(graph_member_excess)[i])
+        ] <-
+          graph_member_excess_split
       }
       identified_graph_member <- identified_graph_member2
     } else {
@@ -679,7 +714,8 @@ par_merge_grid <-
         function(lst, label) {
           rep(label, length(lst))
         },
-        merge_member, merge_member_label, SIMPLIFY = TRUE
+        merge_member, merge_member_label,
+        SIMPLIFY = TRUE
       )
     merge_member_label <- unlist(merge_member_label)
 
@@ -700,13 +736,13 @@ par_merge_grid <-
         as.numeric(sf::st_length(sf::st_cast(par_merge_gridd, "LINESTRING")))
       )
     par_merge_gridd_pptest <-
-      (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter ^ 2)
+      (4 * pi * par_merge_gridd_area) / (par_merge_gridd_perimeter^2)
 
     # pptest value is bounded [0,1];
     # 0.3 threshold is groundless at this moment,
     # possibly will make it defined by users.
     if (max(unique(identified_graph_member)) > floor(0.1 * nrow(grid_in)) ||
-          any(par_merge_gridd_pptest < 0.3)) {
+      any(par_merge_gridd_pptest < 0.3)) {
       cli::cli_alert_info(
         paste0(
           "The merged polygons have too complex shapes.\n",
@@ -745,7 +781,8 @@ par_merge_grid <-
 #'     nc,
 #'     mode = "grid",
 #'     nx = 4L, ny = 2L,
-#'     padding = 10000)
+#'     padding = 10000
+#'   )
 #' par_split_list(nc_comp_region)
 #'
 #' par(lastpar)
@@ -764,13 +801,122 @@ par_split_list <-
     for (i in seq_len(lenlist)) {
       if (isdf) {
         list_nest[[i]] <-
-          list(original = gridlist[[1]][i, ],
-               padded = gridlist[[2]][i, ])
+          list(
+            original = gridlist[[1]][i, ],
+            padded = gridlist[[2]][i, ]
+          )
       } else {
         list_nest[[i]] <-
-          list(original = gridlist[[1]][i],
-               padded = gridlist[[2]][i])
+          list(
+            original = gridlist[[1]][i],
+            padded = gridlist[[2]][i]
+          )
       }
     }
     return(list_nest)
   }
+
+
+
+search_h3 <- function(x, res = 10L) {
+  if (!requireNamespace("h3r", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "x" = "h3r package is required for this function.",
+      "i" = "Please install h3r package."
+    ))
+  }
+  if (!inherits(x, c("sf", "SpatVector"))) {
+    cli::cli_abort(c("x" = "input should be sf or SpatVector object."))
+  }
+  x <- sf::st_centroid(x)
+  x <- sf::st_transform(x, crs = 4326)
+  x <- sf::st_coordinates(x)
+  searched <-
+    h3r::latLngToCell(
+      lat = x[, 2],
+      lng = x[, 1],
+      resolution = res
+    )
+  searched
+}
+
+
+#' Convert H3 indices to sf object
+#' @family Parallelization
+#' @description This function converts an input `sf` to an
+#' `sf` object with H3 hexagons.
+#' It requires the `h3r` package to be installed.
+#' @param x sf object.
+#' @param res integer(1). H3 resolution. Default is 10L.
+#' @returns An `sf` object with polygons representing the H3 indices.
+#' @author Insang Song
+#' @importFrom sf st_polygon st_as_sfc st_as_sf st_crs
+#' @importFrom cli cli_abort
+#' @export
+par_make_h3 <- function(x, res = 10L) {
+  if (!requireNamespace("h3r", quietly = TRUE)) {
+    cli::cli_abort("h3r package is required for this function.")
+  }
+  h3_indices <- search_h3(x, res = res)
+  h3list <-
+    h3r::cellToBoundary(
+      cell = h3_indices
+    )
+  h3list <- Map(
+    function(x) {
+      sf::st_polygon(
+        list(as.matrix(x[c(seq_len(nrow(x)), 1L), 2:1]))
+      )
+    },
+    h3list
+  )
+  h3sf <- sf::st_as_sfc(
+    h3list, crs = sf::st_crs(4326)
+  )
+  h3sf <- sf::st_as_sf(h3sf)
+  h3sf[["CGRIDID"]] <- seq_len(nrow(h3sf))
+  h3sf
+}
+
+
+#' Convert DGGRID indices to sf object
+#' @family Parallelization
+#' @description This function converts DGGRID indices to an `sf` object.
+#' It requires the `dggridR` package to be installed.
+#' @param x sf object.
+#' @param res integer(1). DGGRID resolution. Default is 8L.
+#' @param topology character(1). Topology type, either "HEXAGON" or "SQUARE".
+#'   Default is "HEXAGON".
+#' @details [`dggridR::dgconstruct`] is used to create a
+#' DGGRID object with the specified resolution. All arguments in
+#' this function are used as default values other than
+#' `res` and `topology`.
+#' @returns An `sf` object with polygons representing the DGGRID indices.
+#' @author Insang Song
+#' @importFrom sf st_polygon st_as_sfc st_as_sf st_crs
+#' @importFrom cli cli_abort
+#' @export
+par_make_dggrid <- function(x, res = 8L, topology = "HEXAGON") {
+  if (!requireNamespace("dggridR", quietly = TRUE)) {
+    cli::cli_abort("dggridR package is required for this function.")
+  }
+  if (sf::st_crs(x) != 4326) {
+    cli::cli_inform("Input sf object should be in WGS84 (EPSG:4326) CRS.")
+    x <- sf::st_transform(x, crs = 4326)
+  }
+
+  dggs <-
+    dggridR::dgconstruct(
+      res = res, metric = TRUE, resround = "nearest"
+    )
+
+  #Get a grid covering South Africa
+  dgg_grid <-
+    dggridR::dgshptogrid(
+      dggs, x
+    )
+
+  dgg_grid[["CGRIDID"]] <- seq_len(nrow(dgg_grid))
+  dgg_grid <- dgg_grid[, c("CGRIDID")]
+  dgg_grid
+}
