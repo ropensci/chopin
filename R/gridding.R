@@ -70,7 +70,7 @@
 #' nc_comp_region_wkt$original
 #' nc_comp_region_wkt$padded
 #'
-#' if (rlang::check_installed("h3r")) {
+#' if (rlang::is_installed("h3r")) {
 #'   nc_comp_region_h3 <-
 #'   par_pad_grid(
 #'     nc,
@@ -79,7 +79,7 @@
 #'     padding = 10000
 #'   )
 #' }
-#' if (rlang::check_installed("dggridR")) {
+#' if (rlang::is_installed("dggridR")) {
 #'   nc_comp_region_dggrid <-
 #'   par_pad_grid(
 #'     nc,
