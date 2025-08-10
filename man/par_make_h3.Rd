@@ -19,6 +19,24 @@ This function converts an input \code{sf} to an
 \code{sf} object with H3 hexagons.
 It requires the \code{h3r} package to be installed.
 }
+\examples{
+lastpar <- par(mfrow = c(1, 1))
+library(sf)
+if (!requiredNamespace("h3r") {
+library(h3r)
+options(sf_use_s2 = FALSE)
+ncpath <- system.file("shape/nc.shp", package = "sf")
+nc <- read_sf(ncpath)
+nc <- st_transform(nc, "EPSG:4326")
+nc_comp_region_h3 <-
+  par_make_h3(
+    nc,
+    res = 10L
+  )
+plot(sf::st_geometry(nc_comp_region_h3))
+}
+par(lastpar)
+}
 \seealso{
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

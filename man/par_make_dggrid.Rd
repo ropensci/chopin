@@ -27,6 +27,25 @@ DGGRID object with the specified resolution. All arguments in
 this function are used as default values other than
 \code{res} and \code{topology}.
 }
+\examples{
+lastpar <- par(mfrow = c(1, 1))
+library(sf)
+if (!requireNamespace("dggridR", quietly = TRUE)) {
+  library(dggridR)
+  options(sf_use_s2 = FALSE)
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  nc <- read_sf(ncpath)
+  nc <- st_transform(nc, "EPSG:4326")
+  nc_comp_region_dggrid <-
+    par_make_dggrid(
+      nc,
+      res = 8L,
+      topology = "HEXAGON"
+    )
+  plot(sf::st_geometry(nc_comp_region_dggrid))
+}
+par(lastpar)
+}
 \seealso{
 Other Parallelization: 
 \code{\link{par_cut_coords}()},

@@ -850,6 +850,23 @@ search_h3 <- function(x, res = 10L) {
 #' @param res integer(1). H3 resolution. Default is 10L.
 #' @returns An `sf` object with polygons representing the H3 indices.
 #' @author Insang Song
+#' @examples
+#' lastpar <- par(mfrow = c(1, 1))
+#' library(sf)
+#' if (!requiredNamespace("h3r") {
+#' library(h3r)
+#' options(sf_use_s2 = FALSE)
+#' ncpath <- system.file("shape/nc.shp", package = "sf")
+#' nc <- read_sf(ncpath)
+#' nc <- st_transform(nc, "EPSG:4326")
+#' nc_comp_region_h3 <-
+#'   par_make_h3(
+#'     nc,
+#'     res = 10L
+#'   )
+#' plot(sf::st_geometry(nc_comp_region_h3))
+#' }
+#' par(lastpar)
 #' @importFrom sf st_polygon st_as_sfc st_as_sf st_crs
 #' @importFrom cli cli_abort
 #' @export
@@ -893,6 +910,24 @@ par_make_h3 <- function(x, res = 10L) {
 #' `res` and `topology`.
 #' @returns An `sf` object with polygons representing the DGGRID indices.
 #' @author Insang Song
+#' @examples
+#' lastpar <- par(mfrow = c(1, 1))
+#' library(sf)
+#' if (!requireNamespace("dggridR", quietly = TRUE)) {
+#'   library(dggridR)
+#'   options(sf_use_s2 = FALSE)
+#'   ncpath <- system.file("shape/nc.shp", package = "sf")
+#'   nc <- read_sf(ncpath)
+#'   nc <- st_transform(nc, "EPSG:4326")
+#'   nc_comp_region_dggrid <-
+#'     par_make_dggrid(
+#'       nc,
+#'       res = 8L,
+#'       topology = "HEXAGON"
+#'     )
+#'   plot(sf::st_geometry(nc_comp_region_dggrid))
+#' }
+#' par(lastpar)
 #' @importFrom sf st_polygon st_as_sfc st_as_sf st_crs
 #' @importFrom cli cli_abort
 #' @export
