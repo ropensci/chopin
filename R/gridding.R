@@ -853,7 +853,7 @@ search_h3 <- function(x, res = 10L) {
 #' @examples
 #' lastpar <- par(mfrow = c(1, 1))
 #' library(sf)
-#' if (!requiredNamespace("h3r") {
+#' if (rlang::is_installed("h3r")) {
 #' library(h3r)
 #' options(sf_use_s2 = FALSE)
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
@@ -913,7 +913,7 @@ par_make_h3 <- function(x, res = 10L) {
 #' @examples
 #' lastpar <- par(mfrow = c(1, 1))
 #' library(sf)
-#' if (!requireNamespace("dggridR", quietly = TRUE)) {
+#' if (rlang::is_installed("dggridR")) {
 #'   library(dggridR)
 #'   options(sf_use_s2 = FALSE)
 #'   ncpath <- system.file("shape/nc.shp", package = "sf")

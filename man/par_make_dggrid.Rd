@@ -30,7 +30,7 @@ this function are used as default values other than
 \examples{
 lastpar <- par(mfrow = c(1, 1))
 library(sf)
-if (!requireNamespace("dggridR", quietly = TRUE)) {
+if (rlang::is_installed("dggridR")) {
   library(dggridR)
   options(sf_use_s2 = FALSE)
   ncpath <- system.file("shape/nc.shp", package = "sf")
