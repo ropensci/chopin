@@ -818,7 +818,7 @@ par_split_list <-
 
 
 
-search_h3 <- function(x, res = 10L) {
+search_h3 <- function(x, res = 5L) {
   if (!requireNamespace("h3r", quietly = TRUE)) {
     cli::cli_abort(c(
       "x" = "h3r package is required for this function.",
@@ -828,13 +828,19 @@ search_h3 <- function(x, res = 10L) {
   if (!inherits(x, c("sf", "SpatVector"))) {
     cli::cli_abort(c("x" = "input should be sf or SpatVector object."))
   }
-  x <- sf::st_centroid(x)
   x <- sf::st_transform(x, crs = 4326)
   x <- sf::st_coordinates(x)
+  x <- split(
+    as.data.frame(x[, c(2, 1)]),
+    x[, 5]
+  )
+  x <- lapply(x, as.matrix)
+  # the input for polygonToCells should be a
+  # **list** of list of matrices
+  x <- lapply(x, list)
   searched <-
-    h3r::latLngToCell(
-      lat = x[, 2],
-      lng = x[, 1],
+    h3r::polygonToCells(
+      polygons = x,
       resolution = res
     )
   searched
@@ -847,7 +853,7 @@ search_h3 <- function(x, res = 10L) {
 #' `sf` object with H3 hexagons.
 #' It requires the `h3r` package to be installed.
 #' @param x sf object.
-#' @param res integer(1). H3 resolution. Default is 10L.
+#' @param res integer(1). H3 resolution. Default is 5L.
 #' @returns An `sf` object with polygons representing the H3 indices.
 #' @author Insang Song
 #' @examples
@@ -862,7 +868,7 @@ search_h3 <- function(x, res = 10L) {
 #' nc_comp_region_h3 <-
 #'   par_make_h3(
 #'     nc,
-#'     res = 10L
+#'     res = 5L
 #'   )
 #' plot(sf::st_geometry(nc_comp_region_h3))
 #' }
@@ -870,11 +876,17 @@ search_h3 <- function(x, res = 10L) {
 #' @importFrom sf st_polygon st_as_sfc st_as_sf st_crs
 #' @importFrom cli cli_abort
 #' @export
-par_make_h3 <- function(x, res = 10L) {
+par_make_h3 <- function(x, res = 5L) {
   if (!requireNamespace("h3r", quietly = TRUE)) {
     cli::cli_abort("h3r package is required for this function.")
   }
+  if (!all(grepl("POLYGON", sf::st_geometry_type(x)))) {
+    cli::cli_abort(
+      "Only polygon geometries are supported."
+    )
+  }
   h3_indices <- search_h3(x, res = res)
+  h3_indices <- unique(unlist(h3_indices))
   h3list <-
     h3r::cellToBoundary(
       cell = h3_indices

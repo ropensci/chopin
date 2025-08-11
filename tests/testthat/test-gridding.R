@@ -417,23 +417,27 @@ testthat::test_that("search_h3 returns correct H3 indices for sf input", {
   testthat::skip_if_not_installed("h3r")
   withr::local_package("sf")
   withr::local_package("h3r")
-  # Create a simple sf POINT
-  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
-  sf_pt <- st_sf(id = 1, geometry = pt)
-  res <- 10L
+
+  res <- 4L
+  ncp <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+  ncp <- sf::st_transform(ncp, "EPSG:4326")
   suppressWarnings(
-    h3_idx <- search_h3(sf_pt, res = res)
+    h3_idx <- search_h3(ncp, res = res)
   )
-  testthat::expect_type(h3_idx, "character")
-  testthat::expect_length(h3_idx, 1)
+  testthat::expect_type(h3_idx, "list")
+  testthat::expect_true(
+    all(is.character(unlist(h3_idx)))
+  )
 })
 
 
 testthat::test_that("search_h3 errors for non-sf input", {
   withr::local_package("sf")
   withr::local_package("h3r")
-  testthat::expect_error(search_h3(list(x = 1)),
-  "input should be sf or SpatVector object")
+  testthat::expect_error(
+    search_h3(list(x = 1)),
+    "input should be sf or SpatVector object"
+  )
 })
 
 testthat::test_that("par_make_h3 returns sf polygons with CGRIDID", {
@@ -443,19 +447,20 @@ testthat::test_that("par_make_h3 returns sf polygons with CGRIDID", {
   withr::local_package("h3r")
   pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
   sf_pt <- st_sf(id = 1, geometry = pt)
+  ncp <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+  ncp <- sf::st_transform(ncp, "EPSG:4326")
 
-  # point geometry does not warn
-  h3_sf <- par_make_h3(sf_pt, res = 10L)
-  testthat::expect_s3_class(h3_sf, "sf")
-  testthat::expect_true("CGRIDID" %in% names(h3_sf))
-  testthat::expect_true(any(sf::st_geometry_type(h3_sf) == "POLYGON"))
+  # point geometry fails
+  testthat::expect_error(
+    h3_sf <- par_make_h3(sf_pt, res = 3L),
+    "Only polygon geometries are supported."
+  )
 
-  # polygon geometry warns
-  sf_pt <- st_buffer(sf_pt, dist = units::set_units(1000, "m"))
-  suppressWarnings(h3_sf <- par_make_h3(sf_pt, res = 10L))
-  testthat::expect_s3_class(h3_sf, "sf")
-  testthat::expect_true("CGRIDID" %in% names(h3_sf))
-  testthat::expect_true(any(sf::st_geometry_type(h3_sf) == "POLYGON"))
+  # polygon geometry
+  h3_ncsf <- par_make_h3(ncp, res = 3L)
+  testthat::expect_s3_class(h3_ncsf, "sf")
+  testthat::expect_true("CGRIDID" %in% names(h3_ncsf))
+  testthat::expect_true(any(sf::st_geometry_type(h3_ncsf) == "POLYGON"))
 
 })
 
