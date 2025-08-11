@@ -3,6 +3,7 @@
 - `inst/extdata` contents were moved to `tests/testdata` in 0.9.1
 - CRAN ready: unexported function examples are moved to /tools on GitHub
 - SoftwareX paper is published; DOI and inst/CITATION is added
+- Supports H3 and DGGRID gridding functions from 0.9.5
 
 # 0.8
 - Bumped version from 0.7.8 to 0.8.0: improving package coverage

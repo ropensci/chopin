@@ -51,8 +51,10 @@ sf::st_crs(dg) <- 5070
 dgs <- sf::st_as_sf(st_make_grid(dg, n = c(20, 15)))
 dgs$CGRIDID <- seq(1, nrow(dgs))
 
-dg_sample <- sf::st_sample(dg, kappa = 5e-9, mu = 15,
-scale = 15000, type = "Thomas")
+dg_sample <- sf::st_sample(dg,
+  kappa = 5e-9, mu = 15,
+  scale = 15000, type = "Thomas"
+)
 sf::st_crs(dg_sample) <- sf::st_crs(dg)
 dg_merged <- par_merge_grid(sf::st_as_sf(dg_sample), dgs, 100)
 
@@ -71,7 +73,9 @@ Other Parallelization:
 \code{\link{par_grid_mirai}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_hierarchy_mirai}()},
+\code{\link{par_make_dggrid}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_h3}()},
 \code{\link{par_multirasters}()},
 \code{\link{par_multirasters_mirai}()},
 \code{\link{par_pad_balanced}()},

@@ -27,11 +27,11 @@ tables, `chopin` functions help to calculate spatial variables from
 vector and raster data with no external software requirements. All who
 need to perform geospatial operations with large datasets may find this
 package useful to accelerate the covariate calculation process for
-further analysis and modeling may find the main functions useful. We
-assume that users have basic knowledge of [geographic information system
-data models](https://r.geocompx.org/spatial-class), [coordinate systems
-and transformations](https://doi.org/10.22224/gistbok/2023.1.2),
-[spatial operations](https://r.geocompx.org/spatial-operations), and
+further analysis and modeling. We assume that users have basic knowledge
+of [geographic information system data
+models](https://r.geocompx.org/spatial-class), [coordinate systems and
+transformations](https://doi.org/10.22224/gistbok/2023.1.2), [spatial
+operations](https://r.geocompx.org/spatial-operations), and
 [raster-vector overlay](https://r.geocompx.org/raster-vector).
 
 ## Overview
@@ -81,6 +81,11 @@ raster-oriented and the lower is vector-oriented. They are supplementary
 to each other. When a user follows the raster-oriented one, they might
 visit the vector-oriented flowchart at each end of the raster-oriented
 flowchart.
+
+From version 0.9.5, `chopin` supports [H3](https://h3geo.org/) and
+[DGGRID](https://github.com/sahrk/DGGRID) in `par_pad_grid()`. Users can
+utilize each grid system with a proper resolution to improve the
+efficiency of spatial operations.
 
 Processing functions accept
 [terra](https://github.com/rspatial/terra)/[sf](https://github.com/r-spatial/sf)
@@ -184,7 +189,7 @@ library(dplyr)
 library(sf)
 #> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE
 library(terra)
-#> terra 1.8.54
+#> terra 1.8.60
 library(future)
 library(future.mirai)
 library(mirai)
@@ -274,7 +279,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   5.384   0.089   5.474
+#>   5.220   0.101   5.343
 ```
 
 #### Generate regular grid computational regions
@@ -363,7 +368,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.927   0.207  11.209
+#>   1.796   0.282  10.985
 
 ncpoints_srtm <-
   extract_at(
@@ -427,7 +432,7 @@ system.time(
 #> ■■■■■■■■■                         25% | ETA: 25s
 #> ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #>    user  system elapsed 
-#>   0.955   0.192  10.081
+#>   0.851   0.186  10.024
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -462,14 +467,14 @@ download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
 nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/Rtmph96u0D/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/Rtmpm4hmMO/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/Rtmph96u0D/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/Rtmpm4hmMO/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -497,7 +502,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.537   0.002   0.539
+#>   0.504   0.005   0.509
 
 # hierarchical parallelization
 system.time(
@@ -816,7 +821,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   2.153   0.458  11.105
+#>   2.028   0.461  11.013
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -843,9 +848,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmph96u0D/nc_srtm15_otm.tif" "/tmp/Rtmph96u0D/test1.tif"        
-#> [3] "/tmp/Rtmph96u0D/test2.tif"         "/tmp/Rtmph96u0D/test3.tif"        
-#> [5] "/tmp/Rtmph96u0D/test4.tif"         "/tmp/Rtmph96u0D/test5.tif"
+#> [1] "/tmp/Rtmpm4hmMO/nc_srtm15_otm.tif" "/tmp/Rtmpm4hmMO/test1.tif"        
+#> [3] "/tmp/Rtmpm4hmMO/test2.tif"         "/tmp/Rtmpm4hmMO/test3.tif"        
+#> [5] "/tmp/Rtmpm4hmMO/test4.tif"         "/tmp/Rtmpm4hmMO/test5.tif"
 ```
 
 ``` r
@@ -862,35 +867,35 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmph96u0D/nc_srtm15_otm.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmph96u0D/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmpm4hmMO/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmph96u0D/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmpm4hmMO/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmph96u0D/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmpm4hmMO/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmph96u0D/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmpm4hmMO/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmph96u0D/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmpm4hmMO/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.533   0.269   3.359
+#>   1.464   0.271   3.252
 knitr::kable(head(res))
 ```
 
 |      mean | base_raster                       |
 |----------:|:----------------------------------|
-| 136.80203 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
-| 189.76170 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
-| 231.16968 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
-|  98.03845 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
-|  41.23463 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
-| 270.96933 | /tmp/Rtmph96u0D/nc_srtm15_otm.tif |
+| 136.80203 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
+| 189.76170 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
+| 231.16968 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
+|  98.03845 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
+|  41.23463 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
+| 270.96933 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
 
 ``` r
 
@@ -933,7 +938,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(ncrd1_path)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/Rtmph96u0D/ncroads_first.gpkg' using driver `GPKG'
+#>   `/tmp/Rtmpm4hmMO/ncroads_first.gpkg' using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
 #> Dimension:     XY
@@ -985,11 +990,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.486   0.000   0.486
+#>   0.433   0.000   0.434
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/Rtmph96u0D/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/Rtmpm4hmMO/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -1035,7 +1040,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.226   0.260   3.040
+#>   1.100   0.272   2.924
 ```
 
 - We will compare the results from the single-thread and multi-thread

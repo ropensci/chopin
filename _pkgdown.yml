@@ -25,6 +25,8 @@ reference:
   contents:
   - par_pad_grid
   - par_pad_balanced
+  - par_make_h3
+  - par_make_dggrid
   - par_merge_grid
   - par_split_list
 - title: "chopin calculation functions"

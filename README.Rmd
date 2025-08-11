@@ -30,7 +30,7 @@ stable](https://img.shields.io/badge/lifecycle-stable-blue.svg)](https://lifecyc
 <!-- badges: end -->
 
 ## Objective
-This package automates [parallelization](https://en.wikipedia.org/wiki/Parallel_computing) in spatial operations with `chopin` functions as well as [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra) functions. With [GDAL](https://gdal.org)-compatible files and database tables, `chopin` functions help to calculate spatial variables from vector and raster data with no external software requirements. All who need to perform geospatial operations with large datasets may find this package useful to accelerate the covariate calculation process for further analysis and modeling may find the main functions useful. We assume that users have basic knowledge of [geographic information system data models](https://r.geocompx.org/spatial-class), [coordinate systems and transformations](https://doi.org/10.22224/gistbok/2023.1.2), [spatial operations](https://r.geocompx.org/spatial-operations), and [raster-vector overlay](https://r.geocompx.org/raster-vector).
+This package automates [parallelization](https://en.wikipedia.org/wiki/Parallel_computing) in spatial operations with `chopin` functions as well as [sf](https://github.com/r-spatial/sf)/[terra](https://github.com/rspatial/terra) functions. With [GDAL](https://gdal.org)-compatible files and database tables, `chopin` functions help to calculate spatial variables from vector and raster data with no external software requirements. All who need to perform geospatial operations with large datasets may find this package useful to accelerate the covariate calculation process for further analysis and modeling. We assume that users have basic knowledge of [geographic information system data models](https://r.geocompx.org/spatial-class), [coordinate systems and transformations](https://doi.org/10.22224/gistbok/2023.1.2), [spatial operations](https://r.geocompx.org/spatial-operations), and [raster-vector overlay](https://r.geocompx.org/raster-vector).
 
 
 ## Overview
@@ -59,6 +59,8 @@ mirai::daemons(4L)
 ```
 
 For grid partitioning, the entire study area will be divided into partly overlapped grids. We suggest two flowcharts to help which function to use for parallel processing below. The upper flowchart is raster-oriented and the lower is vector-oriented. They are supplementary to each other. When a user follows the raster-oriented one, they might visit the vector-oriented flowchart at each end of the raster-oriented flowchart.
+
+From version 0.9.5, `chopin` supports [H3](https://h3geo.org/) and [DGGRID](https://github.com/sahrk/DGGRID) in `par_pad_grid()`. Users can utilize each grid system with a proper resolution to improve the efficiency of spatial operations.
 
 
 Processing functions accept [terra](https://github.com/rspatial/terra)/[sf](https://github.com/r-spatial/sf) classes for spatial data. Raster-vector overlay is done with `exactextractr`. Three helper functions encapsulate multiple geospatial data calculation steps over multiple CPU threads.

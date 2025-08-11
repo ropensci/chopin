@@ -6,7 +6,7 @@
 \usage{
 par_pad_grid(
   input,
-  mode = c("grid", "grid_advanced", "grid_quantile"),
+  mode = c("grid", "grid_advanced", "grid_quantile", "h3", "dggrid"),
   nx = 10L,
   ny = 10L,
   grid_min_features = 30L,
@@ -15,6 +15,7 @@ par_pad_grid(
   quantiles = NULL,
   merge_max = NULL,
   return_wkt = FALSE,
+  res = 8L,
   ...
 )
 }
@@ -30,6 +31,8 @@ smaller number of features than \code{grid_min_features}).
 The argument \code{grid_min_features} should be specified.
 \item \code{"grid_quantile"} (x and y quantiles): an argument \code{quantiles} should
 be specified.
+\item \code{"h3"} (H3 hexagons): an argument \code{res} should be specified.
+\item \code{"dggrid"} (DGG grids): an argument \code{res} should be specified.
 }}
 
 \item{nx}{integer(1). The number of grids along x-axis.}
@@ -53,6 +56,8 @@ per merged set.}
 
 \item{return_wkt}{logical(1). Return WKT format. When \code{TRUE},
 the return value will be a list of two WKT strings.}
+
+\item{res}{integer(1). Resolution for \code{h3} and \code{dggrid} modes.}
 
 \item{...}{arguments passed to the internal function}
 }
@@ -85,7 +90,8 @@ nc_comp_region <-
     nc,
     mode = "grid",
     nx = 4L, ny = 2L,
-    padding = 10000)
+    padding = 10000
+  )
 par(mfcol = c(1, 2))
 plot(nc_comp_region$original$geometry)
 plot(nc_comp_region$padded$geometry)
@@ -96,10 +102,29 @@ nc_comp_region_wkt <-
     mode = "grid",
     nx = 4L, ny = 2L,
     padding = 10000,
-    return_wkt = TRUE)
+    return_wkt = TRUE
+  )
 nc_comp_region_wkt$original
 nc_comp_region_wkt$padded
 
+if (rlang::is_installed("h3r")) {
+  nc_comp_region_h3 <-
+  par_pad_grid(
+    nc,
+    mode = "h3",
+    res = 10L,
+    padding = 10000
+  )
+}
+if (rlang::is_installed("dggridR")) {
+  nc_comp_region_dggrid <-
+  par_pad_grid(
+    nc,
+    mode = "dggrid",
+    res = 8L,
+    padding = 10000
+  )
+}
 par(lastpar)
 }
 \seealso{
@@ -109,7 +134,9 @@ Other Parallelization:
 \code{\link{par_grid_mirai}()},
 \code{\link{par_hierarchy}()},
 \code{\link{par_hierarchy_mirai}()},
+\code{\link{par_make_dggrid}()},
 \code{\link{par_make_grid}()},
+\code{\link{par_make_h3}()},
 \code{\link{par_merge_grid}()},
 \code{\link{par_multirasters}()},
 \code{\link{par_multirasters_mirai}()},

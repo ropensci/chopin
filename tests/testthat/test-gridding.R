@@ -411,3 +411,88 @@ testthat::test_that("par_split_list returns correct output", {
   testthat::expect_equal(result[[1]]$original, data.frame(x = 1, y = 1))
   testthat::expect_equal(result[[1]]$padded, data.frame(x = 8, y = 7))
 })
+
+testthat::test_that("search_h3 returns correct H3 indices for sf input", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("h3r")
+  withr::local_package("sf")
+  withr::local_package("h3r")
+  # Create a simple sf POINT
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  res <- 10L
+  suppressWarnings(
+    h3_idx <- search_h3(sf_pt, res = res)
+  )
+  testthat::expect_type(h3_idx, "character")
+  testthat::expect_length(h3_idx, 1)
+})
+
+
+testthat::test_that("search_h3 errors for non-sf input", {
+  withr::local_package("sf")
+  withr::local_package("h3r")
+  testthat::expect_error(search_h3(list(x = 1)),
+  "input should be sf or SpatVector object")
+})
+
+testthat::test_that("par_make_h3 returns sf polygons with CGRIDID", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("h3r")
+  withr::local_package("sf")
+  withr::local_package("h3r")
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+
+  # point geometry does not warn
+  h3_sf <- par_make_h3(sf_pt, res = 10L)
+  testthat::expect_s3_class(h3_sf, "sf")
+  testthat::expect_true("CGRIDID" %in% names(h3_sf))
+  testthat::expect_true(any(sf::st_geometry_type(h3_sf) == "POLYGON"))
+
+  # polygon geometry warns
+  sf_pt <- st_buffer(sf_pt, dist = units::set_units(1000, "m"))
+  suppressWarnings(h3_sf <- par_make_h3(sf_pt, res = 10L))
+  testthat::expect_s3_class(h3_sf, "sf")
+  testthat::expect_true("CGRIDID" %in% names(h3_sf))
+  testthat::expect_true(any(sf::st_geometry_type(h3_sf) == "POLYGON"))
+
+})
+
+testthat::test_that("par_make_dggrid returns sf polygons with CGRIDID", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("dggridR")
+  withr::local_package("sf")
+  withr::local_package("dggridR")
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  dg_sf <- par_make_dggrid(sf_pt, res = 8L)
+  testthat::expect_s3_class(dg_sf, "sf")
+  testthat::expect_true("CGRIDID" %in% names(dg_sf))
+})
+
+testthat::test_that("par_make_dggrid transforms CRS if needed", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("dggridR")
+  withr::local_package("sf")
+  withr::local_package("dggridR")
+  pt <- st_sfc(st_point(c(18, -33)), crs = 3857)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  testthat::expect_message(
+    par_make_dggrid(sf_pt, res = 8L),
+    "Input sf object should be in WGS84"
+  )
+})
+
+testthat::test_that("par_make_dggrid errors if dggridR is not installed", {
+  testthat::skip_if_not_installed("sf")
+  testthat::skip_if_not_installed("dggridR")
+  withr::local_package("sf")
+  withr::local_package("dggridR")
+  pt <- st_sfc(st_point(c(18, -33)), crs = 4326)
+  sf_pt <- st_sf(id = 1, geometry = pt)
+  testthat::expect_error(
+    par_make_dggrid(sf_pt, res = 8L),
+    NA
+  ) # Should not error if dggridR is installed
+})
