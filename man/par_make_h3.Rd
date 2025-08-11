@@ -4,12 +4,12 @@
 \alias{par_make_h3}
 \title{Convert H3 indices to sf object}
 \usage{
-par_make_h3(x, res = 10L)
+par_make_h3(x, res = 5L)
 }
 \arguments{
 \item{x}{sf object.}
 
-\item{res}{integer(1). H3 resolution. Default is 10L.}
+\item{res}{integer(1). H3 resolution. Default is 5L.}
 }
 \value{
 An \code{sf} object with polygons representing the H3 indices.
@@ -31,7 +31,7 @@ nc <- st_transform(nc, "EPSG:4326")
 nc_comp_region_h3 <-
   par_make_h3(
     nc,
-    res = 10L
+    res = 5L
   )
 plot(sf::st_geometry(nc_comp_region_h3))
 }
