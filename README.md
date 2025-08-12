@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- [![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions) -->
 
-![Coverage](https://github.com/ropensci/chopin/actions/workflows/test-coverage-local.yaml/coverage.svg)
+![Coverage](https://github.com/ropensci/chopin/raw/refs/heads/artifacts/actions/workflows/test-coverage-local.yaml/coverage.svg)
 [![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer
 Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
@@ -172,7 +172,7 @@ operations.
 
 ``` r
 # check and install packages to run examples
-pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai")
+pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai", "h3r", "dggridR")
 # install packages if anything is unavailable
 rlang::check_installed(pkgs)
 
@@ -187,12 +187,20 @@ library(dplyr)
 #> 
 #>     intersect, setdiff, setequal, union
 library(sf)
-#> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE
+#> Linking to GEOS 3.12.2, GDAL 3.11.3, PROJ 9.4.1; sf_use_s2() is TRUE
 library(terra)
 #> terra 1.8.60
 library(future)
 library(future.mirai)
 library(mirai)
+library(h3r)
+#> Loading required package: h3lib
+#> 
+#> Attaching package: 'h3r'
+#> The following object is masked from 'package:terra':
+#> 
+#>     gridDistance
+library(dggridR)
 
 # disable spherical geometries
 sf::sf_use_s2(FALSE)
@@ -279,7 +287,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   5.220   0.101   5.343
+#>   5.844   0.157   5.400
 ```
 
 #### Generate regular grid computational regions
@@ -326,6 +334,74 @@ terra::plot(
 
 <img src="man/figures/README-compare-compregions-1.png" width="100%" />
 
+From 0.9.5, H3 and DGGRID systems are supported in `par_pad_grid()`:
+
+``` r
+suppressWarnings(
+  nc_comp_region_h3 <-
+    par_pad_grid(
+      ncpoints,
+      mode = "h3",
+      res = 3L,
+      padding = 10000
+    )
+)
+#> Input sf object should be in WGS84 (EPSG:4326) CRS.
+#> Non-polygon geometries detected. Attempt to convert to polygons using concave
+#> hull.
+#> although coordinates are longitude/latitude, st_union assumes that they are
+#> planar
+#> 
+#> although coordinates are longitude/latitude, st_intersects assumes that they
+#> are planar
+#> 
+#> Switch sf class to terra...
+#> Switch terra class to sf...
+par(mfrow = c(2, 1))
+plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.4")
+plot(nc_comp_region_h3$padded$geometry, main = "H3 padded grid (lv.3)")
+```
+
+<img src="man/figures/README-h3-grid-1.png" width="100%" />
+
+``` r
+par(oldpar)
+#> Warning in par(oldpar): graphical parameter "cin" cannot be set
+#> Warning in par(oldpar): graphical parameter "cra" cannot be set
+#> Warning in par(oldpar): graphical parameter "csi" cannot be set
+#> Warning in par(oldpar): graphical parameter "cxy" cannot be set
+#> Warning in par(oldpar): graphical parameter "din" cannot be set
+#> Warning in par(oldpar): graphical parameter "page" cannot be set
+```
+
+``` r
+nc_comp_region_dggrid <-
+  par_pad_grid(
+    ncpoints,
+    mode = "dggrid",
+    res = 7L,
+    padding = 10000
+  )
+#> Input sf object should be in WGS84 (EPSG:4326) CRS.
+#> Switch sf class to terra...
+#> Switch terra class to sf...
+par(mfrow = c(2, 1))
+plot(nc_comp_region_dggrid$original$geometry, main = "DGGRID (lv.7)")
+plot(nc_comp_region_dggrid$padded$geometry, main = "Padded DGGRID (lv.7)")
+```
+
+<img src="man/figures/README-dggrid-grid-1.png" width="100%" />
+
+``` r
+par(oldpar)
+#> Warning in par(oldpar): graphical parameter "cin" cannot be set
+#> Warning in par(oldpar): graphical parameter "cra" cannot be set
+#> Warning in par(oldpar): graphical parameter "csi" cannot be set
+#> Warning in par(oldpar): graphical parameter "cxy" cannot be set
+#> Warning in par(oldpar): graphical parameter "din" cannot be set
+#> Warning in par(oldpar): graphical parameter "page" cannot be set
+```
+
 #### Parallel processing
 
 Using the grid polygons, we distribute the task of averaging elevations
@@ -368,7 +444,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.796   0.282  10.985
+#>   1.744   0.401  12.726
 
 ncpoints_srtm <-
   extract_at(
@@ -429,10 +505,10 @@ system.time(
 #> ℹ SpatRaster class input is detected.
 #> Attempt to track the data source file path...
 #> ℹ Input is not a character.
-#> ■■■■■■■■■                         25% | ETA: 25s
+#> ■■■■■■■■■                         25% | ETA: 19s
 #> ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #>    user  system elapsed 
-#>   0.851   0.186  10.024
+#>   0.923   0.232   8.146
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -467,14 +543,14 @@ download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
 nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/Rtmpm4hmMO/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/RtmpUYWJGp/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/Rtmpm4hmMO/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/RtmpUYWJGp/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -502,7 +578,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.504   0.005   0.509
+#>   0.745   0.000   0.669
 
 # hierarchical parallelization
 system.time(
@@ -821,7 +897,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   2.028   0.461  11.013
+#>   2.112   0.966   9.395
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -848,9 +924,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/Rtmpm4hmMO/nc_srtm15_otm.tif" "/tmp/Rtmpm4hmMO/test1.tif"        
-#> [3] "/tmp/Rtmpm4hmMO/test2.tif"         "/tmp/Rtmpm4hmMO/test3.tif"        
-#> [5] "/tmp/Rtmpm4hmMO/test4.tif"         "/tmp/Rtmpm4hmMO/test5.tif"
+#> [1] "/tmp/RtmpUYWJGp/nc_srtm15_otm.tif" "/tmp/RtmpUYWJGp/test1.tif"        
+#> [3] "/tmp/RtmpUYWJGp/test2.tif"         "/tmp/RtmpUYWJGp/test3.tif"        
+#> [5] "/tmp/RtmpUYWJGp/test4.tif"         "/tmp/RtmpUYWJGp/test5.tif"
 ```
 
 ``` r
@@ -867,35 +943,35 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpUYWJGp/nc_srtm15_otm.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpm4hmMO/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpUYWJGp/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpm4hmMO/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpUYWJGp/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpm4hmMO/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpUYWJGp/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpm4hmMO/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpUYWJGp/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/Rtmpm4hmMO/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/RtmpUYWJGp/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.464   0.271   3.252
+#>   1.669   0.578   3.014
 knitr::kable(head(res))
 ```
 
 |      mean | base_raster                       |
 |----------:|:----------------------------------|
-| 136.80203 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
-| 189.76170 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
-| 231.16968 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
-|  98.03845 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
-|  41.23463 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
-| 270.96933 | /tmp/Rtmpm4hmMO/nc_srtm15_otm.tif |
+| 136.80203 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
+| 189.76170 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
+| 231.16968 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
+|  98.03845 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
+|  41.23463 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
+| 270.96933 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
 
 ``` r
 
@@ -938,7 +1014,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(ncrd1_path)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/Rtmpm4hmMO/ncroads_first.gpkg' using driver `GPKG'
+#>   `/tmp/RtmpUYWJGp/ncroads_first.gpkg' using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
 #> Dimension:     XY
@@ -990,11 +1066,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.433   0.000   0.434
+#>   0.513   0.000   0.463
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/Rtmpm4hmMO/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/RtmpUYWJGp/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -1040,7 +1116,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.100   0.272   2.924
+#>   1.264   0.567   2.628
 ```
 
 - We will compare the results from the single-thread and multi-thread

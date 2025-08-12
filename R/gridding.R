@@ -55,9 +55,9 @@
 #'     nx = 4L, ny = 2L,
 #'     padding = 10000
 #'   )
-#' par(mfcol = c(1, 2))
-#' plot(nc_comp_region$original$geometry)
-#' plot(nc_comp_region$padded$geometry)
+#' par(mfcol = c(2, 3))
+#' plot(nc_comp_region$original$geometry, main = "Original grid")
+#' plot(nc_comp_region$padded$geometry, main = "Padded grid")
 #'
 #' nc_comp_region_wkt <-
 #'   par_pad_grid(
@@ -71,22 +71,28 @@
 #' nc_comp_region_wkt$padded
 #'
 #' if (rlang::is_installed("h3r")) {
-#'   nc_comp_region_h3 <-
-#'   par_pad_grid(
-#'     nc,
-#'     mode = "h3",
-#'     res = 10L,
-#'     padding = 10000
+#'   suppressWarnings(
+#'     nc_comp_region_h3 <-
+#'       par_pad_grid(
+#'         nc,
+#'         mode = "h3",
+#'         res = 4L,
+#'         padding = 10000
+#'       )
 #'   )
+#'   plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.4)")
+#'   plot(nc_comp_region_h3$padded$geometry, main = "H3 padded grid (lv.4)")
 #' }
 #' if (rlang::is_installed("dggridR")) {
 #'   nc_comp_region_dggrid <-
 #'   par_pad_grid(
 #'     nc,
 #'     mode = "dggrid",
-#'     res = 8L,
+#'     res = 7L,
 #'     padding = 10000
 #'   )
+#'   plot(nc_comp_region_dggrid$original$geometry, main = "DGGRID (lv.7)")
+#'   plot(nc_comp_region_dggrid$padded$geometry, main = "Padded DGGRID (lv.7)")
 #' }
 #' par(lastpar)
 #' @importFrom sf st_crs st_set_crs st_as_text
@@ -153,19 +159,21 @@ par_pad_grid <-
 
     # register CRS
     if (dep_check(grid_reg) == "sf") {
-      grid_reg <-
-        tryCatch(
-          sf::st_set_crs(grid_reg, sf::st_crs(input)),
-          error = function(e) {
-            sf::st_set_crs(
-              grid_reg,
-              sf::st_crs(
-                terra::crs(terra::vect(input, proxy = TRUE))
-              )
-            )
-          }
-        )
+      if (is.na(sf::st_crs(input)) || sf::st_crs(input) == "") {
 
+        grid_reg <-
+          tryCatch(
+            sf::st_set_crs(grid_reg, sf::st_crs(input)),
+            error = function(e) {
+              sf::st_set_crs(
+                grid_reg,
+                sf::st_crs(
+                  terra::crs(terra::vect(input, proxy = TRUE))
+                )
+              )
+            }
+          )
+      }
       grid_reg_conv <- dep_switch(grid_reg)
     } else {
       grid_reg <-
@@ -817,7 +825,7 @@ par_split_list <-
   }
 
 
-
+#' @importFrom sfheaders sf_remove_holes
 search_h3 <- function(x, res = 5L) {
   if (!requireNamespace("h3r", quietly = TRUE)) {
     cli::cli_abort(c(
@@ -825,11 +833,16 @@ search_h3 <- function(x, res = 5L) {
       "i" = "Please install h3r package."
     ))
   }
-  if (!inherits(x, c("sf", "SpatVector"))) {
-    cli::cli_abort(c("x" = "input should be sf or SpatVector object."))
-  }
-  x <- sf::st_transform(x, crs = 4326)
+
+  x <- sfheaders::sf_remove_holes(x)
+  # it should have a side effect when there are multiparts
+  # TODO: find a way to handle multiparts efficiently
+  #       (i.e., GEOMETRY sf object)
+  x <- sf::st_cast(x, "POLYGON")
   x <- sf::st_coordinates(x)
+  if (ncol(x) == 4) {
+    x <- cbind(x, 1L)
+  }
   x <- split(
     as.data.frame(x[, c(2, 1)]),
     x[, 5]
@@ -843,7 +856,17 @@ search_h3 <- function(x, res = 5L) {
       polygons = x,
       resolution = res
     )
-  searched
+  searched_flat <- unlist(searched)
+  # gridDisk is ad-hoc until h3r will support
+  # polygon intersection in polygonToCells
+  searched_ext <-
+    h3r::gridDisk(
+      cell = searched_flat,
+      k = rep(3L, length(searched_flat))
+    )
+  searched_ext <- unique(c(unlist(searched_ext), searched_flat))
+
+  searched_ext
 }
 
 
@@ -854,6 +877,10 @@ search_h3 <- function(x, res = 5L) {
 #' It requires the `h3r` package to be installed.
 #' @param x sf object.
 #' @param res integer(1). H3 resolution. Default is 5L.
+#' @details
+#' Non-polygon `x` will be converted to polygons using
+#' [`sf::st_concave_hull`]. If the input is not convertible
+#' to polygons, the function will throw an error.
 #' @returns An `sf` object with polygons representing the H3 indices.
 #' @author Insang Song
 #' @examples
@@ -865,10 +892,14 @@ search_h3 <- function(x, res = 5L) {
 #' ncpath <- system.file("shape/nc.shp", package = "sf")
 #' nc <- read_sf(ncpath)
 #' nc <- st_transform(nc, "EPSG:4326")
+#' # note that it will throw a warning if
+#' # the input is MULTIPOLYGON.
 #' nc_comp_region_h3 <-
-#'   par_make_h3(
-#'     nc,
-#'     res = 5L
+#'   suppressWarnings(
+#'     par_make_h3(
+#'       nc,
+#'       res = 5L
+#'     )
 #'   )
 #' plot(sf::st_geometry(nc_comp_region_h3))
 #' }
@@ -880,13 +911,43 @@ par_make_h3 <- function(x, res = 5L) {
   if (!requireNamespace("h3r", quietly = TRUE)) {
     cli::cli_abort("h3r package is required for this function.")
   }
+  if (!inherits(x, c("sf", "SpatVector"))) {
+    cli::cli_abort(c("x" = "Input should be sf or SpatVector object."))
+  }
+  if (inherits(x, "SpatVector")) {
+    x <- sf::st_as_sf(x)
+  }
+  if (sf::st_crs(x) != 4326) {
+    cli::cli_inform("Input sf object should be in WGS84 (EPSG:4326) CRS.")
+    x <- sf::st_transform(x, crs = 4326)
+  }
   if (!all(grepl("POLYGON", sf::st_geometry_type(x)))) {
-    cli::cli_abort(
-      "Only polygon geometries are supported."
+    cli::cli_inform(
+      "Non-polygon geometries detected.
+      Attempt to convert to polygons using concave hull."
     )
+    if (nrow(x) == 1L) {
+      suppressWarnings(x <- sf::st_buffer(x, dist = 1e-6))
+    }
+    x <- try(
+      dplyr::group_by(x) |>
+        dplyr::summarize() |>
+        dplyr::ungroup() |>
+        sf::st_concave_hull(
+          ratio = 0.5, allow_holes = FALSE
+        ),
+      silent = TRUE
+    )
+    if (inherits(x, "try-error")) {
+      cli::cli_abort(
+        c(
+          "x" = "Input sf object should be able to be converted to polygons."
+        )
+      )
+    }
   }
   h3_indices <- search_h3(x, res = res)
-  h3_indices <- unique(unlist(h3_indices))
+
   h3list <-
     h3r::cellToBoundary(
       cell = h3_indices
@@ -903,6 +964,11 @@ par_make_h3 <- function(x, res = 5L) {
     h3list, crs = sf::st_crs(4326)
   )
   h3sf <- sf::st_as_sf(h3sf)
+  suppressWarnings(
+    h3sf <- h3sf[x, ]
+  )
+  names(h3sf)[1] <- "geometry"
+  sf::st_geometry(h3sf) <- "geometry"
   h3sf[["CGRIDID"]] <- seq_len(nrow(h3sf))
   h3sf
 }
@@ -946,6 +1012,12 @@ par_make_h3 <- function(x, res = 5L) {
 par_make_dggrid <- function(x, res = 8L, topology = "HEXAGON") {
   if (!requireNamespace("dggridR", quietly = TRUE)) {
     cli::cli_abort("dggridR package is required for this function.")
+  }
+  if (!inherits(x, c("sf", "SpatVector"))) {
+    cli::cli_abort(c("x" = "input should be sf or SpatVector object."))
+  }
+  if (inherits(x, "SpatVector")) {
+    x <- sf::st_as_sf(x)
   }
   if (sf::st_crs(x) != 4326) {
     cli::cli_inform("Input sf object should be in WGS84 (EPSG:4326) CRS.")

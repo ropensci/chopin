@@ -1,6 +1,6 @@
 Package: chopin
 Title: Spatial Parallel Computing by Hierarchical Data Partitioning
-Version: 0.9.5
+Version: 0.9.6
 Authors@R: c(
     person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256")),
@@ -50,6 +50,7 @@ Imports:
     methods,
     rlang,
     sf (>= 1.0-10),
+    sfheaders,
     stars (>= 0.6-0),
     terra (>= 1.7-18),
     mirai (>= 1.3.0),

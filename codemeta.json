@@ -8,7 +8,7 @@
   "codeRepository": "https://github.com/ropensci/chopin",
   "issueTracker": "https://github.com/ropensci/chopin/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -349,6 +349,18 @@
     },
     "12": {
       "@type": "SoftwareApplication",
+      "identifier": "sfheaders",
+      "name": "sfheaders",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=sfheaders"
+    },
+    "13": {
+      "@type": "SoftwareApplication",
       "identifier": "stars",
       "name": "stars",
       "version": ">= 0.6-0",
@@ -360,7 +372,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=stars"
     },
-    "13": {
+    "14": {
       "@type": "SoftwareApplication",
       "identifier": "terra",
       "name": "terra",
@@ -373,7 +385,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=terra"
     },
-    "14": {
+    "15": {
       "@type": "SoftwareApplication",
       "identifier": "mirai",
       "name": "mirai",
@@ -386,7 +398,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=mirai"
     },
-    "15": {
+    "16": {
       "@type": "SoftwareApplication",
       "identifier": "collapse",
       "name": "collapse",
@@ -400,7 +412,7 @@
     },
     "SystemRequirements": "netcdf"
   },
-  "fileSize": "2446.327KB",
+  "fileSize": "2448.6KB",
   "citation": [
     {
       "@type": "ScholarlyArticle",

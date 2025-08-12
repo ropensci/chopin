@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 <!-- [![cov](https://docs.ropensci.org/chopin/badges/coverage.svg)](https://github.com/ropensci/chopin/actions) -->
-![Coverage](https://github.com/ropensci/chopin/actions/workflows/test-coverage-local.yaml/coverage.svg)
+![Coverage](https://github.com/ropensci/chopin/raw/refs/heads/artifacts/actions/workflows/test-coverage-local.yaml/coverage.svg)
 [![R-CMD-check](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/ropensci/chopin/actions/workflows/check-standard.yaml)
 [![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/638_status.svg)](https://github.com/ropensci/software-review/issues/638)
 [![runiverse-package](https://ropensci.r-universe.dev/badges/chopin?scale=1&color=pink&style=round)](https://ropensci.r-universe.dev/chopin)
@@ -123,7 +123,7 @@ Examples will navigate `par_grid`, `par_hierarchy`, and `par_multirasters` funct
 
 ```{r load-packages}
 # check and install packages to run examples
-pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai")
+pkgs <- c("chopin", "dplyr", "sf", "terra", "future", "future.mirai", "mirai", "h3r", "dggridR")
 # install packages if anything is unavailable
 rlang::check_installed(pkgs)
 
@@ -134,6 +134,8 @@ library(terra)
 library(future)
 library(future.mirai)
 library(mirai)
+library(h3r)
+library(dggridR)
 
 # disable spherical geometries
 sf::sf_use_s2(FALSE)
@@ -231,6 +233,42 @@ terra::plot(
   main = "Padded grids"
 )
 
+```
+
+From 0.9.5, H3 and DGGRID systems are supported in `par_pad_grid()`:
+
+
+```{r h3-grid}
+suppressWarnings(
+  nc_comp_region_h3 <-
+    par_pad_grid(
+      ncpoints,
+      mode = "h3",
+      res = 3L,
+      padding = 10000
+    )
+)
+par(mfrow = c(2, 1))
+plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.4")
+plot(nc_comp_region_h3$padded$geometry, main = "H3 padded grid (lv.3)")
+par(oldpar)
+
+```
+
+
+
+```{r dggrid-grid}
+nc_comp_region_dggrid <-
+  par_pad_grid(
+    ncpoints,
+    mode = "dggrid",
+    res = 7L,
+    padding = 10000
+  )
+par(mfrow = c(2, 1))
+plot(nc_comp_region_dggrid$original$geometry, main = "DGGRID (lv.7)")
+plot(nc_comp_region_dggrid$padded$geometry, main = "Padded DGGRID (lv.7)")
+par(oldpar)
 ```
 
 

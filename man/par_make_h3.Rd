@@ -19,6 +19,11 @@ This function converts an input \code{sf} to an
 \code{sf} object with H3 hexagons.
 It requires the \code{h3r} package to be installed.
 }
+\details{
+Non-polygon \code{x} will be converted to polygons using
+\code{\link[sf:geos_unary]{sf::st_concave_hull}}. If the input is not convertible
+to polygons, the function will throw an error.
+}
 \examples{
 lastpar <- par(mfrow = c(1, 1))
 library(sf)
@@ -28,10 +33,14 @@ options(sf_use_s2 = FALSE)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:4326")
+# note that it will throw a warning if
+# the input is MULTIPOLYGON.
 nc_comp_region_h3 <-
-  par_make_h3(
-    nc,
-    res = 5L
+  suppressWarnings(
+    par_make_h3(
+      nc,
+      res = 5L
+    )
   )
 plot(sf::st_geometry(nc_comp_region_h3))
 }
