@@ -92,9 +92,9 @@ nc_comp_region <-
     nx = 4L, ny = 2L,
     padding = 10000
   )
-par(mfcol = c(1, 2))
-plot(nc_comp_region$original$geometry)
-plot(nc_comp_region$padded$geometry)
+par(mfcol = c(2, 3))
+plot(nc_comp_region$original$geometry, main = "Original grid")
+plot(nc_comp_region$padded$geometry, main = "Padded grid")
 
 nc_comp_region_wkt <-
   par_pad_grid(
@@ -108,22 +108,28 @@ nc_comp_region_wkt$original
 nc_comp_region_wkt$padded
 
 if (rlang::is_installed("h3r")) {
-  nc_comp_region_h3 <-
-  par_pad_grid(
-    nc,
-    mode = "h3",
-    res = 10L,
-    padding = 10000
+  suppressWarnings(
+    nc_comp_region_h3 <-
+      par_pad_grid(
+        nc,
+        mode = "h3",
+        res = 4L,
+        padding = 10000
+      )
   )
+  plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.4)")
+  plot(nc_comp_region_h3$padded$geometry, main = "H3 padded grid (lv.4)")
 }
 if (rlang::is_installed("dggridR")) {
   nc_comp_region_dggrid <-
   par_pad_grid(
     nc,
     mode = "dggrid",
-    res = 8L,
+    res = 7L,
     padding = 10000
   )
+  plot(nc_comp_region_dggrid$original$geometry, main = "DGGRID (lv.7)")
+  plot(nc_comp_region_dggrid$padded$geometry, main = "Padded DGGRID (lv.7)")
 }
 par(lastpar)
 }
