@@ -249,7 +249,7 @@ suppressWarnings(
     )
 )
 par(mfrow = c(2, 1))
-plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.4")
+plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.3)")
 plot(nc_comp_region_h3$padded$geometry, main = "H3 padded grid (lv.3)")
 par(oldpar)
 
