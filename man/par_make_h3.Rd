@@ -33,10 +33,14 @@ options(sf_use_s2 = FALSE)
 ncpath <- system.file("shape/nc.shp", package = "sf")
 nc <- read_sf(ncpath)
 nc <- st_transform(nc, "EPSG:4326")
+# note that it will throw a warning if
+# the input is MULTIPOLYGON.
 nc_comp_region_h3 <-
-  par_make_h3(
-    nc,
-    res = 5L
+  suppressWarnings(
+    par_make_h3(
+      nc,
+      res = 5L
+    )
   )
 plot(sf::st_geometry(nc_comp_region_h3))
 }
