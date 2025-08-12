@@ -23,7 +23,8 @@ testthat::test_that("par_grid_mirai -- plain mode with raster path", {
 
   ## Resampled SRTM data in NC
   ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
-  ncr <- terra::rasterize(ncpoly, ras)
+  # suppressing GDAL 3.11 warning
+  suppressWarnings(ncr <- terra::rasterize(ncpoly, ras))
   terra::values(ras) <- rgamma(2.2e6, 4, 2)
 
   # Using raster path
@@ -636,3 +637,197 @@ testthat::test_that(
     mirai::daemons(0)
   }
 )
+
+## H3 ####
+testthat::test_that("par_grid_mirai -- plain mode with raster path with H3", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("mirai")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_package("h3r")
+  withr::local_options(
+    list(sf_use_s2 = FALSE)
+  )
+  mirai::daemons(4)
+  # Reading data
+  ## NC counties polygon
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) %>%
+    terra::project("EPSG:5070")
+
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+
+  # suppressing GDAL 3.11 warning
+  suppressWarnings(ncr <- terra::rasterize(ncpoly, ras))
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
+
+  ## Random points in NC
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
+  tdir <- tempdir()
+  target_file <- "ncrandpnts.gpkg"
+  test_fullpath <- file.path(tdir, target_file)
+  suppressWarnings(
+    terra::writeVector(ncsamp, test_fullpath, overwrite = TRUE)
+  )
+
+  suppressWarnings(
+    nccompreg <-
+      par_pad_grid(
+        input = ncpnts,
+        mode = "h3",
+        res = 3L,
+        padding = 3e4L
+      )
+  )
+  testthat::expect_no_error({
+    res <-
+      suppressWarnings(
+        par_grid_mirai(
+          grids = nccompreg,
+          fun_dist = extract_at,
+          x = ncelevpath,
+          y = sf::st_as_sf(ncpnts),
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid",
+          .debug = FALSE
+        )
+      )
+  })
+
+  testthat::expect_no_error({
+    res <-
+      suppressWarnings(
+        par_grid_mirai(
+          grids = nccompreg,
+          fun_dist = extract_at,
+          x = ncelev,
+          y = sf::st_as_sf(ncpnts),
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid",
+          .debug = FALSE
+        )
+      )
+  })
+  mirai::daemons(0)
+})
+
+
+
+## DGGRID ####
+testthat::test_that("par_grid_mirai -- plain mode with raster path with DGGRID", {
+  withr::local_package("terra")
+  withr::local_package("sf")
+  withr::local_package("mirai")
+  withr::local_package("dplyr")
+  withr::local_package("chopin")
+  withr::local_package("dggridR")
+  withr::local_options(
+    list(sf_use_s2 = FALSE)
+  )
+  mirai::daemons(4)
+  # Reading data
+  ## NC counties polygon
+  ncpath <- system.file("shape/nc.shp", package = "sf")
+  ncpoly <- terra::vect(ncpath) %>%
+    terra::project("EPSG:5070")
+
+  ## Generated random points in NC
+  data("ncpoints", package = "chopin")
+  ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
+  ncp$pid <- seq_len(nrow(ncp))
+  ncpnts <- terra::vect(ncp)
+
+  ## Resampled SRTM data in NC
+  ras <- terra::rast(ncpoly, nrow = 1000, ncol = 2200)
+
+  # suppressing GDAL 3.11 warning
+  suppressWarnings(ncr <- terra::rasterize(ncpoly, ras))
+  terra::values(ras) <- rgamma(2.2e6, 4, 2)
+
+  # Using raster path
+  ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
+  terra::writeRaster(ras, ncelevpath, overwrite = TRUE)
+  ncelev <- terra::rast(ncelevpath)
+
+  ## Random points in NC
+  ncsamp <-
+    terra::spatSample(
+      terra::ext(ncelev),
+      1e4L,
+      lonlat = FALSE,
+      as.points = TRUE
+    )
+  ncsamp <- terra::set.crs(ncsamp, "EPSG:5070")
+  ncsamp$kid <- sprintf("K-%05d", seq(1, nrow(ncsamp)))
+
+  tdir <- tempdir()
+  target_file <- "ncrandpnts.gpkg"
+  test_fullpath <- file.path(tdir, target_file)
+  suppressWarnings(
+    terra::writeVector(ncsamp, test_fullpath, overwrite = TRUE)
+  )
+
+  nccompreg <-
+    par_pad_grid(
+      input = ncpnts,
+      mode = "dggrid",
+      res = 6L,
+      padding = 3e4L
+    )
+  testthat::expect_no_error({
+    res <-
+      suppressWarnings(
+        par_grid_mirai(
+          grids = nccompreg,
+          fun_dist = extract_at,
+          x = ncelevpath,
+          y = sf::st_as_sf(ncpnts),
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid",
+          .debug = FALSE
+        )
+      )
+  })
+
+  testthat::expect_no_error({
+    res <-
+      suppressWarnings(
+        par_grid_mirai(
+          grids = nccompreg,
+          fun_dist = extract_at,
+          x = ncelev,
+          y = sf::st_as_sf(ncpnts),
+          qsegs = 90L,
+          radius = 5e3L,
+          id = "pid",
+          .debug = FALSE
+        )
+      )
+  })
+  mirai::daemons(0)
+})

@@ -19,6 +19,11 @@ This function converts an input \code{sf} to an
 \code{sf} object with H3 hexagons.
 It requires the \code{h3r} package to be installed.
 }
+\details{
+Non-polygon \code{x} will be converted to polygons using
+\code{\link[sf:geos_unary]{sf::st_concave_hull}}. If the input is not convertible
+to polygons, the function will throw an error.
+}
 \examples{
 lastpar <- par(mfrow = c(1, 1))
 library(sf)
