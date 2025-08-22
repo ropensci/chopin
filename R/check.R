@@ -637,7 +637,7 @@ setMethod(
 setMethod(
   ".check_vector",
   signature(input = "sf", input_id = "ANY",
-            extent = "NULL", out_class = "character"),
+            extent = "ANY", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     .check_pkgname(out = out_class)
     input <- .check_id(input, input_id)
@@ -692,6 +692,7 @@ setMethod(
     return(input)
   }
 )
+
 
 
 #' @keywords internal
@@ -825,7 +826,7 @@ setMethod(
 setMethod(
   ".check_vector",
   signature(input = "SpatVector", input_id = "ANY",
-            extent = "NULL", out_class = "character"),
+            extent = "ANY", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     .check_pkgname(out = out_class)
 
@@ -1022,22 +1023,26 @@ setMethod(
               )[[1]]
             ),
             error = function(e) {
-              "error"
+              if (exists(fun)) {
+                "user"
+              } else {
+                "error"
+              }
             }
           )
         },
         FUN.VALUE = character(1)
       )
 
-    pkgname <- grep("^(terra|sf|chopin)$", pkgname, value = TRUE)
+    pkgname <- grep("^(terra|sf|chopin|user)$", pkgname, value = TRUE)
     if (length(pkgname) == 0) {
       cli::cli_abort("No parent package is found.")
     }
     if (length(pkgname) > 1) {
       cli::cli_abort("There are multiple parent packages matched.")
     }
-    if (!pkgname %in% c("sf", "terra", "chopin")) {
-      cli::cli_abort("Function should be one from sf, terra, or chopin.")
+    if (!pkgname %in% c("sf", "terra", "chopin", "user")) {
+      cli::cli_abort("Function should be user-defined or one from sf, terra, or chopin.")
     }
     return(pkgname)
   }
