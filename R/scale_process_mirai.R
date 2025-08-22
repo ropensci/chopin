@@ -154,7 +154,7 @@ par_grid_mirai <-
     }
 
     # class identity check
-    .check_align_fxy(pkgname, args_input$x, args_input$y)
+    # .check_align_fxy(pkgname, args_input$x, args_input$y)
 
     # Main parallelization
     results <-
@@ -440,7 +440,7 @@ par_hierarchy_mirai <-
     }
 
     # class identity check
-    .check_align_fxy(pkgname, args_input$x, args_input$y)
+    # .check_align_fxy(pkgname, args_input$x, args_input$y)
 
     # Region ID cleaning to get unique high-level IDs
     # what if regions refers to a path string?
