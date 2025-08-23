@@ -986,9 +986,17 @@ setMethod(
         )
       )
       suppressWarnings(
-        input <- try(terra::sources(input), silent = TRUE)
+        input_read <- try(terra::sources(input), silent = TRUE)
       )
-      if (inherits(input, "try-error")) {
+      if (input_read == "") {
+        path_temp <- tempfile(fileext = ".tif")
+        cli::cli_alert_info(
+          "The data is in memory. Writing a temporary GeoTIFF file to track the data source path..."
+        )
+        terra::writeRaster(input, path_temp, overwrite = TRUE)
+        input_read <- path_temp
+      }
+      if (inherits(input_read, "try-error")) {
         cli::cli_abort(
           paste0(
             "Failed to track the data source file path.\n",
@@ -998,7 +1006,7 @@ setMethod(
       }
     }
   }
-  return(input)
+  return(input_read)
 }
 
 

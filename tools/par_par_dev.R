@@ -60,8 +60,12 @@ nrow(grid)
 bldg <- st_read("tools/test_osm_jongno.gpkg", layer = "buildings")
 grdpnt <- st_read("tools/test_osm_jongno.gpkg", layer = "points")
 
+# terra version
+bldg <- terra::vect("tools/test_osm_jongno.gpkg", layer = "buildings")
+grdpnt <- terra::vect("tools/test_osm_jongno.gpkg", layer = "points")
+
 # Radius for AER (meters)
-radius_m <- 150  # adjust as needed
+radius_m <- 100  # adjust as needed
 
 # This function will be dispatched in parallel over computational grids.
 # It must accept `x` and `y` (as per chopin's contract).
@@ -73,6 +77,7 @@ aer_at_points <- function(x, y, radius, id_col = "pid", floors_col = "floors", a
     y <- sf::st_as_sf(y)
   }
   # stopifnot(inherits(x, "sf"), inherits(y, "sf"))
+  yorig <- y
   y <- sf::st_geometry(y)
 
   # Buffers around each point
@@ -90,9 +95,45 @@ aer_at_points <- function(x, y, radius, id_col = "pid", floors_col = "floors", a
     aer_num / aer_den
   }, numeric(1))
 
-  data.frame(pid = attr(y, id_col, exact = TRUE) %||% seq_along(j),
+  data.frame(pid = yorig[[id_col]],
              aer = out)
 }
+
+# terra
+# This function will be dispatched in parallel over computational grids.
+# It must accept `x` and `y` (as per chopin's contract).
+aer_at_points_t <- function(x, y, radius, id_col = "pid", floors_col = "floors", area_col = "foot_m2") {
+  # x = buildings (SpatVector polygons with floors + footprint area in same CRS as y)
+  # y = points (SpatVector points with 'pid')
+  if (!inherits(x, "SpatVector")) x <- terra::vect(x)
+  if (!inherits(y, "SpatVector")) y <- terra::vect(y)
+
+  # Buffers around each point
+  buf <- terra::buffer(y, radius)
+
+  # Find buildings intersecting each buffer
+  j <- terra::relate(buf, x, relation = "intersects")
+
+  # Compute AER for each buffer
+  out <- vapply(seq_along(j), function(i) {
+    if (length(j[[i]]) == 0) return(NA_real_)
+    sub <- x[j[[i]], ]
+    # Extract attribute data
+    sub_df <- terra::values(sub)
+    sub_df <- sub_df[!is.na(sub_df[[floors_col]]) & !is.na(sub_df[[area_col]]), ]
+    if (nrow(sub_df) == 0) return(NA_real_)
+    aer_num <- sum(sub_df[[area_col]] * sub_df[[floors_col]], na.rm = TRUE)
+    aer_den <- pi * radius^2
+    aer_num / aer_den
+  }, numeric(1))
+
+  # Get IDs from y
+  pid <- if (!is.null(y[[id_col]])) y[[id_col]] else seq_along(j)
+  data.frame(pid = pid, aer = out)
+}
+
+
+
 
 
 setGeneric(
@@ -226,12 +267,12 @@ plan(mirai_multisession, workers = 4L)
 grd <- chopin::par_pad_grid(
   bldg,
   mode = "grid",
-  nx = 4L,
-  ny = 1L,
+  nx = 1L,
+  ny = 4L,
   padding = 300
 )
-grdpnt <- grid
-bldg_cast <- st_cast(bldg, "POLYGON")
+# grdpnt <- grid
+# bldg_cast <- st_cast(bldg, "POLYGON")
 radius_m <- 100
 
 res <- par_grid_mirai(
@@ -244,8 +285,45 @@ res <- par_grid_mirai(
   .debug = TRUE
 )
 
+grdpnt_e <- grdpnt |>
+  dplyr::left_join(res, by = "pid")
+plot(grdpnt_e[, "aer"], breaks = "quantile")
+
+res <- par_grid_mirai(
+  grids    = grd,
+  fun_dist = aer_at_points_t,
+  x        = bldg,
+  y        = grdpnt,
+  radius   = radius_m,
+  # input_id = "pid",
+  .debug = TRUE
+)
+
+
 # Back to sequential
 plan(sequential); mirai::daemons(0)
 
 
 aer_at_points(grdpnt, bldg_cast, radius = radius_m)
+
+
+## raster-to-raster example
+# ncpoly
+ncpoly <- terra::vect(system.file("gpkg/nc.gpkg", package="sf"))
+ncpoly <- terra::project(ncpoly, "EPSG:5070")  # Albers Equal Area
+ncrast <- terra::rast(ncpoly, res = 400)
+ncrast <- terra::rasterize(ncpoly, ncrast, field = "FIPS")
+
+ncsrtm <- terra::rast("tests/testdata/nc_srtm15_otm.tif")
+
+
+terra::extract(ncsrtm, ncpoly, fun = mean, na.rm = TRUE)
+
+resx <-
+  par_grid_mirai(
+    grids  = grd,
+    x = ncrast,
+    y = ncsrtm,
+    fun_dist = extract,
+    .debug = TRUE
+  )
