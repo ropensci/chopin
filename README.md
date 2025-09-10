@@ -287,7 +287,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   5.844   0.157   5.400
+#>   5.769   0.170   5.366
 ```
 
 #### Generate regular grid computational regions
@@ -358,7 +358,7 @@ suppressWarnings(
 #> Switch sf class to terra...
 #> Switch terra class to sf...
 par(mfrow = c(2, 1))
-plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.4")
+plot(nc_comp_region_h3$original$geometry, main = "H3 grid (lv.3)")
 plot(nc_comp_region_h3$padded$geometry, main = "H3 padded grid (lv.3)")
 ```
 
@@ -444,7 +444,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Task at CGRIDID: 4 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.744   0.401  12.726
+#>   1.858   0.343   8.947
 
 ncpoints_srtm <-
   extract_at(
@@ -505,10 +505,10 @@ system.time(
 #> ℹ SpatRaster class input is detected.
 #> Attempt to track the data source file path...
 #> ℹ Input is not a character.
-#> ■■■■■■■■■                         25% | ETA: 19s
+#> ■■■■■■■■■                         25% | ETA: 18s
 #> ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #>    user  system elapsed 
-#>   0.923   0.232   8.146
+#>   0.931   0.242   8.156
 
 # remove mirai::daemons
 mirai::daemons(0L)
@@ -543,14 +543,14 @@ download.file(hierarchy_url, hierarchy_path, mode = "wb")
 
 nc_data <- hierarchy_path
 nc_county <- sf::st_read(nc_data, layer = "county")
-#> Reading layer `county' from data source `/tmp/RtmpUYWJGp/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `county' from data source `/tmp/Rtmphl1eXq/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 100 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: 1054155 ymin: 1341756 xmax: 1838923 ymax: 1690176
 #> Projected CRS: NAD83 / Conus Albers
 nc_tracts <- sf::st_read(nc_data, layer = "tracts")
-#> Reading layer `tracts' from data source `/tmp/RtmpUYWJGp/nc_hierarchy.gpkg' using driver `GPKG'
+#> Reading layer `tracts' from data source `/tmp/Rtmphl1eXq/nc_hierarchy.gpkg' using driver `GPKG'
 #> Simple feature collection with 2672 features and 1 field
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -578,7 +578,7 @@ system.time(
     )
 )
 #>    user  system elapsed 
-#>   0.745   0.000   0.669
+#>   0.715   0.005   4.220
 
 # hierarchical parallelization
 system.time(
@@ -897,7 +897,7 @@ system.time(
 #> Input is a character. Attempt to read it with terra::rast...
 #> ℹ Your input function at 37047 is dispatched.
 #>    user  system elapsed 
-#>   2.112   0.966   9.395
+#>   2.143   0.999   9.337
 ```
 
 ### `par_multirasters()`: parallelize over multiple rasters
@@ -924,9 +924,9 @@ terra::writeRaster(ncelev, file.path(tdir, "test5.tif"), overwrite = TRUE)
 # check if the raster files were exported as expected
 testfiles <- list.files(tdir, pattern = "*.tif$", full.names = TRUE)
 testfiles
-#> [1] "/tmp/RtmpUYWJGp/nc_srtm15_otm.tif" "/tmp/RtmpUYWJGp/test1.tif"        
-#> [3] "/tmp/RtmpUYWJGp/test2.tif"         "/tmp/RtmpUYWJGp/test3.tif"        
-#> [5] "/tmp/RtmpUYWJGp/test4.tif"         "/tmp/RtmpUYWJGp/test5.tif"
+#> [1] "/tmp/Rtmphl1eXq/nc_srtm15_otm.tif" "/tmp/Rtmphl1eXq/test1.tif"        
+#> [3] "/tmp/Rtmphl1eXq/test2.tif"         "/tmp/Rtmphl1eXq/test3.tif"        
+#> [5] "/tmp/Rtmphl1eXq/test4.tif"         "/tmp/Rtmphl1eXq/test5.tif"
 ```
 
 ``` r
@@ -943,35 +943,35 @@ system.time(
 )
 #> ℹ Input is not a character.
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpUYWJGp/nc_srtm15_otm.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmphl1eXq/nc_srtm15_otm.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpUYWJGp/test1.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmphl1eXq/test1.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpUYWJGp/test2.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmphl1eXq/test2.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpUYWJGp/test3.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmphl1eXq/test3.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpUYWJGp/test4.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmphl1eXq/test4.tif is dispatched.
 #> 
 #> Input is a character. Attempt to read it with terra::rast...
-#> ℹ Your input function at /tmp/RtmpUYWJGp/test5.tif is dispatched.
+#> ℹ Your input function at /tmp/Rtmphl1eXq/test5.tif is dispatched.
 #>    user  system elapsed 
-#>   1.669   0.578   3.014
+#>   1.674   0.609   3.072
 knitr::kable(head(res))
 ```
 
 |      mean | base_raster                       |
 |----------:|:----------------------------------|
-| 136.80203 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
-| 189.76170 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
-| 231.16968 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
-|  98.03845 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
-|  41.23463 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
-| 270.96933 | /tmp/RtmpUYWJGp/nc_srtm15_otm.tif |
+| 136.80203 | /tmp/Rtmphl1eXq/nc_srtm15_otm.tif |
+| 189.76170 | /tmp/Rtmphl1eXq/nc_srtm15_otm.tif |
+| 231.16968 | /tmp/Rtmphl1eXq/nc_srtm15_otm.tif |
+|  98.03845 | /tmp/Rtmphl1eXq/nc_srtm15_otm.tif |
+|  41.23463 | /tmp/Rtmphl1eXq/nc_srtm15_otm.tif |
+| 270.96933 | /tmp/Rtmphl1eXq/nc_srtm15_otm.tif |
 
 ``` r
 
@@ -1014,7 +1014,7 @@ pnts <- sf::st_as_sf(pnts)
 pnts$pid <- sprintf("RPID-%04d", seq(1, 5000))
 rd1 <- sf::st_read(ncrd1_path)
 #> Reading layer `ncroads_first' from data source 
-#>   `/tmp/RtmpUYWJGp/ncroads_first.gpkg' using driver `GPKG'
+#>   `/tmp/Rtmphl1eXq/ncroads_first.gpkg' using driver `GPKG'
 #> Simple feature collection with 620 features and 4 fields
 #> Geometry type: MULTILINESTRING
 #> Dimension:     XY
@@ -1066,11 +1066,11 @@ system.time(
   restr <- terra::nearest(x = terra::vect(pntst), y = terra::vect(rd1t))
 )
 #>    user  system elapsed 
-#>   0.513   0.000   0.463
+#>   0.526   0.000   0.483
 
 pnt_path <- file.path(tdir, "pntst.gpkg")
 sf::st_write(pntst, pnt_path)
-#> Writing layer `pntst' to data source `/tmp/RtmpUYWJGp/pntst.gpkg' using driver `GPKG'
+#> Writing layer `pntst' to data source `/tmp/Rtmphl1eXq/pntst.gpkg' using driver `GPKG'
 #> Writing 5000 features with 1 fields and geometry type Point.
 
 # we use four threads that were configured above
@@ -1116,7 +1116,7 @@ system.time(
 #> ℹ Input is a character. Trying to read with terra .
 #> ℹ Task at CGRIDID: 8 is successfully dispatched.
 #>    user  system elapsed 
-#>   1.264   0.567   2.628
+#>   1.306   0.578   2.691
 ```
 
 - We will compare the results from the single-thread and multi-thread

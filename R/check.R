@@ -637,7 +637,7 @@ setMethod(
 setMethod(
   ".check_vector",
   signature(input = "sf", input_id = "ANY",
-            extent = "NULL", out_class = "character"),
+            extent = "ANY", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     .check_pkgname(out = out_class)
     input <- .check_id(input, input_id)
@@ -692,6 +692,7 @@ setMethod(
     return(input)
   }
 )
+
 
 
 #' @keywords internal
@@ -825,7 +826,7 @@ setMethod(
 setMethod(
   ".check_vector",
   signature(input = "SpatVector", input_id = "ANY",
-            extent = "NULL", out_class = "character"),
+            extent = "ANY", out_class = "character"),
   function(input, input_id, extent, out_class, ...) {
     .check_pkgname(out = out_class)
 
@@ -952,7 +953,7 @@ setMethod(
   # character ingestion
   if (is.character(input)) {
     cli::cli_inform(
-      sprintf("Input is a character. Attempt to read it with terra::rast...\n")
+      "Input is a character. Attempt to read it with terra::rast...\n"
     )
     input <-
       try(terra::rast(input, win = extent, snap = "out"), silent = TRUE)
@@ -985,9 +986,20 @@ setMethod(
         )
       )
       suppressWarnings(
-        input <- try(terra::sources(input), silent = TRUE)
+        input_read <- try(terra::sources(input), silent = TRUE)
       )
-      if (inherits(input, "try-error")) {
+      if (is.character(input_read)) {
+        if (input_read == "") {
+          path_temp <- tempfile(fileext = ".tif")
+          cli::cli_alert_info(
+            "The data is in memory. Writing a temporary GeoTIFF file to track the data source path..."
+          )
+          terra::writeRaster(input, path_temp, overwrite = TRUE)
+          input_read <- path_temp
+        }
+        return(input_read)
+      }
+      if (inherits(input_read, "try-error")) {
         cli::cli_abort(
           paste0(
             "Failed to track the data source file path.\n",
@@ -996,8 +1008,9 @@ setMethod(
         )
       }
     }
+    input
   }
-  return(input)
+  input
 }
 
 
@@ -1022,22 +1035,26 @@ setMethod(
               )[[1]]
             ),
             error = function(e) {
-              "error"
+              if (exists(fun)) {
+                "user"
+              } else {
+                "error"
+              }
             }
           )
         },
         FUN.VALUE = character(1)
       )
 
-    pkgname <- grep("^(terra|sf|chopin)$", pkgname, value = TRUE)
+    pkgname <- grep("^(terra|sf|chopin|user)$", pkgname, value = TRUE)
     if (length(pkgname) == 0) {
       cli::cli_abort("No parent package is found.")
     }
     if (length(pkgname) > 1) {
       cli::cli_abort("There are multiple parent packages matched.")
     }
-    if (!pkgname %in% c("sf", "terra", "chopin")) {
-      cli::cli_abort("Function should be one from sf, terra, or chopin.")
+    if (!pkgname %in% c("sf", "terra", "chopin", "user")) {
+      cli::cli_abort("Function should be user-defined or one from sf, terra, or chopin.")
     }
     return(pkgname)
   }

@@ -123,20 +123,20 @@ par_grid_mirai <-
 
     # parallel worker will take terra class objects
     # if chopin function is used
-    class_vec <-
-      if (pkgname == "chopin") {
-        if (is_extract_at) {
-          "sf"
-        } else {
-          "terra"
-        }
-      } else {
-        pkgname
-      }
+    class_vec <- "sf"
+      # if (pkgname == "chopin") {
+        # if (is_extract_at) {
+        #   "sf"
+        # } else {
+        #   "terra"
+        # }
+      # } else {
+        # pkgname
+      # }
 
     # clean additional arguments
     args_input <- list(...)
-    if (funname == "chopin" && is.null(args_input$.standalone)) {
+    if (pkgname == "chopin" && is.null(args_input$.standalone)) {
       args_input$.standalone <- FALSE
     }
 
@@ -154,7 +154,7 @@ par_grid_mirai <-
     }
 
     # class identity check
-    .check_align_fxy(pkgname, args_input$x, args_input$y)
+    # .check_align_fxy(pkgname, args_input$x, args_input$y)
 
     # Main parallelization
     results <-
@@ -412,15 +412,15 @@ par_hierarchy_mirai <-
     # parallel worker will take terra class objects
     # if chopin function is used
     class_vec <-
-      if (pkgname == "chopin") {
+      # if (pkgname == "chopin") {
         if (is_extract_at) {
           "sf"
         } else {
           "terra"
         }
-      } else {
-        pkgname
-      }
+      # } else {
+      #   pkgname
+      # }
 
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
@@ -440,7 +440,7 @@ par_hierarchy_mirai <-
     }
 
     # class identity check
-    .check_align_fxy(pkgname, args_input$x, args_input$y)
+    # .check_align_fxy(pkgname, args_input$x, args_input$y)
 
     # Region ID cleaning to get unique high-level IDs
     # what if regions refers to a path string?
@@ -748,15 +748,15 @@ par_multirasters_mirai <-
     # parallel worker will take terra class objects
     # if chopin function is used
     class_vec <-
-      if (pkgname == "chopin") {
+      # if (pkgname == "chopin") {
         if (is_extract_at) {
           "sf"
         } else {
           "terra"
         }
-      } else {
-        pkgname
-      }
+      # } else {
+      #   pkgname
+      # }
 
     # Unlike other par_* functions, raster paths are not
     # tracked by the function since the raster file paths
