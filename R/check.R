@@ -988,13 +988,15 @@ setMethod(
       suppressWarnings(
         input_read <- try(terra::sources(input), silent = TRUE)
       )
-      if (input_read == "") {
-        path_temp <- tempfile(fileext = ".tif")
-        cli::cli_alert_info(
-          "The data is in memory. Writing a temporary GeoTIFF file to track the data source path..."
-        )
-        terra::writeRaster(input, path_temp, overwrite = TRUE)
-        input_read <- path_temp
+      if (is.character(input_read)) {
+        if (input_read == "") {
+          path_temp <- tempfile(fileext = ".tif")
+          cli::cli_alert_info(
+            "The data is in memory. Writing a temporary GeoTIFF file to track the data source path..."
+          )
+          terra::writeRaster(input, path_temp, overwrite = TRUE)
+          input_read <- path_temp
+        }
         return(input_read)
       }
       if (inherits(input_read, "try-error")) {

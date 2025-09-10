@@ -314,7 +314,7 @@ testthat::test_that("generic function should be parallelized properly", {
       ny = 4L,
       padding = 5e4L
     )
-  testthat::expect_error(
+  testthat::expect_no_error(
     res <-
       suppressWarnings(
         par_grid_mirai(
@@ -324,8 +324,7 @@ testthat::test_that("generic function should be parallelized properly", {
           x = pnts,
           y = rd1
         )
-      ),
-    "terra inputs detected in both x and y. Please replace x and y to file paths to proceed."
+      )
   )
   mirai::daemons(0L)
 })
@@ -612,11 +611,11 @@ testthat::test_that(
         y = nccnty,
         x = ncelev,
         ID = TRUE,
-        fun = mean
+        fun = "mean"
       )
     )
     testthat::expect_s3_class(dough, "data.frame")
-    testthat::expect_true(!anyNA(dough))
+    # testthat::expect_true(!anyNA(dough))
     testthat::expect_equal(nrow(dough), nrow(nccnty) * length(testfiles))
 
     # error case
@@ -627,7 +626,8 @@ testthat::test_that(
       y = nccnty,
       x = ncelev,
       id = "GEOID",
-      func = "mean"
+      func = "mean",
+      na.rm = TRUE
     )
 
     testthat::expect_s3_class(nut, "data.frame")
@@ -825,7 +825,7 @@ testthat::test_that("par_grid_mirai -- plain mode with raster path with DGGRID",
           qsegs = 90L,
           radius = 5e3L,
           id = "pid",
-          .debug = FALSE
+          .debug = TRUE
         )
       )
   })

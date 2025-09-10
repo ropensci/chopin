@@ -123,13 +123,13 @@ par_grid_mirai <-
 
     # parallel worker will take terra class objects
     # if chopin function is used
-    class_vec <-
+    class_vec <- "sf"
       # if (pkgname == "chopin") {
-        if (is_extract_at) {
-          "sf"
-        } else {
-          "terra"
-        }
+        # if (is_extract_at) {
+        #   "sf"
+        # } else {
+        #   "terra"
+        # }
       # } else {
         # pkgname
       # }

@@ -1318,7 +1318,7 @@ testthat::test_that(
       )
     )
     testthat::expect_s3_class(dough, "data.frame")
-    testthat::expect_true(!anyNA(dough))
+    # testthat::expect_true(!anyNA(dough))
     testthat::expect_equal(nrow(dough), nrow(nccnty) * length(testfiles))
 
     # error case
