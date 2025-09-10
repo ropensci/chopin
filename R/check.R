@@ -953,7 +953,7 @@ setMethod(
   # character ingestion
   if (is.character(input)) {
     cli::cli_inform(
-      sprintf("Input is a character. Attempt to read it with terra::rast...\n")
+      "Input is a character. Attempt to read it with terra::rast...\n"
     )
     input <-
       try(terra::rast(input, win = extent, snap = "out"), silent = TRUE)
@@ -995,6 +995,7 @@ setMethod(
         )
         terra::writeRaster(input, path_temp, overwrite = TRUE)
         input_read <- path_temp
+        return(input_read)
       }
       if (inherits(input_read, "try-error")) {
         cli::cli_abort(
@@ -1005,8 +1006,9 @@ setMethod(
         )
       }
     }
+    input
   }
-  return(input_read)
+  input
 }
 
 

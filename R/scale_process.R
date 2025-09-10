@@ -122,18 +122,19 @@ par_grid <-
     funname <- as.character(substitute(fun_dist))
     # is the function extract_at?
     is_extract_at <- any(endsWith(funname, "extract_at"))
+    message(is_extract_at)
     funname <- funname[length(funname)]
     pkgname <- try(.check_package(funname), silent = TRUE)
 
     # parallel worker will take terra class objects
     # if chopin function is used
-    class_vec <-
+    class_vec <- "sf"
       # if (pkgname == "chopin") {
-        if (is_extract_at) {
-          "sf"
-        } else {
-          "terra"
-        }
+        # if (is_extract_at) {
+        #   "sf"
+        # } else {
+        #   "terra"
+        # }
       # } else {
       #   pkgname
       # }
@@ -147,9 +148,11 @@ par_grid <-
     # Track spatraster file path
     args_input$x <- .check_par_spatraster(args_input$x)
     args_input$y <- .check_par_spatraster(args_input$y)
+
     # get hints from the inputs on data model
     peek_x <- try(.check_character(args_input$x), silent = TRUE)
     peek_y <- try(.check_character(args_input$y), silent = TRUE)
+
     if (inherits(peek_x, "try-error")) {
       crs_x <- terra::crs(args_input$x)
     } else {

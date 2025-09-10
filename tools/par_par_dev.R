@@ -271,9 +271,9 @@ grd <- chopin::par_pad_grid(
   ny = 4L,
   padding = 300
 )
-# grdpnt <- grid
-# bldg_cast <- st_cast(bldg, "POLYGON")
-radius_m <- 100
+
+bldg_cast <- st_cast(bldg, "POLYGON")
+radius_m <- 300
 
 res <- par_grid_mirai(
   grids    = grd,
@@ -281,7 +281,7 @@ res <- par_grid_mirai(
   x        = bldg_cast,
   y        = grdpnt,
   radius   = radius_m,
-  # input_id = "pid",
+  id_col = "pid",
   .debug = TRUE
 )
 
