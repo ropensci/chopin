@@ -5,6 +5,7 @@
 - SoftwareX paper is published; DOI and inst/CITATION is added
 - Supports H3 and DGGRID gridding functions from 0.9.5
 - Generic function using all-`sf` inputs in `x` and `y` is supported in `par_*()` functions
+- `par_make_h3()` adds H3 indices to output `sf` object
 
 # 0.8
 - Bumped version from 0.7.8 to 0.8.0: improving package coverage

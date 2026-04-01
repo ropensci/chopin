@@ -870,7 +870,7 @@ search_h3 <- function(x, res = 5L) {
 }
 
 
-#' Convert H3 indices to sf object
+#' Convert a input sf object to H3 hexagons
 #' @family Parallelization
 #' @description This function converts an input `sf` to an
 #' `sf` object with H3 hexagons.
@@ -952,6 +952,7 @@ par_make_h3 <- function(x, res = 5L) {
     h3r::cellToBoundary(
       cell = h3_indices
     )
+  h3list_index <- names(h3list)
   h3list <- Map(
     function(x) {
       sf::st_polygon(
@@ -963,13 +964,20 @@ par_make_h3 <- function(x, res = 5L) {
   h3sf <- sf::st_as_sfc(
     h3list, crs = sf::st_crs(4326)
   )
+
   h3sf <- sf::st_as_sf(h3sf)
+  # 0.9.9-1 patch: add h3 indices to the outcome sf object
+  h3sf[["h3index"]] <- h3list_index
+
+  # clip the grid by the original geometry
   suppressWarnings(
     h3sf <- h3sf[x, ]
   )
+
   names(h3sf)[1] <- "geometry"
   sf::st_geometry(h3sf) <- "geometry"
   h3sf[["CGRIDID"]] <- seq_len(nrow(h3sf))
+
   h3sf
 }
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/gridding.R
 \name{par_make_h3}
 \alias{par_make_h3}
-\title{Convert H3 indices to sf object}
+\title{Convert a input sf object to H3 hexagons}
 \usage{
 par_make_h3(x, res = 5L)
 }
