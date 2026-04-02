@@ -141,6 +141,7 @@ testthat::test_that("par_grid -- plain mode with raster path", {
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) %>%
     terra::project("EPSG:5070")
+  rppath <- file.path(tempdir(check = TRUE), "nc_random_point.rds")
 
   ## Bundled random points in NC
   ncpnts <-
@@ -982,6 +983,7 @@ testthat::test_that("generic function should be parallelized properly", {
   ncp <- sf::st_as_sf(ncpoints, coords = c("X", "Y"), crs = "EPSG:5070")
   ncp$pid <- seq_len(nrow(ncp))
   pnts <- terra::vect(ncp)
+  roadpath <- file.path(tempdir(check = TRUE), "ncroads_first.gpkg")
 
   rd1 <- terra::vect(roadpath)
 

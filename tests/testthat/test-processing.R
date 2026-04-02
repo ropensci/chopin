@@ -472,7 +472,6 @@ testthat::test_that("Character input works", {
   withr::local_package("rlang")
   withr::local_options(list(sf_use_s2 = FALSE))
 
-  rppath <- file.path(tempdir(check = TRUE), "nc_random_point.rds")
   nccntypath <- system.file("shape/nc.shp", package = "sf")
   ncelevpath <- file.path(tempdir(check = TRUE), "ncelev.tif")
 
@@ -560,6 +559,7 @@ testthat::test_that("summarize_aw works -- sf-sf", {
     "st_interpolate_aw assumes attributes are constant or uniform over areas of x"
   )
   testthat::expect_true(inherits(ppb_nc_aw, "data.frame"))
+  testthat::expect_true("id" %in% names(ppb_nc_aw))
 
 })
 
@@ -622,6 +622,181 @@ testthat::test_that("summarize_aw works -- error cases", {
   testthat::expect_error(summarize_aw(ppb_t, list(1, 3), fld, "id"))
 })
 
+testthat::test_that("summarize_pp works -- mixed spatial classes", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+  nc <- sf::st_transform(nc, 5070)
+
+  pts_sf <- sf::st_sample(nc, size = 200L)
+  pts_sf <- sf::st_as_sf(pts_sf)
+  sf::st_crs(pts_sf) <- "EPSG:5070"
+  pts_sf$pollutant <- seq_len(nrow(pts_sf))
+  pts_sf$other_metric <- 1
+
+  pts_terra <- terra::vect(pts_sf)
+  nc_terra <- terra::vect(nc)
+
+  summed_sf <- summarize_pp(
+    x = nc,
+    y = pts_terra,
+    target_fields = c("pollutant", "other_metric"),
+    id_x = "FIPS",
+    fun = mean
+  )
+  testthat::expect_s3_class(summed_sf, "sf")
+  testthat::expect_true(all(c("FIPS", "pollutant", "other_metric") %in% names(summed_sf)))
+  testthat::expect_equal(nrow(summed_sf), nrow(nc))
+
+  summed_terra <- summarize_pp(
+    x = nc_terra,
+    y = pts_sf,
+    target_fields = c("pollutant", "other_metric"),
+    id_x = "FIPS",
+    fun = mean
+  )
+  testthat::expect_s3_class(summed_terra, "data.frame")
+  testthat::expect_true(all(c("FIPS", "pollutant", "other_metric") %in% names(summed_terra)))
+})
+
+testthat::test_that("summarize_pp validates geometry types", {
+  withr::local_package("sf")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+  nc <- sf::st_transform(nc, 5070)
+
+  pts_sf <- sf::st_sample(nc, size = 10L)
+  pts_sf <- sf::st_as_sf(pts_sf)
+  sf::st_crs(pts_sf) <- "EPSG:5070"
+  pts_sf$pollutant <- seq_len(nrow(pts_sf))
+
+  testthat::expect_error(
+    summarize_pp(x = pts_sf, y = nc, target_fields = "pollutant", id_x = "pollutant"),
+    "`x` should have polygon geometries."
+  )
+})
+
+testthat::test_that("summarize_st works -- time grouping", {
+  withr::local_package("dplyr")
+  withr::local_package("testthat")
+
+  timedf <- data.frame(
+    id = c(1L, 1L, 2L, 2L),
+    observed_at = as.POSIXct(
+      c(
+        "2024-01-01 00:10:00",
+        "2024-01-01 00:40:00",
+        "2024-01-01 01:05:00",
+        "2024-01-01 01:20:00"
+      ),
+      tz = "UTC"
+    ),
+    value = c(1, 3, 10, 14),
+    other_value = c(2, 4, 20, 22),
+    label = c("a", "b", "c", "d")
+  )
+
+  summarized <- summarize_st(timedf, mean, "id", "hours")
+
+  testthat::expect_s3_class(summarized, "data.frame")
+  testthat::expect_equal(names(summarized), c("id", "observed_at", "value", "other_value"))
+  testthat::expect_equal(nrow(summarized), 2L)
+  testthat::expect_true(inherits(summarized$observed_at, "POSIXct"))
+  testthat::expect_equal(summarized$id, c(1L, 2L))
+  testthat::expect_equal(
+    summarized$observed_at,
+    as.POSIXct(c("2024-01-01 00:00:00", "2024-01-01 01:00:00"), tz = "UTC")
+  )
+  testthat::expect_equal(summarized$value, c(2, 12))
+  testthat::expect_equal(summarized$other_value, c(3, 21))
+})
+
+testthat::test_that("summarize_st works -- spatial grouping", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("units")
+  withr::local_package("dplyr")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+  nc <- sf::st_transform(nc, 5070)
+  pp <- sf::st_sample(nc, size = 500)
+  pp <- sf::st_as_sf(pp)
+  pp[["sample_id"]] <- seq_len(nrow(pp))
+  pp[["pollutant"]] <- seq_len(nrow(pp))
+  sf::st_crs(pp) <- "EPSG:5070"
+  ppb <- sf::st_buffer(pp, nQuadSegs = 90, dist = units::set_units(20, "km"))
+
+  testthat::expect_warning(
+    summarized_sf <- summarize_st(ppb, "sum", "FIPS", nc),
+    "st_interpolate_aw assumes attributes are constant or uniform over areas of x"
+  )
+  testthat::expect_no_error(
+    summarized_sf <- summarize_st(pp, "sum", "FIPS", nc)
+  )
+
+  testthat::expect_s3_class(summarized_sf, "sf")
+  testthat::expect_true("FIPS" %in% names(summarized_sf))
+  testthat::expect_true("pollutant" %in% names(summarized_sf))
+  testthat::expect_equal(nrow(summarized_sf), nrow(nc))
+})
+
+testthat::test_that("summarize_st keeps target polygon id for polygon inputs", {
+  withr::local_package("sf")
+  withr::local_package("units")
+  withr::local_package("testthat")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+  nc <- sf::st_transform(nc, 5070)
+  pp <- sf::st_sample(nc, size = 50L)
+  pp <- sf::st_as_sf(pp)
+  pp$id <- seq_len(nrow(pp))
+  pp$pollutant <- seq_len(nrow(pp))
+  sf::st_crs(pp) <- "EPSG:5070"
+  ppb <- sf::st_buffer(pp, nQuadSegs = 90, dist = units::set_units(20, "km"))
+
+  testthat::expect_warning(
+    summarized_poly <- summarize_st(ppb, "sum", "FIPS", nc),
+    "st_interpolate_aw assumes attributes are constant or uniform over areas of x"
+  )
+
+  testthat::expect_s3_class(summarized_poly, "sf")
+  testthat::expect_true("FIPS" %in% names(summarized_poly))
+})
+
+testthat::test_that("summarize_st validates time inputs", {
+  withr::local_package("testthat")
+
+  timedf <- data.frame(
+    id = c(1L, 1L),
+    observed_at = as.POSIXct(
+      c("2024-01-01 00:10:00", "2024-01-01 00:40:00"),
+      tz = "UTC"
+    ),
+    value = c(1, 3)
+  )
+
+  testthat::expect_error(
+    summarize_st(timedf, mean, id, "fortnights"),
+    "Invalid value for \\.by"
+  )
+
+  timedf_extra <- timedf
+  timedf_extra$observed_on <- as.Date(c("2024-01-01", "2024-01-02"))
+  testthat::expect_error(
+    summarize_st(timedf_extra, mean, id, "hours"),
+    "There should be exactly one time column in the data frame."
+  )
+})
+
 
 # SEDC tests ####
 testthat::test_that("SEDC are well calculated.", {
@@ -642,6 +817,7 @@ testthat::test_that("SEDC are well calculated.", {
   ncrand$pollutant1 <- stats::rgamma(250L, 1, 0.01)
   ncrand$pollutant2 <- stats::rnorm(250L, 30, 4)
   ncrand$pollutant3 <- stats::rbeta(250L, 0.5, 0.5)
+  rppath <- file.path(tempdir(check = TRUE), "nc_random_point.rds")
 
   polnames <- paste0("pollutant", 1:3)
   testthat::expect_no_error(
@@ -685,6 +861,8 @@ testthat::test_that("SEDC warning message with multiple fields overlapped", {
   withr::local_options(list(sf_use_s2 = FALSE))
 
   # read and generate data
+  rppath <- file.path(tempdir(check = TRUE), "nc_random_point.rds")
+
   ncpath <- system.file("shape/nc.shp", package = "sf")
   ncpoly <- terra::vect(ncpath) |>
     terra::project("EPSG:5070")
