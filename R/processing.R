@@ -884,6 +884,370 @@ setMethod("summarize_aw", signature(x = "sf", y = "sf"),
     }
 
     poly_intersected <- sf::st_interpolate_aw(y, x, extensive = extensive)
+    target_cols <- setdiff(names(sf::st_drop_geometry(poly_intersected)), id_x)
+    poly_intersected <-
+      sf::st_join(
+        x,
+        poly_intersected[, target_cols, drop = FALSE],
+        left = TRUE,
+        join = sf::st_equals
+      )
     return(poly_intersected)
   }
 )
+
+
+## summarize_pp ####
+#' Point to polygon summary using target polygons and source points
+#' @rdname summarize_pp
+#' @name summarize_pp
+#' @family Macros for calculation
+#' @param x A sf/SpatVector object or file path of polygons to which
+#'   point attributes will be summarized.
+#' @param y A sf/SpatVector object or file path of points from
+#'   which summaries will be calculated.
+#' @param target_fields character. Field names in `y` to summarize.
+#' @param id_x character(1).
+#'  The unique identifier of each polygon in `x`.
+#'  Default is `"ID"`.
+#' @param fun function(1)/character(1).
+#'   The function to calculate the point summary.
+#'   Default is [`mean`]. Character input should be a summary
+#'   function accepted by `match.fun()`.
+#' @param extent numeric(4) or SpatExtent object. Extent of clipping `x`.
+#' It only works with `x` of character(1) file path.
+#' See [`terra::ext`] for more details. Coordinate systems should match.
+#' @param out_class character(1). "sf" or "terra". Output class.
+#' @param ... Additional arguments passed to `fun`.
+#' @returns If `x` is `sf`, returns an `sf` object with summarized fields
+#'   joined to polygons. Otherwise returns a `data.frame`.
+#' @description When `x` and `y` are different classes,
+#'  `y` will be converted to the class of `x`.
+#' @note `x` should contain polygon geometries and `y` should contain
+#'   point geometries.
+#' @author Insang Song \email{geoissong@@gmail.com}
+#' @export
+setGeneric("summarize_pp", function(x, y, ...) standardGeneric("summarize_pp"))
+
+#' @keywords internal
+#' @noRd
+.check_pp_geoms <- function(x, y) {
+  xgeom <- tolower(as.character(sf::st_geometry_type(sf::st_as_sf(x))))
+  ygeom <- tolower(as.character(sf::st_geometry_type(sf::st_as_sf(y))))
+
+  if (!all(grepl("polygon", xgeom))) {
+    stop("`x` should have polygon geometries.")
+  }
+  if (!all(grepl("point", ygeom))) {
+    stop("`y` should have point geometries.")
+  }
+}
+
+#' @rdname summarize_pp
+#' @importFrom rlang sym
+#' @importFrom dplyr group_by summarize across ungroup
+#' @export
+setMethod("summarize_pp", signature(x = "SpatVector", y = "ANY"),
+  function(
+    x,
+    y,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = mean,
+    extent = NULL,
+    ...
+  ) {
+    fun <- match.fun(fun)
+    x <-
+      .check_vector(x, extent = extent, input_id = id_x, out_class = "terra")
+    y <-
+      .check_vector(y, extent = extent, input_id = NULL, out_class = "terra")
+
+    .check_pp_geoms(x, y)
+
+    x <- x[, id_x]
+    if (is.null(target_fields)) {
+      target_fields <- names(y)[sapply(y, is.numeric)]
+    }
+    y <- y[, target_fields]
+
+    point_intersected <- terra::intersect(x, y)
+    point_intersected <- data.frame(point_intersected) |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~ fun(.x, ...)
+        )
+      ) |>
+      dplyr::ungroup()
+    return(point_intersected)
+  }
+)
+
+#' @rdname summarize_pp
+#' @importFrom rlang sym
+#' @importFrom dplyr group_by summarize across ungroup left_join
+#' @export
+setMethod("summarize_pp", signature(x = "character", y = "ANY"),
+  function(
+    x,
+    y,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = mean,
+    out_class = "terra",
+    extent = NULL,
+    ...
+  ) {
+    fun <- match.fun(fun)
+    x <-
+      .check_vector(
+        x, extent = extent, input_id = id_x, out_class = out_class
+      )
+    y <-
+      .check_vector(y, extent = extent, input_id = NULL, out_class = out_class)
+
+    .check_pp_geoms(x, y)
+
+    if (out_class == "sf") {
+      x_poly <- x[, id_x]
+      if (is.null(target_fields)) {
+        target_fields <- names(y)[sapply(y, is.numeric)]
+      }
+      y <- y[, target_fields]
+      point_joined <- sf::st_join(y, x_poly, left = FALSE)
+      point_summary <- point_joined |>
+        sf::st_drop_geometry() |>
+        dplyr::group_by(!!rlang::sym(id_x)) |>
+        dplyr::summarize(
+          dplyr::across(
+            dplyr::all_of(target_fields),
+            ~ fun(.x, ...)
+          ),
+          .groups = "drop"
+        )
+      return(dplyr::left_join(x_poly, point_summary, by = id_x))
+    }
+
+    x <- x[, id_x]
+    if (is.null(target_fields)) {
+      target_fields <- names(y)[sapply(y, is.numeric)]
+    }
+    y <- y[, target_fields]
+
+    point_intersected <- terra::intersect(x, y)
+    point_intersected <- data.frame(point_intersected) |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~ fun(.x, ...)
+        )
+      ) |>
+      dplyr::ungroup()
+    return(point_intersected)
+  }
+)
+
+
+#' @rdname summarize_pp
+#' @importFrom rlang sym
+#' @importFrom dplyr group_by summarize across ungroup left_join
+#' @export
+setMethod("summarize_pp", signature(x = "sf", y = "ANY"),
+  function(
+    x,
+    y,
+    target_fields = NULL,
+    id_x = "ID",
+    fun = mean,
+    extent = NULL,
+    ...
+  ) {
+    fun <- match.fun(fun)
+    x <-
+      .check_vector(x, extent = extent, input_id = id_x, out_class = "sf")
+    y <-
+      .check_vector(y, extent = extent, input_id = NULL, out_class = "sf")
+
+    .check_pp_geoms(x, y)
+
+    x_poly <- x[, id_x]
+    if (is.null(target_fields)) {
+      target_fields <- names(y)[sapply(y, is.numeric)]
+    }
+    y <- y[, target_fields]
+
+    point_joined <- sf::st_join(y, x_poly, left = FALSE)
+    point_summary <- point_joined |>
+      sf::st_drop_geometry() |>
+      dplyr::group_by(!!rlang::sym(id_x)) |>
+      dplyr::summarize(
+        dplyr::across(
+          dplyr::all_of(target_fields),
+          ~ fun(.x, ...)
+        ),
+        .groups = "drop"
+      )
+    poly_joined <- dplyr::left_join(x_poly, point_summary, by = id_x)
+    return(poly_joined)
+  }
+)
+
+
+### Postprocessing extract_at ####
+#' @keywords internal
+#' @noRd
+.detect_time_info <- function(df) {
+  time_info <- sapply(df, function(x) {
+    (inherits(x, "POSIXct") || inherits(x, "Date"))
+  })
+  time_info
+}
+
+#' Summarize Data by Time or Space
+#'
+#' @description
+#' Summarize numeric columns of a data frame by either
+#' time intervals or spatial features. This function supports
+#' two modes of operation: time-based grouping and spatial grouping.
+#'
+#' @param df A data frame, sf object, or SpatVector containing
+#'   the data to summarize.
+#' @param f A function to apply for summarization
+#'   (e.g., "mean", "sum").
+#' @param id_col A column name or expression specifying
+#'   the ID column for grouping.
+#' @param .by Either a character string specifying a time unit
+#'   ("minutes", "hours", "days", "weeks", "months", "quarters", "years")
+#'   for temporal grouping, or an sf/SpatVector object for spatial grouping.
+#' @param ... Additional arguments passed to `summarize_aw()`
+#'   when doing spatial grouping.
+#'
+#' @details
+#' When `.by` is a character string, the function performs time-based
+#' summarization: it groups data by ID and time intervals, then
+#' applies the summarization function to all numeric columns.
+#'
+#' When `.by` is an sf or SpatVector object, the function performs
+#' spatial summarization using `summarize_aw()` to aggregate data
+#' across spatial features.
+#'
+#' @note For time-based grouping, the function expects exactly one time column
+#' in the data frame. The time values will be "floored" to the nearest
+#' time unit defined by `.by` for grouping.
+#' @return
+#' A data frame with summarized values.
+#' For time-based grouping,
+#' includes the original time column and grouped summaries.
+#' For spatial grouping, returns the result from `summarize_aw()`.
+#'
+#' @family Macros for calculation
+#' @export
+summarize_st <-
+  function(df, f, id_col, .by, ...) {
+    # type check
+    stopifnot(
+      is.character(.by) || inherits(.by, "sf") || inherits(.by, "SpatVector")
+    )
+
+    # main processing
+    # case 1: character .by indicates time grouping
+    # each time value will be "floored" to the nearest time unit defined by .by
+    if (is.character(.by)) {
+      if (!.by %in% c("minutes", "hours", "days",
+                      "weeks", "months", "quarters", "years")) {
+        stop(
+          "Invalid value for .by. Choose one of 'minutes',
+          'hours', 'days', 'weeks', 'months', 'quarters', or 'years'.
+          "
+        )
+      }
+      time_info <- .detect_time_info(df)
+
+      if (sum(time_info) != 1L) {
+        stop(
+          "There should be exactly one time column in the data frame."
+        )
+      }
+
+      time_col <- names(df)[time_info]
+      df[[time_col]] <- as.POSIXct(df[[time_col]])
+      df <- df |>
+        dplyr::mutate(
+          time_group = {
+            cut_labels <- as.character(cut(
+              df[[time_col]],
+              breaks = .by
+            ))
+            cut_labels[nchar(cut_labels) == 10L] <-
+              paste0(cut_labels[nchar(cut_labels) == 10L], " 00:00:00")
+            as.POSIXct(
+              cut_labels,
+              format = "%Y-%m-%d %H:%M:%S",
+              tz = attr(df[[time_col]], "tzone", exact = TRUE)
+            )
+          }
+        ) |>
+        dplyr::group_by(!!rlang::sym(id_col), time_group) |>
+        dplyr::summarize(
+          dplyr::across(
+            dplyr::where(is.numeric),
+            ~ f(.x, na.rm = TRUE)
+          )
+        ) |>
+        dplyr::rename(
+          !!rlang::sym(time_col) := time_group
+        )
+      df
+    } else {
+      # case 2: sf or SpatVector .by indicates spatial grouping
+      if (inherits(df, "sf") || inherits(df, "SpatVector")) {
+        # both df and .by are spatial objects
+        # check geometry type of y (df)
+        if (inherits(df, "sf")) {
+          geom_type <- sf::st_geometry_type(df)[1]
+        } else {
+          geom_type <- terra::geomtype(df)
+        }
+        target_cols <- setdiff(names(df)[sapply(df, is.numeric)], id_col)
+        # for point geometries in y, run summarize_pp
+        # for polygon geometries in y, run summarize_aw
+        if (grepl("point", tolower(geom_type))) {
+          df_summary <-
+            summarize_pp(
+              x = .by,
+              y = df,
+              target_fields = target_cols,
+              id_x = id_col,
+              fun = f,
+              ...
+            )
+        } else {
+          df_summary <-
+            summarize_aw(
+              x = .by,
+              y = df,
+              target_fields = target_cols,
+              id_x = id_col,
+              fun = f,
+              ...
+            )
+        }
+      } else {
+        # df is not spatial, perform point to polygon summary
+        df_summary <-
+          summarize_pp(
+            x = .by,
+            y = df,
+            target_fields = target_cols,
+            id_x = id_col,
+            fun = f,
+            ...
+          )
+      }
+      df_summary
+    }
+
+  }

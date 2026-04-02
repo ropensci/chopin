@@ -44,7 +44,9 @@ https://github.com/JanCaha/SpatialKDE
 Other Macros for calculation: 
 \code{\link{extract_at}()},
 \code{\link{summarize_aw}()},
-\code{\link{summarize_sedc}()}
+\code{\link{summarize_pp}()},
+\code{\link{summarize_sedc}()},
+\code{\link{summarize_st}()}
 }
 \concept{Macros for calculation}
 \keyword{internal}

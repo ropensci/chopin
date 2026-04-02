@@ -124,7 +124,9 @@ par(lastpar)
 Other Macros for calculation: 
 \code{\link{extract_at}()},
 \code{\link{kernelfunction}()},
-\code{\link{summarize_sedc}()}
+\code{\link{summarize_pp}()},
+\code{\link{summarize_sedc}()},
+\code{\link{summarize_st}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}

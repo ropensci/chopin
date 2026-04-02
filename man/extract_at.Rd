@@ -200,7 +200,9 @@ suppressWarnings(
 Other Macros for calculation: 
 \code{\link{kernelfunction}()},
 \code{\link{summarize_aw}()},
-\code{\link{summarize_sedc}()}
+\code{\link{summarize_pp}()},
+\code{\link{summarize_sedc}()},
+\code{\link{summarize_st}()}
 }
 \author{
 Insang Song \email{geoissong@gmail.com}
