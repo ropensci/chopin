@@ -1151,7 +1151,7 @@ summarize_st <-
     stopifnot(
       is.character(.by) || inherits(.by, "sf") || inherits(.by, "SpatVector")
     )
-
+    time_group <- NULL
     # main processing
     # case 1: character .by indicates time grouping
     # each time value will be "floored" to the nearest time unit defined by .by
@@ -1196,11 +1196,11 @@ summarize_st <-
             dplyr::where(is.numeric),
             ~ f(.x, na.rm = TRUE)
           )
-        ) |>
-        dplyr::rename(
-          !!rlang::sym(time_col) := time_group
         )
+
+      names(df)[names(df) == "time_group"] <- time_col
       df
+
     } else {
       # case 2: sf or SpatVector .by indicates spatial grouping
       if (inherits(df, "sf") || inherits(df, "SpatVector")) {

@@ -418,6 +418,46 @@ testthat::test_that(".extract_at + character inputs with kernel weighting", {
   )
 })
 
+testthat::test_that(".extract_at supports standalone mode with prevalidated inputs", {
+  withr::local_package("sf")
+  withr::local_package("terra")
+  withr::local_package("exactextractr")
+  withr::local_options(list(sf_use_s2 = FALSE))
+
+  ras <- terra::rast(
+    nrows = 2,
+    ncols = 2,
+    xmin = 0,
+    xmax = 2,
+    ymin = 0,
+    ymax = 2,
+    crs = "EPSG:3857"
+  )
+  terra::values(ras) <- c(1, 2, 3, 4)
+
+  ypoly <- sf::st_as_sf(
+    data.frame(
+      pid = "A",
+      wkt = "POLYGON ((0 0, 2 0, 2 2, 0 2, 0 0))"
+    ),
+    wkt = "wkt",
+    crs = "EPSG:3857"
+  )
+
+  testthat::expect_no_warning(
+    standalone_ret <- chopin:::.extract_at(
+      x = ras,
+      y = ypoly,
+      id = "pid",
+      func = "mean",
+      .standalone = FALSE,
+      max_cells = 1e5
+    )
+  )
+  testthat::expect_s3_class(standalone_ret, "data.frame")
+  testthat::expect_true("pid" %in% names(standalone_ret))
+})
+
 ## .kernel_weighting tests ####
 testthat::test_that(".kernel_weighting works", {
   withr::local_package("sf")
@@ -459,6 +499,49 @@ testthat::test_that(".kernel_weighting works", {
     )
   )
 
+})
+
+testthat::test_that(".kernel_weighting handles point terra input and list extraction", {
+  withr::local_package("terra")
+  withr::local_package("dplyr")
+  withr::local_package("rlang")
+
+  x_ras <- terra::rast(
+    nrows = 1,
+    ncols = 2,
+    xmin = 0,
+    xmax = 2,
+    ymin = 0,
+    ymax = 1,
+    crs = "EPSG:3857"
+  )
+  terra::values(x_ras) <- c(10, 20)
+
+  y_vec <- terra::vect(
+    data.frame(id = c("p1", "p2"), x = c(0.25, 1.75), y = c(0.5, 0.5)),
+    geom = c("x", "y"),
+    crs = "EPSG:3857"
+  )
+
+  extracted <- list(
+    data.frame(id = "p1", x = 0.25, y = 0.5, value = 10, coverage_fraction = 1),
+    data.frame(id = "p2", x = 1.75, y = 0.5, value = 20, coverage_fraction = 1)
+  )
+
+  testthat::expect_no_warning(
+    ret <- chopin:::.kernel_weighting(
+      x_ras = x_ras,
+      y_vec = y_vec,
+      id = "id",
+      extracted = extracted,
+      kernel = "uniform",
+      bandwidth = 100
+    )
+  )
+
+  testthat::expect_s3_class(ret, "data.frame")
+  testthat::expect_equal(ret$id, c("p1", "p2"))
+  testthat::expect_equal(ret$value, c(10, 20), tolerance = 1e-8)
 })
 
 
@@ -901,9 +984,27 @@ testthat::test_that("SEDC warning message with multiple fields overlapped", {
 
 # Kernel functions ####
 testthat::test_that("Kernel functions work", {
+  d <- c(0, 5, 10, 15)
+  bw <- 10
+
   testthat::expect_error(chopin:::kernelfunction(10, 100, "hyperbolic"))
-  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "uniform"))
-  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "quartic"))
-  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "triweight"))
-  testthat::expect_no_error(chopin:::kernelfunction(10, 100, "epanechnikov"))
+  testthat::expect_equal(
+    chopin:::kernelfunction(d, bw, "uniform"),
+    c(0.5, 0.5, 0.5, 0)
+  )
+  testthat::expect_equal(
+    chopin:::kernelfunction(d, bw, "quartic"),
+    c(0.9375, 0.52734375, 0, 0),
+    tolerance = 1e-8
+  )
+  testthat::expect_equal(
+    chopin:::kernelfunction(d, bw, "triweight"),
+    c(1, 0.875, 0, 0),
+    tolerance = 1e-8
+  )
+  testthat::expect_equal(
+    chopin:::kernelfunction(d, bw, "epanechnikov"),
+    c(0.75, 0.5625, 0, 0),
+    tolerance = 1e-8
+  )
 })
